@@ -64,7 +64,7 @@ if (!sourceDir) throw new Error("Falta --source-dir /ruta/a/la/carpeta");
 if (limitValue && (!Number.isInteger(limit) || (limit ?? 0) < 1)) throw new Error("--limit ha de ser un enter positiu");
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const serviceRoleKey = process.env.SUPABASE_SECRET_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY;
 if (!supabaseUrl || !serviceRoleKey) throw new Error("Falten les variables de Supabase a .env.local");
 const supabase = createClient(supabaseUrl, serviceRoleKey, {
   auth: { persistSession: false, autoRefreshToken: false },

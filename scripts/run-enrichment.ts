@@ -3,7 +3,7 @@ import WebSocket from "ws";
 
 const recordId = option("--source-record-id");
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const key = process.env.SUPABASE_SECRET_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY;
 const openaiKey = process.env.OPENAI_API_KEY;
 const model = process.env.OPENAI_MATCHING_MODEL;
 if (!recordId || !url || !key || !openaiKey || !model) throw new Error("Falta el registre o la configuració de Supabase/OpenAI");

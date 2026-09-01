@@ -21,7 +21,7 @@ const typeOrder = requestedTypes?.length ? requestedTypes : DEFAULT_TYPES;
 
 const sampleSize = parsePositiveInt(option("--limit") ?? "20");
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const serviceKey = process.env.SUPABASE_SECRET_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY;
 if (!supabaseUrl || !serviceKey) throw new Error("Falten les variables de Supabase a .env.local");
 const supabase = createClient(supabaseUrl, serviceKey, {
   auth: { persistSession: false, autoRefreshToken: false },

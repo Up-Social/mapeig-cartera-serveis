@@ -6,7 +6,7 @@ L'importador és `scripts/import-excels.ts`. Llegeix els quatre llibres autoritz
 
 1. Docker Desktop en execució.
 2. Supabase local iniciat amb `supabase start`.
-3. `.env.local` amb `NEXT_PUBLIC_SUPABASE_URL` i `SUPABASE_SERVICE_ROLE_KEY`.
+3. `.env.local` amb `NEXT_PUBLIC_SUPABASE_URL` i `SUPABASE_SECRET_KEY`.
 
 ## Execució
 

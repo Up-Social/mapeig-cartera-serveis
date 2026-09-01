@@ -6,7 +6,7 @@ import WebSocket from "ws";
 const execFileAsync = promisify(execFile);
 const runId = option("--run-id");
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const key = process.env.SUPABASE_SECRET_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY;
 if (!runId || !url || !key) throw new Error("Falta --run-id o la configuració de Supabase");
 const supabase = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false }, realtime: { transport: WebSocket as never } });
 
