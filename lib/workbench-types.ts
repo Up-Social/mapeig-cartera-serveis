@@ -26,7 +26,7 @@ export type ExternalEnrichment = {
 };
 export type MatchingCandidate = {
   id: string; pipelineJobId: string; rank: number; targetCode: string; targetName: string; score: number;
-  rationale: string; model: string; evidence: Array<{ ordinal: number; content: string }>;
+  rationale: string; model: string; evidence: Array<{ ordinal: number; content: string; explanation: string | null }>;
   serviceDetail: { sectorScope: string | null; portfolioStatus: string | null } | null;
 };
 export type SourceDocument = {

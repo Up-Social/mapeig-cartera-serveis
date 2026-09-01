@@ -42,7 +42,7 @@ export async function getBatch(id: string): Promise<BatchSummary | null> {
   return (await enrichCandidateServices([mapBatch(data as Record<string, unknown>)]))[0];
 }
 
-const BATCH_SELECT = "*,pipeline_jobs(id,status,preparation_status,preparation_message,matching_candidates(id,pipeline_job_id,rank,target_code,target_name,score,rationale,engine_version,matching_candidate_evidence(evidence_chunks(ordinal,content))),source_records(id,source_dataset,financing_type,source_record_id,title,service_provisions(id)))";
+const BATCH_SELECT = "*,pipeline_jobs(id,status,preparation_status,preparation_message,matching_candidates(id,pipeline_job_id,rank,target_code,target_name,score,rationale,engine_version,matching_candidate_evidence(explanation,evidence_chunks(ordinal,content))),source_records(id,source_dataset,financing_type,source_record_id,title,service_provisions(id)))";
 
 export async function getExportSummary() {
   const supabase = createServerSupabase();

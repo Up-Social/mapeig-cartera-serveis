@@ -15,7 +15,7 @@ const limitArg = process.argv.indexOf("--limit");
 const limit = limitArg >= 0 ? Number.parseInt(process.argv[limitArg + 1] ?? "1", 10) : runId ? 50 : 1;
 if (!Number.isInteger(limit) || limit < 1 || limit > 50) throw new Error("--limit ha de ser entre 1 i 50");
 
-type CandidateOutput = { code: string; score: number; rationale: string; evidence_ordinals: number[] };
+type CandidateOutput = { code: string; score: number; rationale: string; evidence_ordinals: number[]; evidence_explanation: string };
 type EnrichmentOutput = { title: string | null; provider_name: string | null; provider_nif: string | null; mechanism: string | null; award_date: string | null; amount: number | null; contracting_body: string | null; target_population: string | null; summary: string; confidence: number; evidence_ordinals: number[] };
 
 async function main() {
@@ -54,7 +54,7 @@ async function processJob(job: { id: string; run_id: string; source_record_id: s
       headers: { Authorization: `Bearer ${openaiKey}`, "Content-Type": "application/json" },
       body: JSON.stringify({
         model,
-        instructions: existingEnrichment ? "Classifica la provisió contra el catàleg utilitzant les dades ja contrastades i els fragments oficials. Proposa com a màxim tres candidats ordenats. Per a cada candidat, el rationale ha d'explicar explícitament les coincidències, l'evidència que augmenta la confiança, les diferències o ambigüitats que redueixen la puntuació i per què queda per sobre o per sota dels altres candidats. No inventis codis ni fets. Una puntuació baixa és preferible a una falsa certesa. Respon en català." : "Primer extreu camps estructurats exclusivament dels fragments oficials; usa null si no hi consten. Després classifica la provisió contra el catàleg. Per a cada candidat, el rationale ha d'explicar explícitament les coincidències, l'evidència que augmenta la confiança, les diferències o ambigüitats que redueixen la puntuació i per què queda per sobre o per sota dels altres candidats. No inventis codis ni fets. Respon en català.",
+        instructions: existingEnrichment ? matchingInstructions() : `Primer extreu camps estructurats exclusivament dels fragments oficials; usa null si no hi consten. ${matchingInstructions()}`,
         input: buildInput({ ...record, verified_enrichment: existingEnrichment }, catalog ?? [], chunks),
         text: { format: { type: "json_schema", name: "matching_candidates", strict: true, schema: existingEnrichment ? candidatesOnlySchema() : combinedSchema() } },
         max_output_tokens: 1800,
@@ -76,7 +76,7 @@ async function processJob(job: { id: string; run_id: string; source_record_id: s
       if (candidateError) throw candidateError;
       const evidence = [...new Set(candidate.evidence_ordinals)].map((ordinal) => chunks[ordinal - 1]).filter(Boolean);
       if (evidence.length) {
-        const { error: evidenceError } = await supabase.from("matching_candidate_evidence").insert(evidence.map((chunk) => ({ candidate_id: inserted.id, evidence_chunk_id: chunk.id })));
+        const { error: evidenceError } = await supabase.from("matching_candidate_evidence").insert(evidence.map((chunk) => ({ candidate_id: inserted.id, evidence_chunk_id: chunk.id, explanation: candidate.evidence_explanation })));
         if (evidenceError) throw evidenceError;
       }
     }
@@ -122,7 +122,7 @@ async function assertNotPreviouslySelected(sourceRecordId: string, currentJobId:
   if ((runs ?? []).some((run) => run.parameters?.purpose !== "inspection")) throw new Error("Cas omès: aquest registre o un duplicat ja havia entrat en un altre lot de matching.");
 }
 
-function candidatesSchema() { return { type: "array", maxItems: 3, items: { type: "object", additionalProperties: false, required: ["code","score","rationale","evidence_ordinals"], properties: { code: { type: "string" }, score: { type: "number", minimum: 0, maximum: 1 }, rationale: { type: "string" }, evidence_ordinals: { type: "array", items: { type: "integer", minimum: 1 } } } } }; }
+function candidatesSchema() { return { type: "array", maxItems: 3, items: { type: "object", additionalProperties: false, required: ["code","score","rationale","evidence_ordinals","evidence_explanation"], properties: { code: { type: "string" }, score: { type: "number", minimum: 0, maximum: 1 }, rationale: { type: "string", minLength: 60, maxLength: 1200 }, evidence_ordinals: { type: "array", items: { type: "integer", minimum: 1 } }, evidence_explanation: { type: "string", minLength: 20, maxLength: 450 } } } }; }
 function candidatesOnlySchema() { return { type: "object", additionalProperties: false, required: ["candidates"], properties: { candidates: candidatesSchema() } }; }
 function combinedSchema() { return { type: "object", additionalProperties: false, required: ["enrichment","candidates"], properties: { enrichment: { type: "object", additionalProperties: false, required: ["title","provider_name","provider_nif","mechanism","award_date","amount","contracting_body","target_population","summary","confidence","evidence_ordinals"], properties: { title: nullableString(), provider_name: nullableString(), provider_nif: nullableString(), mechanism: nullableString(), award_date: nullableString(), amount: { anyOf: [{ type: "number" }, { type: "null" }] }, contracting_body: nullableString(), target_population: nullableString(), summary: { type: "string" }, confidence: { type: "number", minimum: 0, maximum: 1 }, evidence_ordinals: { type: "array", items: { type: "integer", minimum: 1 } } }, }, candidates: candidatesSchema() } }; }
 
@@ -145,6 +145,7 @@ function extractOutputText(response: Record<string, unknown>) {
 }
 
 function nullableString() { return { anyOf: [{ type: "string" }, { type: "null" }] }; }
+function matchingInstructions() { return "Classifica la provisió contra el catàleg utilitzant les dades contrastades i els fragments oficials. Proposa com a màxim tres candidats ordenats. El rationale ha de tenir exactament tres línies: 'Encaix:', que relacioni un fet concret de la prestació amb el servei; 'Diferenciació:', que el compari amb els altres candidats; i 'Limitació:', que indiqui una diferència o dada absent real. evidence_explanation ha de resumir en una o dues frases quina dada oficial sobre l'objecte, actuacions, població o modalitat sustenta l'encaix. No usis import, pressupost, CPV ni òrgan com a evidència principal si no són determinants. No inventis codis ni fets. Una puntuació baixa és preferible a una falsa certesa. Respon en català professional i concís."; }
 
 async function persistEnrichment(sourceRecordId: string, enrichment: EnrichmentOutput, chunks: Array<{ id: string }>) {
   const awardDate = enrichment.award_date && /^\d{4}-\d{2}-\d{2}$/.test(enrichment.award_date) ? enrichment.award_date : null;

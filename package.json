@@ -19,6 +19,7 @@
     "sources:chunk": "tsx --env-file=.env.local scripts/chunk-evidence.ts",
     "matching:ready": "tsx --env-file=.env.local scripts/check-matching-readiness.ts",
     "matching:run": "tsx --env-file=.env.local scripts/run-matching.ts",
+    "matching:regenerate-explanations": "tsx --env-file=.env.local scripts/regenerate-matching-explanations.ts",
     "enrichment:run": "tsx --env-file=.env.local scripts/run-enrichment.ts",
     "pipeline:prepare": "tsx --env-file=.env.local scripts/prepare-batch.ts",
     "worker:run": "tsx --env-file=.env.local scripts/run-worker.ts",
