@@ -32,6 +32,7 @@ const record: SourceRecord = {
   enrichmentError: null,
   sourceDocuments: [],
   matchingCandidates: [],
+  matchingError: null,
   reviewDecision: null,
   pipelineRunId: null,
   batchNumber: null,

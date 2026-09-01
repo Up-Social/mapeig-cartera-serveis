@@ -771,7 +771,9 @@ function RecordStages({
           status={
             record.matchingCandidates.length
               ? "Matching disponible"
-              : "No executat"
+              : record.matchingError
+                ? "Error de matching"
+                : "No executat"
           }
           complete={record.matchingCandidates.length > 0}
         >
@@ -809,11 +811,13 @@ function RecordStages({
       </div>
       {(record.evidenceError ||
         record.enrichmentError ||
+        record.matchingError ||
         message ||
         networkError) && (
         <p className="mt-3 rounded-lg bg-neutral-100 p-2 text-xs leading-5 text-neutral-600">
           {message ||
             networkError ||
+            record.matchingError ||
             record.enrichmentError ||
             record.evidenceError}
         </p>

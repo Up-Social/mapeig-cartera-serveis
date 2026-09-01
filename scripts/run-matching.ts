@@ -102,9 +102,21 @@ async function assertNotPreviouslySelected(sourceRecordId: string, currentJobId:
   const { data: equivalents, error: equivalentsError } = await supabase.from("source_records").select("id").eq("deduplication_key", record.deduplication_key);
   if (equivalentsError) throw equivalentsError;
   const ids = (equivalents ?? []).map((item) => item.id);
-  const { data: otherJobs, error } = await supabase.from("pipeline_jobs").select("run_id").in("source_record_id", ids).neq("id", currentJobId);
+  const { data: otherJobs, error } = await supabase
+    .from("pipeline_jobs")
+    .select("run_id,status,matching_candidates(id)")
+    .in("source_record_id", ids)
+    .neq("id", currentJobId);
   if (error) throw error;
-  const runIds = [...new Set((otherJobs ?? []).map((item) => item.run_id))];
+  const blockingJobs = (otherJobs ?? []).filter(
+    (item) =>
+      item.status !== "error" &&
+      (item.status === "ready" ||
+        item.status === "matching" ||
+        (Array.isArray(item.matching_candidates) &&
+          item.matching_candidates.length > 0)),
+  );
+  const runIds = [...new Set(blockingJobs.map((item) => item.run_id))];
   const { data: runs, error: runsError } = runIds.length ? await supabase.from("pipeline_runs").select("parameters").in("id", runIds) : { data: [], error: null };
   if (runsError) throw runsError;
   if ((runs ?? []).some((run) => run.parameters?.purpose !== "inspection")) throw new Error("Cas omès: aquest registre o un duplicat ja havia entrat en un altre lot de matching.");

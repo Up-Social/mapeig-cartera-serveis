@@ -13,6 +13,7 @@ export type SourceRecord = {
   enrichmentError: string | null;
   sourceDocuments: SourceDocument[];
   matchingCandidates: MatchingCandidate[];
+  matchingError: string | null;
   reviewDecision: "approved" | "corrected" | "rejected" | "insufficient_evidence" | null;
   pipelineRunId: string | null;
   batchNumber: string | null;
