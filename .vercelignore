@@ -1,0 +1,12 @@
+.git/
+.next/
+.vercel/
+node_modules/
+backups/
+tmp/
+supabase/.branches/
+supabase/.temp/
+.env
+.env.local
+.env.*.local
+*.tsbuildinfo
