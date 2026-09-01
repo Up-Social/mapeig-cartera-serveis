@@ -8,8 +8,19 @@ import path from "node:path";
 import { promisify } from "node:util";
 import { createClient } from "@supabase/supabase-js";
 import WebSocket from "ws";
+import {
+  buildSourcePayloadEvidence,
+  isUnusableWebExtraction,
+} from "../lib/source-evidence";
 
-type Document = { id: string; url: string; document_type: string };
+type Document = {
+  id: string;
+  url: string;
+  document_type: string;
+  source_records?:
+    | { source_payload?: Record<string, unknown> }
+    | Array<{ source_payload?: Record<string, unknown> }>;
+};
 const execFileAsync = promisify(execFile);
 const MAX_BYTES = 10 * 1024 * 1024;
 const MAX_TEXT = 200_000;
@@ -35,7 +46,13 @@ async function main() {
     await update(document.id, { status: "fetching", error_message: null });
     try {
       const fetched = await withTimeout(fetchWithLimits(document.url), TIMEOUT_MS + 5_000, "Temps total de descàrrega excedit");
-      const extraction = await extract(fetched.bytes, fetched.mimeType, fetched.finalUrl);
+      let extraction = await extract(fetched.bytes, fetched.mimeType, fetched.finalUrl);
+      if (isUnusableWebExtraction(extraction.text)) {
+        const payloadText = buildSourcePayloadEvidence(documentPayload(document));
+        if (payloadText) {
+          extraction = { text: payloadText, method: "source-payload-fallback" };
+        }
+      }
       if (extraction.text.length < 50) throw new Error("Tipus no compatible: document sense text extraïble; cal OCR");
       await update(document.id, {
         status: "fetched", http_status: fetched.status, mime_type: fetched.mimeType,
@@ -61,7 +78,7 @@ async function selectStratifiedSample(limit: number) {
     if (jobsError) throw jobsError;
     const recordIds = (jobs ?? []).map((job) => job.source_record_id);
     if (!recordIds.length) return [];
-    const { data, error } = await supabase.from("source_documents").select("id,url,document_type,source_record_id").in("source_record_id", recordIds).in("status", ["discovered", "error"]).limit(1000);
+    const { data, error } = await supabase.from("source_documents").select("id,url,document_type,source_record_id,source_records(source_payload)").in("source_record_id", recordIds).in("status", ["discovered", "error"]).limit(1000);
     if (error) throw error;
     const priority = new Map(typeOrder.map((type, index) => [type, index]));
     const selectedByRecord = new Map<string, Document[]>();
@@ -75,7 +92,7 @@ async function selectStratifiedSample(limit: number) {
   const urls = new Set<string>();
   const perType = Math.max(1, Math.ceil(limit / typeOrder.length));
   for (const type of typeOrder) {
-    const { data, error } = await supabase.from("source_documents").select("id,url,document_type")
+    const { data, error } = await supabase.from("source_documents").select("id,url,document_type,source_records(source_payload)")
       .eq("status", "discovered").eq("document_type", type).order("id").limit(perType * 10);
     if (error) throw error;
     for (const item of (data ?? []) as Document[]) {
@@ -84,7 +101,7 @@ async function selectStratifiedSample(limit: number) {
     }
   }
   if (selected.length < limit) {
-    const { data, error } = await supabase.from("source_documents").select("id,url,document_type")
+    const { data, error } = await supabase.from("source_documents").select("id,url,document_type,source_records(source_payload)")
       .eq("status", "discovered").order("id").limit(limit * 20);
     if (error) throw error;
     for (const item of (data ?? []) as Document[]) {
@@ -175,6 +192,12 @@ function htmlToText(html: string) {
     .replace(/&#(\d+);/g, (_, code: string) => String.fromCodePoint(Number(code)));
 }
 function cleanText(text: string) { return text.replace(/\r/g, "").replace(/[\t ]+/g, " ").replace(/\n{3,}/g, "\n\n").trim().slice(0, MAX_TEXT); }
+function documentPayload(document: Document) {
+  const source = Array.isArray(document.source_records)
+    ? document.source_records[0]
+    : document.source_records;
+  return source?.source_payload ?? {};
+}
 function inferMime(pathname: string, bytes: Buffer) { return pathname.toLowerCase().endsWith(".pdf") || bytes.subarray(0, 4).toString() === "%PDF" ? "application/pdf" : "application/octet-stream"; }
 async function update(id: string, values: Record<string, unknown>) { const { error } = await supabase.from("source_documents").update({ ...values, updated_at: new Date().toISOString() }).eq("id", id); if (error) throw error; }
 function option(name: string) { const index = process.argv.indexOf(name); return index >= 0 ? process.argv[index + 1] : undefined; }
