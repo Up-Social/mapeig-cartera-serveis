@@ -5,9 +5,6 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { ChevronDown } from "lucide-react";
 import {
-  enrichRecordFromSources,
-  matchPreparedRecord,
-  prepareRecordSources,
   reviewMatching,
 } from "./actions";
 import type {
@@ -731,7 +728,7 @@ function RecordStages({
               record.evidenceStatus === "ready"
             }
             onClick={() =>
-              run("prepare", () => prepareRecordSources(record.id))
+              run("prepare", () => startRecordOperation(record.id, "prepare"))
             }
           >
             {record.evidenceStatus === "ready"
@@ -758,7 +755,7 @@ function RecordStages({
               record.enrichmentStatus === "completed"
             }
             onClick={() =>
-              run("enrich", () => enrichRecordFromSources(record.id))
+              run("enrich", () => startRecordOperation(record.id, "enrich"))
             }
           >
             {record.enrichmentStatus === "completed"
@@ -787,7 +784,7 @@ function RecordStages({
               record.matchingCandidates.length > 0
             }
             onClick={() =>
-              run("match", () => matchPreparedRecord(record.id))
+              run("match", () => startRecordOperation(record.id, "match"))
             }
           >
             {record.matchingCandidates.length > 0
@@ -921,6 +918,21 @@ async function fetchSourceRecord(id: string, signal?: AbortSignal) {
     throw new Error(payload.error || "No s'ha pogut consultar el registre.");
   }
   return payload.record;
+}
+
+async function startRecordOperation(id: string, operation: RecordOperation) {
+  const response = await fetch(
+    `/api/records/${encodeURIComponent(id)}/operation`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ operation }),
+    },
+  );
+  const payload = (await response.json()) as { error?: string };
+  if (!response.ok) {
+    throw new Error(payload.error || "No s'ha pogut iniciar l'operació.");
+  }
 }
 
 function isAbortError(error: unknown) {
