@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
 import WebSocket from "ws";
+import { classifySourceDocumentField } from "../lib/provision-links";
 
 type SourceRow = { id: string; source_payload: Record<string, unknown> };
 type DocumentRow = {
@@ -65,7 +66,10 @@ function discoverRecordDocuments(record: SourceRow): DocumentRow[] {
       if (existing) {
         if (!existing.fields.includes(field)) existing.fields.push(field);
       } else {
-        byUrl.set(normalized, { fields: [field], type: classify(field) });
+        byUrl.set(normalized, {
+          fields: [field],
+          type: classifySourceDocumentField(field),
+        });
       }
     }
   }
@@ -91,15 +95,6 @@ function normalizeUrl(candidate: string) {
   } catch { return null; }
 }
 
-function classify(field: string) {
-  const name = field.toLocaleLowerCase("ca");
-  if (name.includes("bases reguladores")) return "regulatory_basis";
-  if (name.includes("annex") || name.includes("descàrrega annex")) return "annex";
-  if (name.includes("document conveni")) return "agreement";
-  if (name.includes("diari oficial") || name.includes("última publicación")) return "publication";
-  if (name.includes("órgano de contratación")) return "contracting_profile";
-  return "other";
-}
 function option(name: string) { const index = process.argv.indexOf(name); return index >= 0 ? process.argv[index + 1] : undefined; }
 
 void main().catch((error: unknown) => {

@@ -3,6 +3,7 @@ import { revalidatePath } from "next/cache";
 import { createServerSupabase } from "@/lib/records-page";
 import { dispatchWorkerTask } from "@/lib/worker-dispatch";
 import { requireUuid } from "@/lib/uuid";
+import { resolveRegulatoryBasisUrl } from "@/lib/provision-links";
 
 export async function createProcessingBatch(recordIds: string[]) {
   const ids = [...new Set(recordIds)];
@@ -279,7 +280,7 @@ export async function reviewMatching(input: {
   const { data: record, error: recordError } = await supabase
     .from("source_records")
     .select(
-      "*,source_documents(url,document_type),record_enrichments(provider_name,provider_nif,mechanism,award_date,amount,contracting_body,target_population)",
+      "*,source_documents(url,document_type,source_fields),record_enrichments(provider_name,provider_nif,mechanism,award_date,amount,contracting_body,target_population)",
     )
     .eq("id", input.sourceRecordId)
     .single();
@@ -349,6 +350,7 @@ export async function reviewMatching(input: {
       ? (record.source_documents as Array<{
           url: string;
           document_type: string;
+          source_fields: string[] | null;
         }>)
       : [];
     const enrichment = Array.isArray(record.record_enrichments)
@@ -358,6 +360,17 @@ export async function reviewMatching(input: {
     const normalizedNif = providerNif?.toUpperCase().replace(/[^A-Z0-9]/g, "") ?? null;
     const entityResult = normalizedNif ? await supabase.from("entities").select("id").eq("nif", normalizedNif).maybeSingle() : { data: null, error: null };
     if (entityResult.error) throw entityResult.error;
+    const callUrl =
+      firstText(payload, [
+        "Enlace de la última publicación",
+        "Document conveni",
+        "Enllaç convocatòria",
+      ]) ??
+      documentUrl(documents, [
+        "publication",
+        "agreement",
+        "contracting_profile",
+      ]);
     const { data: provision, error: provisionError } = await supabase
       .from("service_provisions")
       .upsert(
@@ -370,22 +383,12 @@ export async function reviewMatching(input: {
               "Clau",
               "registre",
             ]) ?? String(record.source_record_id).split("::")[0],
-          call_url:
-            firstText(payload, [
-              "Enlace de la última publicación",
-              "Document conveni",
-              "Enllaç convocatòria",
-            ]) ??
-            documentUrl(documents, [
-              "publication",
-              "agreement",
-              "contracting_profile",
-            ]),
-          regulatory_basis_url:
-            firstText(payload, [
-              "Bases reguladoras (enlace)",
-              "Enllaç bases reguladores",
-            ]) ?? documentUrl(documents, ["regulatory_basis"]),
+          call_url: callUrl,
+          regulatory_basis_url: resolveRegulatoryBasisUrl(
+            payload,
+            documents,
+            callUrl,
+          ),
           provider_name: enrichment?.provider_name ?? record.provider_name,
           provider_nif: normalizedNif,
           entity_id: entityResult.data?.id ?? null,
