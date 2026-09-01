@@ -21,6 +21,7 @@
     "matching:run": "tsx --env-file=.env.local scripts/run-matching.ts",
     "enrichment:run": "tsx --env-file=.env.local scripts/run-enrichment.ts",
     "pipeline:prepare": "tsx --env-file=.env.local scripts/prepare-batch.ts",
+    "worker:run": "tsx --env-file=.env.local scripts/run-worker.ts",
     "concerts:discover": "tsx --env-file=.env.local scripts/discover-concerts.ts",
     "concerts:import": "tsx --env-file=.env.local scripts/discover-concerts.ts --import",
     "reses:discover": "tsx --env-file=.env.local scripts/sync-reses.ts",

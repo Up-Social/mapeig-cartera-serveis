@@ -1,11 +1,11 @@
 "use server";
 
-import { spawn } from "node:child_process";
 import { revalidatePath } from "next/cache";
 import { getAvailableFinancingTypes, getBalancedSample } from "@/lib/batches";
 import type { SampleRecord } from "@/lib/batch-types";
 import { FINANCING_TYPES, type FinancingType } from "@/lib/financing-types";
 import { createServerSupabase } from "@/lib/records-page";
+import { dispatchWorkerTask } from "@/lib/worker-dispatch";
 
 export async function generateBalancedSample(excludedIds: string[] = []) {
   return getBalancedSample(validateIds(excludedIds));
@@ -134,7 +134,11 @@ export async function startBatchPreparation(runId: string) {
   if (error) throw error;
   if (!data)
     throw new Error("El lot no es pot preparar en el seu estat actual.");
-  launch("pipeline:prepare", id);
+  await dispatchWorkerTask(
+    { type: "prepare_run", runId: id },
+    "pipeline:prepare",
+    ["--run-id", id],
+  );
   revalidatePath("/batches");
   return { ok: true };
 }
@@ -155,7 +159,11 @@ export async function startBatchMatching(runId: string) {
     .update({ status: "matching", stage: "matching" })
     .eq("id", id);
   if (error) throw error;
-  launch("matching:run", id);
+  await dispatchWorkerTask(
+    { type: "match_run", runId: id },
+    "matching:run",
+    ["--run-id", id],
+  );
   revalidatePath("/batches");
   return { ok: true };
 }
@@ -221,15 +229,6 @@ export async function replaceFailedBatchJob(runId: string, jobId: string) {
   return replacement;
 }
 
-function launch(script: string, runId: string) {
-  const child = spawn("npm", ["run", script, "--", "--run-id", runId], {
-    cwd: process.cwd(),
-    env: process.env,
-    detached: true,
-    stdio: "ignore",
-  });
-  child.unref();
-}
 function validateIds(ids: string[]) {
   const unique = [...new Set(ids)];
   unique.forEach(validateId);

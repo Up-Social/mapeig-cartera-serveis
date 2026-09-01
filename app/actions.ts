@@ -1,7 +1,7 @@
 "use server";
-import { spawn } from "node:child_process";
 import { revalidatePath } from "next/cache";
 import { createServerSupabase } from "@/lib/records-page";
+import { dispatchWorkerTask } from "@/lib/worker-dispatch";
 
 export async function createProcessingBatch(recordIds: string[]) {
   const ids = [...new Set(recordIds)];
@@ -103,7 +103,11 @@ export async function prepareRecordSources(sourceRecordId: string) {
       updated_at: new Date().toISOString(),
     })
     .eq("id", id);
-  launchLocal("pipeline:prepare", ["--run-id", String(run.id)]);
+  await dispatchWorkerTask(
+    { type: "prepare_run", runId: String(run.id) },
+    "pipeline:prepare",
+    ["--run-id", String(run.id)],
+  );
   revalidatePath("/");
   return { ready: false };
 }
@@ -131,7 +135,11 @@ export async function enrichRecordFromSources(sourceRecordId: string) {
       updated_at: new Date().toISOString(),
     })
     .eq("id", id);
-  launchLocal("enrichment:run", ["--source-record-id", id]);
+  await dispatchWorkerTask(
+    { type: "enrich_record", sourceRecordId: id },
+    "enrichment:run",
+    ["--source-record-id", id],
+  );
   revalidatePath("/");
   return { ok: true };
 }
@@ -203,7 +211,11 @@ export async function matchPreparedRecord(sourceRecordId: string) {
       })
       .eq("id", job.run_id);
   }
-  launchLocal("matching:run", ["--run-id", String(job.run_id)]);
+  await dispatchWorkerTask(
+    { type: "match_run", runId: String(job.run_id) },
+    "matching:run",
+    ["--run-id", String(job.run_id)],
+  );
   revalidatePath("/");
   return { runId: String(job.run_id) };
 }
@@ -476,13 +488,4 @@ function validateUuid(id: string) {
   if (!/^[0-9a-f]{8}-[0-9a-f-]{27}$/i.test(id))
     throw new Error("Identificador no vàlid.");
   return id;
-}
-function launchLocal(script: string, args: string[]) {
-  const child = spawn("npm", ["run", script, "--", ...args], {
-    cwd: process.cwd(),
-    env: process.env,
-    detached: true,
-    stdio: "ignore",
-  });
-  child.unref();
 }

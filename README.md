@@ -29,6 +29,22 @@ npm run build
 
 El mateix conjunt de comprovacions s'executa a GitHub Actions per a cada pull request i cada actualització de `main`.
 
+## Worker del pipeline remot
+
+En Vercel, les accions llargues no obren processos fills: creen una tasca persistent a `worker_tasks`. Per processar les tasques contra Supabase remot, mantén un terminal obert en un ordinador amb `.env.local` configurat i executa:
+
+```bash
+npm run worker:run
+```
+
+El worker reclama una sola tasca cada vegada, recupera tasques interrompudes després de 30 minuts i es pot aturar amb `Ctrl+C`. Per processar com a màxim una tasca i sortir:
+
+```bash
+npm run worker:run -- --once
+```
+
+La preparació documental s'executa sense OpenAI. L'enriquiment i el matching requereixen `OPENAI_API_KEY`, `OPENAI_MATCHING_MODEL` i l'autorització explícita del catàleg a `.env.local`.
+
 ## Flux disponible
 
 - Consulta completa i filtrada dels registres importats.

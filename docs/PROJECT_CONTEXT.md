@@ -60,3 +60,5 @@ El detall operatiu equivalent al full `Detalle_Provisiones` es construeix a Supa
 Cada lot finalitzat es pot exportar de manera independent a un llibre que només conté el full `Detalle_Provisiones`, amb les 12 columnes i els estils del Master. L'exportació filtra exclusivament les provisions vigents dels registres del lot i mai modifica el fitxer original.
 
 L'extractor limita mida, temps, redireccions i destinacions privades; detecta HTML/PDF, extreu text i registra errors per document. El contracte del matching separa candidats, evidències i avaluació humana. `npm run matching:ready` bloqueja l'execució si falta OpenAI, model, evidència, treballs o un catàleg autoritzat. La revisió pot aprovar, corregir, rebutjar o declarar evidència insuficient, i només les decisions positives generen `service_provisions`.
+
+En el desplegament web, Vercel només crea tasques persistents a `worker_tasks`; no intenta mantenir processos Node.js després d'una petició. Un worker TypeScript extern reclama les tasques de manera atòmica i executa preparació, enriquiment o matching contra Supabase remot. En desenvolupament local es conserva el llançament immediat dels scripts.
