@@ -2,6 +2,7 @@
 import { revalidatePath } from "next/cache";
 import { createServerSupabase } from "@/lib/records-page";
 import { dispatchWorkerTask } from "@/lib/worker-dispatch";
+import { requireUuid } from "@/lib/uuid";
 
 export async function createProcessingBatch(recordIds: string[]) {
   const ids = [...new Set(recordIds)];
@@ -46,7 +47,7 @@ export async function createProcessingBatch(recordIds: string[]) {
 }
 
 export async function prepareRecordSources(sourceRecordId: string) {
-  const id = validateUuid(sourceRecordId);
+  const id = requireUuid(sourceRecordId);
   const supabase = createServerSupabase();
   const { data: record, error } = await supabase
     .from("source_records")
@@ -64,7 +65,7 @@ export async function prepareRecordSources(sourceRecordId: string) {
       (document) => document.status === "fetched" && document.chunk_count > 0,
     )
   ) {
-    await supabase
+    const { error: updateError } = await supabase
       .from("source_records")
       .update({
         evidence_status: "ready",
@@ -73,7 +74,7 @@ export async function prepareRecordSources(sourceRecordId: string) {
         updated_at: new Date().toISOString(),
       })
       .eq("id", id);
-    revalidatePath("/");
+    if (updateError) throw updateError;
     return { ready: true };
   }
   const { data: run, error: runError } = await supabase
@@ -94,7 +95,7 @@ export async function prepareRecordSources(sourceRecordId: string) {
     preparation_status: "pending",
   });
   if (jobError) throw jobError;
-  await supabase
+  const { error: updateError } = await supabase
     .from("source_records")
     .update({
       evidence_status: "preparing",
@@ -103,17 +104,31 @@ export async function prepareRecordSources(sourceRecordId: string) {
       updated_at: new Date().toISOString(),
     })
     .eq("id", id);
-  await dispatchWorkerTask(
-    { type: "prepare_run", runId: String(run.id) },
-    "pipeline:prepare",
-    ["--run-id", String(run.id)],
-  );
-  revalidatePath("/");
+  if (updateError) throw updateError;
+  try {
+    await dispatchWorkerTask(
+      { type: "prepare_run", runId: String(run.id) },
+      "pipeline:prepare",
+      ["--run-id", String(run.id)],
+    );
+  } catch (error) {
+    const message = actionErrorMessage(error);
+    await supabase
+      .from("source_records")
+      .update({
+        evidence_status: "error",
+        evidence_error: message,
+        processing_status: "error",
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", id);
+    throw error;
+  }
   return { ready: false };
 }
 
 export async function enrichRecordFromSources(sourceRecordId: string) {
-  const id = validateUuid(sourceRecordId);
+  const id = requireUuid(sourceRecordId);
   const supabase = createServerSupabase();
   const { data: record, error } = await supabase
     .from("source_records")
@@ -127,7 +142,7 @@ export async function enrichRecordFromSources(sourceRecordId: string) {
     );
   if (record.enrichment_status === "processing")
     throw new Error("El contrast d'aquest registre ja està en curs.");
-  await supabase
+  const { error: updateError } = await supabase
     .from("source_records")
     .update({
       enrichment_status: "processing",
@@ -135,17 +150,30 @@ export async function enrichRecordFromSources(sourceRecordId: string) {
       updated_at: new Date().toISOString(),
     })
     .eq("id", id);
-  await dispatchWorkerTask(
-    { type: "enrich_record", sourceRecordId: id },
-    "enrichment:run",
-    ["--source-record-id", id],
-  );
-  revalidatePath("/");
+  if (updateError) throw updateError;
+  try {
+    await dispatchWorkerTask(
+      { type: "enrich_record", sourceRecordId: id },
+      "enrichment:run",
+      ["--source-record-id", id],
+    );
+  } catch (error) {
+    const message = actionErrorMessage(error);
+    await supabase
+      .from("source_records")
+      .update({
+        enrichment_status: "error",
+        enrichment_error: message,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", id);
+    throw error;
+  }
   return { ok: true };
 }
 
 export async function matchPreparedRecord(sourceRecordId: string) {
-  const id = validateUuid(sourceRecordId);
+  const id = requireUuid(sourceRecordId);
   const supabase = createServerSupabase();
   const { data: record, error } = await supabase
     .from("source_records")
@@ -211,12 +239,30 @@ export async function matchPreparedRecord(sourceRecordId: string) {
       })
       .eq("id", job.run_id);
   }
-  await dispatchWorkerTask(
-    { type: "match_run", runId: String(job.run_id) },
-    "matching:run",
-    ["--run-id", String(job.run_id)],
-  );
-  revalidatePath("/");
+  const { error: statusError } = await supabase
+    .from("source_records")
+    .update({
+      processing_status: "processant",
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", id);
+  if (statusError) throw statusError;
+  try {
+    await dispatchWorkerTask(
+      { type: "match_run", runId: String(job.run_id) },
+      "matching:run",
+      ["--run-id", String(job.run_id)],
+    );
+  } catch (error) {
+    await supabase
+      .from("source_records")
+      .update({
+        processing_status: "error",
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", id);
+    throw error;
+  }
   return { runId: String(job.run_id) };
 }
 
@@ -484,8 +530,9 @@ function documentUrl(
     null
   );
 }
-function validateUuid(id: string) {
-  if (!/^[0-9a-f]{8}-[0-9a-f-]{27}$/i.test(id))
-    throw new Error("Identificador no vàlid.");
-  return id;
+function actionErrorMessage(error: unknown) {
+  return (error instanceof Error
+    ? error.message
+    : "No s'ha pogut posar la tasca en cua."
+  ).slice(0, 1000);
 }

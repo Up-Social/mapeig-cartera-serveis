@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useRef, useState, useTransition } from "react";
 import type { ReviewQueue, SourceRecord } from "@/lib/workbench-types";
 import { reviewMatching } from "../actions";
@@ -13,7 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { StableAccordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { MatchingCandidateAnalysis } from "@/components/matching-candidate-analysis";
 import { displaySourceIdentifier } from "@/lib/source-identifiers";
 
@@ -30,6 +29,17 @@ export function ReviewWorkbench({
 }) {
   const formRef = useRef<HTMLFormElement>(null);
   const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [records, setRecords] = useState(queue.records);
+  const reviewed = records.filter(
+    (record) => record.reviewDecision !== null,
+  ).length;
+  const updateRecord = (nextRecord: SourceRecord) => {
+    setRecords((current) =>
+      current.map((record) =>
+        record.id === nextRecord.id ? nextRecord : record,
+      ),
+    );
+  };
   return (
     <main className="page-shell">
       <section className="page-container">
@@ -37,7 +47,7 @@ export function ReviewWorkbench({
           <p className="page-eyebrow">Validació humana</p>
           <h2 className="page-title">Revisió de matchings</h2>
           <p className="page-description">
-            {queue.reviewed} revisats · {queue.total - queue.reviewed} pendents
+            {reviewed} revisats · {queue.total - reviewed} pendents
           </p>
         </div>
         <form ref={formRef} className="surface mt-5 grid gap-3 p-4 md:grid-cols-[minmax(220px,1fr)_220px_180px]">
@@ -69,10 +79,10 @@ export function ReviewWorkbench({
         <div className="mt-6">
           <section className="surface overflow-hidden">
             <div className="border-b p-4 font-semibold">
-              Registres pendents de validar ({queue.total})
+              Registres pendents de validar ({records.length})
             </div>
-            <Accordion className="divide-y">
-              {queue.records.map((record) => (
+            <StableAccordion stateKey="review-records" className="divide-y">
+              {records.map((record) => (
                 <AccordionItem key={record.id} value={record.id} className="px-4">
                 <AccordionTrigger className="gap-4 py-4 hover:no-underline"><div className="min-w-0 flex-1 text-left">
                   <div className="flex items-start justify-between gap-2">
@@ -101,11 +111,11 @@ export function ReviewWorkbench({
                     </p>
                   )}
                 </div></AccordionTrigger>
-                <AccordionContent keepMounted className="border-t pb-5 pt-4"><ReviewDetail record={record} queue={queue} filters={filters} services={services} /></AccordionContent>
+                <AccordionContent keepMounted className="border-t pb-5 pt-4"><ReviewDetail record={record} services={services} onRecordUpdate={updateRecord} /></AccordionContent>
                 </AccordionItem>
               ))}
-            </Accordion>
-            {queue.records.length === 0 && (
+            </StableAccordion>
+            {records.length === 0 && (
               <div className="surface border-dashed p-10 text-center text-sm text-muted-foreground">
                 No hi ha registres per revisar amb aquests filtres.
               </div>
@@ -119,16 +129,13 @@ export function ReviewWorkbench({
 
 function ReviewDetail({
   record,
-  queue,
-  filters,
   services,
+  onRecordUpdate,
 }: {
   record: SourceRecord;
-  queue: ReviewQueue;
-  filters: Filters;
   services: ServiceOption[];
+  onRecordUpdate: (record: SourceRecord) => void;
 }) {
-  const router = useRouter();
   const [selection, setSelection] = useState(
     record.matchingCandidates[0]
       ? `candidate:${record.matchingCandidates[0].id}`
@@ -138,9 +145,6 @@ function ReviewDetail({
   const [editing, setEditing] = useState(!record.reviewDecision);
   const [message, setMessage] = useState("");
   const [pending, startTransition] = useTransition();
-  const currentIndex = queue.records.findIndex((item) => item.id === record.id);
-  const next =
-    queue.records[currentIndex + 1] ?? queue.records[currentIndex - 1];
   function submit(outcome: "select" | "reject" | "insufficient") {
     if (
       record.reviewDecision &&
@@ -161,11 +165,20 @@ function ReviewDetail({
             outcome === "select" && kind === "service" ? id : undefined,
           notes,
         });
-        if (next)
-          router.push(
-            `/review?${new URLSearchParams({ ...(filters.batchId ? { batch: filters.batchId } : {}), type: filters.type, state: filters.state, q: filters.query })}`,
+        const response = await fetch(`/api/records/${record.id}`, {
+          cache: "no-store",
+        });
+        const payload = (await response.json()) as {
+          record?: SourceRecord;
+          error?: string;
+        };
+        if (!response.ok || !payload.record)
+          throw new Error(
+            payload.error || "No s'ha pogut actualitzar la decisió.",
           );
-        router.refresh();
+        onRecordUpdate(payload.record);
+        setEditing(false);
+        setMessage("Decisió desada correctament.");
       } catch (error) {
         setMessage(
           error instanceof Error

@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState, useTransition } from "react";
+import { useCallback, useEffect, useRef, useState, useTransition } from "react";
+import { ChevronDown } from "lucide-react";
 import {
   enrichRecordFromSources,
   matchPreparedRecord,
@@ -25,8 +26,11 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { MatchingCandidateAnalysis } from "@/components/matching-candidate-analysis";
+import {
+  isRecordOperationTerminal,
+  type RecordOperation,
+} from "@/lib/record-operation";
 
 const statusLabels: Record<ProcessingStatus, string> = {
   pendent: "Pendent",
@@ -56,22 +60,66 @@ export function ProcessingWorkbench({
   filters,
 }: {
   result: SourcePage;
-  filters: { page: number; query: string; type: string; status: string };
+  filters: {
+    page: number;
+    query: string;
+    type: string;
+    status: string;
+  };
 }) {
+  const [records, setRecords] = useState(result.records);
+  const recordsRef = useRef(result.records);
+  const [metrics, setMetrics] = useState(result.metrics);
+  const [openRecordId, setOpenRecordId] = useState<string | null>(null);
+  const [operations, setOperations] = useState<
+    Partial<Record<string, RecordOperation>>
+  >({});
+
+  const updateRecord = useCallback((nextRecord: SourceRecord) => {
+    const previous = recordsRef.current.find(
+      (record) => record.id === nextRecord.id,
+    );
+    const nextRecords = recordsRef.current.map((record) =>
+      record.id === nextRecord.id ? nextRecord : record,
+    );
+    recordsRef.current = nextRecords;
+    setRecords(nextRecords);
+    if (previous) {
+      setMetrics((current) =>
+        updateMetricsForRecord(current, previous.status, nextRecord.status),
+      );
+    }
+  }, []);
+
+  const startOperation = useCallback(
+    (recordId: string, operation: RecordOperation) => {
+      setOperations((current) => ({ ...current, [recordId]: operation }));
+    },
+    [],
+  );
+
+  const finishOperation = useCallback((recordId: string) => {
+    setOperations((current) => {
+      const next = { ...current };
+      delete next[recordId];
+      return next;
+    });
+  }, []);
+
   return (
     <main className="page-shell">
       <section className="page-container">
         <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
-          <Metric label="Registres totals" value={result.metrics.total} />
-          <Metric label="En cua" value={result.metrics.queued} accent="amber" />
+          <Metric label="Registres totals" value={metrics.total} />
+          <Metric label="En cua" value={metrics.queued} accent="amber" />
           <Metric
             label="Completats"
-            value={result.metrics.completed}
+            value={metrics.completed}
             accent="green"
           />
           <Metric
             label="Revisió necessària"
-            value={result.metrics.review}
+            value={metrics.review}
             accent="violet"
           />
         </div>
@@ -123,39 +171,74 @@ export function ProcessingWorkbench({
                 Filtrar
               </Button>
             </form>
-            <Accordion className="divide-y">
-              {result.records.map((record) => (
-                <AccordionItem key={record.id} value={record.id} className="px-4">
-                  <AccordionTrigger className="gap-4 py-4 hover:no-underline"><div className="min-w-0 flex-1 text-left">
-                    <p className="font-medium leading-5">{record.title}</p>
-                    <p className="mt-1 break-words text-xs leading-5 text-neutral-500">
-                      {record.sourceRecordId} ·{" "}
-                      {record.providerName ?? "Entitat no informada"}
-                    </p>
-                    <div className="mt-3 flex flex-wrap items-center gap-2">
-                      <span className="rounded-full border border-neutral-300 px-2.5 py-1 text-xs font-medium text-neutral-700">
-                        {FINANCING_TYPE_LABELS[record.financingType]}
-                      </span>
-                      <span className="text-xs text-neutral-500">
-                        {SOURCE_LABELS[record.sourceDataset] ??
-                          record.sourceDataset}
-                      </span>
-                      <Badge className={statusStyles[record.status]}>
-                        {statusLabels[record.status]}
-                      </Badge>
-                      <span className="text-xs text-neutral-500">
-                        {record.carteraCode ?? "Sense matching"}
-                      </span>
-                    </div>
-                  </div>
-                  {record.matchingCandidates[0] && (
-                    <MatchSummary record={record} />
-                  )}
-                  </AccordionTrigger>
-                  <AccordionContent className="border-t pb-5 pt-4"><DetailPanel record={record} embedded /></AccordionContent>
-                </AccordionItem>
-              ))}
-            </Accordion>
+            <div className="divide-y">
+              {records.map((record) => {
+                const isOpen = openRecordId === record.id;
+                return (
+                  <section key={record.id} className="px-4">
+                    <button
+                      type="button"
+                      aria-expanded={isOpen}
+                      aria-controls={`record-detail-${record.id}`}
+                      className="flex w-full items-start gap-4 py-4 text-left"
+                      onClick={() =>
+                        setOpenRecordId(isOpen ? null : record.id)
+                      }
+                    >
+                      <div className="min-w-0 flex-1 text-left">
+                        <p className="font-medium leading-5">{record.title}</p>
+                        <p className="mt-1 break-words text-xs leading-5 text-neutral-500">
+                          {record.sourceRecordId} ·{" "}
+                          {record.providerName ?? "Entitat no informada"}
+                        </p>
+                        <div className="mt-3 flex flex-wrap items-center gap-2">
+                          <span className="rounded-full border border-neutral-300 px-2.5 py-1 text-xs font-medium text-neutral-700">
+                            {FINANCING_TYPE_LABELS[record.financingType]}
+                          </span>
+                          <span className="text-xs text-neutral-500">
+                            {SOURCE_LABELS[record.sourceDataset] ??
+                              record.sourceDataset}
+                          </span>
+                          <Badge className={statusStyles[record.status]}>
+                            {statusLabels[record.status]}
+                          </Badge>
+                          <span className="text-xs text-neutral-500">
+                            {record.carteraCode ?? "Sense matching"}
+                          </span>
+                        </div>
+                      </div>
+                      {!isOpen && record.matchingCandidates[0] && (
+                        <MatchSummary record={record} />
+                      )}
+                      <ChevronDown
+                        aria-hidden="true"
+                        className={cn(
+                          "mt-1 size-4 shrink-0 text-neutral-500 transition-transform",
+                          isOpen && "rotate-180",
+                        )}
+                      />
+                    </button>
+                    {isOpen && (
+                      <div
+                        id={`record-detail-${record.id}`}
+                        className="border-t pb-5 pt-4"
+                      >
+                        <DetailPanel
+                          record={record}
+                          embedded
+                          operation={
+                            operations[record.id] ?? inferOperation(record)
+                          }
+                          onRecordUpdate={updateRecord}
+                          onOperationStart={startOperation}
+                          onOperationFinish={finishOperation}
+                        />
+                      </div>
+                    )}
+                  </section>
+                );
+              })}
+            </div>
             <Pagination result={result} filters={filters} />
           </section>
         </div>
@@ -169,10 +252,21 @@ function Pagination({
   filters,
 }: {
   result: SourcePage;
-  filters: { query: string; type: string; status: string };
+  filters: {
+    query: string;
+    type: string;
+    status: string;
+  };
 }) {
-  const href = (page: number) =>
-    `/?${new URLSearchParams({ page: String(page), q: filters.query, type: filters.type, status: filters.status })}`;
+  const href = (page: number) => {
+    const params = new URLSearchParams({
+      page: String(page),
+      q: filters.query,
+      type: filters.type,
+      status: filters.status,
+    });
+    return `/?${params}`;
+  };
   const start = result.total ? (result.page - 1) * result.pageSize + 1 : 0;
   const end = Math.min(result.page * result.pageSize, result.total);
   return (
@@ -239,9 +333,17 @@ function MatchSummary({ record }: { record: SourceRecord }) {
 function DetailPanel({
   record,
   embedded = false,
+  operation,
+  onRecordUpdate,
+  onOperationStart,
+  onOperationFinish,
 }: {
   record?: SourceRecord;
   embedded?: boolean;
+  operation?: RecordOperation;
+  onRecordUpdate: (record: SourceRecord) => void;
+  onOperationStart: (recordId: string, operation: RecordOperation) => void;
+  onOperationFinish: (recordId: string) => void;
 }) {
   if (!record)
     return (
@@ -287,7 +389,13 @@ function DetailPanel({
           value={`${record.sourceSheet ?? "—"} · ${record.sourceRow ?? "—"}`}
         />
       </dl>
-      <RecordStages record={record} />
+      <RecordStages
+        record={record}
+        operation={operation}
+        onRecordUpdate={onRecordUpdate}
+        onOperationStart={onOperationStart}
+        onOperationFinish={onOperationFinish}
+      />
       {record.externalEnrichment && (
         <ExternalEnrichmentDetail enrichment={record.externalEnrichment} />
       )}
@@ -481,35 +589,126 @@ function ExternalEnrichmentDetail({
   );
 }
 
-function RecordStages({ record }: { record: SourceRecord }) {
-  const router = useRouter();
+function RecordStages({
+  record,
+  operation,
+  onRecordUpdate,
+  onOperationStart,
+  onOperationFinish,
+}: {
+  record: SourceRecord;
+  operation?: RecordOperation;
+  onRecordUpdate: (record: SourceRecord) => void;
+  onOperationStart: (recordId: string, operation: RecordOperation) => void;
+  onOperationFinish: (recordId: string) => void;
+}) {
   const [pending, startTransition] = useTransition();
   const [message, setMessage] = useState("");
+  const [networkError, setNetworkError] = useState("");
+  const [pollingStopped, setPollingStopped] = useState(false);
+  const [pollingAttempt, setPollingAttempt] = useState(0);
+  const [startingOperation, setStartingOperation] =
+    useState<RecordOperation>();
+
   useEffect(() => {
-    if (
-      record.evidenceStatus !== "preparing" &&
-      record.enrichmentStatus !== "processing" &&
-      record.status !== "processant"
-    )
-      return;
-    const timer = window.setInterval(() => router.refresh(), 2500);
-    return () => window.clearInterval(timer);
-  }, [record.evidenceStatus, record.enrichmentStatus, record.status, router]);
-  const run = (action: () => Promise<unknown>) => {
+    if (operation) return;
+    const controller = new AbortController();
+    void fetchSourceRecord(record.id, controller.signal)
+      .then(onRecordUpdate)
+      .catch((error: unknown) => {
+        if (!isAbortError(error)) {
+          setNetworkError(
+            error instanceof Error
+              ? error.message
+              : "No s'ha pogut actualitzar l'estat del registre.",
+          );
+        }
+      });
+    return () => controller.abort();
+  }, [operation, record.id, onRecordUpdate]);
+
+  useEffect(() => {
+    if (!operation) return;
+    let cancelled = false;
+    let timer: number | undefined;
+    let controller: AbortController | undefined;
+    let consecutiveFailures = 0;
+
+    const poll = async () => {
+      controller = new AbortController();
+      try {
+        const latest = await fetchSourceRecord(record.id, controller.signal);
+        if (cancelled) return;
+        consecutiveFailures = 0;
+        setNetworkError("");
+        setPollingStopped(false);
+        onRecordUpdate(latest);
+        if (isRecordOperationTerminal(operation, latest)) {
+          onOperationFinish(record.id);
+          return;
+        }
+      } catch (error) {
+        if (cancelled || isAbortError(error)) return;
+        consecutiveFailures += 1;
+        setNetworkError(
+          error instanceof Error
+            ? error.message
+            : "No s'ha pogut actualitzar l'estat del registre.",
+        );
+        if (consecutiveFailures >= 5) {
+          setPollingStopped(true);
+          return;
+        }
+      }
+      timer = window.setTimeout(poll, 2000);
+    };
+
+    void poll();
+    return () => {
+      cancelled = true;
+      controller?.abort();
+      if (timer !== undefined) window.clearTimeout(timer);
+    };
+  }, [
+    operation,
+    pollingAttempt,
+    record.id,
+    onOperationFinish,
+    onRecordUpdate,
+  ]);
+
+  const run = (
+    nextOperation: RecordOperation,
+    action: () => Promise<unknown>,
+  ) => {
     setMessage("");
+    setNetworkError("");
+    setPollingStopped(false);
+    setStartingOperation(nextOperation);
     startTransition(async () => {
       try {
         await action();
-        router.refresh();
+        onOperationStart(record.id, nextOperation);
       } catch (error) {
         setMessage(
           error instanceof Error
             ? error.message
             : "No s'ha pogut iniciar l'operació.",
         );
+        try {
+          onRecordUpdate(await fetchSourceRecord(record.id));
+        } catch {
+          // The action error is the useful message; a later retry can refresh.
+        }
+        onOperationFinish(record.id);
+      } finally {
+        setStartingOperation(undefined);
       }
     });
   };
+  const busy =
+    pending || operation !== undefined || startingOperation !== undefined;
+  const displayedOperation = operation ?? startingOperation;
   return (
     <section className="mt-5 rounded-xl border border-neutral-300 p-4">
       <p className="text-xs font-semibold uppercase tracking-wide text-neutral-500">
@@ -523,16 +722,23 @@ function RecordStages({ record }: { record: SourceRecord }) {
           complete={record.evidenceStatus === "ready"}
         >
           <Button
+            type="button"
             variant="outline"
             size="sm"
             disabled={
-              pending ||
+              busy ||
               record.evidenceStatus === "preparing" ||
               record.evidenceStatus === "ready"
             }
-            onClick={() => run(() => prepareRecordSources(record.id))}
+            onClick={() =>
+              run("prepare", () => prepareRecordSources(record.id))
+            }
           >
-            {record.evidenceStatus === "ready" ? "Preparat" : "Preparar fonts"}
+            {record.evidenceStatus === "ready"
+              ? "Preparat"
+              : displayedOperation === "prepare"
+                ? "Preparant..."
+                : "Preparar fonts"}
           </Button>
         </StageRow>
         <StageRow
@@ -542,19 +748,24 @@ function RecordStages({ record }: { record: SourceRecord }) {
           complete={record.enrichmentStatus === "completed"}
         >
           <Button
+            type="button"
             variant="outline"
             size="sm"
             disabled={
-              pending ||
+              busy ||
               record.evidenceStatus !== "ready" ||
               record.enrichmentStatus === "processing" ||
               record.enrichmentStatus === "completed"
             }
-            onClick={() => run(() => enrichRecordFromSources(record.id))}
+            onClick={() =>
+              run("enrich", () => enrichRecordFromSources(record.id))
+            }
           >
             {record.enrichmentStatus === "completed"
               ? "Contrastat"
-              : "Contrastar dades"}
+              : displayedOperation === "enrich"
+                ? "Contrastant..."
+                : "Contrastar dades"}
           </Button>
         </StageRow>
         <StageRow
@@ -568,15 +779,22 @@ function RecordStages({ record }: { record: SourceRecord }) {
           complete={record.matchingCandidates.length > 0}
         >
           <Button
+            type="button"
             size="sm"
             disabled={
-              pending ||
+              busy ||
               record.enrichmentStatus !== "completed" ||
               record.matchingCandidates.length > 0
             }
-            onClick={() => run(() => matchPreparedRecord(record.id))}
+            onClick={() =>
+              run("match", () => matchPreparedRecord(record.id))
+            }
           >
-            Fer matching
+            {record.matchingCandidates.length > 0
+              ? "Matching fet"
+              : displayedOperation === "match"
+                ? "Fent matching..."
+                : "Fer matching"}
           </Button>
         </StageRow>
         <StageRow
@@ -592,10 +810,31 @@ function RecordStages({ record }: { record: SourceRecord }) {
           ) : <Button variant="outline" size="sm" disabled>Validar</Button>}
         </StageRow>
       </div>
-      {(record.evidenceError || record.enrichmentError || message) && (
+      {(record.evidenceError ||
+        record.enrichmentError ||
+        message ||
+        networkError) && (
         <p className="mt-3 rounded-lg bg-neutral-100 p-2 text-xs leading-5 text-neutral-600">
-          {message || record.enrichmentError || record.evidenceError}
+          {message ||
+            networkError ||
+            record.enrichmentError ||
+            record.evidenceError}
         </p>
+      )}
+      {pollingStopped && operation && (
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="mt-3"
+          onClick={() => {
+            setNetworkError("");
+            setPollingStopped(false);
+            setPollingAttempt((value) => value + 1);
+          }}
+        >
+          Tornar a comprovar
+        </Button>
       )}
       <p className="mt-3 text-[11px] leading-5 text-neutral-500">
         Preparar fonts no utilitza OpenAI. Contrastar dades utilitza IA per
@@ -660,6 +899,51 @@ function enrichmentStatusLabel(value: SourceRecord["enrichmentStatus"]) {
       error: "Error de contrast",
     } as const
   )[value];
+}
+
+function inferOperation(record: SourceRecord): RecordOperation | undefined {
+  if (record.evidenceStatus === "preparing") return "prepare";
+  if (record.enrichmentStatus === "processing") return "enrich";
+  if (record.status === "processant") return "match";
+  return undefined;
+}
+
+async function fetchSourceRecord(id: string, signal?: AbortSignal) {
+  const response = await fetch(`/api/records/${encodeURIComponent(id)}`, {
+    cache: "no-store",
+    signal,
+  });
+  const payload = (await response.json()) as {
+    record?: SourceRecord;
+    error?: string;
+  };
+  if (!response.ok || !payload.record) {
+    throw new Error(payload.error || "No s'ha pogut consultar el registre.");
+  }
+  return payload.record;
+}
+
+function isAbortError(error: unknown) {
+  return error instanceof DOMException && error.name === "AbortError";
+}
+
+function updateMetricsForRecord(
+  metrics: SourcePage["metrics"],
+  previous: ProcessingStatus,
+  next: ProcessingStatus,
+) {
+  if (previous === next) return metrics;
+  const count = (status: ProcessingStatus, target: ProcessingStatus) =>
+    status === target ? 1 : 0;
+  return {
+    ...metrics,
+    queued:
+      metrics.queued - count(previous, "preparant") + count(next, "preparant"),
+    completed:
+      metrics.completed - count(previous, "completat") + count(next, "completat"),
+    review:
+      metrics.review - count(previous, "revisio") + count(next, "revisio"),
+  };
 }
 
 function Metric({

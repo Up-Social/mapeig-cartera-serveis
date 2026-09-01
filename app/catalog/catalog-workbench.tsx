@@ -12,7 +12,7 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { StableAccordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 export function CatalogWorkbench({
   result,
@@ -101,7 +101,7 @@ export function CatalogWorkbench({
                 No hi ha serveis que coincideixin amb els filtres.
               </p>
             ) : (
-              <Accordion className="divide-y">
+              <StableAccordion stateKey="catalog-services" className="divide-y">
                 {result.services.map((service) => (
                   <AccordionItem key={service.id} value={service.id} className="px-4">
                     <AccordionTrigger className="gap-4 py-4 hover:no-underline">
@@ -114,7 +114,7 @@ export function CatalogWorkbench({
                     <AccordionContent className="border-t pb-5 pt-4"><ServiceDetail service={service} embedded /></AccordionContent>
                   </AccordionItem>
                 ))}
-              </Accordion>
+              </StableAccordion>
             )}
             <Pagination result={result} filters={filters} />
           </section>

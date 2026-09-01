@@ -95,8 +95,26 @@ async function markDomainFailure(task: Task, message: string) {
     await db.from("source_records").update({ enrichment_status: "error", enrichment_error: message }).eq("id", task.source_record_id);
   } else if (task.task_type === "prepare_run" && task.run_id) {
     await db.from("pipeline_runs").update({ status: "preparation_error", error_count: 1 }).eq("id", task.run_id);
+    const { data: jobs } = await db.from("pipeline_jobs").select("source_record_id").eq("run_id", task.run_id);
+    const recordIds = (jobs ?? []).map((job) => job.source_record_id);
+    if (recordIds.length) {
+      await db.from("source_records").update({
+        evidence_status: "error",
+        evidence_error: message,
+        processing_status: "error",
+        updated_at: new Date().toISOString(),
+      }).in("id", recordIds);
+    }
   } else if (task.task_type === "match_run" && task.run_id) {
     await db.from("pipeline_runs").update({ status: "matching_error", error_count: 1 }).eq("id", task.run_id);
+    const { data: jobs } = await db.from("pipeline_jobs").select("source_record_id").eq("run_id", task.run_id);
+    const recordIds = (jobs ?? []).map((job) => job.source_record_id);
+    if (recordIds.length) {
+      await db.from("source_records").update({
+        processing_status: "error",
+        updated_at: new Date().toISOString(),
+      }).in("id", recordIds);
+    }
   }
 }
 

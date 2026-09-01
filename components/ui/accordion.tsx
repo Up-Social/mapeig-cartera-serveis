@@ -1,7 +1,18 @@
+"use client"
+
+import { useState } from "react"
 import { Accordion as AccordionPrimitive } from "@base-ui/react/accordion"
 
 import { cn } from "@/lib/utils"
 import { ChevronDownIcon, ChevronUpIcon } from "lucide-react"
+
+const stableAccordionState = (() => {
+  const values = new Map<string, string[]>()
+  return {
+    get: (key: string) => values.get(key),
+    set: (key: string, value: string[]) => values.set(key, value),
+  }
+})()
 
 function Accordion({ className, ...props }: AccordionPrimitive.Root.Props) {
   return (
@@ -9,6 +20,31 @@ function Accordion({ className, ...props }: AccordionPrimitive.Root.Props) {
       data-slot="accordion"
       className={cn("flex w-full flex-col", className)}
       {...props}
+    />
+  )
+}
+
+function StableAccordion({
+  stateKey,
+  defaultValue,
+  onValueChange,
+  ...props
+}: Omit<AccordionPrimitive.Root.Props<string>, "value"> & {
+  stateKey: string
+}) {
+  const [value, setValue] = useState<string[]>(() =>
+    stableAccordionState.get(stateKey) ?? defaultValue ?? [],
+  )
+
+  return (
+    <Accordion
+      {...props}
+      value={value}
+      onValueChange={(nextValue, eventDetails) => {
+        stableAccordionState.set(stateKey, nextValue)
+        setValue(nextValue)
+        onValueChange?.(nextValue, eventDetails)
+      }}
     />
   )
 }
@@ -69,4 +105,10 @@ function AccordionContent({
   )
 }
 
-export { Accordion, AccordionItem, AccordionTrigger, AccordionContent }
+export {
+  Accordion,
+  StableAccordion,
+  AccordionItem,
+  AccordionTrigger,
+  AccordionContent,
+}

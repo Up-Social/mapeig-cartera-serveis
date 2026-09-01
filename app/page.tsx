@@ -14,5 +14,11 @@ export default async function Home({ searchParams }: PageProps<"/">) {
     status: typeof params.status === "string" ? params.status : "tots",
   };
   const result = await getSourcePage(filters);
-  return <ProcessingWorkbench result={result} filters={filters} />;
+  return (
+    <ProcessingWorkbench
+      key={`${filters.page}:${filters.query}:${filters.type}:${filters.status}`}
+      result={result}
+      filters={filters}
+    />
+  );
 }

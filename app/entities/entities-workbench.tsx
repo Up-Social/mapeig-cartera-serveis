@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { StableAccordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,7 +23,7 @@ export function EntitiesWorkbench({ result, filters }: { result: EntityPage; fil
         <select name="county" defaultValue={filters.county} className="form-control"><option value="totes">Totes les comarques</option>{result.counties.map((x) => <option key={x}>{x}</option>)}</select>
         <Button variant="outline">Filtrar</Button>
       </form>
-      <Accordion className="divide-y" defaultValue={[]}>
+      <StableAccordion stateKey="entities-records" className="divide-y" defaultValue={[]}>
         {result.entities.map((entity) => <AccordionItem key={entity.id} value={entity.id} className="px-4">
           <AccordionTrigger className="gap-4 py-4 hover:no-underline"><div className="min-w-0 flex-1"><div className="truncate font-semibold">{entity.legalName}</div><div className="mt-1 flex flex-wrap gap-2 text-xs text-muted-foreground"><span>{entity.nif}</span><span>·</span><span>{entity.services.length} serveis RESES</span>{entity.qualification && <Badge variant="secondary">{entity.qualification}</Badge>}</div></div></AccordionTrigger>
           <AccordionContent className="pb-5"><div className="grid gap-5 border-t pt-4 lg:grid-cols-2">
@@ -31,7 +31,7 @@ export function EntitiesWorkbench({ result, filters }: { result: EntityPage; fil
             <section><h3 className="text-sm font-semibold">Relació amb la Cartera</h3><p className="mt-2 text-sm text-muted-foreground">{entity.catalogRelations.length ? entity.catalogRelations.map((x) => `${x.serviceCode} · ${x.serviceName ?? ""} (${x.relationType})`).join("; ") : "Encara no hi ha relacions confirmades ni auxiliars."}</p></section>
           </div><section className="mt-5"><h3 className="text-sm font-semibold">Serveis i establiments RESES</h3><div className="mt-2 grid gap-2">{entity.services.map((s) => <div key={s.registryNumber} className="rounded-lg border p-3 text-sm"><div className="font-medium">{s.serviceName}</div><div className="mt-1 text-xs text-muted-foreground">{s.registryNumber} · {s.serviceType} · {[s.address, s.postalCode, s.municipality, s.county].filter(Boolean).join(", ")}{s.capacity != null ? ` · Capacitat ${s.capacity}` : ""}</div></div>)}</div></section></AccordionContent>
         </AccordionItem>)}
-      </Accordion>
+      </StableAccordion>
       <div className="flex items-center justify-between border-t p-4 text-sm"><span>{result.total.toLocaleString("ca-ES")} entitats</span><div className="flex items-center gap-2"><Link className={cn(buttonVariants({variant:"outline"}),result.page<=1&&"pointer-events-none opacity-40")} href={href(Math.max(1,result.page-1))}>Anterior</Link><span>{result.page} / {result.pageCount}</span><Link className={cn(buttonVariants({variant:"outline"}),result.page>=result.pageCount&&"pointer-events-none opacity-40")} href={href(Math.min(result.pageCount,result.page+1))}>Següent</Link></div></div>
     </section>
   </section></main>;

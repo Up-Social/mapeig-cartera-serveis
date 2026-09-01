@@ -19,7 +19,7 @@ import {
   startBatchPreparation,
 } from "./actions";
 import { Button, buttonVariants } from "@/components/ui/button";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { StableAccordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { MatchingCandidateAnalysis } from "@/components/matching-candidate-analysis";
 
 export function BatchesWorkbench({
@@ -178,7 +178,7 @@ export function BatchesWorkbench({
             <section className="surface p-4">
               <h3 className="font-semibold">Historial</h3>
               <p className="mt-1 text-xs text-muted-foreground">Obre un lot per executar el pas pendent. L&apos;Excel apareix quan hi ha almenys una validació humana aprovada.</p>
-              <Accordion defaultValue={activeBatch ? [activeBatch.id] : []} className="mt-3 divide-y">
+              <StableAccordion stateKey={`batches-history-${activeBatch?.id ?? "none"}`} defaultValue={activeBatch ? [activeBatch.id] : []} className="mt-3 divide-y">
                 {batches.map((batch) => (
                   <AccordionItem key={batch.id} value={batch.id} className="px-3">
                     <AccordionTrigger className="gap-3 py-3 hover:no-underline"><div className="min-w-0 flex-1 text-left">
@@ -197,11 +197,11 @@ export function BatchesWorkbench({
                       </p>
                     </div></AccordionTrigger>
                     <AccordionContent className="border-t pb-4 pt-4">
-                    <BatchDetail batch={batch} pending={pending} run={run} />
+                    <BatchDetail batch={batch} pending={pending} run={run} refresh={() => router.refresh()} />
                     </AccordionContent>
                   </AccordionItem>
                 ))}
-              </Accordion>
+              </StableAccordion>
             </section>
           </div>
           <div className="space-y-6">
@@ -257,7 +257,7 @@ function SamplePreview({
             <div className="bg-neutral-50 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-neutral-500">
               {FINANCING_TYPE_LABELS[type]} · {rows.length}
             </div>
-            <Accordion>
+            <StableAccordion stateKey={`batch-sample-${type}`}>
             {rows.map((record) => (
               <AccordionItem key={record.id} value={record.id} className="border-t px-4">
                 <AccordionTrigger className="gap-3 py-3 hover:no-underline"><div className="min-w-0 flex-1 text-left">
@@ -290,7 +290,7 @@ function SamplePreview({
                 </div><p className="mt-3 text-xs text-muted-foreground">Identificador: {record.sourceRecordId} · Font: {SOURCE_LABELS[record.sourceDataset] ?? record.sourceDataset}</p></AccordionContent>
               </AccordionItem>
             ))}
-            </Accordion>
+            </StableAccordion>
           </div>
         ) : null;
       })}
@@ -302,10 +302,12 @@ function BatchDetail({
   batch,
   pending,
   run,
+  refresh,
 }: {
   batch: BatchSummary;
   pending: boolean;
   run: (action: () => Promise<void>) => void;
+  refresh: () => void;
 }) {
   const readyCost =
     (batch.estimatedInputTokens * 0.15) / 1_000_000 +
@@ -329,7 +331,7 @@ function BatchDetail({
                 onClick={() =>
                   run(async () => {
                     await startBatchPreparation(batch.id);
-                    location.reload();
+                    refresh();
                   })
                 }
               >
@@ -342,7 +344,7 @@ function BatchDetail({
                 onClick={() =>
                   run(async () => {
                     await startBatchMatching(batch.id);
-                    location.reload();
+                    refresh();
                   })
                 }
               >
@@ -392,7 +394,7 @@ function BatchDetail({
       </section>
       <section className="surface overflow-hidden">
         <div className="border-b p-4 font-semibold">Registres del lot</div>
-        <Accordion className="divide-y">
+        <StableAccordion stateKey={`batch-jobs-${batch.id}`} className="divide-y">
           {batch.jobs.map((job) => (
             <AccordionItem key={job.id} value={job.id} className="px-4">
             <AccordionTrigger className="gap-4 py-4 hover:no-underline"><div className="min-w-0 flex-1 text-left">
@@ -417,11 +419,11 @@ function BatchDetail({
               <AccordionContent className="border-t pb-4 pt-3">
                 <dl className="grid gap-2 text-sm sm:grid-cols-[150px_1fr]"><dt className="text-muted-foreground">Identificador</dt><dd className="break-all">{job.externalId}</dd><dt className="text-muted-foreground">Preparació</dt><dd>{job.preparationMessage ?? preparationLabel(job.preparationStatus, job.status)}</dd></dl>
                 <section className="mt-5 border-t pt-4"><h4 className="text-sm font-semibold">Anàlisi del matching</h4><p className="mt-1 text-xs text-muted-foreground">Propostes de la IA pendents o sotmeses a validació humana.</p>{job.matchingCandidates.length ? <div className="mt-3 space-y-3">{job.matchingCandidates.map((candidate) => <MatchingCandidateAnalysis key={candidate.id} candidate={candidate} />)}</div> : <p className="mt-3 rounded-lg bg-muted/40 p-3 text-sm text-muted-foreground">Anàlisi encara no disponible.</p>}</section>
-                {["no_source", "unsupported", "error"].includes(job.preparationStatus) && batch.status === "ready" && <Button variant="outline" size="sm" disabled={pending} onClick={() => run(async () => { await replaceFailedBatchJob(batch.id, job.id); location.reload(); })} className="mt-3">Substituir registre</Button>}
+                {["no_source", "unsupported", "error"].includes(job.preparationStatus) && batch.status === "ready" && <Button variant="outline" size="sm" disabled={pending} onClick={() => run(async () => { await replaceFailedBatchJob(batch.id, job.id); refresh(); })} className="mt-3">Substituir registre</Button>}
               </AccordionContent>
             </AccordionItem>
           ))}
-        </Accordion>
+        </StableAccordion>
       </section>
     </>
   );

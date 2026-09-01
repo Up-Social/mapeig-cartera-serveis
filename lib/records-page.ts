@@ -34,6 +34,16 @@ export async function getSourcePage(input: { page: number; query: string; type: 
   };
 }
 
+export async function getSourceRecord(id: string): Promise<SourceRecord | null> {
+  const { data, error } = await createServerSupabase()
+    .from("source_records")
+    .select(RECORD_SELECT)
+    .eq("id", id)
+    .maybeSingle();
+  if (error) throw error;
+  return data ? mapRecord(data as Record<string, unknown>) : null;
+}
+
 async function countRows(status?: ProcessingStatus) {
   let request = createServerSupabase().from("source_records").select("id", { count: "exact", head: true });
   if (status) request = request.eq("processing_status", status);
