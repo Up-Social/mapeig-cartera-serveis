@@ -2,7 +2,7 @@
 
 import { useRef, useState, useTransition } from "react";
 import type { ReviewQueue, SourceRecord } from "@/lib/workbench-types";
-import { reviewMatching } from "../actions";
+import { submitRecordReview } from "@/lib/review-client";
 import {
   FINANCING_TYPES,
   FINANCING_TYPE_LABELS,
@@ -156,8 +156,7 @@ function ReviewDetail({
     startTransition(async () => {
       try {
         const [kind, id] = selection.split(":");
-        await reviewMatching({
-          sourceRecordId: record.id,
+        const nextRecord = await submitRecordReview(record.id, {
           outcome,
           candidateId:
             outcome === "select" && kind === "candidate" ? id : undefined,
@@ -165,18 +164,7 @@ function ReviewDetail({
             outcome === "select" && kind === "service" ? id : undefined,
           notes,
         });
-        const response = await fetch(`/api/records/${record.id}`, {
-          cache: "no-store",
-        });
-        const payload = (await response.json()) as {
-          record?: SourceRecord;
-          error?: string;
-        };
-        if (!response.ok || !payload.record)
-          throw new Error(
-            payload.error || "No s'ha pogut actualitzar la decisió.",
-          );
-        onRecordUpdate(payload.record);
+        onRecordUpdate(nextRecord);
         setEditing(false);
         setMessage("Decisió desada correctament.");
       } catch (error) {

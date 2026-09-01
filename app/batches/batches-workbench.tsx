@@ -10,14 +10,6 @@ import {
   SOURCE_LABELS,
   type FinancingType,
 } from "@/lib/financing-types";
-import {
-  createGuidedBatch,
-  generateBalancedSample,
-  replaceFailedBatchJob,
-  replaceSampleRecord,
-  startBatchMatching,
-  startBatchPreparation,
-} from "./actions";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { StableAccordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { MatchingCandidateAnalysis } from "@/components/matching-candidate-analysis";
@@ -67,7 +59,9 @@ export function BatchesWorkbench({
   }
   function generate() {
     run(async () => {
-      const rows = await generateBalancedSample();
+      const rows = await runBatchOperation<SampleRecord[]>({
+        operation: "generate_sample",
+      });
       setSample(rows);
       if (rows.length !== 4)
         setMessage(
@@ -77,10 +71,11 @@ export function BatchesWorkbench({
   }
   function replace(record: SampleRecord) {
     run(async () => {
-      const next = await replaceSampleRecord(
-        record.financingType,
-        sample.map((item) => item.id),
-      );
+      const next = await runBatchOperation<SampleRecord>({
+        operation: "replace_sample",
+        financingType: record.financingType,
+        excludedIds: sample.map((item) => item.id),
+      });
       setSample((current) =>
         current.map((item) => (item.id === record.id ? next : item)),
       );
@@ -88,16 +83,20 @@ export function BatchesWorkbench({
   }
   function add(type: FinancingType) {
     run(async () => {
-      const next = await replaceSampleRecord(
-        type,
-        sample.map((item) => item.id),
-      );
+      const next = await runBatchOperation<SampleRecord>({
+        operation: "replace_sample",
+        financingType: type,
+        excludedIds: sample.map((item) => item.id),
+      });
       setSample((current) => [...current, next]);
     });
   }
   function create() {
     run(async () => {
-      const result = await createGuidedBatch(sample.map((item) => item.id));
+      const result = await runBatchOperation<{ id: string }>({
+        operation: "create_batch",
+        recordIds: sample.map((item) => item.id),
+      });
       setSample([]);
       router.push(`/batches?batch=${result.id}`);
       router.refresh();
@@ -330,7 +329,7 @@ function BatchDetail({
                 disabled={pending}
                 onClick={() =>
                   run(async () => {
-                    await startBatchPreparation(batch.id);
+                    await runBatchOperation({ operation: "prepare_batch", batchId: batch.id });
                     refresh();
                   })
                 }
@@ -343,7 +342,7 @@ function BatchDetail({
                 disabled={pending}
                 onClick={() =>
                   run(async () => {
-                    await startBatchMatching(batch.id);
+                    await runBatchOperation({ operation: "match_batch", batchId: batch.id });
                     refresh();
                   })
                 }
@@ -419,7 +418,7 @@ function BatchDetail({
               <AccordionContent className="border-t pb-4 pt-3">
                 <dl className="grid gap-2 text-sm sm:grid-cols-[150px_1fr]"><dt className="text-muted-foreground">Identificador</dt><dd className="break-all">{job.externalId}</dd><dt className="text-muted-foreground">Preparació</dt><dd>{job.preparationMessage ?? preparationLabel(job.preparationStatus, job.status)}</dd></dl>
                 <section className="mt-5 border-t pt-4"><h4 className="text-sm font-semibold">Anàlisi del matching</h4><p className="mt-1 text-xs text-muted-foreground">Propostes de la IA pendents o sotmeses a validació humana.</p>{job.matchingCandidates.length ? <div className="mt-3 space-y-3">{job.matchingCandidates.map((candidate) => <MatchingCandidateAnalysis key={candidate.id} candidate={candidate} />)}</div> : <p className="mt-3 rounded-lg bg-muted/40 p-3 text-sm text-muted-foreground">Anàlisi encara no disponible.</p>}</section>
-                {["no_source", "unsupported", "error"].includes(job.preparationStatus) && batch.status === "ready" && <Button variant="outline" size="sm" disabled={pending} onClick={() => run(async () => { await replaceFailedBatchJob(batch.id, job.id); refresh(); })} className="mt-3">Substituir registre</Button>}
+                {["no_source", "unsupported", "error"].includes(job.preparationStatus) && batch.status === "ready" && <Button variant="outline" size="sm" disabled={pending} onClick={() => run(async () => { await runBatchOperation({ operation: "replace_failed_job", batchId: batch.id, jobId: job.id }); refresh(); })} className="mt-3">Substituir registre</Button>}
               </AccordionContent>
             </AccordionItem>
           ))}
@@ -460,6 +459,21 @@ function stageLabel(stage: string) {
       } as Record<string, string>
     )[stage] ?? stage
   );
+}
+
+async function runBatchOperation<T = unknown>(
+  body: Record<string, unknown>,
+): Promise<T> {
+  const response = await fetch("/api/batches/operation", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  const payload = (await response.json()) as { result?: T; error?: string };
+  if (!response.ok) {
+    throw new Error(payload.error || "No s'ha pogut completar l'operació.");
+  }
+  return payload.result as T;
 }
 function preparationLabel(preparation: string, status: string) {
   if (

@@ -1,12 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { ChevronDown } from "lucide-react";
-import {
-  reviewMatching,
-} from "./actions";
 import type {
   ProcessingStatus,
   SourcePage,
@@ -28,6 +24,7 @@ import {
   isRecordOperationTerminal,
   type RecordOperation,
 } from "@/lib/record-operation";
+import { submitRecordReview } from "@/lib/review-client";
 
 const statusLabels: Record<ProcessingStatus, string> = {
   pendent: "Pendent",
@@ -416,7 +413,10 @@ function DetailPanel({
               Decisió registrada: {reviewDecisionLabel(record.reviewDecision)}
             </p>
           ) : (
-            <ReviewControls record={record} />
+            <ReviewControls
+              record={record}
+              onRecordUpdate={onRecordUpdate}
+            />
           )}
         </div>
       ) : (
@@ -1032,8 +1032,13 @@ function qualityFlagLabel(flag: string) {
     )[flag] ?? flag
   );
 }
-function ReviewControls({ record }: { record: SourceRecord }) {
-  const router = useRouter();
+function ReviewControls({
+  record,
+  onRecordUpdate,
+}: {
+  record: SourceRecord;
+  onRecordUpdate: (record: SourceRecord) => void;
+}) {
   const [candidateId, setCandidateId] = useState(
     record.matchingCandidates[0]?.id ?? "",
   );
@@ -1044,14 +1049,13 @@ function ReviewControls({ record }: { record: SourceRecord }) {
     setMessage("");
     startTransition(async () => {
       try {
-        await reviewMatching({
-          sourceRecordId: record.id,
+        const nextRecord = await submitRecordReview(record.id, {
           candidateId: outcome === "select" ? candidateId : undefined,
           outcome,
           notes,
         });
+        onRecordUpdate(nextRecord);
         setMessage("Decisió registrada correctament.");
-        router.refresh();
       } catch (error) {
         setMessage(
           error instanceof Error
