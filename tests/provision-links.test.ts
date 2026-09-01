@@ -21,15 +21,14 @@ test("prefers an explicit regulatory-basis URL", () => {
     resolveRegulatoryBasisUrl(
       { "Bases reguladoras (enlace)": "https://example.test/bases.pdf" },
       [],
-      "https://example.test/call",
     ),
     "https://example.test/bases.pdf",
   );
 });
 
-test("uses the official call document when the source has no separate basis", () => {
+test("does not duplicate the call URL when the source has no separate basis", () => {
   assert.equal(
-    resolveRegulatoryBasisUrl({}, [], "https://example.test/publication"),
-    "https://example.test/publication",
+    resolveRegulatoryBasisUrl({}, []),
+    null,
   );
 });

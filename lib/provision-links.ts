@@ -19,7 +19,6 @@ export function classifySourceDocumentField(field: string) {
 export function resolveRegulatoryBasisUrl(
   payload: Record<string, unknown>,
   documents: SourceDocumentLink[],
-  callUrl: string | null,
 ) {
   const payloadUrl = Object.entries(payload).find(
     ([field, value]) =>
@@ -34,7 +33,7 @@ export function resolveRegulatoryBasisUrl(
         REGULATORY_FIELD.test(normalizeField(field)),
       ),
   );
-  return explicitDocument?.url ?? callUrl;
+  return explicitDocument?.url ?? null;
 }
 
 function normalizeField(value: string) {

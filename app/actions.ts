@@ -387,7 +387,6 @@ export async function reviewMatching(input: {
           regulatory_basis_url: resolveRegulatoryBasisUrl(
             payload,
             documents,
-            callUrl,
           ),
           provider_name: enrichment?.provider_name ?? record.provider_name,
           provider_nif: normalizedNif,
