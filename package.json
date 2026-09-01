@@ -10,7 +10,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "next typegen && tsc --noEmit",
     "test": "tsx --test tests/*.test.ts",
     "verify": "npm run lint && npm run typecheck && npm test && npm run build",
     "data:import": "tsx --env-file=.env.local scripts/import-excels.ts",
