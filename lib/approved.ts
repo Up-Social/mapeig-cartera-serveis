@@ -1,0 +1,45 @@
+import "server-only";
+import { createServerSupabase } from "./records-page";
+import type { ApprovedFilters, ApprovedPage, ApprovedProvision } from "./approved-types";
+
+const PAGE_SIZE = 50;
+const SELECT = "id,source_record_id,source_id,call_url,regulatory_basis_url,provider_name,provider_nif,mechanism,award_date,amount,contracting_body,target_population,source_reference,service_code,source_records!inner(id,title,source_dataset,financing_type,source_record_id,processing_status,review_decisions(decision,created_at),pipeline_jobs(run_id,status,created_at,pipeline_runs(batch_number))),master_services(service_name)";
+
+export async function getApprovedPage(filters: ApprovedFilters): Promise<ApprovedPage> {
+  const db = createServerSupabase();
+  let allowedSourceIds: string[] | null = null;
+  if (filters.batch !== "tots") {
+    const jobs = await db.from("pipeline_jobs").select("source_record_id").eq("run_id", filters.batch).in("status", ["approved", "corrected"]);
+    if (jobs.error) throw jobs.error;
+    allowedSourceIds = (jobs.data ?? []).map((job) => job.source_record_id);
+  }
+  let request = db.from("service_provisions").select(SELECT, { count: "exact" }).eq("source_records.processing_status", "completat");
+  if (allowedSourceIds) request = request.in("source_record_id", allowedSourceIds.length ? allowedSourceIds : ["00000000-0000-0000-0000-000000000000"]);
+  if (filters.type !== "totes") request = request.eq("source_records.financing_type", filters.type);
+  if (filters.service !== "tots") request = request.eq("service_code", filters.service);
+  if (filters.query) { const q = filters.query.replaceAll(/[,%()]/g, " ").trim(); request = request.or(`provider_name.ilike.%${q}%,provider_nif.ilike.%${q}%,source_id.ilike.%${q}%,service_code.ilike.%${q}%`); }
+  const from = (filters.page - 1) * PAGE_SIZE;
+  const [result, batchResult, referenceResult] = await Promise.all([
+    request.order("created_at", { ascending: false }).range(from, from + PAGE_SIZE - 1),
+    db.from("pipeline_runs").select("id,batch_number").order("batch_number"),
+    db.from("service_provisions").select("service_code,master_services(service_name)"),
+  ]);
+  if (result.error) throw result.error;
+  if (batchResult.error) throw batchResult.error;
+  if (referenceResult.error) throw referenceResult.error;
+  const total = result.count ?? 0;
+  const pageCount = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const services = [...new Map((referenceResult.data ?? []).map((item) => { const raw = item.master_services; const master = (Array.isArray(raw) ? raw[0] : raw) as { service_name?: string } | null; return [item.service_code, { code: item.service_code, name: master?.service_name ?? item.service_code }]; })).values()].sort((a, b) => a.code.localeCompare(b.code));
+  return { provisions: (result.data ?? []).map(mapApproved), total, page: Math.min(filters.page, pageCount), pageCount, pageSize: PAGE_SIZE, batches: (batchResult.data ?? []).map((batch) => ({ id: batch.id, number: String(batch.batch_number).padStart(8, "0") })), services };
+}
+
+function mapApproved(row: Record<string, unknown>): ApprovedProvision {
+  const rawSource = row.source_records; const source = (Array.isArray(rawSource) ? rawSource[0] : rawSource) as Record<string, unknown>;
+  const jobs = Array.isArray(source.pipeline_jobs) ? source.pipeline_jobs as Array<Record<string, unknown>> : [];
+  const job = jobs.filter((item) => ["approved", "corrected"].includes(String(item.status))).sort((a, b) => String(b.created_at).localeCompare(String(a.created_at)))[0];
+  const rawRun = job && (Array.isArray(job.pipeline_runs) ? job.pipeline_runs[0] : job.pipeline_runs); const run = rawRun as Record<string, unknown> | undefined;
+  const decisions = Array.isArray(source.review_decisions) ? source.review_decisions as Array<Record<string, unknown>> : [];
+  const decision = decisions.sort((a, b) => String(b.created_at).localeCompare(String(a.created_at)))[0];
+  const rawMaster = row.master_services; const master = (Array.isArray(rawMaster) ? rawMaster[0] : rawMaster) as Record<string, unknown> | undefined;
+  return { id: String(row.id), sourceRecordId: String(row.source_record_id), sourceId: String(row.source_id), title: String(source.title), sourceDataset: String(source.source_dataset), financingType: String(source.financing_type), batchId: job ? String(job.run_id) : null, batchNumber: run?.batch_number == null ? null : String(run.batch_number).padStart(8, "0"), decision: (decision?.decision === "corrected" ? "corrected" : "approved"), decisionDate: decision?.created_at == null ? null : String(decision.created_at), serviceCode: String(row.service_code), serviceName: String(master?.service_name ?? row.service_code), providerName: row.provider_name == null ? null : String(row.provider_name), providerNif: row.provider_nif == null ? null : String(row.provider_nif), mechanism: String(row.mechanism), awardDate: row.award_date == null ? null : String(row.award_date), amount: row.amount == null ? null : Number(row.amount), contractingBody: row.contracting_body == null ? null : String(row.contracting_body), targetPopulation: row.target_population == null ? null : String(row.target_population), callUrl: row.call_url == null ? null : String(row.call_url), regulatoryBasisUrl: row.regulatory_basis_url == null ? null : String(row.regulatory_basis_url), sourceReference: String(row.source_reference) };
+}
