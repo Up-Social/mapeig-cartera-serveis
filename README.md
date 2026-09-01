@@ -13,6 +13,8 @@ npm run dev
 
 Completa `.env.local` amb les claus retornades per `supabase status`. La web queda disponible a `http://localhost:3000` i Supabase Studio a `http://localhost:54323`.
 
+Configura també `APP_ACCESS_PASSWORD` amb una contrasenya llarga i única. Totes les pàgines, APIs i accions de servidor queden bloquejades per una sessió `HttpOnly`; si falta la variable, l'aplicació falla de manera tancada i només mostra la pantalla d'accés.
+
 ## Verificació del projecte
 
 El projecte fixa Node.js 20 a `.nvmrc`. Abans d'integrar un canvi, executa:

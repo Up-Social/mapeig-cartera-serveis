@@ -10,6 +10,7 @@ import {
   Database,
   Layers3,
   Menu,
+  LogOut,
   Route,
   Waypoints,
 } from "lucide-react";
@@ -37,6 +38,7 @@ const links = [
 
 export function AppHeader() {
   const pathname = usePathname();
+  if (pathname === "/login") return null;
   const isActive = (href: string) =>
     href === "/" ? pathname === "/" : pathname.startsWith(href);
   return (
@@ -115,8 +117,19 @@ export function AppHeader() {
                 </SheetClose>
               ))}
             </nav>
+            <form action="/api/access/logout" method="post" className="mt-auto border-t p-3">
+              <Button type="submit" variant="ghost" className="w-full justify-start gap-3">
+                <LogOut className="size-4" />
+                Tancar sessió
+              </Button>
+            </form>
           </SheetContent>
         </Sheet>
+        <form action="/api/access/logout" method="post" className="hidden lg:block">
+          <Button type="submit" variant="ghost" size="icon-sm" aria-label="Tancar sessió">
+            <LogOut className="size-4" />
+          </Button>
+        </form>
       </div>
     </header>
   );
