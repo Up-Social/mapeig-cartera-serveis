@@ -99,6 +99,7 @@ export function AppHeader() {
               {links.map(({ href, label, icon: Icon }) => (
                 <SheetClose
                   key={href}
+                  nativeButton={false}
                   render={
                     <Link
                       href={href}
