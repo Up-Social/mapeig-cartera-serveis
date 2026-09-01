@@ -13,7 +13,12 @@ export async function dispatchWorkerTask(
   localScript: string,
   localArgs: string[],
 ) {
-  if (!process.env.VERCEL) {
+  const usePersistentQueue =
+    process.env.NODE_ENV === "production" ||
+    process.env.VERCEL === "1" ||
+    process.env.WORKER_EXECUTION_MODE === "queue";
+
+  if (!usePersistentQueue) {
     const child = spawn("npm", ["run", localScript, "--", ...localArgs], {
       cwd: process.cwd(),
       env: process.env,

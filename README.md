@@ -45,6 +45,8 @@ npm run worker:run -- --once
 
 La preparació documental s'executa sense OpenAI. L'enriquiment i el matching requereixen `OPENAI_API_KEY`, `OPENAI_MATCHING_MODEL` i l'autorització explícita del catàleg a `.env.local`.
 
+Qualsevol execució amb `NODE_ENV=production` utilitza la cua. En altres entorns es pot forçar explícitament amb `WORKER_EXECUTION_MODE=queue`.
+
 ## Flux disponible
 
 - Consulta completa i filtrada dels registres importats.
