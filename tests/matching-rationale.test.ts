@@ -16,3 +16,14 @@ test("separa els apartats del rationale encara que arribin en una sola línia", 
 test("manté el text antic com a fallback si no té apartats estructurats", () => {
   assert.deepEqual(parseMatchingRationale("Justificació històrica sense etiquetes."), []);
 });
+
+test("detecta etiquetes enganxades o amb salts irregulars", () => {
+  assert.deepEqual(
+    parseMatchingRationale("Encaix: Primer motiu.Diferenciació:\nSegon motiu. LIMITACIÓ: Tercer motiu."),
+    [
+      { label: "Encaix", text: "Primer motiu." },
+      { label: "Diferenciació", text: "Segon motiu." },
+      { label: "Limitació", text: "Tercer motiu." },
+    ],
+  );
+});

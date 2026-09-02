@@ -13,9 +13,12 @@ export function MatchingCandidateAnalysis({ candidate }: { candidate: MatchingCa
     <section className="mt-4">
       <h5 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Per què encaixa amb aquest servei</h5>
       {rationaleParts.length ? (
-        <div className="mt-2 space-y-1 text-sm leading-6 text-neutral-700">
+        <div className="mt-2 grid gap-1 text-sm leading-6 text-neutral-700">
           {rationaleParts.map((part) => (
-            <p key={part.label}><strong className="font-semibold text-neutral-900">{part.label}:</strong> {part.text}</p>
+            <div key={part.label} className="block">
+              <strong className="font-semibold text-neutral-900">{part.label}:</strong>{" "}
+              <span>{part.text}</span>
+            </div>
           ))}
         </div>
       ) : (
