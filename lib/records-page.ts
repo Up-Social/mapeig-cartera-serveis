@@ -2,6 +2,7 @@ import "server-only";
 import { createClient } from "@supabase/supabase-js";
 import type { ProcessingStatus, ReviewQueue, SourcePage, SourceRecord } from "./workbench-types";
 import { mapLatestMatchingError } from "./matching-state";
+import { latestJobsByRecord, summarizeLatestJobs } from "./latest-job-state";
 
 export const PAGE_SIZE = 25;
 
@@ -25,13 +26,13 @@ export async function getSourcePage(input: { page: number; query: string; type: 
   const { data, error, count } = await request.order("created_at", { ascending: true }).range(from, from + PAGE_SIZE - 1);
   if (error) throw error;
   const total = count ?? 0;
-  const [all, completed, review, queued] = await Promise.all([
-    countRows(), countRows("completat"), countRows("revisio"), countRows("preparant"),
+  const [all, latestJobMetrics] = await Promise.all([
+    countRows(), getLatestJobMetrics(),
   ]);
   return {
     records: (data ?? []).map(mapRecord), total, page: input.page,
     pageCount: Math.max(1, Math.ceil(total / PAGE_SIZE)), pageSize: PAGE_SIZE,
-    metrics: { total: all, completed, review, queued },
+    metrics: { total: all, ...latestJobMetrics },
   };
 }
 
@@ -51,6 +52,14 @@ async function countRows(status?: ProcessingStatus) {
   const { count, error } = await request;
   if (error) throw error;
   return count ?? 0;
+}
+
+async function getLatestJobMetrics() {
+  const { data, error } = await createServerSupabase()
+    .from("pipeline_jobs")
+    .select("source_record_id,status,created_at");
+  if (error) throw error;
+  return summarizeLatestJobs(data ?? []);
 }
 
 export function mapRecord(row: Record<string, unknown>): SourceRecord {
@@ -128,18 +137,23 @@ function mapLatestRun(value: unknown) {
 
 export async function getReviewQueue(input: { batchId?: string; type?: string; state?: string; query?: string }): Promise<ReviewQueue> {
   const supabase = createServerSupabase();
-  let jobsRequest = supabase.from("pipeline_jobs").select("source_record_id,status,source_records!inner(source_dataset,financing_type)").in("status", input.state === "pending" ? ["needs_review"] : ["needs_review", "approved", "corrected", "rejected", "insufficient_evidence"]);
+  let jobsRequest = supabase.from("pipeline_jobs").select("source_record_id,status,created_at,source_records!inner(source_dataset,financing_type)").in("status", ["needs_review", "approved", "corrected", "rejected", "insufficient_evidence"]);
   if (input.batchId) jobsRequest = jobsRequest.eq("run_id", input.batchId);
   if (input.type && input.type !== "totes") jobsRequest = jobsRequest.eq("source_records.financing_type", input.type);
-  const { data: jobs, error: jobsError } = await jobsRequest.order("created_at");
+  const { data: jobs, error: jobsError } = await jobsRequest.order("created_at", { ascending: false });
   if (jobsError) throw jobsError;
-  const ids = (jobs ?? []).map((job) => job.source_record_id);
+  const latestJobs = latestJobsByRecord(jobs ?? []);
+  const ids = latestJobs
+    .filter((job) => input.state !== "pending" || job.status === "needs_review")
+    .map((job) => job.source_record_id);
   if (!ids.length) return { records: [], total: 0, reviewed: 0 };
   let recordsRequest = supabase.from("source_records").select(RECORD_SELECT).in("id", ids);
   if (input.query) { const safe = input.query.replaceAll(/[,%()]/g, " ").trim(); recordsRequest = recordsRequest.or(`title.ilike.%${safe}%,source_record_id.ilike.%${safe}%,provider_name.ilike.%${safe}%`); }
   const { data, error } = await recordsRequest;
   if (error) throw error;
-  const records = (data ?? []).map((row) => mapRecord(row as Record<string, unknown>));
+  const records = (data ?? [])
+    .map((row) => mapRecord(row as Record<string, unknown>))
+    .filter((record) => input.state !== "pending" || record.reviewDecision === null);
   const codes = [...new Set(records.flatMap((record) => record.matchingCandidates.map((candidate) => candidate.targetCode)))];
   if (codes.length) {
     const { data: services, error: servicesError } = await supabase.from("master_services").select("service_code,sector_scope,portfolio_status").in("service_code", codes);
