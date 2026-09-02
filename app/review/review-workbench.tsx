@@ -254,7 +254,7 @@ function ReviewDetail({
             {record.sourceDocuments.map((document) => (
               <div key={document.id} className="rounded-xl bg-neutral-100 p-3">
                 <div className="flex justify-between text-xs">
-                  <strong>{document.documentType}</strong>
+                  <strong>{documentTypeLabel(document.documentType)}</strong>
                   <span>
                     {document.status} · qualitat{" "}
                     {document.qualityScore == null
@@ -428,4 +428,19 @@ function decisionLabel(value: NonNullable<SourceRecord["reviewDecision"]>) {
       insufficient_evidence: "Evidència insuficient",
     } as const
   )[value];
+}
+
+function documentTypeLabel(type: string) {
+  return (
+    (
+      {
+        regulatory_basis: "Bases reguladores",
+        annex: "Annex",
+        agreement: "Conveni",
+        publication: "Publicació",
+        contracting_profile: "Perfil del contractant",
+        other: "Altres",
+      } as Record<string, string>
+    )[type] ?? type
+  );
 }
