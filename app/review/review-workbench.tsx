@@ -16,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import { StableAccordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { MatchingCandidateAnalysis } from "@/components/matching-candidate-analysis";
 import { displaySourceIdentifier } from "@/lib/source-identifiers";
+import { sourcePayloadFieldLabel, sourcePayloadValue } from "@/lib/source-payload-display";
 
 type Filters = { batchId?: string; type: string; state: string; query: string };
 type ServiceOption = { code: string; name: string; scope: string | null };
@@ -208,7 +209,7 @@ function ReviewDetail({
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
           <p className="text-xs font-semibold uppercase tracking-wide text-neutral-500">
-            {record.sourceDataset} · {displaySourceIdentifier(record.sourceRecordId)}
+            {SOURCE_LABELS[record.sourceDataset] ?? record.sourceDataset} · {displaySourceIdentifier(record.sourceRecordId)}
           </p>
           <h3 className="mt-2 break-words text-xl font-semibold leading-7">
             {record.title}
@@ -230,8 +231,8 @@ function ReviewDetail({
         <dl className="mt-3 grid gap-x-6 gap-y-3 text-xs md:grid-cols-2">
           {excelFields.map(([key, value]) => (
             <div key={key}>
-              <dt className="font-semibold text-neutral-500">{key}</dt>
-              <dd className="mt-1 break-words leading-5">{String(value)}</dd>
+              <dt className="font-semibold text-neutral-500">{sourcePayloadFieldLabel(key)}</dt>
+              <dd className="mt-1 whitespace-pre-wrap break-words leading-5">{sourcePayloadValue(key, value)}</dd>
             </div>
           ))}
         </dl>
@@ -256,7 +257,7 @@ function ReviewDetail({
                 <div className="flex justify-between text-xs">
                   <strong>{documentTypeLabel(document.documentType)}</strong>
                   <span>
-                    {document.status} · qualitat{" "}
+                    {sourceStatusLabel(document.status)} · qualitat{" "}
                     {document.qualityScore == null
                       ? "—"
                       : `${Math.round(document.qualityScore * 100)}%`}
@@ -442,5 +443,19 @@ function documentTypeLabel(type: string) {
         other: "Altres",
       } as Record<string, string>
     )[type] ?? type
+  );
+}
+
+function sourceStatusLabel(status: string) {
+  return (
+    (
+      {
+        discovered: "Descoberta",
+        fetching: "Descarregant",
+        fetched: "Text extret",
+        unsupported: "Format no compatible",
+        error: "Error",
+      } as Record<string, string>
+    )[status] ?? status
   );
 }
