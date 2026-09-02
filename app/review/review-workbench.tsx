@@ -37,11 +37,15 @@ export function ReviewWorkbench({
     (record) => record.reviewDecision !== null,
   ).length;
   const updateRecord = (nextRecord: SourceRecord) => {
-    setRecords((current) =>
-      current.map((record) =>
+    setRecords((current) => {
+      if (filters.state === "pending" && nextRecord.reviewDecision) {
+        return current.filter((record) => record.id !== nextRecord.id);
+      }
+      return current.map((record) =>
         record.id === nextRecord.id ? nextRecord : record,
-      ),
-    );
+      );
+    });
+    startRefresh(() => router.refresh());
   };
   return (
     <main className="page-shell">
