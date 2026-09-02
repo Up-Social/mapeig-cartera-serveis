@@ -13,6 +13,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { StableAccordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { portfolioStatusLabel } from "@/lib/ui-labels";
 
 export function CatalogWorkbench({
   result,
@@ -27,14 +28,14 @@ export function CatalogWorkbench({
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <div className="inline-flex rounded-full border border-neutral-300 bg-white px-3 py-1 text-xs font-semibold text-neutral-700">
-              Catàleg Master · només lectura
+              Catàleg mestre · només lectura
             </div>
             <h2 className="mt-3 text-2xl font-semibold tracking-tight">
               Catàleg de serveis
             </h2>
             <p className="mt-1 max-w-2xl text-sm leading-6 text-neutral-600">
-              Consulta les files importades del Master. Aquest catàleg està
-              separat de la cua i no autoritza el seu ús per al matching.
+              Consulta les files importades del catàleg mestre. Aquest catàleg està
+              separat de la cua i no autoritza el seu ús per establir correspondències.
             </p>
           </div>
         </div>
@@ -244,7 +245,7 @@ function ServiceDetail({
             </p>
             <p className="mt-1 text-xs leading-5 text-neutral-500">
               Apareixeran aquí quan el registre font tingui un codi de Cartera
-              validat. El Master no s&apos;utilitza per generar aquestes dades.
+              validat. El catàleg mestre no s&apos;utilitza per generar aquestes dades.
             </p>
           </div>
         )}
@@ -277,7 +278,7 @@ function ServiceDetail({
 }
 
 function EntityRelations({ title, items, empty }: { title: string; items: MasterService["entityRelations"]; empty: string }) {
-  return <div className="rounded-xl border p-4"><h3 className="text-sm font-semibold">{title}</h3>{items.length ? <div className="mt-2 grid gap-2">{items.map((item) => <Link key={`${item.entityId}-${item.sourceReference}`} href={`/entities?q=${encodeURIComponent(item.nif ?? item.legalName)}`} className="text-sm underline underline-offset-2">{item.legalName}{item.nif ? ` · ${item.nif}` : ""}</Link>)}</div> : <p className="mt-2 text-xs text-muted-foreground">{empty}</p>}<p className="mt-2 text-[11px] text-muted-foreground">{title.includes("RESES") ? "Relació auxiliar: no prova finançament." : "Relació confirmada mitjançant una provisió aprovada."}</p></div>;
+  return <div className="rounded-xl border p-4"><h3 className="text-sm font-semibold">{title}</h3>{items.length ? <div className="mt-2 grid gap-2">{items.map((item) => <Link key={`${item.entityId}-${item.sourceReference}`} href={`/entities?q=${encodeURIComponent(item.nif ?? item.legalName)}`} className="text-sm underline underline-offset-2">{item.legalName}{item.nif ? ` · ${item.nif}` : ""}</Link>)}</div> : <p className="mt-2 text-xs text-muted-foreground">{empty}</p>}<p className="mt-2 text-[13.2px] text-muted-foreground">{title.includes("RESES") ? "Relació auxiliar: no prova finançament." : "Relació confirmada mitjançant una provisió aprovada."}</p></div>;
 }
 
 function Metric({ label, value }: { label: string; value: number }) {
@@ -360,15 +361,7 @@ function ProvisionCard({ provision }: { provision: ServiceProvision }) {
   );
 }
 function statusLabel(status: string) {
-  return (
-    (
-      {
-        Dentro: "Dins de la Cartera",
-        "Fuera - candidato a entrar en Cartera": "Fora · candidat",
-        "Fuera - no candidato a entrar en Cartera": "Fora · no candidat",
-      } as Record<string, string>
-    )[status] ?? status
-  );
+  return portfolioStatusLabel(status);
 }
 function formatConfidence(value: number | null) {
   if (value == null) return "No informada";

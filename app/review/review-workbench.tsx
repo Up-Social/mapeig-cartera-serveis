@@ -17,6 +17,7 @@ import { StableAccordion, AccordionContent, AccordionItem, AccordionTrigger } fr
 import { MatchingCandidateAnalysis } from "@/components/matching-candidate-analysis";
 import { displaySourceIdentifier } from "@/lib/source-identifiers";
 import { sourcePayloadFieldLabel, sourcePayloadValue } from "@/lib/source-payload-display";
+import { sourceDocumentStatusLabel, sourceDocumentTypeLabel } from "@/lib/ui-labels";
 
 type Filters = { batchId?: string; type: string; state: string; query: string };
 type ServiceOption = { code: string; name: string; scope: string | null };
@@ -56,7 +57,7 @@ export function ReviewWorkbench({
         <div className="flex items-end justify-between gap-4">
           <div>
             <p className="page-eyebrow">Validació humana</p>
-            <h2 className="page-title">Revisió de matchings</h2>
+            <h2 className="page-title">Revisió de correspondències</h2>
             <p className="page-description">
               {reviewed} revisats · {records.length - reviewed} pendents
             </p>
@@ -117,7 +118,7 @@ export function ReviewWorkbench({
                         : "Pendent"}
                     </Badge>
                   </div>
-                  <p className="mt-1 text-[11px] text-neutral-500">
+                  <p className="mt-1 text-[13.2px] text-neutral-500">
                     {SOURCE_LABELS[record.sourceDataset] ??
                       record.sourceDataset}
                   </p>
@@ -245,7 +246,7 @@ function ReviewDetail({
           <EnrichmentPanel enrichment={record.externalEnrichment} />
         ) : (
           <p className="mt-2 rounded-xl bg-amber-50 p-3 text-sm text-amber-900">
-            Aquest matching anterior va utilitzar evidència documental, però
+            Aquesta correspondència anterior va utilitzar evidència documental, però
             encara no té camps externs estructurats. Els nous matchings els
             desaran automàticament.
           </p>
@@ -255,9 +256,9 @@ function ReviewDetail({
             {record.sourceDocuments.map((document) => (
               <div key={document.id} className="rounded-xl bg-neutral-100 p-3">
                 <div className="flex justify-between text-xs">
-                  <strong>{documentTypeLabel(document.documentType)}</strong>
+                  <strong>{sourceDocumentTypeLabel(document.documentType)}</strong>
                   <span>
-                    {sourceStatusLabel(document.status)} · qualitat{" "}
+                    {sourceDocumentStatusLabel(document.status)} · qualitat{" "}
                     {document.qualityScore == null
                       ? "—"
                       : `${Math.round(document.qualityScore * 100)}%`}
@@ -414,7 +415,7 @@ function EnrichmentPanel({
           </div>
         </details>
       )}
-      <p className="mt-3 text-[11px] text-neutral-500">
+      <p className="mt-3 text-[13.2px] text-neutral-500">
         Model: {enrichment.model}
       </p>
     </div>
@@ -429,33 +430,4 @@ function decisionLabel(value: NonNullable<SourceRecord["reviewDecision"]>) {
       insufficient_evidence: "Evidència insuficient",
     } as const
   )[value];
-}
-
-function documentTypeLabel(type: string) {
-  return (
-    (
-      {
-        regulatory_basis: "Bases reguladores",
-        annex: "Annex",
-        agreement: "Conveni",
-        publication: "Publicació",
-        contracting_profile: "Perfil del contractant",
-        other: "Altres",
-      } as Record<string, string>
-    )[type] ?? type
-  );
-}
-
-function sourceStatusLabel(status: string) {
-  return (
-    (
-      {
-        discovered: "Descoberta",
-        fetching: "Descarregant",
-        fetched: "Text extret",
-        unsupported: "Format no compatible",
-        error: "Error",
-      } as Record<string, string>
-    )[status] ?? status
-  );
 }

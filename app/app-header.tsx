@@ -67,7 +67,7 @@ export function AppHeader() {
               href={href}
               aria-current={isActive(href) ? "page" : undefined}
               className={cn(
-                "inline-flex h-8 items-center gap-1.5 rounded-md px-2.5 text-[0.8125rem] font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground",
+                "inline-flex h-8 items-center gap-1.5 rounded-md px-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground",
                 isActive(href) && "bg-muted text-foreground",
               )}
             >

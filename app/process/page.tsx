@@ -64,7 +64,7 @@ const steps = [
   [
     "4",
     "Preparació de fonts",
-    "El worker persistent localitza les URL, descarrega els documents, n’extreu el text i crea fragments amb qualitat i traçabilitat. Els casos sense font o amb format no compatible acaben amb una incidència explícita.",
+    "El processador persistent localitza les adreces, descarrega els documents, n’extreu el text i crea fragments amb qualitat i traçabilitat. Els casos sense font o amb format no compatible acaben amb una incidència explícita.",
   ],
   [
     "5",
@@ -84,20 +84,20 @@ const steps = [
   [
     "8",
     "Exportació",
-    "Supabase és la font de veritat. Les provisions aprovades s’escriuen en un Excel nou; es poden seleccionar les visibles o totes les que compleixen els filtres, sense modificar el Master original.",
+    "Supabase és la font de veritat. Les provisions aprovades s’escriuen en un Excel nou; es poden seleccionar les visibles o totes les que compleixen els filtres, sense modificar el catàleg mestre original.",
   ],
 ];
 
 const workflowStates = [
   ["Registre", "pendent → preparant → preparat → processant → revisio → completat o rebutjat"],
-  ["Fases", "pending/preparing/ready per evidència; pending/processing/completed per contrast"],
-  ["Job", "selected → preparing → ready → matching → needs_review → decisió humana"],
-  ["Lot", "queued → preparing → enriching → matching → needs_review → completed"],
-  ["Worker", "queued → running → completed o failed, amb heartbeat i fins a 3 intents"],
+  ["Fases", "pendent/preparant/preparada per a l’evidència; pendent/processant/completada per al contrast"],
+  ["Registre del procés", "seleccionat → preparant → preparat → fent correspondència → pendent de revisió → decisió humana"],
+  ["Lot", "en cua → preparant → contrastant → fent correspondència → pendent de revisió → completat"],
+  ["Processador", "en cua → en execució → completada o fallida, amb senyal de vida i fins a 3 intents"],
 ];
 
 const auditFindings = [
-  ["Corregit", "Els 3 matchings incomplets s’han regenerat: tots els candidats tenen evidència oficial enllaçada."],
+  ["Corregit", "Les 3 correspondències incompletes s’han regenerat: tots els candidats tenen evidència oficial enllaçada."],
   ["Corregit", "Els 27.732 errors documentals heretats s’han normalitzat sense ocultar els intents reals."],
   ["Corregit", "Els estats històrics i els timestamps de processament i revisió ja tenen una semàntica coherent."],
   ["Protegit", "La base de dades restringeix els estats, fases, preparació i tipologies admesos pel flux."],
@@ -214,8 +214,8 @@ export default function ProcessPage() {
               e-Tauler. La preparació documental s’executa per registre quan entra
               al procés automàtic; molts documents continuen només descoberts. BDNS,
               RESES i la reconstrucció del catàleg des de la font pública
-              oficial continuen pendents. El matching actual utilitza el catàleg
-              Master aïllat perquè va ser autoritzat explícitament; no utilitza
+              oficial continuen pendents. La correspondència actual utilitza el catàleg
+              mestre aïllat perquè va ser autoritzat explícitament; no utilitza
               les seves fórmules ni provisions manuals com a evidència.
             </p>
           </Card>

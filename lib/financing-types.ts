@@ -13,6 +13,7 @@ export const SOURCE_LABELS: Record<string, string> = {
   convenis: "Registre de Convenis",
   raisc_ccaa: "RAISC · Generalitat",
   raisc_local: "RAISC · Administració local",
+  concerts: "Concert social · e-Tauler",
 };
 
 export function financingTypeForDataset(dataset: string): FinancingType | null {

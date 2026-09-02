@@ -6,6 +6,7 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { EntityFilters, EntityPage } from "@/lib/entity-types";
 import { cn } from "@/lib/utils";
+import { catalogRelationTypeLabel, entityValidationStatusLabel } from "@/lib/ui-labels";
 
 export function EntitiesWorkbench({ result, filters }: { result: EntityPage; filters: EntityFilters }) {
   const href = (page: number) => `/entities?${new URLSearchParams({ page: String(page), q: filters.query, qualification: filters.qualification, county: filters.county })}`;
@@ -27,8 +28,8 @@ export function EntitiesWorkbench({ result, filters }: { result: EntityPage; fil
         {result.entities.map((entity) => <AccordionItem key={entity.id} value={entity.id} className="px-4">
           <AccordionTrigger className="gap-4 py-4 hover:no-underline"><div className="min-w-0 flex-1"><div className="truncate font-semibold">{entity.legalName}</div><div className="mt-1 flex flex-wrap gap-2 text-xs text-muted-foreground"><span>{entity.nif}</span><span>·</span><span>{entity.services.length} serveis RESES</span>{entity.qualification && <Badge variant="secondary">{entity.qualification}</Badge>}</div></div></AccordionTrigger>
           <AccordionContent className="pb-5"><div className="grid gap-5 border-t pt-4 lg:grid-cols-2">
-            <section><h3 className="text-sm font-semibold">Identitat i àlies</h3><dl className="mt-3 grid grid-cols-[100px_1fr] gap-2 text-sm"><dt className="text-muted-foreground">NIF</dt><dd>{entity.nif}</dd><dt className="text-muted-foreground">Validació</dt><dd>{entity.validationStatus}</dd><dt className="text-muted-foreground">Àlies</dt><dd>{entity.aliases.map((x) => x.alias).filter((x) => x !== entity.legalName).join(" · ") || "Sense variants"}</dd></dl></section>
-            <section><h3 className="text-sm font-semibold">Relació amb la Cartera</h3><p className="mt-2 text-sm text-muted-foreground">{entity.catalogRelations.length ? entity.catalogRelations.map((x) => `${x.serviceCode} · ${x.serviceName ?? ""} (${x.relationType})`).join("; ") : "Encara no hi ha relacions confirmades ni auxiliars."}</p></section>
+            <section><h3 className="text-sm font-semibold">Identitat i àlies</h3><dl className="mt-3 grid grid-cols-[100px_1fr] gap-2 text-sm"><dt className="text-muted-foreground">NIF</dt><dd>{entity.nif}</dd><dt className="text-muted-foreground">Validació</dt><dd>{entityValidationStatusLabel(entity.validationStatus)}</dd><dt className="text-muted-foreground">Àlies</dt><dd>{entity.aliases.map((x) => x.alias).filter((x) => x !== entity.legalName).join(" · ") || "Sense variants"}</dd></dl></section>
+            <section><h3 className="text-sm font-semibold">Relació amb la Cartera</h3><p className="mt-2 text-sm text-muted-foreground">{entity.catalogRelations.length ? entity.catalogRelations.map((x) => `${x.serviceCode} · ${x.serviceName ?? ""} (${catalogRelationTypeLabel(x.relationType)})`).join("; ") : "Encara no hi ha relacions confirmades ni auxiliars."}</p></section>
           </div><section className="mt-5"><h3 className="text-sm font-semibold">Serveis i establiments RESES</h3><div className="mt-2 grid gap-2">{entity.services.map((s) => <div key={s.registryNumber} className="rounded-lg border p-3 text-sm"><div className="font-medium">{s.serviceName}</div><div className="mt-1 text-xs text-muted-foreground">{s.registryNumber} · {s.serviceType} · {[s.address, s.postalCode, s.municipality, s.county].filter(Boolean).join(", ")}{s.capacity != null ? ` · Capacitat ${s.capacity}` : ""}</div></div>)}</div></section></AccordionContent>
         </AccordionItem>)}
       </StableAccordion>

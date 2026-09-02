@@ -25,6 +25,7 @@ import {
   type RecordOperation,
 } from "@/lib/record-operation";
 import { submitRecordReview } from "@/lib/review-client";
+import { sourceDocumentStatusLabel, sourceDocumentTypeLabel } from "@/lib/ui-labels";
 
 const statusLabels: Record<ProcessingStatus, string> = {
   pendent: "Pendent",
@@ -197,7 +198,7 @@ export function ProcessingWorkbench({
                             {statusLabels[record.status]}
                           </Badge>
                           <span className="text-xs text-neutral-500">
-                            {record.carteraCode ?? "Sense matching"}
+                            {record.carteraCode ?? "Sense correspondència"}
                           </span>
                         </div>
                       </div>
@@ -304,8 +305,8 @@ function MatchSummary({ record }: { record: SourceRecord }) {
     <div className="mt-3 rounded-xl border border-neutral-300 bg-white p-3">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-wide text-neutral-500">
-            Proposta de matching
+          <p className="text-[13.2px] font-semibold uppercase tracking-wide text-neutral-500">
+            Proposta de correspondència
           </p>
           <p className="mt-1 text-sm font-semibold">
             {candidate.targetCode} · {candidate.targetName}
@@ -397,7 +398,7 @@ function DetailPanel({
         <div className="mt-5">
           <div className="flex items-center justify-between gap-3">
             <p className="text-xs font-semibold uppercase tracking-wide text-neutral-500">
-              Candidats de matching
+              Candidats de correspondència
             </p>
             <span className="rounded-full bg-neutral-100 px-2.5 py-1 text-xs font-semibold">
               {record.reviewDecision
@@ -446,10 +447,10 @@ function DetailPanel({
               >
                 <div className="flex items-center justify-between gap-3">
                   <span className="text-xs font-semibold text-neutral-700">
-                    {documentTypeLabel(document.documentType)}
+                    {sourceDocumentTypeLabel(document.documentType)}
                   </span>
                   <span className="text-xs text-neutral-500">
-                    {sourceStatusLabel(document.status)}
+                    {sourceDocumentStatusLabel(document.status)}
                   </span>
                 </div>
                 <a
@@ -462,7 +463,7 @@ function DetailPanel({
                 </a>
                 {document.status === "fetched" && (
                   <div className="mt-3 rounded-lg bg-neutral-50 p-3">
-                    <div className="flex flex-wrap gap-2 text-[11px] text-neutral-600">
+                    <div className="flex flex-wrap gap-2 text-[13.2px] text-neutral-600">
                       <span>
                         {document.textLength?.toLocaleString("ca-ES")} caràcters
                       </span>
@@ -483,7 +484,7 @@ function DetailPanel({
                       </p>
                     )}
                     {document.qualityFlags.length > 0 && (
-                      <p className="mt-2 text-[11px] text-neutral-500">
+                      <p className="mt-2 text-[13.2px] text-neutral-500">
                         Avisos:{" "}
                         {document.qualityFlags
                           .map(qualityFlagLabel)
@@ -492,7 +493,7 @@ function DetailPanel({
                     )}
                   </div>
                 )}
-                <p className="mt-2 text-[11px] text-neutral-500">
+                <p className="mt-2 text-[13.2px] text-neutral-500">
                   {document.sourceFields.join(" · ")}
                 </p>
               </li>
@@ -726,12 +727,12 @@ function RecordStages({
         />
         <StageRow
           number="3"
-          title="Fer matching"
+          title="Fer correspondència"
           status={
             record.matchingCandidates.length
               ? "Matching disponible"
               : record.matchingError
-                ? "Error de matching"
+                ? "Error de correspondència"
                 : "No executat"
           }
           complete={record.matchingCandidates.length > 0}
@@ -790,7 +791,7 @@ function RecordStages({
           Tornar a comprovar
         </Button>
       )}
-      <p className="mt-3 text-[11px] leading-5 text-neutral-500">
+      <p className="mt-3 text-[13.2px] leading-5 text-neutral-500">
         Preparar fonts no utilitza OpenAI. Contrastar dades utilitza IA per
         estructurar només la font oficial, sense escollir cap servei. El registre
         només es considera correcte després de la validació humana.
@@ -949,33 +950,6 @@ function formatAmount(amount: number | null) {
         maximumFractionDigits: 0,
       }).format(amount);
 }
-function documentTypeLabel(type: string) {
-  return (
-    (
-      {
-        regulatory_basis: "Bases reguladores",
-        annex: "Annex",
-        agreement: "Conveni",
-        publication: "Publicació",
-        contracting_profile: "Perfil contractant",
-        other: "Altres",
-      } as Record<string, string>
-    )[type] ?? type
-  );
-}
-function sourceStatusLabel(status: string) {
-  return (
-    (
-      {
-        discovered: "Descoberta",
-        fetching: "Descarregant",
-        fetched: "Text extret",
-        unsupported: "Requereix OCR",
-        error: "Error",
-      } as Record<string, string>
-    )[status] ?? status
-  );
-}
 function qualityFlagLabel(flag: string) {
   return (
     (
@@ -1065,7 +1039,7 @@ function ReviewControls({
             disabled={pending}
             onClick={() => submit("reject")}
           >
-            Rebutjar matching
+            Rebutjar correspondència
           </Button>
           <Button
             variant="outline"
