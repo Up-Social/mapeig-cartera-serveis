@@ -553,6 +553,7 @@ export async function reviewMatching(input: {
   }
   await refreshRunCounters(job.run_id);
   revalidatePath("/");
+  revalidatePath("/review");
   revalidatePath("/catalog");
   return { ok: true };
 }

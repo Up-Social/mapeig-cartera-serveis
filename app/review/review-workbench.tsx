@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import type { ReviewQueue, SourceRecord } from "@/lib/workbench-types";
 import { submitRecordReview } from "@/lib/review-client";
 import {
@@ -27,9 +28,11 @@ export function ReviewWorkbench({
   filters: Filters;
   services: ServiceOption[];
 }) {
+  const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
   const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [records, setRecords] = useState(queue.records);
+  const [refreshing, startRefresh] = useTransition();
   const reviewed = records.filter(
     (record) => record.reviewDecision !== null,
   ).length;
@@ -43,12 +46,22 @@ export function ReviewWorkbench({
   return (
     <main className="page-shell">
       <section className="page-container">
-        <div>
-          <p className="page-eyebrow">Validació humana</p>
-          <h2 className="page-title">Revisió de matchings</h2>
-          <p className="page-description">
-            {reviewed} revisats · {queue.total - reviewed} pendents
-          </p>
+        <div className="flex items-end justify-between gap-4">
+          <div>
+            <p className="page-eyebrow">Validació humana</p>
+            <h2 className="page-title">Revisió de matchings</h2>
+            <p className="page-description">
+              {reviewed} revisats · {records.length - reviewed} pendents
+            </p>
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            disabled={refreshing}
+            onClick={() => startRefresh(() => router.refresh())}
+          >
+            {refreshing ? "Actualitzant…" : "Actualitzar"}
+          </Button>
         </div>
         <form ref={formRef} className="surface mt-5 grid gap-3 p-4 md:grid-cols-[minmax(220px,1fr)_220px_180px]">
           <input type="hidden" name="batch" value={filters.batchId ?? ""} />
@@ -79,7 +92,7 @@ export function ReviewWorkbench({
         <div className="mt-6">
           <section className="surface overflow-hidden">
             <div className="border-b p-4 font-semibold">
-              Registres pendents de validar ({records.length})
+              {filters.state === "pending" ? "Registres pendents de validar" : "Registres revisats i pendents"} ({records.length})
             </div>
             <StableAccordion stateKey="review-records" className="divide-y">
               {records.map((record) => (

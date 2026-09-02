@@ -24,6 +24,7 @@ export default async function ReviewPage({ searchParams }: Props) {
   if (services.error) throw services.error;
   return (
     <ReviewWorkbench
+      key={queue.records.map((record) => `${record.id}:${record.reviewDecision ?? "pending"}`).join("|")}
       queue={queue}
       filters={filters}
       services={(services.data ?? []).map((service) => ({
