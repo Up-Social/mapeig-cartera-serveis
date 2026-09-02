@@ -6,5 +6,5 @@ export type ApprovedProvision = {
   awardDate: string | null; amount: number | null; contractingBody: string | null; targetPopulation: string | null;
   callUrl: string | null; regulatoryBasisUrl: string | null; sourceReference: string;
 };
-export type ApprovedPage = { provisions: ApprovedProvision[]; total: number; page: number; pageCount: number; pageSize: number; batches: Array<{ id: string; number: string }>; services: Array<{ code: string; name: string }> };
+export type ApprovedPage = { provisions: ApprovedProvision[]; allProvisionIds: string[]; total: number; page: number; pageCount: number; pageSize: number; batches: Array<{ id: string; number: string }>; services: Array<{ code: string; name: string }> };
 export type ApprovedSelection = string[];
