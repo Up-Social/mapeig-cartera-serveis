@@ -22,10 +22,12 @@ type ServiceOption = { code: string; name: string; scope: string | null };
 export function ReviewWorkbench({
   queue,
   filters,
+  focusedRecordId,
   services,
 }: {
   queue: ReviewQueue;
   filters: Filters;
+  focusedRecordId?: string;
   services: ServiceOption[];
 }) {
   const router = useRouter();
@@ -69,6 +71,7 @@ export function ReviewWorkbench({
         </div>
         <form ref={formRef} className="surface mt-5 grid gap-3 p-4 md:grid-cols-[minmax(220px,1fr)_220px_180px]">
           <input type="hidden" name="batch" value={filters.batchId ?? ""} />
+          <input type="hidden" name="record" value={focusedRecordId ?? ""} />
           <Input name="q" defaultValue={filters.query} placeholder="Cercar títol, registre o entitat..." aria-label="Cercar registres analitzats" onChange={() => { if (searchTimer.current) clearTimeout(searchTimer.current); searchTimer.current = setTimeout(() => formRef.current?.requestSubmit(), 350); }} />
           <select
             name="type"
@@ -98,7 +101,7 @@ export function ReviewWorkbench({
             <div className="border-b p-4 font-semibold">
               {filters.state === "pending" ? "Registres pendents de validar" : "Registres revisats i pendents"} ({records.length})
             </div>
-            <StableAccordion stateKey="review-records" className="divide-y">
+            <StableAccordion stateKey={`review-records:${focusedRecordId ?? "queue"}`} defaultValue={focusedRecordId ? [focusedRecordId] : []} className="divide-y">
               {records.map((record) => (
                 <AccordionItem key={record.id} value={record.id} className="px-4">
                 <AccordionTrigger className="gap-4 py-4 hover:no-underline"><div className="min-w-0 flex-1 text-left">

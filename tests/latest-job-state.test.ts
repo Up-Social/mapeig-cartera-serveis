@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { latestJobsByRecord, newestProcessedFirst, summarizeLatestJobs } from "../lib/latest-job-state";
+import { latestJobsByRecord, newestProcessedFirst, prioritizeById, summarizeLatestJobs } from "../lib/latest-job-state";
 
 const jobs = [
   { source_record_id: "record-a", status: "needs_review", created_at: "2026-09-01T10:00:00Z" },
@@ -28,4 +28,9 @@ test("ordena primer el registre processat més recentment", () => {
     ]).map((job) => job.source_record_id),
     ["record-a", "record-b"],
   );
+});
+
+test("prioritza el registre d'accés directe sense eliminar la resta", () => {
+  const items = [{ id: "a" }, { id: "b" }, { id: "c" }];
+  assert.deepEqual(prioritizeById(items, "b").map((item) => item.id), ["b", "a", "c"]);
 });

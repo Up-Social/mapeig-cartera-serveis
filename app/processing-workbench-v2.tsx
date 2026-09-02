@@ -743,7 +743,7 @@ function RecordStages({
           complete={record.reviewDecision === "approved" || record.reviewDecision === "corrected"}
         >
           {record.pipelineRunId && record.matchingCandidates.length > 0 ? (
-            <Link href={`/review?batch=${record.pipelineRunId}&record=${record.id}`} className={buttonVariants({ variant: "outline", size: "sm" })}>
+            <Link href={`/review?record=${record.id}${record.reviewDecision ? "&state=all" : ""}`} className={buttonVariants({ variant: "outline", size: "sm" })}>
               {record.reviewDecision ? "Revisar decisió" : "Validar"}
             </Link>
           ) : <Button variant="outline" size="sm" disabled>Validar</Button>}

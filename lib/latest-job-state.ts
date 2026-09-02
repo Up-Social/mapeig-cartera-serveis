@@ -27,3 +27,8 @@ export function newestProcessedFirst<T extends JobStateRow>(jobs: T[]): T[] {
     String(b.completed_at ?? b.created_at).localeCompare(String(a.completed_at ?? a.created_at)),
   );
 }
+
+export function prioritizeById<T extends { id: string }>(items: T[], focusedId?: string): T[] {
+  if (!focusedId) return items;
+  return [...items].sort((a, b) => Number(b.id === focusedId) - Number(a.id === focusedId));
+}
