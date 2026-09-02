@@ -68,18 +68,28 @@ async function processJob(job: { id: string; run_id: string; source_record_id: s
     const candidates = parsed.candidates.filter((candidate) => catalogByCode.has(candidate.code)).slice(0, 3);
     if (!candidates.length) throw new Error("La resposta no conté cap candidat vàlid del catàleg");
 
+    const candidatesWithEvidence = candidates.map((candidate) => ({
+      candidate,
+      evidence: [...new Set(candidate.evidence_ordinals)]
+        .map((ordinal) => chunks[ordinal - 1])
+        .filter(Boolean),
+    }));
+    const missingEvidence = candidatesWithEvidence.filter(({ evidence }) => evidence.length === 0);
+    if (missingEvidence.length) {
+      throw new Error(
+        `La resposta conté ${missingEvidence.length} candidat(s) sense cap ordinal d'evidència vàlid.`,
+      );
+    }
+
     if (parsed.enrichment) await persistEnrichment(record.id, parsed.enrichment, chunks);
 
     await supabase.from("matching_candidates").delete().eq("pipeline_job_id", job.id);
-    for (const [index, candidate] of candidates.entries()) {
+    for (const [index, { candidate, evidence }] of candidatesWithEvidence.entries()) {
       const target = catalogByCode.get(candidate.code)!;
       const { data: inserted, error: candidateError } = await supabase.from("matching_candidates").insert({ pipeline_job_id: job.id, target_catalog: "master", target_code: candidate.code, target_name: target.service_name, rank: index + 1, score: candidate.score, rationale: candidate.rationale, engine: "openai-responses", engine_version: model, raw_response: { response_id: raw.id, usage: raw.usage } }).select("id").single();
       if (candidateError) throw candidateError;
-      const evidence = [...new Set(candidate.evidence_ordinals)].map((ordinal) => chunks[ordinal - 1]).filter(Boolean);
-      if (evidence.length) {
-        const { error: evidenceError } = await supabase.from("matching_candidate_evidence").insert(evidence.map((chunk) => ({ candidate_id: inserted.id, evidence_chunk_id: chunk.id, explanation: candidate.evidence_explanation })));
-        if (evidenceError) throw evidenceError;
-      }
+      const { error: evidenceError } = await supabase.from("matching_candidate_evidence").insert(evidence.map((chunk) => ({ candidate_id: inserted.id, evidence_chunk_id: chunk.id, explanation: candidate.evidence_explanation })));
+      if (evidenceError) throw evidenceError;
     }
     await supabase.from("pipeline_jobs").update({ status: "needs_review", completed_at: new Date().toISOString() }).eq("id", job.id);
     await supabase.from("source_records").update({ processing_status: "revisio", updated_at: new Date().toISOString() }).eq("id", job.source_record_id);
@@ -169,7 +179,7 @@ async function finishRunIfDone(runId: string) {
   const finished = (data ?? []).filter((job) => ["needs_review", "approved", "corrected", "rejected", "insufficient_evidence"].includes(job.status)).length;
   const pending = (data ?? []).some((job) => job.status === "ready" || job.status === "matching" || job.status === "queued");
   const review = (data ?? []).filter((job) => job.status === "needs_review").length;
-  await supabase.from("pipeline_runs").update({ status: pending ? "matching" : "needs_review", stage: pending ? "matching" : "review", processed_count: finished, review_count: review, completed_at: pending ? null : new Date().toISOString() }).eq("id", runId);
+  await supabase.from("pipeline_runs").update({ status: pending ? "matching" : "needs_review", stage: pending ? "matching" : "review", processed_count: finished, review_count: review, processing_completed_at: pending ? null : new Date().toISOString(), completed_at: null }).eq("id", runId);
   if (!pending) { const { error: refreshError } = await supabase.rpc("refresh_pipeline_run", { p_run_id: runId }); if (refreshError) throw refreshError; }
 }
 

@@ -65,7 +65,8 @@ async function main() {
   const finalJobs = await loadJobs();
   const review = finalJobs.filter((job) => job.status === "needs_review").length;
   const errors = finalJobs.filter((job) => job.status === "error").length;
-  await db.from("pipeline_runs").update({ status: review > 0 ? "needs_review" : "completed", stage: review > 0 ? "review" : "completed", review_count: review, error_count: errors, completed_at: new Date().toISOString() }).eq("id", runId);
+  const finishedAt = new Date().toISOString();
+  await db.from("pipeline_runs").update({ status: review > 0 ? "needs_review" : "completed", stage: review > 0 ? "review" : "completed", review_count: review, error_count: errors, processing_completed_at: finishedAt, completed_at: review > 0 ? null : finishedAt }).eq("id", runId);
   console.log(`Lot ${runId}: ${review} per revisar · ${errors} errors`);
 }
 
@@ -75,7 +76,7 @@ async function loadJobs() {
   return data ?? [];
 }
 function sourceOf(job: Awaited<ReturnType<typeof loadJobs>>[number]) { const value = job.source_records; return (Array.isArray(value) ? value[0] : value) as { enrichment_status: string; enrichment_error: string | null }; }
-async function setRun(status: string, stage: string) { const { error } = await db.from("pipeline_runs").update({ status, stage, completed_at: null }).eq("id", runId); if (error) throw error; }
+async function setRun(status: string, stage: string) { const { error } = await db.from("pipeline_runs").update({ status, stage, processing_completed_at: null, completed_at: null }).eq("id", runId); if (error) throw error; }
 async function refresh() { const { error } = await db.rpc("refresh_pipeline_run", { p_run_id: runId }); if (error) throw error; }
 async function runCommand(script: string, args: string[]) { await execFileAsync("npm", ["run", script, "--", ...args], { cwd: process.cwd(), env: process.env, maxBuffer: 20 * 1024 * 1024 }); }
 function option(name: string) { const index = process.argv.indexOf(name); return index >= 0 ? process.argv[index + 1] : undefined; }

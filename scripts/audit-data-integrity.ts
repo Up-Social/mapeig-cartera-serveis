@@ -18,8 +18,16 @@ const group = (rows: Row[], fields: string[]) => Object.fromEntries([...rows.red
 
 async function all(table: string, select = "*") {
   const output: Row[] = [];
+  const orderBy: Record<string, string> = {
+    matching_candidate_evidence: "candidate_id",
+    record_enrichment_evidence: "enrichment_id",
+    source_record_entities: "source_record_id",
+    excel_export_items: "export_id",
+    reses_typology_catalog_mappings: "service_type",
+    reses_services: "registry_number",
+  };
   for (let from = 0; ; from += 1000) {
-    const { data, error } = await db.from(table).select(select).range(from, from + 999);
+    const { data, error } = await db.from(table).select(select).order(orderBy[table] ?? "id").range(from, from + 999);
     if (error) throw new Error(`${table}: ${error.message}`);
     output.push(...((data ?? []) as unknown as Row[]));
     if ((data?.length ?? 0) < 1000) break;
@@ -88,7 +96,7 @@ async function main() {
   const jobsByRun = new Map<string, Row[]>(); for (const row of jobs) push(jobsByRun, String(row.run_id), row);
   add("high", "run_counter_mismatch", "pipeline_runs", runs.filter((r) => { const list = jobsByRun.get(String(r.id)) ?? []; return Number(r.selected_count) !== list.length || Number(r.ready_count) !== list.filter((j) => ["ready", "matching", "needs_review", "approved", "corrected", "rejected", "insufficient_evidence"].includes(String(j.status)) || j.preparation_status === "ready").length || Number(r.processed_count) !== list.filter((j) => (candidatesByJob.get(String(j.id)) ?? []).length > 0).length || Number(r.review_count) !== list.filter((j) => j.status === "needs_review").length || Number(r.error_count) !== list.filter((j) => j.status === "error").length; }), "Comptadors persistits no coincideixen amb jobs i candidats.");
   add("high", "run_state_stage_mismatch", "pipeline_runs", runs.filter((r) => (r.status === "needs_review" && r.stage !== "review") || (r.status === "completed" && r.stage !== "completed") || (["queued", "preparing", "preparation_error"].includes(String(r.status)) && !["selection", "preparation"].includes(String(r.stage))) || (r.status === "enriching" && r.stage !== "enrichment") || (["matching", "matching_error"].includes(String(r.status)) && r.stage !== "matching")), "Combinació status/stage incompatible amb el flux.");
-  add("medium", "run_completion_timestamp_mismatch", "pipeline_runs", runs.filter((r) => (r.status === "completed" && r.completed_at == null) || (["queued", "preparing", "enriching", "matching", "needs_review"].includes(String(r.status)) && r.completed_at != null)), "completed_at incompatible amb l'estat del lot.");
+  add("medium", "run_completion_timestamp_mismatch", "pipeline_runs", runs.filter((r) => (r.status === "completed" && (r.completed_at == null || r.processing_completed_at == null)) || (["queued", "preparing", "enriching", "matching"].includes(String(r.status)) && (r.completed_at != null || r.processing_completed_at != null)) || (r.status === "needs_review" && (r.completed_at != null || r.processing_completed_at == null))), "completed_at o processing_completed_at incompatible amb l'estat del lot.");
 
   add("high", "enrichment_required_blank", "record_enrichments", enrichments.filter((e) => [e.summary, e.engine, e.engine_version].some(blank)), "Enriquiment sense resum o motor.");
   const enrichmentEvidenceByEnrichment = new Map<string, Row[]>(); for (const row of enrichmentEvidence) push(enrichmentEvidenceByEnrichment, String(row.enrichment_id), row);

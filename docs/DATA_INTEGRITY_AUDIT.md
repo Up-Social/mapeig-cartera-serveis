@@ -2,7 +2,7 @@
 
 ## Abast i metodologia
 
-Auditoria no destructiva executada el **2 de setembre de 2026** sobre l'esquema `public` de Supabase remot. S'han recorregut totes les files mitjançant paginació de 1.000 registres; no s'ha utilitzat cap mostra ni s'han modificat dades. La comprovació es pot repetir amb:
+Auditoria inicial no destructiva i verificació posterior a les correccions autoritzades, executades el **2 de setembre de 2026** sobre l'esquema `public` de Supabase remot. S'han recorregut totes les files mitjançant paginació determinista de 1.000 registres; no s'ha utilitzat cap mostra. La comprovació es pot repetir amb:
 
 ```bash
 npm run audit:data
@@ -14,15 +14,14 @@ L'script contrasta les dades amb les claus, restriccions i funcions del dump rem
 
 La integritat referencial és bona: no s'han detectat files òrfenes, evidències vinculades a un altre registre, codis de servei inexistents, provisions sense revisió positiva, recomptes de lot incorrectes ni exportacions incoherents. Els 23 jobs existents són terminals: 19 `needs_review` i 4 `approved`.
 
-Hi ha dues incidències de dades que requereixen correcció, una fila històrica incompleta, una ambigüitat temporal i un conjunt de possibles duplicats que només requereix revisió, no eliminació:
+Les quatre incidències operatives detectades inicialment han estat corregides i verificades:
 
-1. **Alta — 8 candidats de 3 registres sense evidència enllaçada.**
-2. **Mitjana — 27.732 registres pendents marcats amb `evidence_status=error` sense error real.**
-3. **Mitjana — 1 job històric aprovat conserva `preparation_status=pending`.**
-4. **Mitjana — 13 lots `needs_review` tenen `completed_at`, amb semàntica ambigua.**
-5. **Baixa — 865 files comparteixen identitat de deduplicació, agrupades en 351 clústers.**
+1. Els 3 matchings incomplets s'han regenerat i tots els candidats tenen evidència.
+2. Els 27.732 errors heretats s'han normalitzat; sis intents parcials addicionals han tornat a `pending` i un document que requereix OCR ha quedat com `unsupported`.
+3. El job històric aprovat ha quedat amb `preparation_status=ready`.
+4. `processing_completed_at` diferencia la fi automàtica del tancament global, i els 16 lots en revisió tenen timestamps coherents.
 
-No s'ha aplicat cap correcció de dades.
+L'únic avís restant és de prioritat baixa: **865 files comparteixen identitat de deduplicació, agrupades en 351 clústers**. No s'han eliminat ni fusionat perquè poden representar actes administratius legítims. L'auditoria final no conté incidències crítiques, altes ni mitjanes.
 
 ## Volum auditat
 
@@ -34,7 +33,7 @@ No s'ha aplicat cap correcció de dades.
 | `pipeline_runs` / `pipeline_jobs` | 20 / 23 |
 | `worker_tasks` | 25 |
 | `record_enrichments` / evidències | 22 / 31 |
-| `matching_candidates` / evidències | 67 / 63 |
+| `matching_candidates` / evidències | 66 / 70 |
 | `matching_evaluations` / `review_decisions` | 5 / 5 |
 | `service_provisions` | 4 |
 | `master_services` | 142, de les quals 140 són `Dentro` |
@@ -68,7 +67,7 @@ No s'ha aplicat cap correcció de dades.
 | `raisc_local` | `subvencio` | 14.254 | 0 discrepàncies |
 | `concerts` | `concert` | 305 | 0 discrepàncies |
 
-No hi ha hitos sense fase, tipologia o dataset. Les combinacions actuals de `pipeline_runs.status/stage` són 16 `needs_review/review` i 4 `completed/completed`; no s'han observat combinacions desconegudes. Les combinacions de job són 19 `needs_review/ready`, 3 `approved/ready` i una fila històrica `approved/pending` descrita a A3.
+No hi ha hitos sense fase, tipologia o dataset. Les combinacions actuals de `pipeline_runs.status/stage` són 16 `needs_review/review` i 4 `completed/completed`; no s'han observat combinacions desconegudes. Les combinacions de job són 19 `needs_review/ready` i 4 `approved/ready`.
 
 ## Estats i transicions implementades
 
@@ -100,7 +99,7 @@ Les fases corresponents són `preparation`, `enrichment`, `matching`, `review` i
 
 La decisió pot ser `approved`, `corrected`, `rejected` o `insufficient_evidence`. Només les dues primeres creen o actualitzen `service_provisions`; la resta retiren la provisió vigent si existia.
 
-## Incidències observades
+## Incidències observades i resolució
 
 ### A1. Candidats sense evidència — alta
 
@@ -109,7 +108,7 @@ La decisió pot ser `approved`, `corrected`, `rejected` o `insufficient_evidence
 - **Evidència:** els candidats tenen codi, nom, puntuació i justificació, però no tenen cap fila a `matching_candidate_evidence`. Cada registre disposa d'un únic fragment vàlid.
 - **Causa probable:** el model va retornar ordinals fora del rang disponible; `run-matching.ts` filtra els ordinals inexistents però permet desar el candidat sense cap enllaç.
 - **Impacte:** la justificació no és auditable des de la font oficial. No s'hauria d'aprovar sense regenerar-la.
-- **Correcció recomanada:** impedir que un candidat es desi sense almenys un fragment vàlid, marcar el job com a error reintentable i regenerar només aquests tres matchings després d'autorització.
+- **Resolució aplicada:** `run-matching.ts` valida tots els candidats abans de substituir el resultat anterior. Els tres matchings s'han regenerat; l'auditoria final compta 66 candidats i 70 enllaços d'evidència, sense candidats orfes.
 
 ### A2. Errors documentals heretats — mitjana
 
@@ -117,7 +116,7 @@ La decisió pot ser `approved`, `corrected`, `rejected` o `insufficient_evidence
 - **Evidència:** `processing_status=pendent`, `evidence_status=error`, `evidence_error=NULL` i cap job executat.
 - **Causa confirmada:** la migració `20260901173000_independent_record_stages.sql` va assignar `error` a qualsevol registre amb algun `source_document`, inclosos documents només `discovered` que mai s'havien intentat descarregar.
 - **Impacte:** confon “URL descoberta” amb “extracció fallida”, distorsiona mètriques i filtres, encara que el procés automàtic pot reintentar-los.
-- **Correcció recomanada:** migració de dades reversible que torni a `pending` exclusivament els registres pendents, sense jobs, sense documents intentats i amb `evidence_error IS NULL`; conservar els errors reals.
+- **Resolució aplicada:** la migració `20260902120000_integrity_audit_repairs.sql` ha retornat a `pending` només els casos sense job, error explícit ni document processat. La migració final ha normalitzat sis casos amb una alternativa encara descoberta i ha classificat un cas que necessita OCR com `unsupported`.
 
 ### A3. Job històric aprovat amb preparació pendent — mitjana
 
@@ -125,7 +124,7 @@ La decisió pot ser `approved`, `corrected`, `rejected` o `insufficient_evidence
 - **Evidència:** `status=approved` i `preparation_status=pending`.
 - **Causa probable:** job creat abans d'introduir `preparation_status`; el backfill no el va normalitzar.
 - **Impacte:** el resultat i la provisió són coherents, però el detall històric de fase és fals.
-- **Correcció recomanada:** backfill puntual a `ready`, condicionat a candidat, revisió positiva i evidència existent.
+- **Resolució aplicada:** backfill puntual a `ready`, condicionat a candidat amb evidència i revisió positiva.
 
 ### A4. `completed_at` ambigu en lots pendents de revisió — mitjana
 
@@ -133,7 +132,7 @@ La decisió pot ser `approved`, `corrected`, `rejected` o `insufficient_evidence
 - **Evidència:** `status=needs_review`, `stage=review` i `completed_at` informat.
 - **Causa confirmada:** l'orquestrador usa `completed_at` per indicar que ha acabat el processament automàtic, mentre altres funcions el tracten com a finalització global del lot.
 - **Impacte:** no hi ha pèrdua de dades, però informes o integracions poden interpretar el lot com completament revisat.
-- **Correcció recomanada:** definir `processing_completed_at` i reservar `completed_at` per al final de la revisió, o documentar i aplicar una única semàntica a tot el codi.
+- **Resolució aplicada:** s'ha afegit `processing_completed_at`; `completed_at` queda reservat per al tancament global. Els valors històrics s'han reconstruït a partir dels jobs i el codi nou aplica la mateixa semàntica.
 
 ### A5. Identitats duplicades — baixa, revisió necessària
 
@@ -157,11 +156,9 @@ La decisió pot ser `approved`, `corrected`, `rejected` o `insufficient_evidence
 - 0 exportacions amb recompte diferent dels seus elements.
 - 0 mencions d'entitat amb estat de resolució incompatible amb `entity_id`.
 
-## Restriccions absents al model
+## Restriccions incorporades al model
 
-PostgreSQL no limita els dominis de `pipeline_jobs.status`, `pipeline_jobs.preparation_status`, `pipeline_runs.status`, `pipeline_runs.stage` ni `source_records.financing_type`. El codi actual usa valors coherents, però una escriptura directa podria crear estats impossibles.
-
-Es recomana afegir constraints en una migració posterior, després de normalitzar A2–A4. També convé afegir una regla o trigger que exigeixi almenys una evidència per candidat abans de passar el job a `needs_review`.
+PostgreSQL limita ara els dominis de `pipeline_jobs.status`, `pipeline_jobs.preparation_status`, `pipeline_runs.status`, `pipeline_runs.stage` i `source_records.financing_type`. Les restriccions inclouen els estats del procés automàtic i els estats antics que encara es conserven per compatibilitat. El codi impedeix avançar un matching nou si algun candidat no té cap ordinal d'evidència vàlid.
 
 ## Limitacions
 
@@ -169,4 +166,4 @@ Es recomana afegir constraints en una migració posterior, després de normalitz
 - No s'han descarregat de nou les 52.530 URL ni s'ha contrastat el seu contingut actual amb Internet.
 - Els hashes s'han comprovat com a presents i les longituds contra el text persistit; no s'han recalculat tots els SHA-256 per evitar una lectura i còmput innecessaris sobre contingut documental.
 - No s'han auditat esquemes gestionats per Supabase (`auth`, `storage`, etc.); l'abast funcional és l'esquema `public` de l'aplicació.
-- No s'ha modificat cap dada ni cap conjunt identificat com a v3.
+- No s'ha modificat cap conjunt identificat com a v3. Les úniques modificacions de dades són les correccions autoritzades i descrites en aquest informe.

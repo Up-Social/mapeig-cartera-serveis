@@ -97,11 +97,11 @@ const workflowStates = [
 ];
 
 const auditFindings = [
-  ["Alta", "8 candidats de 3 registres no tenen cap fragment d’evidència enllaçat."],
-  ["Mitjana", "27.732 registres pendents conserven un error documental heretat d’un backfill, sense error real ni job executat."],
-  ["Mitjana", "1 job històric aprovat conserva preparation_status=pending."],
-  ["Mitjana", "13 lots pendents de revisió utilitzen completed_at per indicar fi del processament automàtic."],
-  ["Baixa", "865 files formen 351 clústers d’identitat duplicada; no s’han eliminat perquè poden ser actes legítims."],
+  ["Corregit", "Els 3 matchings incomplets s’han regenerat: tots els candidats tenen evidència oficial enllaçada."],
+  ["Corregit", "Els 27.732 errors documentals heretats s’han normalitzat sense ocultar els intents reals."],
+  ["Corregit", "Els estats històrics i els timestamps de processament i revisió ja tenen una semàntica coherent."],
+  ["Protegit", "La base de dades restringeix els estats, fases, preparació i tipologies admesos pel flux."],
+  ["Revisió", "865 files formen 351 clústers d’identitat potencialment duplicada; no s’eliminen perquè poden ser actes legítims."],
 ];
 
 export default function ProcessPage() {
