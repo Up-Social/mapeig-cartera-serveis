@@ -11,6 +11,7 @@ if (process.env.MATCHING_CATALOG_SOURCE !== "master" || process.env.ALLOW_MASTER
 const supabase = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false }, realtime: { transport: WebSocket as never } });
 const runIdArg = process.argv.indexOf("--run-id");
 const runId = runIdArg >= 0 ? process.argv[runIdArg + 1] : undefined;
+const allowPreviousSelection = process.argv.includes("--allow-previous-selection");
 const limitArg = process.argv.indexOf("--limit");
 const limit = limitArg >= 0 ? Number.parseInt(process.argv[limitArg + 1] ?? "1", 10) : runId ? 50 : 1;
 if (!Number.isInteger(limit) || limit < 1 || limit > 50) throw new Error("--limit ha de ser entre 1 i 50");
@@ -36,7 +37,7 @@ async function processJob(job: { id: string; run_id: string; source_record_id: s
   await supabase.from("source_records").update({ processing_status: "processant", updated_at: claimedAt }).eq("id", job.source_record_id);
 
   try {
-    await assertNotPreviouslySelected(job.source_record_id, job.id);
+    await assertNotPreviouslySelected(job.source_record_id, job.id, allowPreviousSelection);
     const [{ data: record, error: recordError }, { data: catalog, error: catalogError }] = await Promise.all([
       supabase.from("source_records").select("id,source_dataset,source_record_id,mechanism,title,provider_name,amount,source_payload,record_enrichments(id,summary,provider_name,provider_nif,mechanism,award_date,amount,contracting_body,target_population),source_documents!inner(id,status)").eq("id", job.source_record_id).eq("source_documents.status", "fetched").single(),
       supabase.from("master_services").select("service_code,service_name,sector_scope").eq("portfolio_status", "Dentro").order("service_code"),
@@ -93,10 +94,11 @@ async function processJob(job: { id: string; run_id: string; source_record_id: s
   }
 }
 
-async function assertNotPreviouslySelected(sourceRecordId: string, currentJobId: string) {
+async function assertNotPreviouslySelected(sourceRecordId: string, currentJobId: string, allowPrevious: boolean) {
   const { count: currentCandidates, error: currentCandidatesError } = await supabase.from("matching_candidates").select("id", { count: "exact", head: true }).eq("pipeline_job_id", currentJobId);
   if (currentCandidatesError) throw currentCandidatesError;
   if (currentCandidates) throw new Error("Cas omès: aquest treball ja té un resultat de matching desat.");
+  if (allowPrevious) return;
   const { data: record, error: recordError } = await supabase.from("source_records").select("deduplication_key").eq("id", sourceRecordId).single();
   if (recordError) throw recordError;
   const { data: equivalents, error: equivalentsError } = await supabase.from("source_records").select("id").eq("deduplication_key", record.deduplication_key);
