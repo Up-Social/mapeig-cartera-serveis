@@ -717,54 +717,13 @@ function RecordStages({
           title="Preparar fonts"
           status={evidenceStatusLabel(record.evidenceStatus)}
           complete={record.evidenceStatus === "ready"}
-        >
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            disabled={
-              busy ||
-              record.evidenceStatus === "preparing" ||
-              record.evidenceStatus === "ready"
-            }
-            onClick={() =>
-              run("prepare", () => startRecordOperation(record.id, "prepare"))
-            }
-          >
-            {record.evidenceStatus === "ready"
-              ? "Preparat"
-              : displayedOperation === "prepare"
-                ? "Preparant..."
-                : "Preparar fonts"}
-          </Button>
-        </StageRow>
+        />
         <StageRow
           number="2"
           title="Contrastar dades"
           status={enrichmentStatusLabel(record.enrichmentStatus)}
           complete={record.enrichmentStatus === "completed"}
-        >
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            disabled={
-              busy ||
-              record.evidenceStatus !== "ready" ||
-              record.enrichmentStatus === "processing" ||
-              record.enrichmentStatus === "completed"
-            }
-            onClick={() =>
-              run("enrich", () => startRecordOperation(record.id, "enrich"))
-            }
-          >
-            {record.enrichmentStatus === "completed"
-              ? "Contrastat"
-              : displayedOperation === "enrich"
-                ? "Contrastant..."
-                : "Contrastar dades"}
-          </Button>
-        </StageRow>
+        />
         <StageRow
           number="3"
           title="Fer matching"
@@ -776,26 +735,7 @@ function RecordStages({
                 : "No executat"
           }
           complete={record.matchingCandidates.length > 0}
-        >
-          <Button
-            type="button"
-            size="sm"
-            disabled={
-              busy ||
-              record.enrichmentStatus !== "completed" ||
-              record.matchingCandidates.length > 0
-            }
-            onClick={() =>
-              run("match", () => startRecordOperation(record.id, "match"))
-            }
-          >
-            {record.matchingCandidates.length > 0
-              ? "Matching fet"
-              : displayedOperation === "match"
-                ? "Fent matching..."
-                : "Fer matching"}
-          </Button>
-        </StageRow>
+        />
         <StageRow
           number="4"
           title="Validar resultat"
@@ -809,6 +749,19 @@ function RecordStages({
           ) : <Button variant="outline" size="sm" disabled>Validar</Button>}
         </StageRow>
       </div>
+      {!record.matchingCandidates.length && (
+        <Button
+          type="button"
+          className="mt-4 w-full sm:w-auto"
+          disabled={busy}
+          onClick={() => run("process", () => startRecordOperation(record.id, "process"))}
+        >
+          {displayedOperation === "process" ? "Processant..." : record.status === "error" ? "Tornar a processar" : "Processar"}
+        </Button>
+      )}
+      {record.matchingCandidates.length > 0 && !record.reviewDecision && (
+        <p className="mt-4 rounded-lg bg-neutral-100 p-3 text-sm font-medium">Procés completat · Pendent de revisió</p>
+      )}
       {(record.evidenceError ||
         record.enrichmentError ||
         record.matchingError ||
@@ -862,7 +815,7 @@ function StageRow({
   title: string;
   status: string;
   complete: boolean;
-  children: React.ReactNode;
+  children?: React.ReactNode;
 }) {
   return (
     <div className="grid grid-cols-[28px_1fr_auto] items-center gap-2">
@@ -903,9 +856,7 @@ function enrichmentStatusLabel(value: SourceRecord["enrichmentStatus"]) {
 }
 
 function inferOperation(record: SourceRecord): RecordOperation | undefined {
-  if (record.evidenceStatus === "preparing") return "prepare";
-  if (record.enrichmentStatus === "processing") return "enrich";
-  if (record.status === "processant") return "match";
+  if (record.evidenceStatus === "preparing" || record.enrichmentStatus === "processing" || ["preparant", "processant"].includes(record.status)) return "process";
   return undefined;
 }
 

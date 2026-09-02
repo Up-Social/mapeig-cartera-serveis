@@ -2,6 +2,7 @@ import "server-only";
 import { createServerSupabase, mapLatestCandidates } from "./records-page";
 import type { BatchJob, BatchSummary, ExportSummary, SampleRecord, SourceDataset } from "./batch-types";
 import { FINANCING_TYPES, financingTypeForDataset, type FinancingType } from "./financing-types";
+import { phaseState } from "./pipeline-progress";
 
 export async function getBalancedSample(excludedIds: string[] = []): Promise<SampleRecord[]> {
   const { data, error } = await createServerSupabase().rpc("sample_financing_type_candidates", { candidate_limit: 20, excluded_ids: excludedIds });
@@ -42,7 +43,7 @@ export async function getBatch(id: string): Promise<BatchSummary | null> {
   return (await enrichCandidateServices([mapBatch(data as Record<string, unknown>)]))[0];
 }
 
-const BATCH_SELECT = "*,pipeline_jobs(id,status,preparation_status,preparation_message,matching_candidates(id,pipeline_job_id,rank,target_code,target_name,score,rationale,engine_version,matching_candidate_evidence(explanation,evidence_chunks(ordinal,content))),source_records(id,source_dataset,financing_type,source_record_id,title,service_provisions(id)))";
+const BATCH_SELECT = "*,pipeline_jobs(id,status,error_message,preparation_status,preparation_message,matching_candidates(id,pipeline_job_id,rank,target_code,target_name,score,rationale,engine_version,matching_candidate_evidence(explanation,evidence_chunks(ordinal,content))),source_records(id,source_dataset,financing_type,source_record_id,title,evidence_status,evidence_error,enrichment_status,enrichment_error,processing_status,service_provisions(id)))";
 
 export async function getExportSummary() {
   const supabase = createServerSupabase();
@@ -70,14 +71,26 @@ function mapBatch(row: Record<string, unknown>): BatchSummary {
     const hasProvision = Array.isArray(rawProvision) ? rawProvision.length > 0 : Boolean(rawProvision);
     if (hasProvision) provisionCount += 1;
     const sourceDataset = source.source_dataset as SourceDataset;
-    return { id: String(item.id), sourceRecordId: String(source.id), sourceDataset, financingType: (source.financing_type ?? financingTypeForDataset(sourceDataset)) as FinancingType, externalId: String(source.source_record_id), title: String(source.title), status: String(item.status), preparationStatus: String(item.preparation_status) as BatchJob["preparationStatus"], preparationMessage: item.preparation_message == null ? null : String(item.preparation_message), matchingCandidates: mapLatestCandidates([{ created_at: "", matching_candidates: item.matching_candidates }]), hasProvision };
+    return { id: String(item.id), sourceRecordId: String(source.id), sourceDataset, financingType: (source.financing_type ?? financingTypeForDataset(sourceDataset)) as FinancingType, externalId: String(source.source_record_id), title: String(source.title), status: String(item.status), preparationStatus: String(item.preparation_status) as BatchJob["preparationStatus"], preparationMessage: item.preparation_message == null ? null : String(item.preparation_message), errorMessage: item.error_message == null ? null : String(item.error_message), enrichmentStatus: String(source.enrichment_status ?? "pending"), enrichmentError: source.enrichment_error == null ? null : String(source.enrichment_error), processingStatus: String(source.processing_status ?? "pendent"), matchingCandidates: mapLatestCandidates([{ created_at: "", matching_candidates: item.matching_candidates }]), hasProvision };
   }).sort((a, b) => a.sourceDataset.localeCompare(b.sourceDataset) || a.externalId.localeCompare(b.externalId)) : [];
   const rejectedCount = jobs.filter((job) => job.status === "rejected").length;
   const insufficientCount = jobs.filter((job) => job.status === "insufficient_evidence").length;
   const reviewedCount = jobs.filter((job) => ["approved", "corrected", "rejected", "insufficient_evidence"].includes(job.status)).length;
   const analyzedCount = jobs.filter((job) => job.matchingCandidates.length > 0).length;
   const incidences = jobs.filter((job) => ["approved", "corrected"].includes(job.status) && !job.hasProvision).map((job) => `${job.externalId}: decisió aprovada sense provisió exportable`);
-  return { id: String(row.id), batchNumber: String(row.batch_number).padStart(8, "0"), status: String(row.status), stage: String(row.stage), selectedCount: jobs.length, preparedCount: Number(row.prepared_count), readyCount: Number(row.ready_count), processedCount: Number(row.processed_count), analyzedCount, reviewCount: jobs.filter((job) => job.status === "needs_review").length, reviewedCount, approvedCount: jobs.filter((job) => ["approved", "corrected"].includes(job.status) && job.hasProvision).length, rejectedCount, insufficientCount, errorCount: jobs.filter((job) => job.status === "error").length, exportableCount: provisionCount, incidences, estimatedInputTokens: Number(row.estimated_input_tokens), actualInputTokens: Number(row.actual_input_tokens), actualOutputTokens: Number(row.actual_output_tokens), createdAt: String(row.created_at), canExport: provisionCount > 0, provisionCount, jobs };
+  const stage = String(row.stage);
+  const preparationCompleted = jobs.filter((job) => job.preparationStatus === "ready").length;
+  const preparationErrors = jobs.filter((job) => ["no_source", "unsupported", "error"].includes(job.preparationStatus)).length;
+  const enrichmentCompleted = jobs.filter((job) => job.enrichmentStatus === "completed").length;
+  const enrichmentErrors = jobs.filter((job) => job.enrichmentStatus === "error" || (job.status === "error" && job.preparationStatus === "ready")).length;
+  const matchingCompleted = jobs.filter((job) => job.matchingCandidates.length > 0).length;
+  const matchingErrors = jobs.filter((job) => job.status === "error" && job.enrichmentStatus === "completed").length;
+  const progress = {
+    preparation: { state: phaseState(stage, "preparation", preparationCompleted, preparationErrors, jobs.length), completed: preparationCompleted, errors: preparationErrors, total: jobs.length },
+    enrichment: { state: phaseState(stage, "enrichment", enrichmentCompleted, enrichmentErrors, preparationCompleted), completed: enrichmentCompleted, errors: enrichmentErrors, total: preparationCompleted },
+    matching: { state: phaseState(stage, "matching", matchingCompleted, matchingErrors, enrichmentCompleted), completed: matchingCompleted, errors: matchingErrors, total: enrichmentCompleted },
+  };
+  return { id: String(row.id), batchNumber: String(row.batch_number).padStart(8, "0"), status: String(row.status), stage, selectedCount: jobs.length, preparedCount: Number(row.prepared_count), readyCount: Number(row.ready_count), processedCount: Number(row.processed_count), analyzedCount, reviewCount: jobs.filter((job) => job.status === "needs_review").length, reviewedCount, approvedCount: jobs.filter((job) => ["approved", "corrected"].includes(job.status) && job.hasProvision).length, rejectedCount, insufficientCount, errorCount: jobs.filter((job) => job.status === "error").length, exportableCount: provisionCount, incidences, estimatedInputTokens: Number(row.estimated_input_tokens), actualInputTokens: Number(row.actual_input_tokens), actualOutputTokens: Number(row.actual_output_tokens), createdAt: String(row.created_at), canExport: provisionCount > 0, provisionCount, isActive: ["queued", "preparing", "enriching", "matching"].includes(String(row.status)), progress, jobs };
 }
 
 async function enrichCandidateServices(batches: BatchSummary[]) {

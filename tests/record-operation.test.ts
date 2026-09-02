@@ -82,6 +82,17 @@ test("detects terminal states for each isolated record operation", () => {
   }
 });
 
+test("stops the automatic process when preparation has a terminal incidence", () => {
+  assert.equal(
+    isRecordOperationTerminal("process", {
+      ...record,
+      evidenceStatus: "no_source",
+      status: "sense_evidencia",
+    }),
+    true,
+  );
+});
+
 test("rejects an invalid record identifier without calling the loader", async () => {
   let called = false;
   const response = await createRecordStatusResponse("invalid", async () => {

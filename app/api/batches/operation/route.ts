@@ -1,5 +1,6 @@
 import {
   createGuidedBatch,
+  createAutomatedBatch,
   generateBalancedSample,
   replaceFailedBatchJob,
   replaceSampleRecord,
@@ -13,6 +14,9 @@ export async function POST(request: Request) {
     const body = (await request.json()) as Record<string, unknown>;
     let result: unknown;
     switch (body.operation) {
+      case "create_and_process":
+        result = await createAutomatedBatch(Number(body.size));
+        break;
       case "generate_sample":
         result = await generateBalancedSample(stringArray(body.excludedIds));
         break;

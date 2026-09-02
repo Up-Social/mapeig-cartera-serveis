@@ -1,5 +1,6 @@
 import type { FinancingType } from "./financing-types";
 import type { MatchingCandidate } from "./workbench-types";
+import type { PhaseProgress } from "./pipeline-progress";
 
 export const SOURCE_DATASETS = ["contractacions", "convenis", "raisc_ccaa", "raisc_local"] as const;
 export type SourceDataset = typeof SOURCE_DATASETS[number];
@@ -11,6 +12,7 @@ export type SampleRecord = {
 export type BatchJob = {
   id: string; sourceRecordId: string; sourceDataset: SourceDataset; financingType: FinancingType; externalId: string; title: string;
   status: string; preparationStatus: EvidencePreparationStatus; preparationMessage: string | null;
+  errorMessage: string | null; enrichmentStatus: string; enrichmentError: string | null; processingStatus: string;
   matchingCandidates: MatchingCandidate[];
   hasProvision: boolean;
 };
@@ -19,6 +21,8 @@ export type BatchSummary = {
   processedCount: number; analyzedCount: number; reviewCount: number; reviewedCount: number; approvedCount: number; rejectedCount: number; insufficientCount: number; errorCount: number; exportableCount: number; incidences: string[];
   estimatedInputTokens: number; actualInputTokens: number; actualOutputTokens: number; createdAt: string;
   canExport: boolean; provisionCount: number;
+  isActive: boolean;
+  progress: { preparation: PhaseProgress; enrichment: PhaseProgress; matching: PhaseProgress };
   jobs: BatchJob[];
 };
 export type ExportSummary = { id: string; filename: string; provisionCount: number; createdAt: string };

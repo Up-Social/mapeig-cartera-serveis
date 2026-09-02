@@ -6,7 +6,8 @@ import { createServerSupabase } from "@/lib/records-page";
 type WorkerTask =
   | { type: "prepare_run"; runId: string }
   | { type: "enrich_record"; sourceRecordId: string }
-  | { type: "match_run"; runId: string };
+  | { type: "match_run"; runId: string }
+  | { type: "process_run"; runId: string };
 
 export async function dispatchWorkerTask(
   task: WorkerTask,

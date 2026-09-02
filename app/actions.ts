@@ -47,6 +47,59 @@ export async function createProcessingBatch(recordIds: string[]) {
   return { runId: String(run.id), count: ids.length };
 }
 
+export async function processRecordAutomatically(sourceRecordId: string) {
+  const id = requireUuid(sourceRecordId);
+  const supabase = createServerSupabase();
+  const { data: record, error: recordError } = await supabase
+    .from("source_records")
+    .select("id,processing_status,pipeline_jobs(status,matching_candidates(id),pipeline_runs(parameters))")
+    .eq("id", id)
+    .single();
+  if (recordError) throw recordError;
+  const jobs = Array.isArray(record.pipeline_jobs) ? record.pipeline_jobs : [];
+  if (jobs.some((job) => Array.isArray(job.matching_candidates) && job.matching_candidates.length > 0))
+    throw new Error("Aquest registre ja té un matching disponible.");
+  if (["preparant", "processant"].includes(record.processing_status))
+    throw new Error("Aquest registre ja s'està processant.");
+
+  const { data: run, error: runError } = await supabase
+    .from("pipeline_runs")
+    .insert({
+      status: "queued",
+      stage: "preparation",
+      selected_count: 1,
+      started_at: new Date().toISOString(),
+      parameters: { purpose: "automated_single", auto_process: true, source_record_id: id, batch_size: 1 },
+    })
+    .select("id")
+    .single();
+  if (runError) throw runError;
+  const { error: jobError } = await supabase.from("pipeline_jobs").insert({
+    run_id: run.id,
+    source_record_id: id,
+    status: "selected",
+    preparation_status: "pending",
+  });
+  if (jobError) throw jobError;
+  const { error: updateError } = await supabase
+    .from("source_records")
+    .update({ processing_status: "preparant", updated_at: new Date().toISOString() })
+    .eq("id", id);
+  if (updateError) throw updateError;
+  try {
+    await dispatchWorkerTask(
+      { type: "process_run", runId: String(run.id) },
+      "pipeline:process",
+      ["--run-id", String(run.id)],
+    );
+  } catch (error) {
+    await supabase.from("pipeline_runs").update({ status: "processing_error", error_count: 1 }).eq("id", run.id);
+    await supabase.from("source_records").update({ processing_status: "error", updated_at: new Date().toISOString() }).eq("id", id);
+    throw error;
+  }
+  return { runId: String(run.id) };
+}
+
 export async function prepareRecordSources(sourceRecordId: string) {
   const id = requireUuid(sourceRecordId);
   const supabase = createServerSupabase();

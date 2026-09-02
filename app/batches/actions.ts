@@ -11,6 +11,31 @@ export async function generateBalancedSample(excludedIds: string[] = []) {
   return getBalancedSample(validateIds(excludedIds));
 }
 
+export async function createAutomatedBatch(size: number) {
+  if (!Number.isInteger(size) || size < 1 || size > 50)
+    throw new Error("La mida del lot ha de ser un enter entre 1 i 50.");
+  const supabase = createServerSupabase();
+  const { data, error } = await supabase.rpc("create_automated_batch", {
+    p_batch_size: size,
+  });
+  if (error) throw error;
+  const id = validateId(String(data));
+  try {
+    await dispatchWorkerTask(
+      { type: "process_run", runId: id },
+      "pipeline:process",
+      ["--run-id", id],
+    );
+  } catch (error) {
+    await supabase
+      .from("pipeline_runs")
+      .update({ status: "processing_error", error_count: 1 })
+      .eq("id", id);
+    throw error;
+  }
+  return { id };
+}
+
 export async function replaceSampleRecord(
   type: FinancingType,
   excludedIds: string[],

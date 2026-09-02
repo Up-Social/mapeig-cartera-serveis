@@ -1,511 +1,83 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState, useTransition } from "react";
-import type { BatchSummary, SampleRecord } from "@/lib/batch-types";
-import {
-  FINANCING_TYPES,
-  FINANCING_TYPE_LABELS,
-  SOURCE_LABELS,
-  type FinancingType,
-} from "@/lib/financing-types";
+import { useEffect, useState, useTransition } from "react";
+import type { BatchSummary } from "@/lib/batch-types";
+import { FINANCING_TYPE_LABELS, SOURCE_LABELS } from "@/lib/financing-types";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { StableAccordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { MatchingCandidateAnalysis } from "@/components/matching-candidate-analysis";
 
-export function BatchesWorkbench({
-  batches,
-  activeBatch,
-}: {
-  batches: BatchSummary[];
-  activeBatch: BatchSummary | null;
-}) {
-  const router = useRouter();
-  const [sample, setSample] = useState<SampleRecord[]>([]);
+export function BatchesWorkbench({ batches, activeBatch }: { batches: BatchSummary[]; activeBatch: BatchSummary | null }) {
+  const [items, setItems] = useState(batches);
+  const [openedId, setOpenedId] = useState(activeBatch?.id ?? null);
+  const [size, setSize] = useState(4);
   const [message, setMessage] = useState("");
   const [pending, startTransition] = useTransition();
-  const counts = useMemo(
-    () =>
-      Object.fromEntries(
-        FINANCING_TYPES.map((type) => [
-          type,
-          sample.filter((item) => item.financingType === type).length,
-        ]),
-      ) as Record<FinancingType, number>,
-    [sample],
-  );
-  const active =
-    activeBatch && ["preparing", "matching"].includes(activeBatch.status);
-  useEffect(() => {
-    if (!active) return;
-    const timer = window.setInterval(() => router.refresh(), 3000);
-    return () => window.clearInterval(timer);
-  }, [active, router]);
+  const opened = items.find((item) => item.id === openedId) ?? activeBatch;
 
-  function run(action: () => Promise<void>) {
+  useEffect(() => {
+    if (!opened?.isActive) return;
+    let cancelled = false;
+    let timer: number | undefined;
+    let controller: AbortController | undefined;
+    const poll = async () => {
+      controller = new AbortController();
+      try {
+        const batch = await fetchBatch(opened.id, controller.signal);
+        if (cancelled) return;
+        setItems((current) => [batch, ...current.filter((item) => item.id !== batch.id)]);
+        if (!batch.isActive) return;
+      } catch (error) {
+        if (!cancelled && !isAbortError(error)) setMessage(error instanceof Error ? error.message : "No s'ha pogut actualitzar el lot.");
+      }
+      timer = window.setTimeout(poll, 2000);
+    };
+    void poll();
+    return () => { cancelled = true; controller?.abort(); if (timer) window.clearTimeout(timer); };
+  }, [opened?.id, opened?.isActive]);
+
+  function create() {
     setMessage("");
     startTransition(async () => {
       try {
-        await action();
+        const result = await runBatchOperation<{ id: string }>({ operation: "create_and_process", size });
+        const batch = await fetchBatch(result.id);
+        setItems((current) => [batch, ...current.filter((item) => item.id !== batch.id)]);
+        setOpenedId(batch.id);
+        window.history.replaceState(null, "", `/batches?batch=${batch.id}`);
       } catch (error) {
-        setMessage(
-          error instanceof Error
-            ? error.message
-            : "No s'ha pogut completar l'acció.",
-        );
+        setMessage(error instanceof Error ? error.message : "No s'ha pogut crear el lot.");
       }
     });
   }
-  function generate() {
-    run(async () => {
-      const rows = await runBatchOperation<SampleRecord[]>({
-        operation: "generate_sample",
-      });
-      setSample(rows);
-      if (rows.length !== 4)
-        setMessage(
-          `Només s'han trobat ${rows.length} casos únics disponibles.`,
-        );
-    });
-  }
-  function replace(record: SampleRecord) {
-    run(async () => {
-      const next = await runBatchOperation<SampleRecord>({
-        operation: "replace_sample",
-        financingType: record.financingType,
-        excludedIds: sample.map((item) => item.id),
-      });
-      setSample((current) =>
-        current.map((item) => (item.id === record.id ? next : item)),
-      );
-    });
-  }
-  function add(type: FinancingType) {
-    run(async () => {
-      const next = await runBatchOperation<SampleRecord>({
-        operation: "replace_sample",
-        financingType: type,
-        excludedIds: sample.map((item) => item.id),
-      });
-      setSample((current) => [...current, next]);
-    });
-  }
-  function create() {
-    run(async () => {
-      const result = await runBatchOperation<{ id: string }>({
-        operation: "create_batch",
-        recordIds: sample.map((item) => item.id),
-      });
-      setSample([]);
-      router.push(`/batches?batch=${result.id}`);
-      router.refresh();
-    });
-  }
 
-  return (
-    <main className="page-shell">
-      <section className="page-container">
-        <div>
-          <p className="page-eyebrow">Flux guiat</p>
-          <h2 className="page-title">Lots de matching</h2>
-          <p className="page-description">
-            Selecciona, prepara evidència, confirma el cost, revisa els
-            resultats i descarrega el detall de cada lot.
-          </p>
-        </div>
-        <ol className="mt-5 grid gap-2 sm:grid-cols-4" aria-label="Passos del procés per lots">
-          {[["1", "Crear lot", "Escull 4 registres"], ["2", "Preparar", "Obté i contrasta fonts"], ["3", "Matching", "Genera candidats"], ["4", "Validar i exportar", "Aprova almenys un registre"]].map(([number, title, description]) => <li key={number} className="rounded-xl border bg-card p-3"><div className="flex items-center gap-2"><span className="flex size-6 items-center justify-center rounded-full bg-primary text-xs text-primary-foreground">{number}</span><strong className="text-sm">{title}</strong></div><p className="mt-1 pl-8 text-xs text-muted-foreground">{description}</p></li>)}
-        </ol>
-        <div className="mt-6 space-y-6">
-          <div className="grid gap-4 lg:grid-cols-[330px_minmax(0,1fr)]">
-            <section className="surface p-4">
-              <div className="flex items-center justify-between">
-                <h3 className="font-semibold">Mostra per tipologia</h3>
-                <span className="text-sm text-neutral-500">
-                  {sample.length}/4
-                </span>
-              </div>
-              <p className="mt-2 text-xs leading-5 text-neutral-500">
-                Un cas de cada tipologia disponible. Si una s&apos;ha esgotat,
-                es completa el lot amb una altra sense repetir casos.
-              </p>
-              <div className="mt-3 grid grid-cols-2 gap-2">
-                {FINANCING_TYPES.map((type) => (
-                  <div key={type} className="rounded-xl bg-neutral-100 p-3">
-                    <p className="text-xs text-neutral-500">
-                      {FINANCING_TYPE_LABELS[type]}
-                    </p>
-                    <div className="mt-1 flex items-center justify-between">
-                      <strong>{counts[type]}</strong>
-                      {sample.length > 0 &&
-                        sample.length < 4 &&
-                        counts[type] > 0 && (
-                          <Button
-                            variant="link"
-                            size="xs"
-                            onClick={() => add(type)}
-                            disabled={pending}
-                          >
-                            Afegir
-                          </Button>
-                        )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <Button
-                variant="outline"
-                onClick={generate}
-                disabled={pending}
-                className="mt-3 w-full"
-              >
-                {sample.length
-                  ? "Generar una altra mostra"
-                  : "Generar mostra de 4"}
-              </Button>
-              {sample.length > 0 && (
-                <Button
-                  onClick={create}
-                  disabled={pending || sample.length !== 4}
-                  className="mt-2 w-full"
-                >
-                  Crear lot
-                </Button>
-              )}
-            </section>
-            <section className="surface p-4">
-              <h3 className="font-semibold">Historial</h3>
-              <p className="mt-1 text-xs text-muted-foreground">Obre un lot per executar el pas pendent. L&apos;Excel apareix quan hi ha almenys una validació humana aprovada.</p>
-              <StableAccordion stateKey={`batches-history-${activeBatch?.id ?? "none"}`} defaultValue={activeBatch ? [activeBatch.id] : []} className="mt-3 divide-y">
-                {batches.map((batch) => (
-                  <AccordionItem key={batch.id} value={batch.id} className="px-3">
-                    <AccordionTrigger className="gap-3 py-3 hover:no-underline"><div className="min-w-0 flex-1 text-left">
-                      <div className="flex justify-between gap-2">
-                        <strong>Lot {batch.batchNumber}</strong>
-                        <span className="text-xs text-neutral-500">
-                          {stageLabel(batch.stage)}
-                        </span>
-                      </div>
-                      <p className="mt-1 text-xs text-neutral-500">
-                        {new Intl.DateTimeFormat("ca-ES", {
-                          dateStyle: "short",
-                          timeStyle: "short",
-                        }).format(new Date(batch.createdAt))}{" "}
-                        · {batch.selectedCount} registres
-                      </p>
-                    </div></AccordionTrigger>
-                    <AccordionContent className="border-t pb-4 pt-4">
-                    <BatchDetail batch={batch} pending={pending} run={run} refresh={() => router.refresh()} />
-                    </AccordionContent>
-                  </AccordionItem>
-                ))}
-              </StableAccordion>
-            </section>
-          </div>
-          <div className="space-y-6">
-            {message && (
-              <p className="rounded-xl border border-neutral-300 bg-white p-4 text-sm">
-                {message}
-              </p>
-            )}
-            {sample.length > 0 ? (
-              <SamplePreview
-                sample={sample}
-                onReplace={replace}
-                onRemove={(id) =>
-                  setSample((current) =>
-                    current.filter((item) => item.id !== id),
-                  )
-                }
-                disabled={pending}
-              />
-            ) : batches.length === 0 ? (
-              <EmptyState />
-            ) : null}
-          </div>
-        </div>
-      </section>
-    </main>
-  );
-}
-
-function SamplePreview({
-  sample,
-  onReplace,
-  onRemove,
-  disabled,
-}: {
-  sample: SampleRecord[];
-  onReplace: (record: SampleRecord) => void;
-  onRemove: (id: string) => void;
-  disabled: boolean;
-}) {
-  return (
-    <section className="surface overflow-hidden">
-      <div className="border-b border-neutral-200 p-5">
-        <h3 className="text-lg font-semibold">Previsualització de la mostra</h3>
-        <p className="mt-1 text-sm text-neutral-500">
-          Revisa els 4 casos únics abans de crear el lot.
-        </p>
-      </div>
-      {FINANCING_TYPES.map((type) => {
-        const rows = sample.filter((item) => item.financingType === type);
-        return rows.length ? (
-          <div key={type} className="border-b border-neutral-200">
-            <div className="bg-neutral-50 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-neutral-500">
-              {FINANCING_TYPE_LABELS[type]} · {rows.length}
-            </div>
-            <StableAccordion stateKey={`batch-sample-${type}`}>
-            {rows.map((record) => (
-              <AccordionItem key={record.id} value={record.id} className="border-t px-4">
-                <AccordionTrigger className="gap-3 py-3 hover:no-underline"><div className="min-w-0 flex-1 text-left">
-                  <p className="text-xs font-semibold text-neutral-500">
-                    {SOURCE_LABELS[record.sourceDataset] ??
-                      record.sourceDataset}{" "}
-                    · {record.sourceRecordId}
-                  </p>
-                  <p className="mt-1 text-sm font-medium leading-5">
-                    {record.title}
-                  </p>
-                </div></AccordionTrigger>
-                <AccordionContent className="pb-4"><div className="flex flex-wrap gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    disabled={disabled}
-                    onClick={() => onReplace(record)}
-                  >
-                    Substituir
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    disabled={disabled}
-                    onClick={() => onRemove(record.id)}
-                  >
-                    Treure
-                  </Button>
-                </div><p className="mt-3 text-xs text-muted-foreground">Identificador: {record.sourceRecordId} · Font: {SOURCE_LABELS[record.sourceDataset] ?? record.sourceDataset}</p></AccordionContent>
-              </AccordionItem>
-            ))}
-            </StableAccordion>
-          </div>
-        ) : null;
-      })}
+  return <main className="page-shell"><section className="page-container">
+    <div><p className="page-eyebrow">Flux automatitzat</p><h2 className="page-title">Lots de matching</h2><p className="page-description">Crea un lot i segueix el procés automàtic fins que els resultats quedin pendents de revisió humana.</p></div>
+    <section className="surface mt-6 p-5"><div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between"><div><h3 className="font-semibold">Crear i processar un lot</h3><p className="mt-1 text-sm text-muted-foreground">Selecció equilibrada i execució completa, sense passos intermedis.</p></div><div className="flex items-end gap-3"><label className="grid gap-1 text-xs font-medium">Nombre de registres<input className="h-9 w-24 rounded-md border bg-background px-3 text-sm" type="number" min={1} max={50} value={size} onChange={(event) => setSize(Math.max(1, Math.min(50, Number(event.target.value) || 1)))} /></label><Button onClick={create} disabled={pending}>{pending ? "Creant..." : "Crear i processar lot"}</Button></div></div><p className="mt-3 text-xs text-muted-foreground">Entre 1 i 50. Si el worker està apagat, el lot quedarà en cua.</p></section>
+    {message && <p className="mt-4 rounded-xl border p-3 text-sm">{message}</p>}
+    <section className="surface mt-6 p-4"><h3 className="font-semibold">Historial i progrés</h3><p className="mt-1 text-xs text-muted-foreground">Els registres correctes continuen encara que algun presenti una incidència.</p>
+      {items.length ? <StableAccordion stateKey="automated-batches" defaultValue={openedId ? [openedId] : []} className="mt-3 divide-y">{items.map((batch) => <AccordionItem key={batch.id} value={batch.id} className="px-3"><AccordionTrigger onClick={() => setOpenedId(batch.id)} className="gap-3 py-3 hover:no-underline"><div className="min-w-0 flex-1 text-left"><div className="flex justify-between gap-2"><strong>Lot {batch.batchNumber}</strong><span className="text-xs text-muted-foreground">{outcomeLabel(batch)}</span></div><p className="mt-1 text-xs text-muted-foreground">{new Intl.DateTimeFormat("ca-ES", { dateStyle: "short", timeStyle: "short" }).format(new Date(batch.createdAt))} · {batch.selectedCount} registres</p></div></AccordionTrigger><AccordionContent className="border-t pb-4 pt-4"><BatchDetail batch={batch} /></AccordionContent></AccordionItem>)}</StableAccordion> : <p className="mt-4 rounded-xl border border-dashed p-8 text-center text-sm text-muted-foreground">Encara no hi ha cap lot.</p>}
     </section>
-  );
+  </section></main>;
 }
 
-function BatchDetail({
-  batch,
-  pending,
-  run,
-  refresh,
-}: {
-  batch: BatchSummary;
-  pending: boolean;
-  run: (action: () => Promise<void>) => void;
-  refresh: () => void;
-}) {
-  const readyCost =
-    (batch.estimatedInputTokens * 0.15) / 1_000_000 +
-    (batch.readyCount * 1800 * 0.6) / 1_000_000;
-  return (
-    <>
-      <section className="surface p-4 sm:p-5">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-wide text-neutral-500">
-              Lot {batch.batchNumber}
-            </p>
-            <h3 className="mt-1 text-xl font-semibold">
-              {stageLabel(batch.stage)}
-            </h3>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {batch.status === "draft" && (
-              <Button
-                disabled={pending}
-                onClick={() =>
-                  run(async () => {
-                    await runBatchOperation({ operation: "prepare_batch", batchId: batch.id });
-                    refresh();
-                  })
-                }
-              >
-                Preparar evidència
-              </Button>
-            )}
-            {batch.status === "ready" && batch.readyCount > 0 && (
-              <Button
-                disabled={pending}
-                onClick={() =>
-                  run(async () => {
-                    await runBatchOperation({ operation: "match_batch", batchId: batch.id });
-                    refresh();
-                  })
-                }
-              >
-                Confirmar i fer matching
-              </Button>
-            )}
-            {batch.stage === "review" && (
-              <Link
-                href={`/review?batch=${batch.id}`}
-                className={buttonVariants()}
-              >
-                Obrir revisió
-              </Link>
-            )}
-          </div>
-        </div>
-        <div className="mt-5 grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5">
-          <SmallMetric label="Seleccionats" value={batch.selectedCount} />
-          <SmallMetric label="Preparats" value={batch.preparedCount} />
-          <SmallMetric label="Llestos" value={batch.readyCount} />
-          <SmallMetric label="Analitzats" value={batch.analyzedCount} />
-          <SmallMetric label="Per revisar" value={batch.reviewCount} />
-          <SmallMetric label="Revisats" value={batch.reviewedCount} />
-          <SmallMetric label="Aprovats" value={batch.approvedCount} />
-          <SmallMetric label="Rebutjats" value={batch.rejectedCount} />
-          <SmallMetric label="Evidència insuficient" value={batch.insufficientCount} />
-          <SmallMetric label="Errors" value={batch.errorCount} />
-        </div>
-        <div className="mt-4 rounded-xl border bg-card p-4">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><div><h4 className="text-sm font-semibold">Exportació</h4><p className="mt-1 text-xs text-muted-foreground">{batch.exportableCount} registres aprovats i exportables.</p></div>{batch.canExport ? <a href={`/api/exports/batch/${batch.id}`} className={buttonVariants({ size: "sm" })}>Descarregar Excel del lot</a> : <Button size="sm" disabled>Sense registres exportables</Button>}</div>
-          {batch.incidences.map((incidence) => <p key={incidence} className="mt-2 text-xs text-destructive">Incidència: {incidence}</p>)}
-        </div>
-        {batch.status === "ready" && (
-          <div className="mt-4 rounded-xl bg-neutral-100 p-4 text-sm">
-            <strong>Confirmació de cost</strong>
-            <p className="mt-1 text-neutral-600">
-              {batch.readyCount} crides · ~
-              {batch.estimatedInputTokens.toLocaleString("ca-ES")} tokens
-              d&apos;entrada · màxim estimat ${readyCost.toFixed(3)}
-            </p>
-            <p className="mt-1 text-xs text-neutral-500">
-              Els {batch.errorCount} registres no preparats no s&apos;enviaran a
-              OpenAI. Els pots substituir abans de continuar.
-            </p>
-          </div>
-        )}
-      </section>
-      <section className="surface overflow-hidden">
-        <div className="border-b p-4 font-semibold">Registres del lot</div>
-        <StableAccordion stateKey={`batch-jobs-${batch.id}`} className="divide-y">
-          {batch.jobs.map((job) => (
-            <AccordionItem key={job.id} value={job.id} className="px-4">
-            <AccordionTrigger className="gap-4 py-4 hover:no-underline"><div className="min-w-0 flex-1 text-left">
-                <p className="text-xs font-semibold text-neutral-700">
-                  {FINANCING_TYPE_LABELS[job.financingType]}
-                </p>
-                <p className="mt-1 text-xs text-neutral-500">
-                  {SOURCE_LABELS[job.sourceDataset] ?? job.sourceDataset}
-                </p>
-                <p className="mt-1 text-xs">{job.externalId}</p>
-              <p className="mt-1 leading-5">{job.title}</p></div>
-              <div className="shrink-0 text-right">
-                <span className="rounded-full bg-neutral-100 px-2.5 py-1 text-xs font-semibold">
-                  {preparationLabel(job.preparationStatus, job.status)}
-                </span>
-                {job.preparationMessage && (
-                  <p className="mt-2 text-xs leading-4 text-neutral-500">
-                    {job.preparationMessage}
-                  </p>
-                )}
-              </div></AccordionTrigger>
-              <AccordionContent className="border-t pb-4 pt-3">
-                <dl className="grid gap-2 text-sm sm:grid-cols-[150px_1fr]"><dt className="text-muted-foreground">Identificador</dt><dd className="break-all">{job.externalId}</dd><dt className="text-muted-foreground">Preparació</dt><dd>{job.preparationMessage ?? preparationLabel(job.preparationStatus, job.status)}</dd></dl>
-                <section className="mt-5 border-t pt-4"><h4 className="text-sm font-semibold">Anàlisi del matching</h4><p className="mt-1 text-xs text-muted-foreground">Propostes de la IA pendents o sotmeses a validació humana.</p>{job.matchingCandidates.length ? <div className="mt-3 space-y-3">{job.matchingCandidates.map((candidate) => <MatchingCandidateAnalysis key={candidate.id} candidate={candidate} />)}</div> : <p className="mt-3 rounded-lg bg-muted/40 p-3 text-sm text-muted-foreground">Anàlisi encara no disponible.</p>}</section>
-                {["no_source", "unsupported", "error"].includes(job.preparationStatus) && batch.status === "ready" && <Button variant="outline" size="sm" disabled={pending} onClick={() => run(async () => { await runBatchOperation({ operation: "replace_failed_job", batchId: batch.id, jobId: job.id }); refresh(); })} className="mt-3">Substituir registre</Button>}
-              </AccordionContent>
-            </AccordionItem>
-          ))}
-        </StableAccordion>
-      </section>
-    </>
-  );
-}
-function SmallMetric({ label, value }: { label: string; value: number }) {
-  return (
-    <div className="rounded-xl bg-neutral-100 p-3">
-      <p className="text-xs text-neutral-500">{label}</p>
-      <p className="mt-1 text-xl font-semibold">{value}</p>
-    </div>
-  );
-}
-function EmptyState() {
-  return (
-    <div className="rounded-2xl border border-dashed border-neutral-300 bg-white p-10 text-center">
-      <h3 className="font-semibold">Crea un lot petit i equilibrat</h3>
-      <p className="mt-2 text-sm text-neutral-500">
-        Genera 4 casos repartits entre les tipologies disponibles i
-        revisa&apos;ls abans de continuar.
-      </p>
-    </div>
-  );
-}
-function stageLabel(stage: string) {
-  return (
-    (
-      {
-        selection: "Selecció",
-        preparation: "Preparació d'evidència",
-        confirmation: "Confirmació",
-        matching: "Matching",
-        review: "Revisió",
-        completed: "Finalitzat",
-      } as Record<string, string>
-    )[stage] ?? stage
-  );
+function BatchDetail({ batch }: { batch: BatchSummary }) {
+  return <div className="space-y-5"><div className="flex flex-wrap items-start justify-between gap-3"><div><p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Progrés del lot</p><h3 className="mt-1 text-xl font-semibold">{outcomeLabel(batch)}</h3></div>{batch.reviewCount > 0 && <Link href={`/review?batch=${batch.id}`} className={buttonVariants()}>Obrir revisió</Link>}</div>
+    <div className="grid gap-3 md:grid-cols-3"><PhaseCard number="1" title="Preparació de fonts" phase={batch.progress.preparation} /><PhaseCard number="2" title="Contrast de dades" phase={batch.progress.enrichment} /><PhaseCard number="3" title="Matching" phase={batch.progress.matching} /></div>
+    {batch.errorCount > 0 && !batch.isActive && <p className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm">Finalitzat amb incidències: {batch.errorCount} registre(s) no han completat el procés.</p>}
+    <div className="rounded-xl border"><div className="border-b p-4 font-semibold">Registres del lot</div><StableAccordion stateKey={`batch-jobs-${batch.id}`} className="divide-y">{batch.jobs.map((job) => <AccordionItem key={job.id} value={job.id} className="px-4"><AccordionTrigger className="gap-4 py-4 hover:no-underline"><div className="min-w-0 flex-1 text-left"><p className="text-xs font-semibold">{FINANCING_TYPE_LABELS[job.financingType]} · {SOURCE_LABELS[job.sourceDataset] ?? job.sourceDataset}</p><p className="mt-1 text-sm">{job.title}</p></div><span className="rounded-full bg-muted px-2.5 py-1 text-xs font-semibold">{jobStatus(job, batch.stage)}</span></AccordionTrigger><AccordionContent className="border-t pb-4 pt-3"><p className="text-xs text-muted-foreground">{job.externalId}</p>{(job.errorMessage || job.enrichmentError || job.preparationMessage) && <p className="mt-3 rounded-lg bg-muted p-3 text-sm">{job.errorMessage || job.enrichmentError || job.preparationMessage}</p>}{job.matchingCandidates.length > 0 && <div className="mt-4 space-y-3">{job.matchingCandidates.map((candidate) => <MatchingCandidateAnalysis key={candidate.id} candidate={candidate} />)}</div>}</AccordionContent></AccordionItem>)}</StableAccordion></div>
+    <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border p-4"><p className="text-sm">{batch.reviewCount} pendents de revisió · {batch.errorCount} errors</p>{batch.canExport ? <a href={`/api/exports/batch/${batch.id}`} className={buttonVariants({ size: "sm" })}>Descarregar Excel</a> : <span className="text-xs text-muted-foreground">L&apos;exportació s&apos;activa després de validar.</span>}</div>
+  </div>;
 }
 
-async function runBatchOperation<T = unknown>(
-  body: Record<string, unknown>,
-): Promise<T> {
-  const response = await fetch("/api/batches/operation", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
-  const payload = (await response.json()) as { result?: T; error?: string };
-  if (!response.ok) {
-    throw new Error(payload.error || "No s'ha pogut completar l'operació.");
-  }
-  return payload.result as T;
+function PhaseCard({ number, title, phase }: { number: string; title: string; phase: BatchSummary["progress"]["preparation"] }) {
+  const label = { pending: "Pendent", running: "En curs", completed: "Completada", error: "Amb incidències" }[phase.state];
+  return <div className={`rounded-xl border p-4 ${phase.state === "running" ? "border-black" : ""}`}><div className="flex items-center gap-2"><span className={`flex size-7 items-center justify-center rounded-full text-xs font-semibold ${phase.state === "completed" ? "bg-black text-white" : "bg-muted"}`}>{phase.state === "completed" ? "✓" : number}</span><strong className="text-sm">{title}</strong></div><p className="mt-3 text-sm font-medium">{label}</p><p className="mt-1 text-xs text-muted-foreground">{phase.completed} correctes · {phase.errors} errors · {phase.total} totals</p></div>;
 }
-function preparationLabel(preparation: string, status: string) {
-  if (
-    [
-      "needs_review",
-      "approved",
-      "corrected",
-      "rejected",
-      "insufficient_evidence",
-    ].includes(status)
-  )
-    return (
-      {
-        needs_review: "Per revisar",
-        approved: "Aprovat",
-        corrected: "Corregit",
-        rejected: "Rebutjat",
-        insufficient_evidence: "Evidència insuficient",
-      } as Record<string, string>
-    )[status];
-  return (
-    (
-      {
-        pending: "Pendent",
-        discovering: "Cercant fonts",
-        fetching: "Extraient",
-        chunking: "Preparant fragments",
-        ready: "Llest",
-        no_source: "Sense font documental",
-        unsupported: "Format no compatible",
-        error: "Error",
-      } as Record<string, string>
-    )[preparation] ?? preparation
-  );
-}
+
+function outcomeLabel(batch: BatchSummary) { if (batch.isActive) return batch.status === "queued" ? "En cua" : "Processant"; if (batch.reviewCount > 0 && batch.errorCount === 0) return "Lot preparat per revisar"; if (batch.errorCount > 0) return "Finalitzat amb incidències"; if (batch.stage === "review") return "Pendent de revisió"; return "Finalitzat"; }
+function jobStatus(job: BatchSummary["jobs"][number], stage: string) { if (["needs_review", "approved", "corrected", "rejected", "insufficient_evidence"].includes(job.status)) return ({ needs_review: "Pendent de revisió", approved: "Aprovat", corrected: "Corregit", rejected: "Rebutjat", insufficient_evidence: "Evidència insuficient" } as Record<string, string>)[job.status]; if (job.status === "error") return "Error"; if (stage === "matching" && job.enrichmentStatus === "completed") return "Fent matching"; if (stage === "enrichment" && job.preparationStatus === "ready") return job.enrichmentStatus === "processing" ? "Contrastant" : "Pendent de contrast"; return ({ pending: "Pendent", discovering: "Cercant fonts", fetching: "Extraient", chunking: "Preparant fragments", ready: "Font preparada", no_source: "Sense font", unsupported: "Format no compatible", error: "Error" } as Record<string, string>)[job.preparationStatus] ?? "Pendent"; }
+async function runBatchOperation<T>(body: Record<string, unknown>): Promise<T> { const response = await fetch("/api/batches/operation", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }); const payload = await response.json() as { result?: T; error?: string }; if (!response.ok) throw new Error(payload.error || "No s'ha pogut completar l'operació."); return payload.result as T; }
+async function fetchBatch(id: string, signal?: AbortSignal) { const response = await fetch(`/api/batches/${encodeURIComponent(id)}`, { cache: "no-store", signal }); const payload = await response.json() as { batch?: BatchSummary; error?: string }; if (!response.ok || !payload.batch) throw new Error(payload.error || "No s'ha pogut consultar el lot."); return payload.batch; }
+function isAbortError(error: unknown) { return error instanceof DOMException && error.name === "AbortError"; }

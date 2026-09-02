@@ -23,7 +23,7 @@ process.on("SIGTERM", () => { stopping = true; });
 
 type Task = {
   id: string;
-  task_type: "prepare_run" | "enrich_record" | "match_run";
+  task_type: "prepare_run" | "enrich_record" | "match_run" | "process_run";
   run_id: string | null;
   source_record_id: string | null;
   attempts: number;
@@ -51,6 +51,9 @@ async function claimTask(): Promise<Task | null> {
 
 async function executeTask(task: Task) {
   const command = commandFor(task);
+  const heartbeat = setInterval(() => {
+    void db.from("worker_tasks").update({ claimed_at: new Date().toISOString() }).eq("id", task.id).eq("claimed_by", workerId).eq("status", "running");
+  }, 60_000);
   console.log(`${task.id}: ${task.task_type} · intent ${task.attempts}`);
   try {
     const { stdout, stderr } = await execFileAsync("npm", command, {
@@ -70,13 +73,21 @@ async function executeTask(task: Task) {
   } catch (error) {
     const message = formatError(error).slice(0, 2000);
     await markDomainFailure(task, message);
+    const willRetry = task.task_type === "process_run" && task.attempts < 3;
+    if (willRetry && task.run_id) {
+      await db.from("pipeline_runs").update({ status: "queued" }).eq("id", task.run_id);
+    }
     const { error: updateError } = await db.from("worker_tasks").update({
-      status: "failed",
-      completed_at: new Date().toISOString(),
+      status: willRetry ? "queued" : "failed",
+      claimed_by: willRetry ? null : workerId,
+      claimed_at: willRetry ? null : new Date().toISOString(),
+      completed_at: willRetry ? null : new Date().toISOString(),
       error_message: message,
     }).eq("id", task.id).eq("claimed_by", workerId);
     if (updateError) console.error(`${task.id}: no s'ha pogut registrar l'error: ${formatError(updateError)}`);
     console.error(`${task.id}: ${message}`);
+  } finally {
+    clearInterval(heartbeat);
   }
 }
 
@@ -87,6 +98,8 @@ function commandFor(task: Task): string[] {
     return ["run", "enrichment:run", "--", "--source-record-id", task.source_record_id];
   if (task.task_type === "match_run" && task.run_id)
     return ["run", "matching:run", "--", "--run-id", task.run_id];
+  if (task.task_type === "process_run" && task.run_id)
+    return ["run", "pipeline:process", "--", "--run-id", task.run_id];
   throw new Error(`Tasca ${task.id} sense objectiu vàlid`);
 }
 
@@ -105,6 +118,8 @@ async function markDomainFailure(task: Task, message: string) {
         updated_at: new Date().toISOString(),
       }).in("id", recordIds);
     }
+  } else if (task.task_type === "process_run" && task.run_id) {
+    await db.from("pipeline_runs").update({ status: "processing_error", error_count: 1 }).eq("id", task.run_id);
   } else if (task.task_type === "match_run" && task.run_id) {
     await db.from("pipeline_runs").update({ status: "matching_error", error_count: 1 }).eq("id", task.run_id);
     const { data: jobs } = await db.from("pipeline_jobs").select("source_record_id").eq("run_id", task.run_id);
