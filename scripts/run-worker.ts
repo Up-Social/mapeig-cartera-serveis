@@ -32,7 +32,17 @@ type Task = {
 async function main() {
   console.log(`Worker ${workerId} connectat. ${once ? "Una tasca" : `Sondeig cada ${pollMs} ms`}.`);
   do {
-    const task = await claimTask();
+    let task: Task | null;
+    try {
+      task = await claimTask();
+    } catch (error) {
+      if (once) throw error;
+      console.error(
+        `No s'ha pogut consultar la cua: ${formatError(error)}. Reintent en ${pollMs} ms.`,
+      );
+      await delay(pollMs);
+      continue;
+    }
     if (!task) {
       if (once) break;
       await delay(pollMs);

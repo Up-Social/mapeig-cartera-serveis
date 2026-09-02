@@ -26,6 +26,7 @@ export function BatchesWorkbench({ batches, activeBatch }: { batches: BatchSumma
       try {
         const batch = await fetchBatch(opened.id, controller.signal);
         if (cancelled) return;
+        setMessage("");
         setItems((current) => [batch, ...current.filter((item) => item.id !== batch.id)]);
         if (!batch.isActive) return;
       } catch (error) {
