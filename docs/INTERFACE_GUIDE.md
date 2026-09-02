@@ -3,25 +3,25 @@
 ## Mapa de l'aplicació
 
 - **Registres**: consulta dels 28.124 registres importats, amb filtres per tipologia i estat. La font concreta es mostra dins de cada registre.
-- **Lots**: selecció equilibrada, preparació d'evidència, confirmació de cost i execució del matching.
+- **Lots**: creació automàtica d'1 a 50 registres, progrés persistent i execució completa fins a revisió.
 - **Revisió**: validació humana consecutiva dels candidats generats.
 - **Catàleg**: consulta dels 142 serveis i de les provisions aprovades que hi estan vinculades.
 - **Procés**: explicació completa de les tipologies, les fonts internes, l'extracció, el matching, la revisió i l'exportació.
 
-## Crear un lot equilibrat de 4
+## Crear i processar un lot automàtic
 
 1. Obre **Lots**.
-2. Prem **Generar mostra de 4**. El sistema intenta seleccionar un cas de cada tipologia disponible.
-3. Les quatre tipologies ja estan disponibles: contractació, conveni, subvenció i concert social/gestió delegada. La distribució normal és `1 + 1 + 1 + 1` mentre quedin casos pendents de totes quatre.
-4. Revisa els casos. Pots **Substituir** un cas per un altre de la mateixa tipologia o **Treure** una fila i tornar-la a afegir.
-5. Quan hi hagi 4 casos, prem **Crear lot**.
+2. Escull entre 1 i 50 registres.
+3. Prem **Crear i processar lot**. La selecció és atòmica i reparteix els casos entre les tipologies disponibles.
+4. El worker executa preparació, contrast i matching sense confirmacions intermèdies.
+5. Consulta el progrés per fase i obre **Revisió** quan aparegui **Lot preparat per revisar**.
 
 La mostra només utilitza registres pendents. Exclou qualsevol cas que ja hagi format part d'un lot i les files equivalents detectades mitjançant la identitat normalitzada. Així, una duplicació als Excel no provoca un segon matching del mateix cas.
 
-## Preparar l'evidència
+## Progrés automàtic
 
-1. Dins la fitxa del lot, prem **Preparar evidència**.
-2. La pantalla s'actualitza automàticament mentre el sistema cerca URLs, descarrega documents i crea fragments.
+1. La pantalla s'actualitza automàticament mentre el sistema cerca URLs, descarrega documents i crea fragments.
+2. Els registres preparats passen al contrast de dades i després al matching; un error individual no atura els altres.
 3. Cada registre acaba amb un dels estats següents:
    - **Llest**: disposa d'evidència i pot anar a matching.
    - **Sense font documental**: la fila no conté cap URL útil.
@@ -30,22 +30,16 @@ La mostra només utilitza registres pendents. Exclou qualsevol cas que ja hagi f
 
 Els documents no apareixen com una font independent: formen part del detall del registre del dataset corresponent.
 
-## Consultar un registre sense fer matching
+## Processar un registre individual
 
 Des de **Registres**, selecciona qualsevol fila i utilitza el bloc **Procés del registre**:
 
-1. **Preparar fonts** descobreix les URL del registre, descarrega els documents, extreu el text i crea fragments. Aquesta etapa és local i no utilitza OpenAI.
-2. **Contrastar dades** envia només el context necessari i els fragments oficials a OpenAI. Extreu camps estructurats i evidències, però no rep el catàleg ni proposa cap servei.
-3. Les dades contrastades apareixen immediatament en un bloc verd dins del registre, encara que no s'hagi executat matching.
-4. **Fer matching** només s'activa quan les dues etapes anteriors han acabat. Reutilitza l'enriquiment existent i no torna a pagar-ne l'extracció.
+1. Prem **Processar**.
+2. El sistema crea un lot individual i executa automàticament preparació, contrast i matching.
+3. El panell mostra la fase actual i es manté obert sense recarregar la pàgina.
+4. En acabar, el registre queda **Pendent de revisió**.
 
 Els processos en segon pla actualitzen automàticament el panell. Preparar o contrastar un registre per inspeccionar-lo no l'exclou dels futurs lots; queda exclòs únicament després d'entrar realment en matching.
-
-## Confirmar i executar el matching
-
-Quan acaba la preparació, la fitxa mostra quants registres estan llestos, les crides previstes, els tokens aproximats i el cost màxim estimat. Només els registres **Llestos** s'envien a OpenAI.
-
-Prem **Confirmar i fer matching**. El procés continua en segon pla i la pàgina mostra el progrés. Els errors d'una fila no aturen la resta del lot.
 
 ## Revisar i validar
 
@@ -85,7 +79,7 @@ Si tots els casos han estat rebutjats o marcats com a evidència insuficient, el
 
 ## Resolució de problemes
 
-- **El lot no arriba a 4**: no queden quatre identitats pendents i no processades entre les tipologies disponibles.
+- **No es pot crear el lot**: no queden prou identitats pendents i no processades per a la mida indicada.
 - **Sense font documental**: substitueix la fila o continua amb els registres llestos.
 - **Format no compatible**: el document necessita OCR; no s'envia a OpenAI.
 - **El matching no comença**: comprova la clau, el model, l'autorització del catàleg i que el lot tingui registres llestos.

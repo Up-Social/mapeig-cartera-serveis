@@ -24,6 +24,7 @@
     "pipeline:prepare": "tsx --env-file=.env.local scripts/prepare-batch.ts",
     "pipeline:process": "tsx --env-file=.env.local scripts/process-run.ts",
     "worker:run": "tsx --env-file=.env.local scripts/run-worker.ts",
+    "audit:data": "tsx --env-file=.env.local scripts/audit-data-integrity.ts",
     "concerts:discover": "tsx --env-file=.env.local scripts/discover-concerts.ts",
     "concerts:import": "tsx --env-file=.env.local scripts/discover-concerts.ts --import",
     "reses:discover": "tsx --env-file=.env.local scripts/sync-reses.ts",

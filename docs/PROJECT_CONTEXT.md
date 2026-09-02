@@ -49,7 +49,7 @@ L'usuari ha autoritzat explícitament la importació de `Master. Mapeo Cartera S
 
 ## Estat actual
 
-La interfície s'organitza en Registres, Lots, Revisió, Catàleg i Procés. Els lots guiats parteixen d'una mostra previsualitzable de 4 casos únics, un per cada tipologia de finançament disponible. Si una tipologia està esgotada o encara no té connector, la plaça restant es completa amb una altra tipologia. Les fonts o datasets queden subordinats a les tipologies: contractació, conveni, subvenció i concert social/gestió delegada.
+La interfície s'organitza en Registres, Lots, Revisió, Aprovats, Catàleg, Entitats i Procés. Els lots automàtics contenen entre 1 i 50 casos únics i es reparteixen de manera equilibrada entre les tipologies disponibles. Un únic `process_run` persistent executa preparació, contrast i matching, i deixa els resultats correctes pendents de revisió humana. Les fonts o datasets queden subordinats a les tipologies: contractació, conveni, subvenció i concert social/gestió delegada.
 
 El connector d'e-Tauler ha importat 305 actes únics del període 2024-2026 que contenen literalment l'expressió `concert social` al títol o a la descripció. La cerca exacta `gestió delegada social` no retorna anuncis. La fila importada representa l'acte administratiu i conserva la consulta, l'URL, les dates, el text original i una classificació preliminar del seu efecte. D'aquests actes, 157 són candidats automàtics a nova provisió o ampliació; la resta es conserva com a pròrroga, modificació, autorització de despesa, cessió, esmena, baixa, resolució anticipada o acte pendent de precisar. Els annexos poden generar posteriorment diverses provisions normalitzades.
 

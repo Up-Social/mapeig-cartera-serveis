@@ -18,7 +18,7 @@ Controls aplicats:
 - extracció HTML/text integrada i PDF mitjançant `pdftotext`;
 - errors i formats no compatibles registrats sense aturar el lot.
 
-La primera mostra de 20 fonts va obtenir 13 extraccions, 2 documents sense text que requereixen OCR i 5 errors de xarxa/HTTP. Aquesta mostra és diagnòstica i encara no alimenta el matching.
+La primera mostra històrica de 20 fonts va obtenir 13 extraccions, 2 documents sense text que requereixen OCR i 5 errors de xarxa/HTTP. Actualment l'extracció forma part de `process_run` i els fragments vàlids sí alimenten el contrast i el matching del registre corresponent.
 
 Els textos extrets es puntuen i es divideixen en fragments auditables amb:
 

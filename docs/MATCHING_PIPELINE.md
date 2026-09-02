@@ -25,7 +25,7 @@ ALLOW_MASTER_MATCHING=true
 
 ## Persistència
 
-- `matching_candidates`: fins a deu candidats ordenats, amb puntuació, justificació, motor i versió.
+- `matching_candidates`: fins a tres candidats ordenats, amb puntuació, justificació, motor i versió. La base admet ranks fins a 10 per compatibilitat històrica, però el contracte actual en genera com a màxim 3.
 - `matching_candidate_evidence`: fragments exactes que sustenten cada candidat.
 - `record_enrichments`: camps estructurats extrets dels documents oficials (entitat, NIF, mecanisme, data, import, organisme i col·lectiu), resum i confiança.
 - `record_enrichment_evidence`: fragments oficials exactes que sustenten l'enriquiment.

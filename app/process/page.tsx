@@ -58,17 +58,17 @@ const steps = [
   ],
   [
     "3",
-    "Lot de quatre",
-    "Se selecciona un cas de cada tipologia disponible. Si una tipologia s’ha esgotat o encara no existeix, la plaça restant s’assigna a una altra tipologia sense repetir casos.",
+    "Lot automàtic",
+    "Se seleccionen entre 1 i 50 casos de manera atòmica i equilibrada. El mateix registre o una identitat equivalent no pot entrar simultàniament en dos lots.",
   ],
   [
     "4",
-    "Fonts externes",
-    "Per cada cas es localitzen les URL pròpies de la seva font, es descarreguen els documents, se n’extreu el text i es creen fragments amb qualitat i traçabilitat.",
+    "Preparació de fonts",
+    "El worker persistent localitza les URL, descarrega els documents, n’extreu el text i crea fragments amb qualitat i traçabilitat. Els casos sense font o amb format no compatible acaben amb una incidència explícita.",
   ],
   [
     "5",
-    "Enriquiment",
+    "Contrast de dades",
     "La IA extreu únicament dels fragments oficials els camps contrastats —entitat, NIF, mecanisme, data, import, organisme i col·lectiu— i cita els fragments que els sustenten.",
   ],
   [
@@ -84,8 +84,24 @@ const steps = [
   [
     "8",
     "Exportació",
-    "Supabase és la font de veritat. Les provisions aprovades s’escriuen en una còpia nova del Master; l’original no es modifica.",
+    "Supabase és la font de veritat. Les provisions aprovades s’escriuen en un Excel nou; es poden seleccionar les visibles o totes les que compleixen els filtres, sense modificar el Master original.",
   ],
+];
+
+const workflowStates = [
+  ["Registre", "pendent → preparant → preparat → processant → revisio → completat o rebutjat"],
+  ["Fases", "pending/preparing/ready per evidència; pending/processing/completed per contrast"],
+  ["Job", "selected → preparing → ready → matching → needs_review → decisió humana"],
+  ["Lot", "queued → preparing → enriching → matching → needs_review → completed"],
+  ["Worker", "queued → running → completed o failed, amb heartbeat i fins a 3 intents"],
+];
+
+const auditFindings = [
+  ["Alta", "8 candidats de 3 registres no tenen cap fragment d’evidència enllaçat."],
+  ["Mitjana", "27.732 registres pendents conserven un error documental heretat d’un backfill, sense error real ni job executat."],
+  ["Mitjana", "1 job històric aprovat conserva preparation_status=pending."],
+  ["Mitjana", "13 lots pendents de revisió utilitzen completed_at per indicar fi del processament automàtic."],
+  ["Baixa", "865 files formen 351 clústers d’identitat duplicada; no s’han eliminat perquè poden ser actes legítims."],
 ];
 
 export default function ProcessPage() {
@@ -95,7 +111,7 @@ export default function ProcessPage() {
         <p className="page-eyebrow">Metodologia i traçabilitat</p>
         <h2 className="page-title">Procés</h2>
         <p className="page-description">
-          Aquesta pàgina descriu el flux operatiu real del PoC. Una tipologia és
+          Aquesta pàgina descriu el flux operatiu real i l&apos;estat auditat del PoC. Una tipologia és
           un mecanisme de finançament; cada tipologia pot contenir diverses
           fonts públiques i documents.
         </p>
@@ -129,6 +145,23 @@ export default function ProcessPage() {
             comprovar entitats, establiments, tipologies, territori i capacitat.
             No demostra per si sol que una provisió financi un servei concret.
           </aside>
+        </section>
+        <section className="surface mt-6 p-4 sm:p-5">
+          <h3 className="text-lg font-semibold">Estats persistents i transicions</h3>
+          <div className="mt-4 divide-y">
+            {workflowStates.map(([entity, transition]) => (
+              <div key={entity} className="grid gap-2 py-3 sm:grid-cols-[150px_1fr]">
+                <strong className="text-sm">{entity}</strong>
+                <code className="break-words text-xs leading-6 text-neutral-600">{transition}</code>
+              </div>
+            ))}
+          </div>
+          <p className="mt-3 text-xs leading-5 text-neutral-500">Els fluxos antics poden conservar draft, ready, selection o confirmation. La revisió humana continua sent obligatòria i és independent del resultat automàtic.</p>
+        </section>
+        <section className="surface mt-6 p-4 sm:p-5">
+          <div className="flex flex-wrap items-start justify-between gap-3"><div><h3 className="text-lg font-semibold">Auditoria d’integritat · 2 de setembre de 2026</h3><p className="mt-1 text-sm text-neutral-600">28.124 registres i 25 taules revisats íntegrament, sense modificar dades.</p></div><Badge variant="outline">No destructiva</Badge></div>
+          <div className="mt-4 space-y-3">{auditFindings.map(([level, finding]) => <div key={finding} className="rounded-xl border p-3"><p className="text-xs font-semibold uppercase tracking-wide text-neutral-500">{level}</p><p className="mt-1 text-sm leading-6">{finding}</p></div>)}</div>
+          <p className="mt-4 text-sm leading-6 text-neutral-600">No s’han detectat relacions òrfenes, evidències creuades entre registres, codis de servei inexistents, provisions sense revisió positiva ni recomptes de lot incorrectes. Les correccions recomanades estan documentades a <code>docs/DATA_INTEGRITY_AUDIT.md</code> i no s’han aplicat.</p>
         </section>
         <section className="surface mt-6 p-4 sm:p-5">
           <h3 className="text-lg font-semibold">
@@ -178,8 +211,8 @@ export default function ProcessPage() {
             <h3 className="font-semibold">Límits actuals del PoC</h3>
             <p className="mt-3 text-sm leading-6 text-neutral-600">
               Actualment hi ha registres importats de RAISC, convenis, PSCP i
-              e-Tauler. En concerts encara falta descarregar i fragmentar els
-              documents i annexos abans d’enviar cada cas al matching. BDNS,
+              e-Tauler. La preparació documental s’executa per registre quan entra
+              al procés automàtic; molts documents continuen només descoberts. BDNS,
               RESES i la reconstrucció del catàleg des de la font pública
               oficial continuen pendents. El matching actual utilitza el catàleg
               Master aïllat perquè va ser autoritzat explícitament; no utilitza
