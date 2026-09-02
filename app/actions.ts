@@ -384,7 +384,7 @@ export async function reviewMatching(input: {
         reason: notes,
         reviewer: "local_user",
       })
-      .select("id")
+      .select("id,created_at")
       .single();
     if (reviewError) throw reviewError;
     const { error: evaluationError } = await supabase
@@ -471,6 +471,7 @@ export async function reviewMatching(input: {
           service_code: service.service_code,
           matching_candidate_id: candidate?.id ?? null,
           review_decision_id: review.id,
+          approved_at: review.created_at,
           updated_at: new Date().toISOString(),
         },
         { onConflict: "source_record_id" },

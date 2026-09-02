@@ -2,6 +2,7 @@ export type JobStateRow = {
   source_record_id: string;
   status: string;
   created_at: string;
+  completed_at?: string | null;
 };
 
 export function latestJobsByRecord<T extends JobStateRow>(jobs: T[]): T[] {
@@ -19,4 +20,10 @@ export function summarizeLatestJobs(jobs: JobStateRow[]) {
     completed: latest.filter((job) => ["approved", "corrected"].includes(job.status)).length,
     review: latest.filter((job) => job.status === "needs_review").length,
   };
+}
+
+export function newestProcessedFirst<T extends JobStateRow>(jobs: T[]): T[] {
+  return [...jobs].sort((a, b) =>
+    String(b.completed_at ?? b.created_at).localeCompare(String(a.completed_at ?? a.created_at)),
+  );
 }

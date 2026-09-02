@@ -3,7 +3,7 @@ import { createServerSupabase } from "./records-page";
 import type { ApprovedFilters, ApprovedPage, ApprovedProvision } from "./approved-types";
 
 const PAGE_SIZE = 50;
-const SELECT = "id,source_record_id,source_id,call_url,regulatory_basis_url,provider_name,provider_nif,mechanism,award_date,amount,contracting_body,target_population,source_reference,service_code,source_records!inner(id,title,source_dataset,financing_type,source_record_id,processing_status,review_decisions(decision,created_at),pipeline_jobs(run_id,status,created_at,pipeline_runs(batch_number))),master_services(service_name)";
+const SELECT = "id,source_record_id,source_id,call_url,regulatory_basis_url,provider_name,provider_nif,mechanism,award_date,amount,contracting_body,target_population,source_reference,service_code,approved_at,source_records!inner(id,title,source_dataset,financing_type,source_record_id,processing_status,review_decisions(decision,created_at),pipeline_jobs(run_id,status,created_at,pipeline_runs(batch_number))),master_services(service_name)";
 
 export async function getApprovedPage(filters: ApprovedFilters): Promise<ApprovedPage> {
   const db = createServerSupabase();
@@ -22,8 +22,8 @@ export async function getApprovedPage(filters: ApprovedFilters): Promise<Approve
   if (filters.query) { const q = filters.query.replaceAll(/[,%()]/g, " ").trim(); const expression = `provider_name.ilike.%${q}%,provider_nif.ilike.%${q}%,source_id.ilike.%${q}%,service_code.ilike.%${q}%`; request = request.or(expression); allIdsRequest = allIdsRequest.or(expression); }
   const from = (filters.page - 1) * PAGE_SIZE;
   const [result, allIdsResult, batchResult, referenceResult] = await Promise.all([
-    request.order("created_at", { ascending: false }).range(from, from + PAGE_SIZE - 1),
-    allIdsRequest.order("created_at", { ascending: false }).range(0, 4999),
+    request.order("approved_at", { ascending: false }).range(from, from + PAGE_SIZE - 1),
+    allIdsRequest.order("approved_at", { ascending: false }).range(0, 4999),
     db.from("pipeline_runs").select("id,batch_number").order("batch_number"),
     db.from("service_provisions").select("service_code,master_services(service_name)"),
   ]);

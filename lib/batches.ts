@@ -82,13 +82,14 @@ function mapBatch(row: Record<string, unknown>): BatchSummary {
   const preparationCompleted = jobs.filter((job) => job.preparationStatus === "ready").length;
   const preparationErrors = jobs.filter((job) => ["no_source", "unsupported", "error"].includes(job.preparationStatus)).length;
   const enrichmentCompleted = jobs.filter((job) => job.enrichmentStatus === "completed").length;
-  const enrichmentErrors = jobs.filter((job) => job.enrichmentStatus === "error" || (job.status === "error" && job.preparationStatus === "ready")).length;
+  const enrichmentErrors = jobs.filter((job) => job.status === "error" && job.enrichmentStatus !== "completed").length;
   const matchingCompleted = jobs.filter((job) => job.matchingCandidates.length > 0).length;
-  const matchingErrors = jobs.filter((job) => job.status === "error" && job.enrichmentStatus === "completed").length;
+  const matchingErrors = jobs.filter((job) => job.status === "error").length;
+  const progressStage = row.status === "queued" ? "queued" : stage;
   const progress = {
-    preparation: { state: phaseState(stage, "preparation", preparationCompleted, preparationErrors, jobs.length), completed: preparationCompleted, errors: preparationErrors, total: jobs.length },
-    enrichment: { state: phaseState(stage, "enrichment", enrichmentCompleted, enrichmentErrors, preparationCompleted), completed: enrichmentCompleted, errors: enrichmentErrors, total: preparationCompleted },
-    matching: { state: phaseState(stage, "matching", matchingCompleted, matchingErrors, enrichmentCompleted), completed: matchingCompleted, errors: matchingErrors, total: enrichmentCompleted },
+    preparation: { state: phaseState(progressStage, "preparation", preparationCompleted, preparationErrors, jobs.length), completed: preparationCompleted, errors: preparationErrors, total: jobs.length },
+    enrichment: { state: phaseState(progressStage, "enrichment", enrichmentCompleted, enrichmentErrors, jobs.length), completed: enrichmentCompleted, errors: enrichmentErrors, total: jobs.length },
+    matching: { state: phaseState(progressStage, "matching", matchingCompleted, matchingErrors, jobs.length), completed: matchingCompleted, errors: matchingErrors, total: jobs.length },
   };
   return { id: String(row.id), batchNumber: String(row.batch_number).padStart(8, "0"), status: String(row.status), stage, selectedCount: jobs.length, preparedCount: Number(row.prepared_count), readyCount: Number(row.ready_count), processedCount: Number(row.processed_count), analyzedCount, reviewCount: jobs.filter((job) => job.status === "needs_review").length, reviewedCount, approvedCount: jobs.filter((job) => ["approved", "corrected"].includes(job.status) && job.hasProvision).length, rejectedCount, insufficientCount, errorCount: jobs.filter((job) => job.status === "error").length, exportableCount: provisionCount, incidences, estimatedInputTokens: Number(row.estimated_input_tokens), actualInputTokens: Number(row.actual_input_tokens), actualOutputTokens: Number(row.actual_output_tokens), createdAt: String(row.created_at), canExport: provisionCount > 0, provisionCount, isActive: ["queued", "preparing", "enriching", "matching"].includes(String(row.status)), progress, jobs };
 }
