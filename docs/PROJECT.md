@@ -45,6 +45,8 @@ La seva importació no autoritza a utilitzar-lo per generar, entrenar, ajustar o
 
 La navegació actual conté:
 
+En escriptori es presenta com una barra lateral fixa; en pantalles petites es converteix en un panell lateral. Els accessos de Revisió, Incidències i Aprovats incorporen els seus recomptes vigents.
+
 1. **Registres**: consulta, filtres, detall, documents i procés individual.
 2. **Lots**: selecció automàtica d'1 a 50 casos, progrés i incidències.
 3. **Revisió**: decisió humana sobre candidats i evidència.

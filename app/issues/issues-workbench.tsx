@@ -19,7 +19,7 @@ export function IssuesWorkbench({ result, filters }: { result: IssuePage; filter
   const formRef = useRef<HTMLFormElement>(null);
   const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   return <main className="page-shell"><section className="page-container">
-    <div><p className="page-eyebrow">Seguiment i resolució</p><h1 className="page-title">Incidències</h1><p className="page-description">Casos que no han generat una provisió aprovada: decisions negatives, evidència insuficient i errors del procés.</p></div>
+    <div><p className="page-eyebrow">Seguiment i resolució</p><div className="mt-1 flex items-center gap-2"><h1 className="text-xl font-semibold tracking-tight sm:text-2xl">Incidències</h1><Badge className="rounded-full px-2.5 tabular-nums">{result.metrics.total}</Badge></div><p className="page-description">Casos que no han generat una provisió aprovada: decisions negatives, evidència insuficient i errors del procés.</p></div>
     <div className="mt-6 grid grid-cols-2 gap-3 xl:grid-cols-5">
       <Metric label="Total" value={result.metrics.total} />
       <Metric label="No encaixen" value={result.metrics.rejected} />
@@ -51,7 +51,7 @@ function IssueDetail({ issue }: { issue: IssueRecord }) {
   const [pending, startTransition] = useTransition();
   const [message, setMessage] = useState("");
   const { record } = issue;
-  const retry = () => { if (!issue.retryOperation) return; setMessage(""); startTransition(async () => { try { const response = await fetch(`/api/records/${encodeURIComponent(record.id)}/operation`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ operation: issue.retryOperation }) }); const payload = await response.json() as { error?: string }; if (!response.ok) throw new Error(payload.error || "No s'ha pogut iniciar el reintent."); setMessage("Reintent iniciat. El cas s'actualitzarà quan acabi el procés."); router.refresh(); } catch (error) { setMessage(error instanceof Error ? error.message : "No s'ha pogut iniciar el reintent."); } }); };
+  const retry = () => { if (!issue.retryOperation) return; setMessage(""); startTransition(async () => { try { const response = await fetch(`/api/records/${encodeURIComponent(record.id)}/operation`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ operation: issue.retryOperation }) }); const payload = await response.json() as { error?: string }; if (!response.ok) throw new Error(payload.error || "No s'ha pogut iniciar el reintent."); setMessage("Reintent iniciat. El cas s'actualitzarà quan acabi el procés."); window.dispatchEvent(new Event("navigation-counts:refresh")); router.refresh(); } catch (error) { setMessage(error instanceof Error ? error.message : "No s'ha pogut iniciar el reintent."); } }); };
   const humanDecision = issue.category === "rejected" || issue.category === "insufficient_evidence";
   return <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
     <div className="min-w-0 space-y-5">

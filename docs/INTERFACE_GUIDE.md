@@ -6,6 +6,8 @@ La web demana la contrasenya compartida configurada amb `APP_ACCESS_PASSWORD`. L
 
 ## Mapa de l'aplicació
 
+En pantalles d'escriptori, la navegació principal es manté visible en una barra lateral esquerra. En mòbil s'obre com un panell lateral. **Revisió**, **Incidències** i **Aprovats** mostren un comptador actualitzat tant al menú com a la capçalera de la pantalla corresponent.
+
 - **Registres**: consulta de tots els registres importats, amb filtres per tipologia i estat. La font concreta es mostra dins de cada registre.
 - **Lots**: creació automàtica d'1 a 50 registres, progrés persistent i execució completa fins a revisió.
 - **Revisió**: validació humana consecutiva dels candidats generats.

@@ -50,6 +50,7 @@ export function ReviewWorkbench({
       );
     });
     startRefresh(() => router.refresh());
+    window.dispatchEvent(new Event("navigation-counts:refresh"));
   };
   return (
     <main className="page-shell">
@@ -57,7 +58,10 @@ export function ReviewWorkbench({
         <div className="flex items-end justify-between gap-4">
           <div>
             <p className="page-eyebrow">Validació humana</p>
-            <h2 className="page-title">Revisió de correspondències</h2>
+            <div className="mt-1 flex items-center gap-2">
+              <h2 className="text-xl font-semibold tracking-tight sm:text-2xl">Revisió de correspondències</h2>
+              <Badge className="rounded-full px-2.5 tabular-nums">{records.length - reviewed}</Badge>
+            </div>
             <p className="page-description">
               {reviewed} revisats · {records.length - reviewed} pendents
             </p>
