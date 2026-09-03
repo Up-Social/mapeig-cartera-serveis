@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { StableAccordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { MatchingCandidateAnalysis } from "@/components/matching-candidate-analysis";
 import { FINANCING_TYPES, FINANCING_TYPE_LABELS, SOURCE_LABELS } from "@/lib/financing-types";
-import { ISSUE_CATEGORIES, ISSUE_CATEGORY_LABELS, type IssueFilters, type IssuePage, type IssueRecord } from "@/lib/issue-types";
+import { ISSUE_CATEGORY_LABELS, type IssueFilters, type IssuePage, type IssueRecord } from "@/lib/issue-types";
 import { displaySourceIdentifier } from "@/lib/source-identifiers";
 import { sourceDocumentStatusLabel, sourceDocumentTypeLabel } from "@/lib/ui-labels";
 import { cn } from "@/lib/utils";
@@ -27,12 +27,9 @@ export function IssuesWorkbench({ result, filters }: { result: IssuePage; filter
       <Metric label="Errors tècnics" value={result.metrics.technical} />
       <Metric label="Problemes de font" value={result.metrics.source} />
     </div>
-    <form ref={formRef} className="surface mt-6 grid gap-3 p-4 lg:grid-cols-[minmax(220px,1fr)_190px_210px_170px_auto]">
+    <form ref={formRef} className="surface mt-6 grid gap-3 p-4 md:grid-cols-[minmax(220px,1fr)_220px]">
       <Input name="q" defaultValue={filters.query} placeholder="Cercar títol, registre, entitat o problema..." aria-label="Cercar incidències" onChange={() => { if (searchTimer.current) clearTimeout(searchTimer.current); searchTimer.current = setTimeout(() => formRef.current?.requestSubmit(), 350); }} />
-      <select name="category" defaultValue={filters.category} className="form-control" onChange={() => formRef.current?.requestSubmit()}><option value="totes">Tots els problemes</option>{ISSUE_CATEGORIES.map((category) => <option key={category} value={category}>{ISSUE_CATEGORY_LABELS[category]}</option>)}</select>
       <select name="type" defaultValue={filters.type} className="form-control" onChange={() => formRef.current?.requestSubmit()}><option value="totes">Totes les tipologies</option>{FINANCING_TYPES.map((type) => <option key={type} value={type}>{FINANCING_TYPE_LABELS[type]}</option>)}</select>
-      <select name="batch" defaultValue={filters.batch} className="form-control" onChange={() => formRef.current?.requestSubmit()}><option value="tots">Tots els lots</option>{result.batches.map((batch) => <option key={batch.id} value={batch.id}>Lot {batch.number}</option>)}</select>
-      <Button type="submit" variant="outline">Filtrar</Button>
     </form>
     <section className="surface mt-6 overflow-hidden"><div className="flex items-center justify-between gap-3 border-b p-4"><h2 className="font-semibold">Casos amb incidències ({result.total})</h2><span className="text-xs text-muted-foreground">Ordenats per activitat recent</span></div>
       {result.issues.length ? <StableAccordion stateKey="issues-list" className="divide-y">{result.issues.map((issue) => <IssueRow key={issue.record.id} issue={issue} />)}</StableAccordion> : <div className="p-10 text-center text-sm text-muted-foreground">No hi ha incidències amb aquests filtres.</div>}
@@ -71,6 +68,6 @@ function retryHelp(issue: IssueRecord) { return issue.retryOperation === "ocr" ?
 
 function Pagination({ result, filters }: { result: IssuePage; filters: IssueFilters }) {
   if (result.pageCount <= 1) return null;
-  const href = (page: number) => { const params = new URLSearchParams({ page: String(page), q: filters.query, type: filters.type, category: filters.category, batch: filters.batch }); return `/issues?${params}`; };
+  const href = (page: number) => { const params = new URLSearchParams({ page: String(page), q: filters.query, type: filters.type }); return `/issues?${params}`; };
   return <div className="flex items-center justify-between gap-3 border-t p-4 text-sm"><span className="text-muted-foreground">Pàgina {result.page} de {result.pageCount}</span><div className="flex gap-2"><Link aria-disabled={result.page <= 1} href={href(Math.max(1, result.page - 1))} className={cn(buttonVariants({ variant: "outline", size: "sm" }), result.page <= 1 && "pointer-events-none opacity-40")}>Anterior</Link><Link aria-disabled={result.page >= result.pageCount} href={href(Math.min(result.pageCount, result.page + 1))} className={cn(buttonVariants({ variant: "outline", size: "sm" }), result.page >= result.pageCount && "pointer-events-none opacity-40")}>Següent</Link></div></div>;
 }

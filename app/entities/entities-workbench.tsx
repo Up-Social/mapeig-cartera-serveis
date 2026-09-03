@@ -1,14 +1,16 @@
 "use client";
 import Link from "next/link";
+import { useRef } from "react";
 import { StableAccordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { EntityFilters, EntityPage } from "@/lib/entity-types";
 import { cn } from "@/lib/utils";
 import { catalogRelationTypeLabel, entityValidationStatusLabel } from "@/lib/ui-labels";
 
 export function EntitiesWorkbench({ result, filters }: { result: EntityPage; filters: EntityFilters }) {
+  const formRef = useRef<HTMLFormElement>(null); const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const href = (page: number) => `/entities?${new URLSearchParams({ page: String(page), q: filters.query, qualification: filters.qualification, county: filters.county })}`;
   return <main className="page-shell"><section className="page-container">
     <Badge variant="outline">Directori relacional · RESES</Badge>
@@ -18,11 +20,10 @@ export function EntitiesWorkbench({ result, filters }: { result: EntityPage; fil
       <Metric label="Entitats" value={result.metrics.total}/><Metric label="Serveis RESES" value={result.metrics.withReses}/><Metric label="Registres vinculats" value={result.metrics.linkedRecords}/><Metric label="Provisions confirmades" value={result.metrics.confirmed}/><Metric label="Mencions pendents" value={result.metrics.pendingMentions}/>
     </div>
     <section className="surface mt-6 overflow-hidden">
-      <form className="grid gap-3 border-b bg-muted/30 p-4 md:grid-cols-[1fr_220px_220px_auto]">
-        <Input name="q" defaultValue={filters.query} placeholder="Nom legal o NIF..." />
-        <select name="qualification" defaultValue={filters.qualification} className="form-control"><option value="totes">Totes les qualificacions</option>{result.qualifications.map((x) => <option key={x}>{x}</option>)}</select>
-        <select name="county" defaultValue={filters.county} className="form-control"><option value="totes">Totes les comarques</option>{result.counties.map((x) => <option key={x}>{x}</option>)}</select>
-        <Button variant="outline">Filtrar</Button>
+      <form ref={formRef} className="grid gap-3 border-b bg-muted/30 p-4 md:grid-cols-[1fr_220px_220px]">
+        <Input name="q" defaultValue={filters.query} placeholder="Nom legal o NIF..." onChange={() => { if (searchTimer.current) clearTimeout(searchTimer.current); searchTimer.current = setTimeout(() => formRef.current?.requestSubmit(), 350); }} />
+        <select name="qualification" defaultValue={filters.qualification} className="form-control" onChange={() => formRef.current?.requestSubmit()}><option value="totes">Totes les qualificacions</option>{result.qualifications.map((x) => <option key={x}>{x}</option>)}</select>
+        <select name="county" defaultValue={filters.county} className="form-control" onChange={() => formRef.current?.requestSubmit()}><option value="totes">Totes les comarques</option>{result.counties.map((x) => <option key={x}>{x}</option>)}</select>
       </form>
       <StableAccordion stateKey="entities-records" className="divide-y" defaultValue={[]}>
         {result.entities.map((entity) => <AccordionItem key={entity.id} value={entity.id} className="px-4">

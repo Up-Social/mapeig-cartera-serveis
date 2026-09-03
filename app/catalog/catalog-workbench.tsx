@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRef } from "react";
 import type {
   CatalogFilters,
   MasterService,
@@ -8,7 +9,7 @@ import type {
   ServiceProvision,
 } from "@/lib/catalog-types";
 import { Badge } from "@/components/ui/badge";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -22,6 +23,8 @@ export function CatalogWorkbench({
   result: MasterServicePage;
   filters: CatalogFilters;
 }) {
+  const formRef = useRef<HTMLFormElement>(null);
+  const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   return (
     <main className="page-shell">
       <section className="page-container">
@@ -49,18 +52,20 @@ export function CatalogWorkbench({
 
         <div className="mt-6">
           <section className="surface overflow-hidden">
-            <form className="grid gap-3 border-b border-neutral-200 bg-neutral-50 p-4 md:grid-cols-2 xl:grid-cols-[minmax(220px,1fr)_190px_190px_160px_auto]">
+            <form ref={formRef} className="grid gap-3 border-b border-neutral-200 bg-neutral-50 p-4 md:grid-cols-2 xl:grid-cols-[minmax(220px,1fr)_190px_190px_160px]">
               <Input
                 name="q"
                 defaultValue={filters.query}
                 placeholder="Cercar codi, nom o àmbit..."
                 aria-label="Cercar serveis"
+                onChange={() => { if (searchTimer.current) clearTimeout(searchTimer.current); searchTimer.current = setTimeout(() => formRef.current?.requestSubmit(), 350); }}
               />
               <select
                 name="status"
                 defaultValue={filters.status}
                 aria-label="Filtrar per estat"
                 className="form-control"
+                onChange={() => formRef.current?.requestSubmit()}
               >
                 <option value="tots">Tots els estats</option>
                 {result.statuses.map((status) => (
@@ -74,6 +79,7 @@ export function CatalogWorkbench({
                 defaultValue={filters.scope}
                 aria-label="Filtrar per àmbit"
                 className="form-control"
+                onChange={() => formRef.current?.requestSubmit()}
               >
                 <option value="tots">Tots els àmbits</option>
                 {result.scopes.map((scope) => (
@@ -87,14 +93,12 @@ export function CatalogWorkbench({
                 defaultValue={filters.sort}
                 aria-label="Ordenar serveis"
                 className="form-control"
+                onChange={() => formRef.current?.requestSubmit()}
               >
                 <option value="source_row">Ordre de l&apos;Excel</option>
                 <option value="code">Codi</option>
                 <option value="name">Nom</option>
               </select>
-              <Button variant="outline" type="submit">
-                Aplicar
-              </Button>
             </form>
 
             {result.services.length === 0 ? (

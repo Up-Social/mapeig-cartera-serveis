@@ -75,10 +75,10 @@ test("offers the complete OCR recovery only for unsupported PDF evidence", () =>
   assert.equal(otherIssue?.retryOperation, "prepare");
 });
 
-test("filters issues by category, type, batch and text", () => {
+test("filters issues by type and text", () => {
   const issue = classifyIssue(record)!;
-  assert.equal(issueMatchesFilters(issue, { category: "matching_error", type: "contractacio", batch: record.pipelineRunId!, query: "model" }), true);
-  assert.equal(issueMatchesFilters(issue, { category: "rejected", type: "contractacio", batch: record.pipelineRunId!, query: "" }), false);
+  assert.equal(issueMatchesFilters(issue, { type: "contractacio", query: "model" }), true);
+  assert.equal(issueMatchesFilters(issue, { type: "subvencio", query: "" }), false);
 });
 
 test("approved records are not incidents", () => {

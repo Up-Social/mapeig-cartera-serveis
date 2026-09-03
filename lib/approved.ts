@@ -7,34 +7,20 @@ const SELECT = "id,source_record_id,source_id,call_url,regulatory_basis_url,prov
 
 export async function getApprovedPage(filters: ApprovedFilters): Promise<ApprovedPage> {
   const db = createServerSupabase();
-  let allowedSourceIds: string[] | null = null;
-  if (filters.batch !== "tots") {
-    const jobs = await db.from("pipeline_jobs").select("source_record_id").eq("run_id", filters.batch).in("status", ["approved", "corrected"]);
-    if (jobs.error) throw jobs.error;
-    allowedSourceIds = (jobs.data ?? []).map((job) => job.source_record_id);
-  }
   let request = db.from("service_provisions").select(SELECT, { count: "exact" }).eq("source_records.processing_status", "completat");
   let allIdsRequest = db.from("service_provisions").select("id,source_records!inner(processing_status,financing_type)").eq("source_records.processing_status", "completat");
-  if (allowedSourceIds) request = request.in("source_record_id", allowedSourceIds.length ? allowedSourceIds : ["00000000-0000-0000-0000-000000000000"]);
-  if (allowedSourceIds) allIdsRequest = allIdsRequest.in("source_record_id", allowedSourceIds.length ? allowedSourceIds : ["00000000-0000-0000-0000-000000000000"]);
   if (filters.type !== "totes") { request = request.eq("source_records.financing_type", filters.type); allIdsRequest = allIdsRequest.eq("source_records.financing_type", filters.type); }
-  if (filters.service !== "tots") { request = request.eq("service_code", filters.service); allIdsRequest = allIdsRequest.eq("service_code", filters.service); }
   if (filters.query) { const q = filters.query.replaceAll(/[,%()]/g, " ").trim(); const expression = `provider_name.ilike.%${q}%,provider_nif.ilike.%${q}%,source_id.ilike.%${q}%,service_code.ilike.%${q}%`; request = request.or(expression); allIdsRequest = allIdsRequest.or(expression); }
   const from = (filters.page - 1) * PAGE_SIZE;
-  const [result, allIdsResult, batchResult, referenceResult] = await Promise.all([
+  const [result, allIdsResult] = await Promise.all([
     request.order("approved_at", { ascending: false }).range(from, from + PAGE_SIZE - 1),
     allIdsRequest.order("approved_at", { ascending: false }).range(0, 4999),
-    db.from("pipeline_runs").select("id,batch_number").order("batch_number"),
-    db.from("service_provisions").select("service_code,master_services(service_name)"),
   ]);
   if (result.error) throw result.error;
   if (allIdsResult.error) throw allIdsResult.error;
-  if (batchResult.error) throw batchResult.error;
-  if (referenceResult.error) throw referenceResult.error;
   const total = result.count ?? 0;
   const pageCount = Math.max(1, Math.ceil(total / PAGE_SIZE));
-  const services = [...new Map((referenceResult.data ?? []).map((item) => { const raw = item.master_services; const master = (Array.isArray(raw) ? raw[0] : raw) as { service_name?: string } | null; return [item.service_code, { code: item.service_code, name: master?.service_name ?? item.service_code }]; })).values()].sort((a, b) => a.code.localeCompare(b.code));
-  return { provisions: (result.data ?? []).map(mapApproved), allProvisionIds: (allIdsResult.data ?? []).map((item) => String(item.id)), total, page: Math.min(filters.page, pageCount), pageCount, pageSize: PAGE_SIZE, batches: (batchResult.data ?? []).map((batch) => ({ id: batch.id, number: String(batch.batch_number).padStart(8, "0") })), services };
+  return { provisions: (result.data ?? []).map(mapApproved), allProvisionIds: (allIdsResult.data ?? []).map((item) => String(item.id)), total, page: Math.min(filters.page, pageCount), pageCount, pageSize: PAGE_SIZE };
 }
 
 function mapApproved(row: Record<string, unknown>): ApprovedProvision {

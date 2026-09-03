@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { ChevronDown } from "lucide-react";
 import type {
@@ -957,6 +958,7 @@ function ReviewControls({
   record: SourceRecord;
   onRecordUpdate: (record: SourceRecord) => void;
 }) {
+  const router = useRouter();
   const [candidateId, setCandidateId] = useState(
     record.matchingCandidates[0]?.id ?? "",
   );
@@ -973,6 +975,8 @@ function ReviewControls({
           notes,
         });
         onRecordUpdate(nextRecord);
+        window.dispatchEvent(new Event("navigation-counts:refresh"));
+        router.refresh();
         setMessage("Decisió registrada correctament.");
       } catch (error) {
         setMessage(

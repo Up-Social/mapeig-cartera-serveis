@@ -57,28 +57,18 @@ export async function getIssuePage(filters: IssueFilters): Promise<IssuePage> {
     issueMatchesFilters(issue, {
       query: filters.query,
       type: filters.type,
-      category: filters.category,
-      batch: filters.batch,
     }),
   );
   const total = issues.length;
   const pageCount = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const page = Math.min(filters.page, pageCount);
   const start = (page - 1) * PAGE_SIZE;
-  const batchMap = new Map<string, string>();
-  for (const issue of allIssues) {
-    if (issue.record.pipelineRunId && issue.record.batchNumber) {
-      batchMap.set(issue.record.pipelineRunId, issue.record.batchNumber);
-    }
-  }
-
   return {
     issues: issues.slice(start, start + PAGE_SIZE),
     total,
     page,
     pageCount,
     pageSize: PAGE_SIZE,
-    batches: [...batchMap].map(([id, number]) => ({ id, number })).sort((a, b) => b.number.localeCompare(a.number)),
     metrics: {
       total: allIssues.length,
       rejected: allIssues.filter((issue) => issue.category === "rejected").length,

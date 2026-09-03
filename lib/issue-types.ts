@@ -37,8 +37,6 @@ export type IssueFilters = {
   page: number;
   query: string;
   type: string;
-  category: string;
-  batch: string;
 };
 
 export type IssuePage = {
@@ -47,7 +45,6 @@ export type IssuePage = {
   page: number;
   pageCount: number;
   pageSize: number;
-  batches: Array<{ id: string; number: string }>;
   metrics: {
     total: number;
     rejected: number;
@@ -107,9 +104,7 @@ function issue(
 
 export function issueMatchesFilters(issueRecord: IssueRecord, filters: Omit<IssueFilters, "page">) {
   const { record } = issueRecord;
-  if (filters.category !== "totes" && issueRecord.category !== filters.category) return false;
   if (filters.type !== "totes" && record.financingType !== (filters.type as FinancingType)) return false;
-  if (filters.batch !== "tots" && record.pipelineRunId !== filters.batch) return false;
   if (!filters.query) return true;
   const haystack = [record.title, record.sourceRecordId, record.providerName, issueRecord.message]
     .filter(Boolean)

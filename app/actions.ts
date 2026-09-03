@@ -623,6 +623,7 @@ export async function reviewMatching(input: {
   revalidatePath("/");
   revalidatePath("/review");
   revalidatePath("/issues");
+  revalidatePath("/approved");
   revalidatePath("/catalog");
   return { ok: true };
 }
