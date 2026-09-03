@@ -1,226 +1,151 @@
+import { ArrowRight, CheckCircle2, CircleAlert, Database, FileSearch, GitCompareArrows, ListChecks } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 
-const types = [
-  {
-    name: "Subvenció",
-    status: "Disponible",
-    sources: [
-      "RAISC · Generalitat (full CCAA)",
-      "RAISC · administracions locals (full Local)",
-      "BDNS · prevista, encara no connectada",
-    ],
-    documents:
-      "Convocatòria, resolució, bases reguladores i publicació oficial enllaçades al registre.",
-  },
-  {
-    name: "Conveni",
-    status: "Disponible",
-    sources: [
-      "Registre de Convenis de Catalunya",
-      "Document del conveni i annexos",
-    ],
-    documents:
-      "Text del conveni, objecte, parts, aportacions, vigència i annexos disponibles.",
-  },
-  {
-    name: "Contractació pública",
-    status: "Disponible",
-    sources: [
-      "Plataforma de Serveis de Contractació Pública (PSCP)",
-      "Perfil del contractant i publicacions vinculades",
-    ],
-    documents:
-      "Anunci, adjudicació, formalització, plecs i documentació d’execució quan estiguin disponibles.",
-  },
-  {
-    name: "Concert social / gestió delegada",
-    status: "Disponible · 305 actes",
-    sources: [
-      "e-Tauler · cerca literal «concert social»",
-      "DOGC i resolucions enllaçades als anuncis",
-    ],
-    documents:
-      "El connector ha importat 305 actes únics de 2024-2026 que contenen literalment «concert social». Es tracten com esdeveniments diferenciats: alta o ampliació, pròrroga, modificació, autorització de despesa, cessió, esmena, baixa o resolució anticipada.",
-  },
-];
+const pipeline = [
+  ["1", "Captació", "Importació del registre amb identificador, tipologia, font i contingut original."],
+  ["2", "Preparació", "Localització de documents, extracció de text i creació de fragments auditables."],
+  ["3", "Contrast", "Extracció de dades únicament des de les fonts oficials, amb evidències citades."],
+  ["4", "Correspondència", "Proposta de fins a tres serveis de la Cartera, amb puntuació i justificació."],
+  ["5", "Revisió", "Decisió humana: aprovar, corregir, rebutjar o declarar evidència insuficient."],
+  ["6", "Resultat", "Creació de la provisió només després d’una aprovació o correcció."],
+] as const;
 
-const steps = [
-  [
-    "1",
-    "Captació",
-    "S’importa o consulta el registre públic i es conserva la seva procedència: tipologia, font interna, identificador, fitxer o URL, data i contingut original.",
-  ],
-  [
-    "2",
-    "Control de duplicats",
-    "Es calcula una identitat normalitzada amb tipologia, títol, entitat i import. No se selecciona un cas si ell mateix o una variant equivalent ja ha entrat en un lot.",
-  ],
-  [
-    "3",
-    "Lot automàtic",
-    "Se seleccionen entre 1 i 50 casos de manera atòmica i equilibrada. El mateix registre o una identitat equivalent no pot entrar simultàniament en dos lots.",
-  ],
-  [
-    "4",
-    "Preparació de fonts",
-    "El processador persistent localitza les adreces, descarrega els documents, n’extreu el text i crea fragments amb qualitat i traçabilitat. Els casos sense font o amb format no compatible acaben amb una incidència explícita.",
-  ],
-  [
-    "5",
-    "Contrast de dades",
-    "La IA extreu únicament dels fragments oficials els camps contrastats —entitat, NIF, mecanisme, data, import, organisme i col·lectiu— i cita els fragments que els sustenten.",
-  ],
-  [
-    "6",
-    "Matching",
-    "Els fragments oficials es contrasten amb el catàleg autoritzat. El model proposa fins a tres serveis ordenats, amb puntuació, justificació i evidència; no pot inventar codis.",
-  ],
-  [
-    "7",
-    "Validació humana",
-    "La persona revisora aprova, corregeix, rebutja o declara evidència insuficient. Només una decisió positiva crea o actualitza una provisió.",
-  ],
-  [
-    "8",
-    "Exportació",
-    "Supabase és la font de veritat. Les provisions aprovades s’escriuen en un Excel nou; es poden seleccionar les visibles o totes les que compleixen els filtres, sense modificar el catàleg mestre original.",
-  ],
-];
+const sections = [
+  {
+    name: "Registres",
+    state: "Entrada i procés individual",
+    body: "Permet consultar, filtrar i processar un cas. Un error documental, de contrast o de correspondència l’envia automàticament a Incidències.",
+    next: "Revisió o Incidències",
+  },
+  {
+    name: "Lots",
+    state: "Procés automàtic d’1 a 50 casos",
+    body: "Executa preparació, contrast i correspondència sense aturar els casos correctes quan un altre falla. Cada error queda visible al lot i a Incidències.",
+    next: "Revisió o Incidències",
+  },
+  {
+    name: "Revisió",
+    state: "Decisió humana obligatòria",
+    body: "Aprovar o corregir crea una provisió. Rebutjar o indicar evidència insuficient exigeix un motiu i trasllada el cas a Incidències.",
+    next: "Aprovats o Incidències",
+  },
+  {
+    name: "Incidències",
+    state: "Resolució i seguiment",
+    body: "Agrupa errors tècnics i decisions negatives. Permet reintentar la fase afectada o tornar a Revisió per rectificar la decisió.",
+    next: "Revisió o procés",
+  },
+  {
+    name: "Aprovats",
+    state: "Provisions vigents",
+    body: "Mostra només decisions positives amb provisió activa. Permet seleccionar i exportar els resultats sense modificar el Master original.",
+    next: "Exportació",
+  },
+] as const;
 
-const workflowStates = [
-  ["Registre", "pendent → preparant → preparat → processant → revisio → completat o rebutjat"],
-  ["Fases", "pendent/preparant/preparada per a l’evidència; pendent/processant/completada per al contrast"],
-  ["Registre del procés", "seleccionat → preparant → preparat → fent correspondència → pendent de revisió → decisió humana"],
-  ["Lot", "en cua → preparant → contrastant → fent correspondència → pendent de revisió → completat"],
-  ["Processador", "en cua → en execució → completada o fallida, amb senyal de vida i fins a 3 intents"],
-];
-
-const auditFindings = [
-  ["Corregit", "Les 3 correspondències incompletes s’han regenerat: tots els candidats tenen evidència oficial enllaçada."],
-  ["Corregit", "Els 27.732 errors documentals heretats s’han normalitzat sense ocultar els intents reals."],
-  ["Corregit", "Els estats històrics i els timestamps de processament i revisió ja tenen una semàntica coherent."],
-  ["Protegit", "La base de dades restringeix els estats, fases, preparació i tipologies admesos pel flux."],
-  ["Revisió", "865 files formen 351 clústers d’identitat potencialment duplicada; no s’eliminen perquè poden ser actes legítims."],
-];
+const sources = [
+  {
+    type: "Contractació pública",
+    registry: "PSCP",
+    records: "Expedients, adjudicacions i formalitzacions",
+    documents: "Publicació, perfil del contractant, plecs i formalització.",
+  },
+  {
+    type: "Conveni",
+    registry: "Registre de Convenis",
+    records: "Convenis i addendes",
+    documents: "Document del conveni, objecte, parts, aportacions i annexos.",
+  },
+  {
+    type: "Subvenció",
+    registry: "RAISC · Generalitat i ens locals",
+    records: "Concessions i convocatòries",
+    documents: "Convocatòria, resolució, publicació i bases reguladores.",
+  },
+  {
+    type: "Concert social / gestió delegada",
+    registry: "e-Tauler",
+    records: "305 actes únics de 2024–2026",
+    documents: "Anunci, DOGC, resolució i annexos disponibles.",
+  },
+] as const;
 
 export default function ProcessPage() {
   return (
     <main className="page-shell">
-      <section className="page-container max-w-[1200px]">
-        <p className="page-eyebrow">Metodologia i traçabilitat</p>
-        <h2 className="page-title">Procés</h2>
+      <section className="page-container max-w-[1240px]">
+        <p className="page-eyebrow">Funcionament i traçabilitat</p>
+        <h1 className="page-title">Procés</h1>
         <p className="page-description">
-          Aquesta pàgina descriu el flux operatiu real i l&apos;estat auditat del PoC. Una tipologia és
-          un mecanisme de finançament; cada tipologia pot contenir diverses
-          fonts públiques i documents.
+          Resum del pipeline, les decisions humanes i les fonts que alimenten el mapeig de la Cartera de serveis socials.
         </p>
-        <section className="surface mt-7 p-4 sm:p-5">
-          <h3 className="text-lg font-semibold">
-            Tipologies i fonts consultades
-          </h3>
-          <div className="mt-4 grid gap-4 md:grid-cols-2">
-            {types.map((type) => (
-              <Card key={type.name} className="gap-0 p-4">
-                <div className="flex items-start justify-between gap-3">
-                  <h4 className="font-semibold">{type.name}</h4>
-                  <Badge variant="secondary">{type.status}</Badge>
-                </div>
-                <p className="mt-3 text-xs font-semibold uppercase tracking-wide text-neutral-500">
-                  Fonts internes
-                </p>
-                <ul className="mt-2 space-y-1 text-sm">
-                  {type.sources.map((source) => (
-                    <li key={source}>· {source}</li>
-                  ))}
-                </ul>
-                <p className="mt-3 text-sm leading-6 text-neutral-600">
-                  {type.documents}
-                </p>
-              </Card>
-            ))}
-          </div>
-          <aside className="mt-4 rounded-xl bg-neutral-100 p-4 text-sm leading-6">
-            <strong>Font auxiliar transversal: RESES.</strong> Serveix per
-            comprovar entitats, establiments, tipologies, territori i capacitat.
-            No demostra per si sol que una provisió financi un servei concret.
-          </aside>
-        </section>
-        <section className="surface mt-6 p-4 sm:p-5">
-          <h3 className="text-lg font-semibold">Estats persistents i transicions</h3>
-          <div className="mt-4 divide-y">
-            {workflowStates.map(([entity, transition]) => (
-              <div key={entity} className="grid gap-2 py-3 sm:grid-cols-[150px_1fr]">
-                <strong className="text-sm">{entity}</strong>
-                <code className="break-words text-xs leading-6 text-neutral-600">{transition}</code>
-              </div>
-            ))}
-          </div>
-          <p className="mt-3 text-xs leading-5 text-neutral-500">Els fluxos antics poden conservar draft, ready, selection o confirmation. La revisió humana continua sent obligatòria i és independent del resultat automàtic.</p>
-        </section>
-        <section className="surface mt-6 p-4 sm:p-5">
-          <div className="flex flex-wrap items-start justify-between gap-3"><div><h3 className="text-lg font-semibold">Auditoria d’integritat · 2 de setembre de 2026</h3><p className="mt-1 text-sm text-neutral-600">28.124 registres i 25 taules revisats íntegrament, sense modificar dades.</p></div><Badge variant="outline">No destructiva</Badge></div>
-          <div className="mt-4 space-y-3">{auditFindings.map(([level, finding]) => <div key={finding} className="rounded-xl border p-3"><p className="text-xs font-semibold uppercase tracking-wide text-neutral-500">{level}</p><p className="mt-1 text-sm leading-6">{finding}</p></div>)}</div>
-          <p className="mt-4 text-sm leading-6 text-neutral-600">No s’han detectat relacions òrfenes, evidències creuades entre registres, codis de servei inexistents, provisions sense revisió positiva ni recomptes de lot incorrectes. Les correccions recomanades estan documentades a <code>docs/DATA_INTEGRITY_AUDIT.md</code> i no s’han aplicat.</p>
-        </section>
-        <section className="surface mt-6 p-4 sm:p-5">
-          <h3 className="text-lg font-semibold">
-            Del registre a la provisió aprovada
-          </h3>
-          <div className="mt-5 space-y-4">
-            {steps.map(([number, title, body]) => (
-              <article
-                key={number}
-                className="grid gap-3 border-b border-neutral-100 pb-4 last:border-0 last:pb-0 sm:grid-cols-[42px_180px_1fr]"
-              >
-                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-black text-sm font-semibold text-white">
-                  {number}
-                </span>
-                <h4 className="pt-1.5 font-semibold">{title}</h4>
-                <p className="text-sm leading-6 text-neutral-600">{body}</p>
+
+        <section className="surface mt-7 p-4 sm:p-6">
+          <SectionHeading icon={GitCompareArrows} title="1. Pipeline de principi a fi" description="La proposta automàtica mai es converteix directament en una provisió: sempre passa per revisió humana." />
+          <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+            {pipeline.map(([number, title, body], index) => (
+              <article key={number} className="relative rounded-xl border bg-background p-4">
+                <div className="flex items-center gap-3"><span className="flex size-7 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground">{number}</span><h3 className="font-semibold">{title}</h3></div>
+                <p className="mt-3 text-sm leading-6 text-muted-foreground">{body}</p>
+                {index < pipeline.length - 1 && <ArrowRight className="absolute -right-2.5 top-5 z-10 hidden size-5 rounded-full bg-card p-0.5 text-muted-foreground xl:block" aria-hidden="true" />}
               </article>
             ))}
           </div>
+          <div className="mt-4 grid gap-3 sm:grid-cols-3">
+            <FlowRule icon={CheckCircle2} label="Decisió positiva" text="Aprovat o corregit → provisió vigent." />
+            <FlowRule icon={CircleAlert} label="Decisió negativa" text="Rebutjat o evidència insuficient → Incidències." />
+            <FlowRule icon={FileSearch} label="Error tècnic" text="Preparació, contrast o matching → Incidències." />
+          </div>
         </section>
+
+        <section className="surface mt-6 p-4 sm:p-6">
+          <SectionHeading icon={ListChecks} title="2. Flux funcional i d’aprovacions" description="Cada apartat té una responsabilitat clara i un destí possible per al registre." />
+          <div className="mt-5 overflow-hidden rounded-xl border">
+            <div className="hidden grid-cols-[150px_220px_1fr_170px] gap-4 bg-muted/60 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground md:grid"><span>Apartat</span><span>Funció</span><span>Regla de decisió</span><span>Destí</span></div>
+            <div className="divide-y">
+              {sections.map((section) => (
+                <article key={section.name} className="grid gap-2 p-4 md:grid-cols-[150px_220px_1fr_170px] md:gap-4">
+                  <h3 className="font-semibold">{section.name}</h3>
+                  <p className="text-sm text-foreground">{section.state}</p>
+                  <p className="text-sm leading-6 text-muted-foreground">{section.body}</p>
+                  <div><Badge variant="secondary">{section.next}</Badge></div>
+                </article>
+              ))}
+            </div>
+          </div>
+          <p className="mt-4 text-sm leading-6 text-muted-foreground">Les decisions es conserven com a historial. Rectificar una decisió actualitza o retira la provisió vigent, però no elimina la traçabilitat anterior.</p>
+        </section>
+
+        <section className="surface mt-6 p-4 sm:p-6">
+          <SectionHeading icon={Database} title="3. Registre de fonts" description="Cada fila conserva la procedència original. Els documents són evidències vinculades al registre, no registres independents." />
+          <div className="mt-5 grid gap-4 md:grid-cols-2">
+            {sources.map((source) => (
+              <Card key={source.type} className="gap-0 p-4">
+                <div className="flex flex-wrap items-start justify-between gap-2"><h3 className="font-semibold">{source.type}</h3><Badge variant="outline">{source.registry}</Badge></div>
+                <dl className="mt-4 grid gap-3 text-sm">
+                  <div><dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Registres</dt><dd className="mt-1">{source.records}</dd></div>
+                  <div><dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Evidència documental</dt><dd className="mt-1 leading-6 text-muted-foreground">{source.documents}</dd></div>
+                </dl>
+              </Card>
+            ))}
+          </div>
+          <aside className="mt-4 rounded-xl bg-muted p-4 text-sm leading-6"><strong>RESES és una font auxiliar transversal.</strong> Ajuda a contrastar entitats, establiments, tipologies, territori i capacitat, però no demostra per si sola que una provisió financi un servei concret. BDNS continua pendent de connexió.</aside>
+        </section>
+
         <section className="mt-6 grid gap-4 md:grid-cols-2">
-          <Card className="gap-0 p-5">
-            <h3 className="font-semibold">Com s’escull el servei ara</h3>
-            <ol className="mt-3 space-y-2 text-sm leading-6 text-neutral-600">
-              <li>1. Es preparen els fragments del document oficial.</li>
-              <li>
-                2. S’envien aquests fragments i els 140 serveis autoritzats al
-                model.
-              </li>
-              <li>
-                3. El model retorna fins a tres candidats ordenats, amb
-                justificació i fragments.
-              </li>
-              <li>4. Els codis inexistents es descarten.</li>
-              <li>
-                5. La persona revisora pren la decisió final o busca un altre
-                servei.
-              </li>
-            </ol>
-            <p className="mt-3 rounded-xl bg-neutral-100 p-3 text-xs leading-5">
-              La reducció prèvia mitjançant regles, CPV, RESES i similitud
-              semàntica forma part de l’arquitectura prevista, però encara no
-              està implementada en aquest PoC.
-            </p>
-          </Card>
-          <Card className="gap-0 p-5">
-            <h3 className="font-semibold">Límits actuals del PoC</h3>
-            <p className="mt-3 text-sm leading-6 text-neutral-600">
-              Actualment hi ha registres importats de RAISC, convenis, PSCP i
-              e-Tauler. La preparació documental s’executa per registre quan entra
-              al procés automàtic; molts documents continuen només descoberts. BDNS,
-              RESES i la reconstrucció del catàleg des de la font pública
-              oficial continuen pendents. La correspondència actual utilitza el catàleg
-              mestre aïllat perquè va ser autoritzat explícitament; no utilitza
-              les seves fórmules ni provisions manuals com a evidència.
-            </p>
-          </Card>
+          <Card className="gap-0 p-5"><h2 className="font-semibold">Traçabilitat conservada</h2><p className="mt-3 text-sm leading-6 text-muted-foreground">Dataset, identificador original, fitxer o URL, full i fila, payload original, documents, fragments, dades contrastades, candidats, model, decisió, motiu i provisió final.</p></Card>
+          <Card className="gap-0 p-5"><h2 className="font-semibold">Límits actuals</h2><p className="mt-3 text-sm leading-6 text-muted-foreground">Els documents sense text necessiten OCR. El matching utilitza el catàleg Master aïllat i autoritzat; no utilitza les seves fórmules ni provisions manuals com a evidència.</p></Card>
         </section>
       </section>
     </main>
   );
+}
+
+function SectionHeading({ icon: Icon, title, description }: { icon: typeof Database; title: string; description: string }) {
+  return <div className="flex items-start gap-3"><span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-muted"><Icon className="size-4" aria-hidden="true" /></span><div><h2 className="text-lg font-semibold">{title}</h2><p className="mt-1 text-sm leading-6 text-muted-foreground">{description}</p></div></div>;
+}
+
+function FlowRule({ icon: Icon, label, text }: { icon: typeof CheckCircle2; label: string; text: string }) {
+  return <div className="rounded-xl bg-muted/70 p-3"><div className="flex items-center gap-2 text-sm font-semibold"><Icon className="size-4" aria-hidden="true" />{label}</div><p className="mt-1 text-xs leading-5 text-muted-foreground">{text}</p></div>;
 }

@@ -56,6 +56,8 @@ En escriptori es presenta com una barra lateral fixa i plegable; en pantalles pe
 7. **Entitats**: normalització, mencions, RESES i relacions.
 8. **Procés**: explicació metodològica, estat i límits.
 
+La pantalla **Procés** sintetitza la documentació operativa en tres blocs: pipeline de principi a fi, recorregut d'aprovacions per apartat i registre de fonts. La regla central és que només una aprovació o correcció crea una provisió; les decisions negatives i qualsevol error tècnic es gestionen des d'**Incidències**.
+
 La web té un accés restringit per contrasenya compartida. Si `APP_ACCESS_PASSWORD` no està configurada, falla de manera tancada.
 
 ## Flux operatiu

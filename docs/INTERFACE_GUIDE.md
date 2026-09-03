@@ -15,7 +15,13 @@ En pantalles d'escriptori, la navegació principal es manté visible en una barr
 - **Aprovats**: consulta i exportació de les provisions vigents després d'una decisió positiva.
 - **Catàleg**: consulta dels serveis importats i de les provisions aprovades que hi estan vinculades.
 - **Entitats**: consulta d'entitats normalitzades, serveis RESES, mencions i relacions amb el catàleg.
-- **Procés**: explicació completa de les tipologies, les fonts internes, l'extracció, el matching, la revisió i l'exportació.
+- **Procés**: resum documental del pipeline, el flux d'aprovacions entre pantalles i el registre de fonts.
+
+## Resum del procés
+
+El pipeline segueix sis passos: captació, preparació documental, contrast de dades, proposta de correspondència, revisió humana i resultat. **Registres** permet el procés individual i **Lots** l'execució conjunta; tots dos envien els resultats correctes a **Revisió** i els errors a **Incidències**. A **Revisió**, aprovar o corregir crea una provisió a **Aprovats**; rebutjar o declarar evidència insuficient exigeix un motiu i envia el cas a **Incidències**.
+
+La pantalla **Procés** manté aquest flux visible juntament amb les fonts PSCP, Registre de Convenis, RAISC i e-Tauler. RESES es documenta com a font auxiliar i BDNS com a connexió pendent.
 
 ## Crear i processar un lot automàtic
 
