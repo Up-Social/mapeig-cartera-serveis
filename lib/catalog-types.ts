@@ -1,5 +1,3 @@
-export type CatalogSort = "source_row" | "code" | "name";
-
 export type MasterService = {
   id: string;
   serviceCode: string;
@@ -44,7 +42,4 @@ export type MasterServicePage = {
 export type CatalogFilters = {
   page: number;
   query: string;
-  status: string;
-  scope: string;
-  sort: CatalogSort;
 };

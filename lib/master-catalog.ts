@@ -9,8 +9,6 @@ export async function getMasterServicePage(filters: CatalogFilters): Promise<Mas
   const safeQuery = filters.query.replaceAll(/[,%()]/g, " ").trim();
 
   let countRequest = supabase.from("master_services").select("id", { count: "exact", head: true });
-  if (filters.status !== "tots") countRequest = countRequest.eq("portfolio_status", filters.status);
-  if (filters.scope !== "tots") countRequest = countRequest.eq("sector_scope", filters.scope);
   if (safeQuery) countRequest = countRequest.or(`service_code.ilike.%${safeQuery}%,service_name.ilike.%${safeQuery}%,sector_scope.ilike.%${safeQuery}%`);
 
   const [{ count, error: countError }, referenceResult] = await Promise.all([
@@ -26,13 +24,10 @@ export async function getMasterServicePage(filters: CatalogFilters): Promise<Mas
   const from = (page - 1) * MASTER_PAGE_SIZE;
 
   let request = supabase.from("master_services").select("id,service_code,service_name,sector_scope,portfolio_status,general_confidence,source_file,source_sheet,source_row,source_payload,service_provisions(id,source_id,call_url,regulatory_basis_url,provider_name,provider_nif,mechanism,award_date,amount,contracting_body,target_population,source_reference),entity_catalog_relations(entity_id,relation_type,source_reference,entities(id,legal_name,nif))");
-  if (filters.status !== "tots") request = request.eq("portfolio_status", filters.status);
-  if (filters.scope !== "tots") request = request.eq("sector_scope", filters.scope);
   if (safeQuery) request = request.or(`service_code.ilike.%${safeQuery}%,service_name.ilike.%${safeQuery}%,sector_scope.ilike.%${safeQuery}%`);
 
-  const orderColumn = filters.sort === "code" ? "service_code" : filters.sort === "name" ? "service_name" : "source_row";
   const { data, error } = await request
-    .order(orderColumn, { ascending: true, nullsFirst: false })
+    .order("source_row", { ascending: true, nullsFirst: false })
     .order("id", { ascending: true })
     .range(from, from + MASTER_PAGE_SIZE - 1);
   if (error) throw error;

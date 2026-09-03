@@ -75,7 +75,7 @@ export function ReviewWorkbench({
             {refreshing ? "Actualitzant…" : "Actualitzar"}
           </Button>
         </div>
-        <form ref={formRef} className="surface mt-5 grid gap-3 p-4 md:grid-cols-[minmax(220px,1fr)_220px_180px]">
+        <form ref={formRef} className="surface mt-5 grid gap-3 p-4 md:grid-cols-[minmax(220px,1fr)_220px]">
           <input type="hidden" name="batch" value={filters.batchId ?? ""} />
           <input type="hidden" name="record" value={focusedRecordId ?? ""} />
           <Input name="q" defaultValue={filters.query} placeholder="Cercar títol, registre o entitat..." aria-label="Cercar registres analitzats" onChange={() => { if (searchTimer.current) clearTimeout(searchTimer.current); searchTimer.current = setTimeout(() => formRef.current?.requestSubmit(), 350); }} />
@@ -92,20 +92,11 @@ export function ReviewWorkbench({
               </option>
             ))}
           </select>
-          <select
-            name="state"
-            defaultValue={filters.state}
-            className="form-control"
-            onChange={() => formRef.current?.requestSubmit()}
-          >
-            <option value="pending">Pendents de revisar</option>
-            <option value="all">Totes les decisions</option>
-          </select>
         </form>
         <div className="mt-6">
           <section className="surface overflow-hidden">
             <div className="border-b p-4 font-semibold">
-              {filters.state === "pending" ? "Registres pendents de validar" : "Registres revisats i pendents"} ({records.length})
+              Registres pendents de validar ({records.length})
             </div>
             <StableAccordion stateKey={`review-records:${focusedRecordId ?? "queue"}`} defaultValue={focusedRecordId ? [focusedRecordId] : []} className="divide-y">
               {records.map((record) => (

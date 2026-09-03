@@ -52,7 +52,7 @@ export function CatalogWorkbench({
 
         <div className="mt-6">
           <section className="surface overflow-hidden">
-            <form ref={formRef} className="grid gap-3 border-b border-neutral-200 bg-neutral-50 p-4 md:grid-cols-2 xl:grid-cols-[minmax(220px,1fr)_190px_190px_160px]">
+            <form ref={formRef} className="border-b border-neutral-200 bg-neutral-50 p-4">
               <Input
                 name="q"
                 defaultValue={filters.query}
@@ -60,45 +60,6 @@ export function CatalogWorkbench({
                 aria-label="Cercar serveis"
                 onChange={() => { if (searchTimer.current) clearTimeout(searchTimer.current); searchTimer.current = setTimeout(() => formRef.current?.requestSubmit(), 350); }}
               />
-              <select
-                name="status"
-                defaultValue={filters.status}
-                aria-label="Filtrar per estat"
-                className="form-control"
-                onChange={() => formRef.current?.requestSubmit()}
-              >
-                <option value="tots">Tots els estats</option>
-                {result.statuses.map((status) => (
-                  <option key={status} value={status}>
-                    {statusLabel(status)}
-                  </option>
-                ))}
-              </select>
-              <select
-                name="scope"
-                defaultValue={filters.scope}
-                aria-label="Filtrar per àmbit"
-                className="form-control"
-                onChange={() => formRef.current?.requestSubmit()}
-              >
-                <option value="tots">Tots els àmbits</option>
-                {result.scopes.map((scope) => (
-                  <option key={scope} value={scope}>
-                    {scope}
-                  </option>
-                ))}
-              </select>
-              <select
-                name="sort"
-                defaultValue={filters.sort}
-                aria-label="Ordenar serveis"
-                className="form-control"
-                onChange={() => formRef.current?.requestSubmit()}
-              >
-                <option value="source_row">Ordre de l&apos;Excel</option>
-                <option value="code">Codi</option>
-                <option value="name">Nom</option>
-              </select>
             </form>
 
             {result.services.length === 0 ? (
@@ -137,7 +98,7 @@ function Pagination({
   filters: CatalogFilters;
 }) {
   const href = (page: number) =>
-    `/catalog?${new URLSearchParams({ page: String(page), q: filters.query, status: filters.status, scope: filters.scope, sort: filters.sort })}`;
+    `/catalog?${new URLSearchParams({ page: String(page), q: filters.query })}`;
   const start = result.total ? (result.page - 1) * result.pageSize + 1 : 0;
   const end = Math.min(result.page * result.pageSize, result.total);
   return (
