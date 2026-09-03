@@ -40,6 +40,7 @@ async function main() {
     if ((frequencies.get(textHash) ?? 0) > 1) flags.push("duplicate_text");
     if (document.extraction_method === "html-basic") flags.push("basic_html_extraction");
     if (document.extraction_method === "source-payload-fallback") flags.push("source_payload_fallback");
+    if (document.extraction_method === "tesseract-ocr") flags.push("ocr_extraction");
     const quality = scoreQuality(normalized.length, flags);
 
     const rows = chunks.map((content, ordinal) => ({

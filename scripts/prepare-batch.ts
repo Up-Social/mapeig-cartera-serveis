@@ -12,10 +12,13 @@ const supabase = createClient(url, key, { auth: { persistSession: false, autoRef
 
 async function main() {
   try {
+    const { data: pipelineRun, error: runError } = await supabase.from("pipeline_runs").select("parameters").eq("id", runId).single();
+    if (runError) throw runError;
+    const useOcr = pipelineRun.parameters?.ocr_recovery === true;
     await supabase.from("pipeline_jobs").update({ status: "preparing", preparation_status: "discovering", preparation_message: null }).eq("run_id", runId).in("status", ["selected", "error"]);
     await run("sources:discover", ["--run-id", runId!]);
     await supabase.from("pipeline_jobs").update({ preparation_status: "fetching" }).eq("run_id", runId).eq("status", "preparing");
-    await run("sources:sample", ["--run-id", runId!, "--limit", "100"]);
+    await run("sources:sample", ["--run-id", runId!, "--limit", "100", ...(useOcr ? ["--ocr"] : [])]);
     await supabase.from("pipeline_jobs").update({ preparation_status: "chunking" }).eq("run_id", runId).eq("status", "preparing");
     await run("sources:chunk", ["--run-id", runId!, "--limit", "200"]);
 

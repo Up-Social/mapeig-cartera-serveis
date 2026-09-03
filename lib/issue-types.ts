@@ -68,7 +68,7 @@ export function classifyIssue(record: SourceRecord): IssueRecord | null {
     return issue(record, "no_source", "evidence", record.evidenceError ?? "No s'ha localitzat cap font documental útil.", "prepare");
   }
   if (record.evidenceStatus === "unsupported") {
-    return issue(record, "unsupported", "evidence", record.evidenceError ?? "La font necessita OCR o un extractor addicional.", "prepare");
+    return issue(record, "unsupported", "evidence", record.evidenceError ?? "La font necessita OCR o un extractor addicional.", isOcrEligible(record) ? "ocr" : "prepare");
   }
   if (record.evidenceStatus === "error") {
     return issue(record, "document_error", "evidence", record.evidenceError ?? "No s'ha pogut preparar la font documental.", "prepare");
@@ -80,6 +80,12 @@ export function classifyIssue(record: SourceRecord): IssueRecord | null {
     return issue(record, "matching_error", "matching", record.matchingError ?? "La correspondència no ha finalitzat correctament.", "match");
   }
   return null;
+}
+
+export function isOcrEligible(record: SourceRecord) {
+  if (record.evidenceStatus !== "unsupported") return false;
+  const diagnostic = `${record.evidenceError ?? ""} ${record.sourceDocuments.map((document) => `${document.mimeType ?? ""} ${document.url}`).join(" ")}`.toLocaleLowerCase("ca");
+  return diagnostic.includes("ocr") && (diagnostic.includes("pdf") || record.sourceDocuments.some((document) => document.mimeType?.includes("pdf") || document.url.toLocaleLowerCase("ca").endsWith(".pdf")));
 }
 
 function issue(

@@ -3,11 +3,12 @@ import {
   matchPreparedRecord,
   processRecordAutomatically,
   prepareRecordSources,
+  recoverRecordWithOcr,
 } from "@/app/actions";
 import type { RecordOperation } from "@/lib/record-operation";
 import { isUuid } from "@/lib/uuid";
 
-const OPERATIONS = new Set<RecordOperation>(["prepare", "enrich", "match", "process"]);
+const OPERATIONS = new Set<RecordOperation>(["prepare", "enrich", "match", "process", "ocr"]);
 
 export async function POST(
   request: Request,
@@ -36,7 +37,9 @@ export async function POST(
   }
 
   try {
-    const result = operation === "process"
+    const result = operation === "ocr"
+      ? await recoverRecordWithOcr(id)
+      : operation === "process"
       ? await processRecordAutomatically(id)
       : operation === "prepare"
         ? await prepareRecordSources(id)

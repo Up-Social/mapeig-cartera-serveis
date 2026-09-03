@@ -66,8 +66,8 @@ function IssueDetail({ issue }: { issue: IssueRecord }) {
 function Metric({ label, value }: { label: string; value: number }) { return <div className="surface p-4"><p className="text-xs font-medium text-muted-foreground">{label}</p><p className="mt-2 text-2xl font-semibold tabular-nums">{value.toLocaleString("ca-ES")}</p></div>; }
 function phaseLabel(phase: IssueRecord["phase"]) { return ({ review: "Revisió humana", matching: "Correspondència", enrichment: "Contrast de dades", evidence: "Preparació documental" })[phase]; }
 function formatDate(value: string | null) { return value ? new Intl.DateTimeFormat("ca-ES", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value)) : "No disponible"; }
-function retryLabel(issue: IssueRecord) { return issue.retryOperation === "prepare" ? "Reintentar preparació" : issue.retryOperation === "enrich" ? "Reintentar contrast" : "Reintentar correspondència"; }
-function retryHelp(issue: IssueRecord) { return issue.retryOperation === "prepare" ? "Torna a cercar i preparar les fonts del registre." : issue.retryOperation === "enrich" ? "Repeteix l'extracció de dades des dels fragments oficials." : "Repeteix la proposta de correspondència amb les dades ja contrastades."; }
+function retryLabel(issue: IssueRecord) { return issue.retryOperation === "ocr" ? "Extreure amb OCR i tornar a processar" : issue.retryOperation === "prepare" ? "Reintentar preparació" : issue.retryOperation === "enrich" ? "Reintentar contrast" : "Reintentar correspondència"; }
+function retryHelp(issue: IssueRecord) { return issue.retryOperation === "ocr" ? "Extreu el text del PDF amb OCR i continua automàticament amb la preparació, el contrast i la correspondència fins a Revisió." : issue.retryOperation === "prepare" ? "Torna a cercar i preparar les fonts del registre." : issue.retryOperation === "enrich" ? "Repeteix l'extracció de dades des dels fragments oficials." : "Repeteix la proposta de correspondència amb les dades ja contrastades."; }
 
 function Pagination({ result, filters }: { result: IssuePage; filters: IssueFilters }) {
   if (result.pageCount <= 1) return null;

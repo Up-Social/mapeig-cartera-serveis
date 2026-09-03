@@ -63,6 +63,18 @@ test("classifies evidence and enrichment failures before a generic matching erro
   assert.equal(classifyIssue({ ...record, enrichmentStatus: "error", enrichmentError: "fallada" })?.category, "enrichment_error");
 });
 
+test("offers the complete OCR recovery only for unsupported PDF evidence", () => {
+  const pdfIssue = classifyIssue({
+    ...record,
+    evidenceStatus: "unsupported",
+    evidenceError: "Tipus no compatible: document sense text extraïble; cal OCR",
+    sourceDocuments: [{ id: "doc-1", url: "https://example.org/scan.pdf", documentType: "annex", sourceFields: [], status: "unsupported", mimeType: "application/pdf", textPreview: null, textLength: null, extractionMethod: null, qualityScore: null, qualityFlags: [], chunkCount: 0 }],
+  });
+  assert.equal(pdfIssue?.retryOperation, "ocr");
+  const otherIssue = classifyIssue({ ...record, evidenceStatus: "unsupported", evidenceError: "Tipus no compatible: image/tiff" });
+  assert.equal(otherIssue?.retryOperation, "prepare");
+});
+
 test("filters issues by category, type, batch and text", () => {
   const issue = classifyIssue(record)!;
   assert.equal(issueMatchesFilters(issue, { category: "matching_error", type: "contractacio", batch: record.pipelineRunId!, query: "model" }), true);

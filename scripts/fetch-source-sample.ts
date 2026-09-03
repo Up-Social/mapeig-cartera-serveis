@@ -1,13 +1,14 @@
 import { createHash } from "node:crypto";
 import { lookup } from "node:dns/promises";
 import { execFile } from "node:child_process";
-import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import { isIP } from "node:net";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { promisify } from "node:util";
 import { createClient } from "@supabase/supabase-js";
 import WebSocket from "ws";
+import { createWorker } from "tesseract.js";
 import {
   buildSourcePayloadEvidence,
   isUnusableWebExtraction,
@@ -17,6 +18,7 @@ type Document = {
   id: string;
   url: string;
   document_type: string;
+  status?: string;
   source_records?:
     | { source_payload?: Record<string, unknown> }
     | Array<{ source_payload?: Record<string, unknown> }>;
@@ -28,6 +30,7 @@ const TIMEOUT_MS = 20_000;
 const DEFAULT_TYPES = ["agreement", "publication", "regulatory_basis", "contracting_profile", "annex"];
 const requestedTypes = option("--types")?.split(",").map((value) => value.trim()).filter(Boolean);
 const runId = option("--run-id");
+const ocrEnabled = process.argv.includes("--ocr");
 const typeOrder = requestedTypes?.length ? requestedTypes : DEFAULT_TYPES;
 
 const sampleSize = parsePositiveInt(option("--limit") ?? "20");
@@ -46,7 +49,7 @@ async function main() {
     await update(document.id, { status: "fetching", error_message: null });
     try {
       const fetched = await withTimeout(fetchWithLimits(document.url), TIMEOUT_MS + 5_000, "Temps total de descàrrega excedit");
-      let extraction = await extract(fetched.bytes, fetched.mimeType, fetched.finalUrl);
+      let extraction = await extract(fetched.bytes, fetched.mimeType, fetched.finalUrl, ocrEnabled);
       if (isUnusableWebExtraction(extraction.text)) {
         const payloadText = buildSourcePayloadEvidence(documentPayload(document));
         if (payloadText) {
@@ -78,11 +81,15 @@ async function selectStratifiedSample(limit: number) {
     if (jobsError) throw jobsError;
     const recordIds = (jobs ?? []).map((job) => job.source_record_id);
     if (!recordIds.length) return [];
-    const { data, error } = await supabase.from("source_documents").select("id,url,document_type,source_record_id,source_records(source_payload)").in("source_record_id", recordIds).in("status", ["discovered", "error"]).limit(1000);
+    const statuses = ocrEnabled ? ["discovered", "error", "unsupported"] : ["discovered", "error"];
+    const { data, error } = await supabase.from("source_documents").select("id,url,document_type,status,source_record_id,source_records(source_payload)").in("source_record_id", recordIds).in("status", statuses).limit(1000);
     if (error) throw error;
     const priority = new Map(typeOrder.map((type, index) => [type, index]));
     const selectedByRecord = new Map<string, Document[]>();
-    for (const item of (data ?? []).sort((a, b) => (priority.get(a.document_type) ?? 99) - (priority.get(b.document_type) ?? 99))) {
+    for (const item of (data ?? []).sort((a, b) => {
+      const ocrPriority = ocrEnabled ? Number(b.status === "unsupported") - Number(a.status === "unsupported") : 0;
+      return ocrPriority || (priority.get(a.document_type) ?? 99) - (priority.get(b.document_type) ?? 99);
+    })) {
       const current = selectedByRecord.get(item.source_record_id) ?? [];
       if (current.length < 2) { current.push(item as Document); selectedByRecord.set(item.source_record_id, current); }
     }
@@ -149,7 +156,7 @@ async function readLimitedBody(response: Response) {
   return Buffer.concat(chunks);
 }
 
-async function extract(bytes: Buffer, mimeType: string, finalUrl: string) {
+async function extract(bytes: Buffer, mimeType: string, finalUrl: string, allowOcr: boolean) {
   if (mimeType.includes("pdf") || finalUrl.toLowerCase().endsWith(".pdf") || bytes.subarray(0, 4).toString() === "%PDF") {
     const directory = await mkdtemp(path.join(tmpdir(), "mapeig-source-"));
     try {
@@ -157,7 +164,9 @@ async function extract(bytes: Buffer, mimeType: string, finalUrl: string) {
       const output = path.join(directory, "source.txt");
       await writeFile(input, bytes);
       await execFileAsync("pdftotext", ["-layout", input, output], { timeout: TIMEOUT_MS, maxBuffer: MAX_TEXT * 2 });
-      return { text: cleanText(await readFile(output, "utf8")), method: "pdftotext" };
+      const text = cleanText(await readFile(output, "utf8"));
+      if (text.length >= 50 || !allowOcr) return { text, method: "pdftotext" };
+      return await extractPdfWithOcr(input, directory);
     } finally { await rm(directory, { recursive: true, force: true }); }
   }
   if (mimeType.includes("html") || mimeType === "text/plain") {
@@ -165,6 +174,33 @@ async function extract(bytes: Buffer, mimeType: string, finalUrl: string) {
     return { text: cleanText(htmlToText(raw)), method: mimeType.includes("html") ? "html-basic" : "plain-text" };
   }
   throw new Error(`Tipus no compatible: ${mimeType || "desconegut"}`);
+}
+
+async function extractPdfWithOcr(input: string, directory: string) {
+  const prefix = path.join(directory, "page");
+  await execFileAsync("pdftoppm", ["-png", "-r", "200", "-f", "1", "-l", "25", input, prefix], {
+    timeout: 120_000,
+    maxBuffer: 2 * 1024 * 1024,
+  });
+  const pages = (await readdir(directory))
+    .filter((name) => name.startsWith("page-") && name.endsWith(".png"))
+    .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+  if (!pages.length) throw new Error("OCR fallit: el PDF no conté pàgines processables");
+  const worker = await createWorker(["cat", "spa"], undefined, {
+    cachePath: path.join(tmpdir(), "mapeig-tesseract-cache"),
+  });
+  try {
+    const texts: string[] = [];
+    for (const page of pages) {
+      const result = await worker.recognize(path.join(directory, page));
+      texts.push(result.data.text);
+    }
+    const text = cleanText(texts.join("\n\n"));
+    if (text.length < 50) throw new Error("OCR fallit: no s'ha reconegut prou text al document");
+    return { text, method: "tesseract-ocr" };
+  } finally {
+    await worker.terminate();
+  }
 }
 
 async function assertPublicUrl(url: URL) {

@@ -1,6 +1,6 @@
 import type { SourceRecord } from "./workbench-types";
 
-export type RecordOperation = "prepare" | "enrich" | "match" | "process";
+export type RecordOperation = "prepare" | "enrich" | "match" | "process" | "ocr";
 
 export function isRecordOperationTerminal(
   operation: RecordOperation,
@@ -14,7 +14,7 @@ export function isRecordOperationTerminal(
   if (operation === "enrich") {
     return ["completed", "error"].includes(record.enrichmentStatus);
   }
-  if (operation === "process") {
+  if (operation === "process" || operation === "ocr") {
     return (
       record.matchingCandidates.length > 0 ||
       ["no_source", "unsupported", "error"].includes(record.evidenceStatus) ||

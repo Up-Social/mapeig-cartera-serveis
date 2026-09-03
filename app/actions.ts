@@ -100,6 +100,67 @@ export async function processRecordAutomatically(sourceRecordId: string) {
   return { runId: String(run.id) };
 }
 
+export async function recoverRecordWithOcr(sourceRecordId: string) {
+  const id = requireUuid(sourceRecordId);
+  const supabase = createServerSupabase();
+  const { data: record, error: recordError } = await supabase
+    .from("source_records")
+    .select("id,processing_status,source_documents(id,url,mime_type,status,error_message),pipeline_jobs(matching_candidates(id))")
+    .eq("id", id)
+    .single();
+  if (recordError) throw recordError;
+  if (["preparant", "processant"].includes(record.processing_status))
+    throw new Error("Aquest registre ja s'està processant.");
+  const jobs = Array.isArray(record.pipeline_jobs) ? record.pipeline_jobs : [];
+  if (jobs.some((job) => Array.isArray(job.matching_candidates) && job.matching_candidates.length > 0))
+    throw new Error("Aquest registre ja té una proposta disponible per revisar.");
+  const documents = Array.isArray(record.source_documents) ? record.source_documents : [];
+  const ocrDocuments = documents.filter((document) => {
+    const diagnostic = `${document.mime_type ?? ""} ${document.url ?? ""} ${document.error_message ?? ""}`.toLocaleLowerCase("ca");
+    return document.status === "unsupported" && (diagnostic.includes("pdf") || diagnostic.includes("ocr"));
+  });
+  if (!ocrDocuments.length)
+    throw new Error("No hi ha cap PDF pendent d'extracció OCR en aquest registre.");
+
+  const { data: run, error: runError } = await supabase.from("pipeline_runs").insert({
+    status: "queued",
+    stage: "preparation",
+    selected_count: 1,
+    started_at: new Date().toISOString(),
+    parameters: { purpose: "ocr_recovery", auto_process: true, ocr_recovery: true, source_record_id: id, batch_size: 1 },
+  }).select("id").single();
+  if (runError) throw runError;
+  const { error: jobError } = await supabase.from("pipeline_jobs").insert({
+    run_id: run.id,
+    source_record_id: id,
+    status: "selected",
+    preparation_status: "pending",
+  });
+  if (jobError) throw jobError;
+  const { error: updateError } = await supabase.from("source_records").update({
+    evidence_status: "preparing",
+    evidence_error: null,
+    enrichment_status: "pending",
+    enrichment_error: null,
+    processing_status: "preparant",
+    updated_at: new Date().toISOString(),
+  }).eq("id", id);
+  if (updateError) throw updateError;
+  try {
+    await dispatchWorkerTask(
+      { type: "process_run", runId: String(run.id) },
+      "pipeline:process",
+      ["--run-id", String(run.id)],
+    );
+  } catch (error) {
+    const message = actionErrorMessage(error);
+    await supabase.from("pipeline_runs").update({ status: "processing_error", error_count: 1 }).eq("id", run.id);
+    await supabase.from("source_records").update({ evidence_status: "error", evidence_error: message, processing_status: "error", updated_at: new Date().toISOString() }).eq("id", id);
+    throw error;
+  }
+  return { runId: String(run.id), documents: ocrDocuments.length };
+}
+
 export async function prepareRecordSources(sourceRecordId: string) {
   const id = requireUuid(sourceRecordId);
   const supabase = createServerSupabase();

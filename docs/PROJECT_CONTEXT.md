@@ -62,6 +62,8 @@ Cada lot amb almenys una provisió vigent es pot exportar de manera independent 
 
 L'extractor limita mida, temps, redireccions i destinacions privades; detecta HTML/PDF, extreu text i registra errors per document. El contracte del matching separa candidats, evidències i avaluació humana. `npm run matching:ready` bloqueja l'execució si falta OpenAI, model, evidència, treballs o un catàleg autoritzat. La revisió pot aprovar, corregir, rebutjar o declarar evidència insuficient, i només les decisions positives generen `service_provisions`.
 
+Quan un PDF no conté text digital, **Incidències** ofereix una recuperació completa amb OCR local. El worker converteix fins a 25 pàgines a imatges amb Poppler (`pdftoppm`), reconeix català i castellà amb Tesseract.js i conserva `tesseract-ocr` com a mètode d'extracció. Si obté text útil, regenera els fragments i continua automàticament amb contrast i matching fins a deixar el cas a **Revisió**; mai l'aprova. Qualsevol error d'OCR o de les fases posteriors manté el cas a **Incidències** amb el diagnòstic corresponent.
+
 En el desplegament web, Vercel només crea tasques persistents a `worker_tasks`; no intenta mantenir processos Node.js després d'una petició. Un worker TypeScript extern reclama les tasques de manera atòmica i executa el procés complet contra Supabase remot. En desenvolupament local, el despatx és immediat per defecte i es pot forçar la cua amb `WORKER_EXECUTION_MODE=queue`.
 
 Totes les pàgines, APIs i accions queden darrere d'una contrasenya compartida configurada amb `APP_ACCESS_PASSWORD`. La sessió es conserva en una cookie `HttpOnly`; si falta la variable, l'aplicació falla de manera tancada i només mostra la pantalla d'accés.
