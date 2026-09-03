@@ -59,13 +59,14 @@ export function ProcessingWorkbench({
     page: number;
     query: string;
     type: string;
-    status: string;
   };
 }) {
   const [records, setRecords] = useState(result.records);
   const recordsRef = useRef(result.records);
   const [metrics, setMetrics] = useState(result.metrics);
   const [openRecordId, setOpenRecordId] = useState<string | null>(null);
+  const filterFormRef = useRef<HTMLFormElement>(null);
+  const filterSearchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [operations, setOperations] = useState<
     Partial<Record<string, RecordOperation>>
   >({});
@@ -132,16 +133,21 @@ export function ProcessingWorkbench({
                 Anar a Lots
               </Link>
             </div>
-            <form className="grid gap-3 border-b border-neutral-200 bg-neutral-50 p-4 md:grid-cols-[1fr_180px_170px_auto]">
+            <form ref={filterFormRef} className="grid gap-3 border-b border-neutral-200 bg-neutral-50 p-4 md:grid-cols-[1fr_220px]">
               <Input
                 name="q"
                 defaultValue={filters.query}
                 placeholder="Cercar títol, ID o entitat..."
+                onChange={() => {
+                  if (filterSearchTimer.current) clearTimeout(filterSearchTimer.current);
+                  filterSearchTimer.current = setTimeout(() => filterFormRef.current?.requestSubmit(), 350);
+                }}
               />
               <select
                 name="type"
                 defaultValue={filters.type}
                 className="form-control"
+                onChange={() => filterFormRef.current?.requestSubmit()}
               >
                 <option value="totes">Totes les tipologies</option>
                 {FINANCING_TYPES.map((type) => (
@@ -150,21 +156,6 @@ export function ProcessingWorkbench({
                   </option>
                 ))}
               </select>
-              <select
-                name="status"
-                defaultValue={filters.status}
-                className="form-control"
-              >
-                <option value="tots">Tots els estats</option>
-                {Object.entries(statusLabels).map(([value, label]) => (
-                  <option key={value} value={value}>
-                    {label}
-                  </option>
-                ))}
-              </select>
-              <Button variant="outline" type="submit">
-                Filtrar
-              </Button>
             </form>
             <div className="divide-y">
               {records.map((record) => {
@@ -250,7 +241,6 @@ function Pagination({
   filters: {
     query: string;
     type: string;
-    status: string;
   };
 }) {
   const href = (page: number) => {
@@ -258,7 +248,6 @@ function Pagination({
       page: String(page),
       q: filters.query,
       type: filters.type,
-      status: filters.status,
     });
     return `/?${params}`;
   };

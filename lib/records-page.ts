@@ -13,12 +13,11 @@ export function createServerSupabase() {
   return createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
 }
 
-export async function getSourcePage(input: { page: number; query: string; type: string; status: string }): Promise<SourcePage> {
+export async function getSourcePage(input: { page: number; query: string; type: string }): Promise<SourcePage> {
   const supabase = createServerSupabase();
   const from = (input.page - 1) * PAGE_SIZE;
   let request = supabase.from("source_records").select(RECORD_SELECT, { count: "exact" });
   if (input.type !== "totes") request = request.eq("financing_type", input.type);
-  if (input.status !== "tots") request = request.eq("processing_status", input.status);
   if (input.query) {
     const safe = input.query.replaceAll(/[,%()]/g, " ").trim();
     request = request.or(`title.ilike.%${safe}%,source_record_id.ilike.%${safe}%,provider_name.ilike.%${safe}%`);
