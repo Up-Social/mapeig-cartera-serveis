@@ -1,5 +1,7 @@
 # Auditoria d'integritat i coherència de dades
 
+> Document històric: fotografia verificada de l'estat de la base de dades el 2 de setembre de 2026. Els recomptes d'aquest informe no descriuen necessàriament l'estat actual després de noves importacions o processaments.
+
 ## Abast i metodologia
 
 Auditoria inicial no destructiva i verificació posterior a les correccions autoritzades, executades el **2 de setembre de 2026** sobre l'esquema `public` de Supabase remot. S'han recorregut totes les files mitjançant paginació determinista de 1.000 registres; no s'ha utilitzat cap mostra. La comprovació es pot repetir amb:

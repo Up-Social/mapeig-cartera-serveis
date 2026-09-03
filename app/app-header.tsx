@@ -12,6 +12,7 @@ import {
   Menu,
   LogOut,
   Route,
+  TriangleAlert,
   Waypoints,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -30,6 +31,7 @@ const links = [
   { href: "/", label: "Registres", icon: Database },
   { href: "/batches", label: "Lots", icon: Layers3 },
   { href: "/review", label: "Revisió", icon: CheckSquare },
+  { href: "/issues", label: "Incidències", icon: TriangleAlert },
   { href: "/approved", label: "Aprovats", icon: FileCheck2 },
   { href: "/catalog", label: "Catàleg", icon: BookOpen },
   { href: "/entities", label: "Entitats", icon: Building2 },

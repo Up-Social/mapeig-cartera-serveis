@@ -96,6 +96,9 @@ export function mapRecord(row: Record<string, unknown>): SourceRecord {
     matchingCandidates: mapLatestCandidates(row.pipeline_jobs),
     matchingError: mapLatestMatchingError(row.pipeline_jobs),
     reviewDecision: mapReviewDecision(row.review_decisions),
+    reviewReason: mapLatestReview(row.review_decisions)?.reason ?? null,
+    reviewedAt: mapLatestReview(row.review_decisions)?.createdAt ?? null,
+    updatedAt: row.updated_at == null ? null : String(row.updated_at),
     pipelineRunId: mapLatestRun(row.pipeline_jobs)?.id ?? null,
     batchNumber: mapLatestRun(row.pipeline_jobs)?.number ?? null,
     externalEnrichment: mapEnrichment(row.record_enrichments),
@@ -125,7 +128,7 @@ export function mapLatestCandidates(value: unknown): SourceRecord["matchingCandi
   }).sort((a, b) => a.rank - b.rank);
 }
 
-const RECORD_SELECT = "*,source_documents(id,url,document_type,source_fields,status,mime_type,text_preview,text_length,extraction_method,quality_score,quality_flags,chunk_count),record_enrichments(extracted_title,provider_name,provider_nif,mechanism,award_date,amount,contracting_body,target_population,summary,confidence,engine_version,record_enrichment_evidence(evidence_chunks(ordinal,content))),review_decisions(decision,created_at),pipeline_jobs(id,run_id,status,error_message,created_at,pipeline_runs(batch_number),matching_candidates(id,pipeline_job_id,rank,target_code,target_name,score,rationale,engine_version,matching_candidate_evidence(explanation,evidence_chunks(ordinal,content))))";
+export const RECORD_SELECT = "*,source_documents(id,url,document_type,source_fields,status,mime_type,text_preview,text_length,extraction_method,quality_score,quality_flags,chunk_count),record_enrichments(extracted_title,provider_name,provider_nif,mechanism,award_date,amount,contracting_body,target_population,summary,confidence,engine_version,record_enrichment_evidence(evidence_chunks(ordinal,content))),review_decisions(decision,reason,created_at),pipeline_jobs(id,run_id,status,error_message,created_at,pipeline_runs(batch_number),matching_candidates(id,pipeline_job_id,rank,target_code,target_name,score,rationale,engine_version,matching_candidate_evidence(explanation,evidence_chunks(ordinal,content))))";
 
 function mapLatestRun(value: unknown) {
   if (!Array.isArray(value) || !value.length) return null;
@@ -174,7 +177,15 @@ function mapEnrichment(value: unknown): SourceRecord["externalEnrichment"] {
 }
 
 function mapReviewDecision(value: unknown): SourceRecord["reviewDecision"] {
+  return mapLatestReview(value)?.decision ?? null;
+}
+
+function mapLatestReview(value: unknown) {
   if (!Array.isArray(value) || !value.length) return null;
   const latest = [...value].map((item) => item as Record<string, unknown>).sort((a, b) => String(b.created_at).localeCompare(String(a.created_at)))[0];
-  return latest.decision as SourceRecord["reviewDecision"];
+  return {
+    decision: latest.decision as SourceRecord["reviewDecision"],
+    reason: latest.reason == null ? null : String(latest.reason),
+    createdAt: latest.created_at == null ? null : String(latest.created_at),
+  };
 }

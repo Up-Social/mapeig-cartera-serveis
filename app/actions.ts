@@ -329,6 +329,11 @@ export async function reviewMatching(input: {
 }) {
   const supabase = createServerSupabase();
   const notes = input.notes?.trim().slice(0, 1000) || null;
+  if (input.outcome !== "select" && !notes) {
+    throw new Error(
+      "Cal indicar el motiu del rebuig o de la manca d'evidència.",
+    );
+  }
 
   const { data: record, error: recordError } = await supabase
     .from("source_records")
@@ -555,6 +560,7 @@ export async function reviewMatching(input: {
   await refreshRunCounters(job.run_id);
   revalidatePath("/");
   revalidatePath("/review");
+  revalidatePath("/issues");
   revalidatePath("/catalog");
   return { ok: true };
 }

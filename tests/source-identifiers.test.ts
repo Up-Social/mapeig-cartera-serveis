@@ -2,7 +2,12 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import { displaySourceIdentifier } from "../lib/source-identifiers";
-import { createAccessToken, safeEqual, safeReturnPath } from "../lib/access-auth";
+import {
+  ACCESS_COOKIE_MAX_AGE,
+  createAccessToken,
+  safeEqual,
+  safeReturnPath,
+} from "../lib/access-auth";
 
 test("hides the internal deduplication suffix", () => {
   assert.equal(displaySourceIdentifier("EXP-2026-42::a8f90c"), "EXP-2026-42");
@@ -29,4 +34,8 @@ test("only accepts internal return paths", () => {
   assert.equal(safeReturnPath("/review?state=pending"), "/review?state=pending");
   assert.equal(safeReturnPath("https://example.com"), "/");
   assert.equal(safeReturnPath("//example.com"), "/");
+});
+
+test("keeps an authenticated browser session for seven days", () => {
+  assert.equal(ACCESS_COOKIE_MAX_AGE, 60 * 60 * 24 * 7);
 });

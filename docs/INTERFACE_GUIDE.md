@@ -1,11 +1,18 @@
 # Guia de la interfície
 
+## Accés
+
+La web demana la contrasenya compartida configurada amb `APP_ACCESS_PASSWORD`. La sessió dura set dies en el mateix navegador. **Tancar sessió** elimina la cookie d'accés immediatament. Si falta la variable al servidor, l'aplicació només mostra l'avís de configuració i no permet entrar.
+
 ## Mapa de l'aplicació
 
-- **Registres**: consulta dels 28.124 registres importats, amb filtres per tipologia i estat. La font concreta es mostra dins de cada registre.
+- **Registres**: consulta de tots els registres importats, amb filtres per tipologia i estat. La font concreta es mostra dins de cada registre.
 - **Lots**: creació automàtica d'1 a 50 registres, progrés persistent i execució completa fins a revisió.
 - **Revisió**: validació humana consecutiva dels candidats generats.
-- **Catàleg**: consulta dels 142 serveis i de les provisions aprovades que hi estan vinculades.
+- **Incidències**: seguiment dels casos rebutjats, amb evidència insuficient o amb errors tècnics, amb el motiu i l'acció de resolució.
+- **Aprovats**: consulta i exportació de les provisions vigents després d'una decisió positiva.
+- **Catàleg**: consulta dels serveis importats i de les provisions aprovades que hi estan vinculades.
+- **Entitats**: consulta d'entitats normalitzades, serveis RESES, mencions i relacions amb el catàleg.
 - **Procés**: explicació completa de les tipologies, les fonts internes, l'extracció, el matching, la revisió i l'exportació.
 
 ## Crear i processar un lot automàtic
@@ -49,11 +56,17 @@ Els processos en segon pla actualitzen automàticament el panell. Preparar o con
 4. Pots:
    - aprovar un candidat;
    - buscar i escollir qualsevol servei del catàleg;
-   - rebutjar el matching;
-   - indicar que l'evidència és insuficient.
+   - rebutjar el matching, indicant-ne obligatòriament el motiu;
+   - indicar que l'evidència és insuficient i explicar què falta.
 5. Després de decidir, la interfície avança al registre següent.
 
 Una aprovació o correcció crea una fila a `service_provisions`. Un rebuig o una evidència insuficient no en crea cap. Si modifiques una decisió, el sistema demana confirmació, conserva l'historial i sincronitza la provisió vigent.
+
+## Gestionar incidències
+
+La pantalla **Incidències** agrupa els registres que no han acabat en una provisió aprovada. Distingix entre decisions humanes negatives, problemes de font documental i errors de preparació, contrast o correspondència. Els comptadors i filtres permeten localitzar-los per problema, tipologia, lot o text.
+
+Cada cas es pot desplegar per veure el motiu, la fase, la data, els candidats i els documents oficials. Els rebutjos i casos amb evidència insuficient tornen a **Revisió** per rectificar la decisió; els errors tècnics ofereixen un reintent de la fase afectada. L'historial de decisions es conserva.
 
 ### Què significa cada bloc del detall
 
@@ -66,16 +79,22 @@ El matching combina els fragments de la font oficial amb el catàleg per proposa
 
 ## Exportar el detall d'un lot
 
-Quan tots els casos d'un lot han estat revisats, al seu costat apareix el botó **Descarregar detall**. Cada lot genera un Excel independent:
+Quan un lot té almenys una provisió aprovada o corregida, al seu costat apareix el botó **Descarregar Excel**. Cada lot genera un llibre independent amb l'estat vigent en el moment de la descàrrega:
 
 - només conté el full `Detalle_Provisiones`;
-- conserva exactament les 12 columnes i el format de la pestanya del Master;
+- conté les 12 columnes operatives del Master i afegeix `Nombre servicio Cartera`;
 - només inclou les provisions aprovades o corregides d'aquell lot;
 - no barreja resultats d'altres lots;
 - les dates, imports i hipervincles mantenen el tipus correcte;
 - el Master original no es modifica.
 
-Si tots els casos han estat rebutjats o marcats com a evidència insuficient, el fitxer es pot generar amb la capçalera i cap fila de provisió. El nom incorpora l'identificador curt del lot i la data d'exportació.
+Si el lot encara no té cap provisió positiva, l'exportació no s'activa. El nom incorpora el número humà del lot i la data d'exportació.
+
+## Exportar provisions aprovades
+
+La pantalla **Aprovats** permet seleccionar les provisions visibles o totes les que compleixen els filtres i exportar entre 1 i 5.000 files. Abans de generar el llibre, el servidor torna a comprovar que totes continuïn vigents, que el registre estigui completat i que l'última decisió sigui una aprovació o correcció.
+
+També existeix una exportació completa sobre una còpia del Master quan el servidor disposa de `MASTER_EXCEL_PATH`. Cap de les tres modalitats modifica el fitxer original.
 
 ## Resolució de problemes
 

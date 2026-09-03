@@ -15,6 +15,9 @@ export type SourceRecord = {
   matchingCandidates: MatchingCandidate[];
   matchingError: string | null;
   reviewDecision: "approved" | "corrected" | "rejected" | "insufficient_evidence" | null;
+  reviewReason?: string | null;
+  reviewedAt?: string | null;
+  updatedAt?: string | null;
   pipelineRunId: string | null;
   batchNumber: string | null;
   externalEnrichment: ExternalEnrichment | null;

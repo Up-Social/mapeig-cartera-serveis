@@ -168,6 +168,12 @@ function ReviewDetail({
   const [message, setMessage] = useState("");
   const [pending, startTransition] = useTransition();
   function submit(outcome: "select" | "reject" | "insufficient") {
+    if (outcome !== "select" && !notes.trim()) {
+      setMessage(
+        "Explica breument el motiu del rebuig o quina evidència falta.",
+      );
+      return;
+    }
     if (
       record.reviewDecision &&
       !window.confirm(
@@ -323,7 +329,7 @@ function ReviewDetail({
             onChange={(event) => setNotes(event.target.value)}
             rows={3}
             className="mt-3"
-            placeholder="Notes opcionals"
+            placeholder="Motiu del rebuig o evidència que falta (obligatori en decisions negatives)"
           />
           <div className="mt-3 grid gap-2 sm:grid-cols-3">
             <Button

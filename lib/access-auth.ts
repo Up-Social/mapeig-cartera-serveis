@@ -1,5 +1,5 @@
 export const ACCESS_COOKIE_NAME = "mapeig_access";
-export const ACCESS_COOKIE_MAX_AGE = 60 * 60 * 12;
+export const ACCESS_COOKIE_MAX_AGE = 60 * 60 * 24 * 7;
 
 const SESSION_MESSAGE = "mapeig-cartera-serveis:access:v1";
 

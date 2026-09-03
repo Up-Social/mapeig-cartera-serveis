@@ -41,9 +41,15 @@ La preparació documental, l'enriquiment oficial i el matching són etapes indep
 
 `master_services` només conté el catàleg de serveis de `Tabla (resumen)`. Els imports i les files de provisió no es llegeixen de les fórmules del Master.
 
-Quan un matching hagi estat revisat, el resultat normalitzat es desarà a `service_provisions`, amb el contracte de camps de `Detalle_Provisiones`: identificador i font, enllaços, entitat i NIF, mecanisme, data, import, òrgan contractant, població objectiu i codi de Cartera validat. En aprovar, els camps contrastats de `record_enrichments` tenen prioritat sobre els camps originals de l'Excel.
+Quan un matching hagi estat revisat, el resultat normalitzat es desa a `service_provisions`, amb el contracte de camps de `Detalle_Provisiones`: identificador i font, enllaços, entitat i NIF, mecanisme, data, import, òrgan contractant, població objectiu i codi de Cartera validat. L'exportació hi afegeix el nom del servei. En aprovar, els camps contrastats de `record_enrichments` tenen prioritat sobre els camps originals de l'Excel.
 
-`service_provisions` serà la font de consulta del catàleg i, més endavant, de l'exportació que omplirà `Detalle_Provisiones` i recalcularà `Tabla (resumen)` en una còpia del fitxer Excel.
+`service_provisions` és la font de consulta del catàleg i de les exportacions actuals:
+
+- cada lot amb almenys una provisió vigent pot descarregar un llibre independent amb `Detalle_Provisiones`;
+- la pantalla **Aprovats** pot exportar entre 1 i 5.000 provisions seleccionades;
+- `/api/exports/master`, quan existeix `MASTER_EXCEL_PATH`, genera una còpia del Master amb totes les provisions vigents i força el recàlcul de les fórmules en obrir el llibre.
+
+Cap exportació modifica el Master original.
 
 ## Revisió humana
 
@@ -53,5 +59,7 @@ La pantalla de detall del registre mostra els candidats, la puntuació, la justi
 - seleccionar una alternativa, que queda registrada com a correcció;
 - rebutjar el matching;
 - marcar l'evidència com a insuficient.
+
+El rebuig i l'evidència insuficient exigeixen un motiu. Aquests casos, juntament amb els errors de preparació, contrast o matching, apareixen a **Incidències** amb el detall disponible i una acció per revisar la decisió o reintentar la fase.
 
 Només l'aprovació o correcció crea una fila a `service_provisions`. La decisió queda auditada a `review_decisions` i `matching_evaluations`. Una rectificació demana confirmació, conserva l'historial i actualitza o retira la provisió vigent.
