@@ -115,7 +115,7 @@ function commandFor(task: Task): string[] {
 
 async function markDomainFailure(task: Task, message: string) {
   if (task.task_type === "enrich_record" && task.source_record_id) {
-    await db.from("source_records").update({ enrichment_status: "error", enrichment_error: message }).eq("id", task.source_record_id);
+    await db.from("source_records").update({ enrichment_status: "error", enrichment_error: message, processing_status: "error", updated_at: new Date().toISOString() }).eq("id", task.source_record_id);
   } else if (task.task_type === "prepare_run" && task.run_id) {
     await db.from("pipeline_runs").update({ status: "preparation_error", error_count: 1 }).eq("id", task.run_id);
     const { data: jobs } = await db.from("pipeline_jobs").select("source_record_id").eq("run_id", task.run_id);
@@ -130,6 +130,9 @@ async function markDomainFailure(task: Task, message: string) {
     }
   } else if (task.task_type === "process_run" && task.run_id) {
     await db.from("pipeline_runs").update({ status: "processing_error", error_count: 1 }).eq("id", task.run_id);
+    const { data: jobs } = await db.from("pipeline_jobs").select("source_record_id,status").eq("run_id", task.run_id);
+    const recordIds = (jobs ?? []).filter((job) => !["needs_review", "approved", "corrected", "rejected", "insufficient_evidence"].includes(job.status)).map((job) => job.source_record_id);
+    if (recordIds.length) await db.from("source_records").update({ processing_status: "error", updated_at: new Date().toISOString() }).in("id", recordIds);
   } else if (task.task_type === "match_run" && task.run_id) {
     await db.from("pipeline_runs").update({ status: "matching_error", error_count: 1 }).eq("id", task.run_id);
     const { data: jobs } = await db.from("pipeline_jobs").select("source_record_id").eq("run_id", task.run_id);

@@ -68,6 +68,8 @@ Una aprovació o correcció crea una fila a `service_provisions`. Un rebuig o un
 
 La pantalla **Incidències** agrupa els registres que no han acabat en una provisió aprovada. Distingix entre decisions humanes negatives, problemes de font documental i errors de preparació, contrast o correspondència. Els comptadors i filtres permeten localitzar-los per problema, tipologia, lot o text.
 
+La incorporació és automàtica tant si el registre s'ha processat individualment des de **Registres** com si forma part d'un **Lot**. La detecció comprova l'últim error tècnic i l'última decisió humana, a més de l'estat general del registre, per evitar que una desincronització entre fases amagui el cas.
+
 Cada cas es pot desplegar per veure el motiu, la fase, la data, els candidats i els documents oficials. Els rebutjos i casos amb evidència insuficient tornen a **Revisió** per rectificar la decisió; els errors tècnics ofereixen un reintent de la fase afectada. L'historial de decisions es conserva.
 
 ### Què significa cada bloc del detall

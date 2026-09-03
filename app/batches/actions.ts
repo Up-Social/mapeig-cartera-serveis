@@ -31,6 +31,19 @@ export async function createAutomatedBatch(size: number) {
       .from("pipeline_runs")
       .update({ status: "processing_error", error_count: 1 })
       .eq("id", id);
+    const { data: jobs } = await supabase
+      .from("pipeline_jobs")
+      .select("source_record_id,status")
+      .eq("run_id", id);
+    const unfinishedIds = (jobs ?? [])
+      .filter((job) => !["needs_review", "approved", "corrected", "rejected", "insufficient_evidence"].includes(job.status))
+      .map((job) => job.source_record_id);
+    if (unfinishedIds.length) {
+      await supabase
+        .from("source_records")
+        .update({ processing_status: "error", updated_at: new Date().toISOString() })
+        .in("id", unfinishedIds);
+    }
     throw error;
   }
   return { id };

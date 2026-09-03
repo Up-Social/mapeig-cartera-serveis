@@ -62,4 +62,6 @@ La pantalla de detall del registre mostra els candidats, la puntuació, la justi
 
 El rebuig i l'evidència insuficient exigeixen un motiu. Aquests casos, juntament amb els errors de preparació, contrast o matching, apareixen a **Incidències** amb el detall disponible i una acció per revisar la decisió o reintentar la fase.
 
+Els errors de registres individuals i de lots propaguen `processing_status=error` a la fila d'origen. La consulta d'incidències també contrasta els `pipeline_jobs` fallits i les decisions negatives per recuperar el cas encara que una interrupció hagués deixat el camp general desactualitzat.
+
 Només l'aprovació o correcció crea una fila a `service_provisions`. La decisió queda auditada a `review_decisions` i `matching_evaluations`. Una rectificació demana confirmació, conserva l'historial i actualitza o retira la provisió vigent.

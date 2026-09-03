@@ -72,3 +72,21 @@ test("filters issues by category, type, batch and text", () => {
 test("approved records are not incidents", () => {
   assert.equal(classifyIssue({ ...record, status: "completat", matchingError: null, reviewDecision: "approved" }), null);
 });
+
+test("classifies technical errors from individual records and batches alike", () => {
+  const individual = classifyIssue({ ...record, pipelineRunId: null, batchNumber: null });
+  const batch = classifyIssue({ ...record, pipelineRunId: "323e4567-e89b-42d3-a456-426614174000", batchNumber: "00000025" });
+  assert.equal(individual?.category, "matching_error");
+  assert.equal(individual?.record.batchNumber, null);
+  assert.equal(batch?.category, "matching_error");
+  assert.equal(batch?.record.batchNumber, "00000025");
+});
+
+test("classifies both negative review outcomes as incidents with their reason", () => {
+  const rejected = classifyIssue({ ...record, status: "rebutjat", matchingError: null, reviewDecision: "rejected", reviewReason: "No encaixa amb cap servei." });
+  const insufficient = classifyIssue({ ...record, status: "sense_evidencia", matchingError: null, reviewDecision: "insufficient_evidence", reviewReason: "Falta la resolució oficial." });
+  assert.equal(rejected?.category, "rejected");
+  assert.equal(rejected?.message, "No encaixa amb cap servei.");
+  assert.equal(insufficient?.category, "insufficient_evidence");
+  assert.equal(insufficient?.message, "Falta la resolució oficial.");
+});

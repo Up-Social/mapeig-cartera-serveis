@@ -218,6 +218,7 @@ export async function enrichRecordFromSources(sourceRecordId: string) {
       .update({
         enrichment_status: "error",
         enrichment_error: message,
+        processing_status: "error",
         updated_at: new Date().toISOString(),
       })
       .eq("id", id);

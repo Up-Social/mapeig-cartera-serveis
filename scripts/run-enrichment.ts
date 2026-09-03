@@ -33,11 +33,11 @@ async function main() {
     await supabase.from("record_enrichment_evidence").delete().eq("enrichment_id", stored.id);
     const evidence = [...new Set(enrichment.evidence_ordinals)].map((ordinal) => chunks[ordinal - 1]).filter(Boolean);
     if (evidence.length) { const { error } = await supabase.from("record_enrichment_evidence").insert(evidence.map((chunk) => ({ enrichment_id: stored.id, evidence_chunk_id: chunk.id }))); if (error) throw error; }
-    await supabase.from("source_records").update({ enrichment_status: "completed", enrichment_error: null, updated_at: new Date().toISOString() }).eq("id", record.id);
+    await supabase.from("source_records").update({ enrichment_status: "completed", enrichment_error: null, processing_status: "preparat", updated_at: new Date().toISOString() }).eq("id", record.id);
     console.log(`${record.source_record_id}: contrast oficial completat`);
   } catch (error) {
     const message = formatError(error);
-    await supabase.from("source_records").update({ enrichment_status: "error", enrichment_error: message.slice(0, 1000), updated_at: new Date().toISOString() }).eq("id", recordId);
+    await supabase.from("source_records").update({ enrichment_status: "error", enrichment_error: message.slice(0, 1000), processing_status: "error", updated_at: new Date().toISOString() }).eq("id", recordId);
     throw new Error(message);
   }
 }

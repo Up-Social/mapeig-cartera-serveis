@@ -39,6 +39,10 @@ async function main() {
     if (refreshError) throw refreshError;
   } catch (error) {
     await supabase.from("pipeline_runs").update({ status: "preparation_error", error_count: 1 }).eq("id", runId);
+    const message = error instanceof Error ? error.message.slice(0, 1000) : String(error).slice(0, 1000);
+    const { data: jobs } = await supabase.from("pipeline_jobs").select("source_record_id").eq("run_id", runId);
+    const recordIds = (jobs ?? []).map((job) => job.source_record_id);
+    if (recordIds.length) await supabase.from("source_records").update({ evidence_status: "error", evidence_error: message, processing_status: "error", updated_at: new Date().toISOString() }).in("id", recordIds);
     throw error;
   }
 }

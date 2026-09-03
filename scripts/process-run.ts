@@ -37,6 +37,7 @@ async function main() {
       }
       if (!completed) {
         await db.from("pipeline_jobs").update({ status: "error", error_message: lastError, completed_at: new Date().toISOString() }).eq("id", job.id);
+        await db.from("source_records").update({ processing_status: "error", updated_at: new Date().toISOString() }).eq("id", job.source_record_id);
       }
     }
     await refresh();
@@ -46,7 +47,9 @@ async function main() {
   for (const job of afterEnrichment) {
     if (job.status === "error") continue;
     const source = sourceOf(job);
-    await db.from("pipeline_jobs").update(source.enrichment_status === "completed" ? { status: "ready", error_message: null } : { status: "error", error_message: source.enrichment_error ?? "Contrast incomplet", completed_at: new Date().toISOString() }).eq("id", job.id);
+    const completed = source.enrichment_status === "completed";
+    await db.from("pipeline_jobs").update(completed ? { status: "ready", error_message: null } : { status: "error", error_message: source.enrichment_error ?? "Contrast incomplet", completed_at: new Date().toISOString() }).eq("id", job.id);
+    if (!completed) await db.from("source_records").update({ processing_status: "error", updated_at: new Date().toISOString() }).eq("id", job.source_record_id);
   }
 
   await setRun("matching", "matching");

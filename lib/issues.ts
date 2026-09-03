@@ -13,7 +13,17 @@ const DATABASE_PAGE_SIZE = 1000;
 
 export async function getIssuePage(filters: IssueFilters): Promise<IssuePage> {
   const db = createServerSupabase();
-  const rows: Record<string, unknown>[] = [];
+  const [failedJobs, negativeReviews] = await Promise.all([
+    db.from("pipeline_jobs").select("source_record_id").eq("status", "error"),
+    db.from("review_decisions").select("source_record_id").in("decision", ["rejected", "insufficient_evidence"]),
+  ]);
+  if (failedJobs.error) throw failedJobs.error;
+  if (negativeReviews.error) throw negativeReviews.error;
+  const relatedIds = [...new Set([
+    ...(failedJobs.data ?? []).map((row) => row.source_record_id),
+    ...(negativeReviews.data ?? []).map((row) => row.source_record_id),
+  ])];
+  const rowsById = new Map<string, Record<string, unknown>>();
   let from = 0;
 
   while (true) {
@@ -24,12 +34,22 @@ export async function getIssuePage(filters: IssueFilters): Promise<IssuePage> {
       .order("updated_at", { ascending: false })
       .range(from, from + DATABASE_PAGE_SIZE - 1);
     if (error) throw error;
-    rows.push(...((data ?? []) as Record<string, unknown>[]));
+    for (const row of (data ?? []) as Record<string, unknown>[]) rowsById.set(String(row.id), row);
     if ((data?.length ?? 0) < DATABASE_PAGE_SIZE) break;
     from += DATABASE_PAGE_SIZE;
   }
 
-  const allIssues = rows
+  const missingIds = relatedIds.filter((id) => !rowsById.has(id));
+  for (let index = 0; index < missingIds.length; index += 200) {
+    const { data, error } = await db
+      .from("source_records")
+      .select(RECORD_SELECT)
+      .in("id", missingIds.slice(index, index + 200));
+    if (error) throw error;
+    for (const row of (data ?? []) as Record<string, unknown>[]) rowsById.set(String(row.id), row);
+  }
+
+  const allIssues = [...rowsById.values()]
     .map(mapRecord)
     .map(classifyIssue)
     .filter((issue): issue is NonNullable<typeof issue> => issue !== null);
