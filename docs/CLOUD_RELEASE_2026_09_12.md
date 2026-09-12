@@ -1,5 +1,7 @@
 # Verificación de ejecución remota — 12 de septiembre de 2026
 
+Informe inicial. Las correcciones técnicas posteriores se documentan en [el cierre de validación](CLOUD_FINAL_VALIDATION_2026_09_12.md).
+
 ## Resultado observado
 
 Producción utiliza Vercel Workflows y Supabase. El LaunchAgent `com.upsocial.mapeig-worker` que consumía producción quedó detenido. No se modificó `.env.local` ni se eliminaron comandos locales. Advertencia operativa: esa configuración local existente apunta a producción y usa cola; no equivale a una base local independiente.
