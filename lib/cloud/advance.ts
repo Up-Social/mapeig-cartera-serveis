@@ -29,8 +29,12 @@ export async function advance(task:string,workflow:string):Promise<{done:boolean
    const r=await db.from('source_records').select('id,source_payload').eq('id',job.source_record_id).single();if(r.error)throw Error();
    await commit(c,job.id,'discover',discoverRecordDocuments(r.data));await checkpoint(c,`${job.id}:discovered`,true);
   }else if(job.preparation_status!=='ready'){
-   const docs=await db.from('source_documents').select('id,url,status,chunk_count').eq('source_record_id',job.source_record_id).order('id');if(docs.error)throw Error();
-   if(!docs.data.length)throw new (await import('./errors')).CloudFailure('document');
+   const docs:{data:Array<{id:string;url:string;status:string;chunk_count:number}>}={data:[]};
+   for(let offset=0;;offset+=200){
+    const page=await db.from('source_documents').select('id,url,status,chunk_count').eq('source_record_id',job.source_record_id).order('id').range(offset,offset+199);
+    if(page.error)throw Error();docs.data.push(...page.data);if(page.data.length<200)break;
+   }
+   if(!docs.data.length)throw new CloudFailure('document');
    let processed=false;
    for(const doc of docs.data){
     if(doc.status==='fetched'&&doc.chunk_count>0)continue;

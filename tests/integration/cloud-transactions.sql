@@ -44,3 +44,13 @@ do $$ declare sid uuid;rid uuid;tid uuid;begin
  if tid<>cloud_start_phase(rid,'prepare_run') then raise exception 'duplicate launch';end if;
 end $$;
 rollback;
+begin;
+insert into source_records(source_dataset,source_record_id,mechanism,title,suggested_code,suggested_name,suggested_confidence,suggested_evidence,amount) values('contractacions','CLOUD-USAGE-TEST','contracte','Fictici','','',0,'',0);
+do $$ declare sid uuid;rid uuid;tid uuid;jid uuid;o uuid:=gen_random_uuid();g bigint;begin
+ select id into sid from source_records where source_record_id='CLOUD-USAGE-TEST';rid:=cloud_create_run(array[sid],false);
+ select id into tid from worker_tasks where run_id=rid;select id into jid from pipeline_jobs where run_id=rid;g:=cloud_claim(tid,o,'cloud-v1');
+ perform cloud_provider_usage(tid,o,g,'usage:'||jid||':analysis','{"input_tokens":100,"output_tokens":10}');
+ perform cloud_provider_usage(tid,o,g,'usage:'||jid||':analysis','{"input_tokens":100,"output_tokens":10}');
+ if (select actual_input_tokens from pipeline_runs where id=rid)<>100 then raise exception 'duplicated usage';end if;
+end $$;
+rollback;
