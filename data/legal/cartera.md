@@ -1,0 +1,9264 @@
+# DECRET 142/2010, d'11 d'octubre, pel qual s'aprova la Cartera de Serveis Socials 2010-2011.
+
+Text consolidat de consulta del Portal Jurídic, sense caràcter oficial. Les publicacions del DOGC són la font normativa oficial. Validació estructural automatitzada; no certifica compliment legal d’un expedient.
+
+Font: https://portaljuridic.gencat.cat/eli/es-ct/d/2010/10/11/142
+Versió: 2026-07-14 (pjc-557820-2164168)
+Consulta: 2026-09-12T19:37:22.627Z
+SHA256 resposta: c713d9ff3d7d3c49097b01bb7a37c0f61030a0b327e72dbca8235970331a1400
+
+## Preàmbul
+
+El Decret 151/2008, de 29 de juliol, va aprovar la primera Cartera de Serveis Socials 2008-2009, que és l’instrument i expressió de la nova configuració del sistema de serveis socials establert per la Llei 12/2007, d’11 d’octubre, de serveis socials, i inclou les prestacions de serveis, econòmiques i tecnològiques que ofereix el sistema públic de serveis socials pel període biennal indicat, que són responsabilitat de la Generalitat de Catalunya i dels ens locals.
+
+Aquesta primera cartera, d’acord amb l’apartat primer de la disposició transitòria cinquena de la Llei de serveis socials, va prendre com a base per a la seva elaboració el catàleg classificat dels serveis i prestacions socials del Sistema català de serveis socials, i va tenir en compte el nivell d’objectius previst a la disposició addicional segona de l’esmentada llei sectorial.
+
+L’article 25 de d’aquesta llei estableix, amb caràcter general, que la cartera és aprovada pel Govern i té una vigència de quatre anys. Tanmateix l’apartat segon de la disposició transitòria cinquena de la mateixa Llei, disposa que el Govern la pot actualitzar amb una freqüència biennal, durant els primers sis anys després de l’aprovació de la Llei, perquè es pugui adequar amb més rapidesa i flexibilitat a les necessitats d’atenció social de la població, d’acord amb el que estableixin les lleis de pressupostos corresponents.
+
+La cartera té com a destinataris les persones que es troben en situacions amb necessitat d’atenció especial, com són, entre d’altres, les persones amb dependència o discapacitat, malaltia mental, amb drogodependència i amb altres addiccions, la violència i delinqüència juvenil, o les sotmeses a mesures d’execució penal, vulnerabilitat, risc o dificultat social per a la gent gran, la infància i l’adolescència, exclusió o urgència social, les víctimes de violència masclista, discriminació o pobresa.
+
+Entre les tres tipologies de prestacions indicades més amunt distingeix entre prestacions garantides, que es configuren com a dret subjectiu i, per tant, l’Administració ha de proveir els crèdits suficients per poder-les atendre, i prestacions no garantides, subjectes a disponibilitat pressupostaria limitada i sotmeses en el seu atorgament a principis de prelació i concurrència. Així mateix la llei a l’article 66 assenyala que en les prestacions de serveis garantides no gratuïtes, l’Administració ha d’establir en la cartera el mòdul social i la participació econòmica dels usuaris en el seu cost, i que per establir el mòdul social i la participació de la persona usuària ha de tenir en compte el cost de referència.
+
+D’altra banda, la cartera, en aplicació del que disposa la llei conté els indicadors següents: identificació de la prestació, garantia, descripció/definició, objecte, funcions, tipologia, població destinatària, edat, forma de la prestació, perfil dels professionals, ràtios, estàndars de qualitat i criteris d’accés. Pel que fa a les prestacions de servei no gratuïtes, determinades a partir de l’estudi de costos i la forma de finançament del sistema de serveis socials, s’inclouen, a més, els indicadors següents: cost de referència, mòdul social i copagament màxim per part de les persones usuàries del servei. En les prestacions econòmiques s’especifica també el tractament fiscal.
+
+Aquesta segona Cartera de Serveis Socials conté els elements essencials de la primera cartera que el transcurs del temps de la seva aplicació han demostrat la seva viabilitat i efectivitat, als quals s’han inclòs altres indicadors que introdueixen valor afegit en la concreció de les diferents prestacions, la qual cosa confereix a la norma una major transparència en els criteris d’accés, millora la garantia de determinats drets reconeguts i la dota de major seguretat jurídica. En aquest sentit es fa necessari destacar-ne les novetats, que són:
+
+a) S’han ampliat en sis, les prestacions de servei garantides a persones que es troben en situació de dependència, en el marc del que estableix la disposició addicional cinquena de la Llei 12/2007, d’11 d’octubre, de serveis socials. Aquestes prestacions fan referència a serveis de centre de dia de teràpia ocupacional i a serveis de centre de dia ocupacionals d’inserció.
+
+b) S’han revisat, concretat i millorat les definicions de les prestacions i s’han afegit dos nous indicadors que són l’objecte i les funcions, excepte en les prestacions econòmiques, en les quals únicament s’ha afegit l’objecte.
+
+c) S’ha concretat, en la mesura del possible, els criteris d’accés a cada prestació, en referència a la normativa reguladora.
+
+d) En les prestacions econòmiques s’ha afegit la classificació establerta a l’article 7 de la Llei 13/2006, de 27 de juliol, diferenciant les prestacions permanents –amb voluntat de continuïtat-, les temporals -amb una durada anual- i les puntuals –que s’exhaureixen amb una única aportació dinerària-.
+
+També s’han incorporat a la cartera les prestacions socials de caràcter econòmic de dret de concurrència relatives a la prestació per a l’accés als serveis d’habitatges per a persones amb problemàtica social derivada de malaltia mental, la prestació per a l’acolliment residencial per a gent gran, la prestació per a centre de dia per a gent gran, la prestació per a habitatges tutelats per a gent gran i la prestació per a estades temporals per a gent gran amb discapacitat, creades per Acord del Govern de 6 de maig de 2008.
+
+e) La prestació del servei de transport adaptat destinat a persones amb discapacitat s’ha ampliat a les persones en situació de dependència.
+
+f) La prestació del servei de prevenció de drogodependències i la prestació del servei del centre de dia per a persones amb drogodependències s’estén a persones amb altres addiccions.
+
+g) Es modifica el càlcul de l’import mensual dels indicadors -cost de referència, mòdul social i copagament- de les prestacions de servei no gratuïtes, considerant 365 dies anuals.
+
+Altres novetats són: la incorporació del servei de tutela per a persones infants i adolescents en situació de desemparament i del servei de promoció de l’autonomia personal per a persones amb dependència ateses en centres de llarga estada psiquiàtrica.
+
+També, com a novetats més significatives de les disposicions de la part final de la norma, s’han introduït una disposició addicional relativa al tractament fiscal de les prestacions i una altra referent al procediment per incorporar noves prestacions a la Cartera de Serveis Socials.
+
+Finalment, pel que fa a l’entrada en vigor no s’estableix un període ordinari, atesa la necessitat que la norma sigui d’aplicació immediata, tot considerant que el seu període de vigència s’estén als exercicis 2010 i 2011.
+
+La present disposició ha estat informada pel Consell General de Serveis Socials, d’acord amb la disposició transitòria sisena de la Llei 12/2007, d’11 d’octubre.
+
+Per tot el que s’ha exposat;
+
+Vist que ha estat informat favorablement per la Comissió de Govern Local, i vist així mateix el Dictamen 26/2010 del Consell del Treball, Econòmic i Social de Catalunya;
+
+D’acord amb el Dictamen 290/10 de la Comissió Jurídica Assessora, aprovat en la reunió de 9 de setembre de 2010;
+
+A proposta de la consellera d’Acció Social i Ciutadania, i d’acord amb el Govern,
+
+DECRETO:
+
+
+## Article 1
+
+1.1 L'objecte d'aquest Decret és aprovar la Cartera de Serveis Socials per al període 2010-2011, amb la finalitat de determinar el conjunt de prestacions de serveis, econòmiques i tecnològiques de la Xarxa de Serveis Socials d'Atenció Pública, que es detallen a l'annex 1 del present Decret, així com indicar els objectius a assolir al final del període 2010-2011, a l'annex 2.
+
+1.2 La Cartera defineix per a cada prestació; la garantia, la descripció, l'objecte, les funcions, la tipologia, la població destinatària, l'establiment o equip professional que l'ha de gestionar, els perfils i les ràtios de professionals de l'equip, els estàndars de qualitat i els criteris d'accés, així com, per les prestacions de servei no gratuïtes, el cost de referència, el mòdul social i el copagament.
+
+
+## Article 2
+
+2.1 Les prestacions garantides de la Cartera de Serveis Socials són exigibles com a dret subjectiu. Els crèdits que la Generalitat consigni en els seus pressupostos per finançar les prestacions garantides són ampliables, d'acord amb el que estableixi la llei de pressupostos corresponent.
+
+Els pressupostos per a cada exercici concretaran les dotacions per finançar les prestacions de caràcter garantit de la Cartera de Serveis Socials. Eventualment, en cas que sobrevinguin insuficiències per finançar algunes prestacions garantides i atès que es tracta de crèdits ampliables, es tramitarà com una transferència de crèdit amb càrrec a baixes d'altres crèdits del pressupost no financer del departament o entitat afectada per raó de la matèria, preferentment en els crèdits vinculats a la Cartera de serveis.
+
+2.2 Les prestacions no garantides de la Cartera de Serveis Socials únicament són exigibles en cas que existeixi crèdit pressupostari disponible i aplicant-hi els principis objectius de prelació i concurrència.
+
+
+## Article 3
+
+3.1 Les prestacions socials són finançades per les Administracions Públiques, en els termes previstos a la Llei 12/2007, d'11 d'octubre, de serveis socials, sens perjudici que a les prestacions de serveis no gratuïtes la persona beneficiària ha de participar del finançament, mitjançant copagament, en els termes previstos a l'article següent, per tal d'assegurar la sostenibilitat del sistema.
+
+3.2 Són prestacions de serveis no gratuïtes les que tenen establert, en la seva descripció, a l'annex 1, el cost de referència, el mòdul social i el copagament.
+
+3.3 Les entitats locals també poden sotmetre a copagament la prestació de teleassistència i la prestació d'ajut a domicili.
+
+
+## Article 4
+
+4.1 En les prestacions de serveis no gratuïtes, la persona a la que se li ha concedit la prestació social, per tal de ser-ne beneficiària, ha d'acceptar la participació, mitjançant copagament, en el finançament de la prestació.
+
+4.2 L'import del copagament que consta en les prestacions de l'annex és l'aportació màxima amb que pot contribuir la persona beneficiària al cost del servei.
+
+4.3 L'Administració, per determinar la participació de les persones usuàries, ha de tenir en compte la naturalesa del servei, el cost de referència, la capacitat econòmica, especialment el seu nivell de renda, i el sector de població a qui s'adreça la prestació o el servei.
+
+4.4 Mitjançant Ordre el departament competent en matèria de serveis socials determinarà els criteris per a la valoració de la capacitat econòmica de la persona usuària i el sistema de bonificacions per a la participació de les persones usuàries en les prestacions socials, amb la finalitat d'atendre situacions d'insuficiència de recursos de la persona usuària.
+
+4.5 Les bonificacions s'establiran en funció del nivell de renda personal i de les obligacions econòmiques respecte a les persones que la persona usuària tingui a càrrec, garantint sempre un mínim d'ingressos que serà variable segons el servei.
+
+4.6 No s'ha d'excloure ningú dels serveis o prestacions garantits per manca de recursos econòmics. Tampoc no s'ha de condicionar la qualitat del servei o la prioritat o urgència de l'atenció a la participació econòmica.
+
+
+## Article 5
+
+5.1 Les entitats proveïdores són acreditades, d'acord amb el decret d'acreditació d'entitats previst a l'article 70 de la Llei 12/2007, d'11 d'octubre.
+
+5.2 L'import de les prestacions econòmiques atorgades a les persones beneficiàries poden ser abonades directament a l'entitat proveïdora del servei vinculat, informant alhora a la persona beneficiària o a qui la representi legalment.
+
+
+## Disposicions addicionals
+
+
+
+## Disposició addicional Primera
+
+El conseller o consellera del departament competent en matèria de serveis socials podrà actualitzar mitjançant Ordre el cost de referència, el mòdul social i el copagament, relatiu a les prestacions de la Cartera de Serveis Socials.
+
+
+## Disposició addicional Segona
+
+El servei de centre de nit de la Llei 39/2006, de 14 de desembre, de promoció de l'autonomia personal i atenció a les persones en situació de dependència, es prestarà de forma integrada en els espais assistencials generals d'acolliment residencial. Aquest servei està adreçat a persones en situació de dependència que no tenen ateses les seves necessitats en horari nocturn, i que no requereixen del servei de residència.
+
+
+## Disposició addicional Tercera
+
+L'Administració responsable, en el cas que la persona beneficiària esculli una prestació de servei garantida, li haurà d'oferir un recurs de la Xarxa de Serveis Socials d'Atenció Pública en el lloc més proper possible al seu domicili, tenint en compte els serveis disponibles i, si escau, la seva accessibilitat amb transport públic.
+
+En el cas que la persona beneficiària no accepti el recurs ofert, podrà optar per una altra prestació social, d'entre el ventall que li ofereixi l'Administració, prèvia renúncia del recurs inicialment ofert.
+
+
+## Disposició addicional Quarta
+
+El nivell d'objectius de cobertura de les prestacions garantides de la Cartera de Serveis Socials 2010-2011 serà el que estableixi el Pla Estratègic de Serveis Socials 2010-2013 que aprovi el Govern de la Generalitat.
+
+
+## Disposició addicional Cinquena
+
+Les prestacions econòmiques tenen, a efectes fiscals, el tractament que estableix la normativa tributària d'aplicació i que consta en cada tipologia de prestació econòmica continguda a l'annex 1 d'aquest Decret.
+
+
+## Disposició addicional Sisena
+
+Amb caràcter excepcional no es tindran en compte els límits d'edat de la població destinatària per accedir als serveis següents: 1.2.3.1 Servei de centre de dia per a gent gran de caràcter temporal o permanent, 1.2.3.3.2 Serveis de residència assistida per a gent gran de caràcter temporal o permanent, 1.2.5.2.3.3 Serveis de centre residencial temporal o permanent per a persones amb discapacitat intel·lectual i 1.2.5.3.3.3 Servei de centre residencial temporal o permanent per a persones amb discapacitat física. L'excepcionalitat es podrà donar quan existeixi un informe tècnic justificatiu de la prescripció del servei a un determinat usuari i la corresponent resolució administrativa emesa per l'òrgan competent.
+
+
+## Disposició addicional Setena
+
+Les prestacions derivades de la Llei 39/2006, de 14 desembre, de promoció de l'autonomia personal i atenció a les persones en situació de dependència, corresponents al grau I nivell 2, s'ajustaran al que s'estableixi en el desplegament normatiu estatal.
+
+
+## Disposició addicional Vuitena
+
+En el procés d'elaboració interna de la Cartera de Serveis Socials, per part del departament competent en matèria de serveis, la inclusió de noves prestacions es durà a terme de conformitat amb les instruccions de la seva secretaria general, aprovades a l'efecte.
+
+
+## Disposició transitòria
+
+Pel que fa al previst a l'article 5 d'aquest Decret, i mentre no s'aprovi el Decret d'acreditació d'entitats previst a l'article 70 de la Llei 12/2007, d'11 d'octubre, de serveis socials, s'entendran acreditades:
+
+a) Les entitats inscrites al Registre d'entitats, serveis i establiments socials, si compleixen les clàusules administratives i les prescripcions tècniques per contractar amb l'Administració de la Generalitat segons la tipologia de serveis socials.
+
+b) Les entitats col·laboradores de les prestacions de determinats serveis, a l'empara de les Ordres dictades pel departament competent en matèria de serveis socials.
+
+
+## Disposició derogatòria
+
+Es deroga el Decret 151/2008, de 29 de juliol, pel qual s'aprova la Cartera de Serveis Socials 2008-2009.
+
+
+## Disposicions finals
+
+
+
+## Disposició final Primera
+
+Aquesta cartera modifica els imports màxims de copagament fixats a l'annex 3 del Decret 394/1996, de 12 de desembre, així com a l'article únic de l'Ordre ASC/603/2006, de 21 de desembre.
+
+
+## Disposició final Segona
+
+Aquest Decret entrarà en vigor l'endemà de la seva publicació al Diari Oficial de la Generalitat de Catalunya.
+
+
+## Annex 1
+
+1. PRESTACIONS DE SERVEIS
+
+1.1 Serveis socials bàsics
+
+1.1.1 Servei bàsic d'atenció social
+
+1.1.2 Serveis d'atenció domiciliària
+
+1.1.2.1 Servei d'ajuda a domicili
+
+1.1.2.2 Servei de les tecnologies de suport i cura
+
+1.1.3 Serveis residencials d'estada limitada
+
+1.1.3.1 Servei d'acolliment residencial d'urgència
+
+1.1.3.2 Servei de residència temporal per a persones adultes en situació d'exclusió social
+
+1.1.4 Servei de menjador social
+
+1.1.5 Servei d'assessorament tècnic d'atenció social
+
+1.1.6 Serveis d'intervenció socioeducativa no residencial per a infants i adolescents
+
+1.1.6.1 Servei de centre obert
+
+1.1.7 Serveis de suport als serveis socials bàsics
+
+1.2 Serveis socials especialitzats
+
+1.2.1 Infància, adolescència i joventut
+
+1.2.1.1 Servei de tutela per a infants i adolescents en situació de desemparament
+
+1.2.1.2 Servei especialitzat d'atenció a la infància i a l'adolescència (SEAIA)
+
+1.2.1.3 Servei de centre d'acolliment
+
+1.2.1.4 Serveis residencials d'acció educativa
+
+1.2.1.4.1 Servei de Centre Residencial d'Acció Educativa (CRAE)
+
+1.2.1.4.2 Servei de Centre Residencial d'Educació Intensiva (CREI)
+
+1.2.1.5 Servei de pis assistit per a joves de 16 a 18 anys
+
+1.2.1.6 Servei de pis assistit per a joves majors de 18 anys
+
+1.2.1.7 Servei de residència o pisos per a joves vinculats a programes d'inserció laboral
+
+1.2.1.8 Servei d'integració familiar
+
+1.2.1.8.1 Servei d'Unitat Convivencial d'Acció Educativa
+
+1.2.1.9 Servei de centre socioeducatiu diürn
+
+1.2.1.10 Servei de centre socioeducatiu nocturn
+
+1.2.1.11 Servei d'Acompanyament Especialitzat a Joves Tutelats i Extutelats (SAEJ)
+
+1.2.1.12 Servei de suport a l'adopció internacional
+
+1.2.1.13 Servei d'atenció postadoptiva
+
+1.2.1.14 Servei del Telèfon de la Infància
+
+1.2.1.15 Servei d'equips de valoració de maltractaments infantils (EVAMI)
+
+1.2.2 Persones amb dependència
+
+1.2.2.1 Serveis comuns per a persones amb dependència
+
+1.2.2.1.1 Servei de prevenció de les situacions de dependència
+
+1.2.2.1.2 Servei de valoració de la dependència
+
+1.2.2.1.3 Servei de transport adaptat
+
+1.2.2.1.4 Servei de centre per a l'autonomia personal
+
+1.2.3 Persones grans amb dependència o risc social
+
+1.2.3.1 Servei de centre de dia per a gent gran de caràcter temporal o permanent
+
+1.2.3.2 Servei d'atenció integral a les persones grans en l'àmbit rural
+
+1.2.3.3 Serveis de centres residencials per a gent gran
+
+1.2.3.3.1 Servei de llar residència per a gent gran de caràcter temporal o permanent
+
+1.2.3.3.2 Serveis de residència assistida per a gent gran de caràcter temporal o permanent
+
+1.2.3.3.2.1 Servei de residència assistida per a gent gran amb risc social de caràcter temporal o permanent
+
+1.2.3.3.2.2 Servei de residència assistida per a gent gran de caràcter temporal o permanent. Grau II
+
+1.2.3.3.2.3 Servei de residència assistida per a gent gran de caràcter temporal o permanent. Grau III
+
+1.2.3.4 Servei d'habitatge tutelat per a gent gran de caràcter temporal o permanent
+
+1.2.3.5 Servei de família d'acollida per a gent gran
+
+1.2.3.6 Servei de tutela per a gent gran
+
+1.2.4 [ No vigent ]
+
+1.2.4.1 [ No vigent ]
+
+1.2.4.2 [ No vigent ]
+
+1.2.4.3 [ No vigent ]
+
+1.2.5 Infants amb transtorns en el desenvolupament o amb risc de patir-los
+
+1.2.5.1 Servei d'atenció precoç
+
+1.2.6 Persones amb discapacitat
+
+1.2.6.1 Serveis comuns per a persones amb discapacitat
+
+1.2.6.1.1 Serveis d'orientació i valoració
+
+1.2.6.1.1.1 Servei d'orientació
+
+1.2.6.1.1.2 Servei de valoració
+
+1.2.6.2 Serveis per a persones amb discapacitat intel·lectual
+
+1.2.6.2.1 Servei de centre de dia d'atenció especialitzada temporal o permanent per a persones amb discapacitat intel·lectual
+
+1.2.6.2.2 Servei de suport a l'autonomia a la pròpia llar per a persones amb discapacitat intel·lectual
+
+1.2.6.2.3 Serveis d'acolliment residencial per a persones amb discapacitat intel·lectual
+
+1.2.6.2.3.1. Servei de llar amb suport per a persones amb discapacitat intel·lectual amb necessitat de suport intermitent
+
+1.2.6.2.3.2 Serveis de llar residència temporal o permanent per a persones amb discapacitat intel·lectual
+
+1.2.6.2.3.2.1 Servei de llar residència temporal o permanent per a persones amb discapacitat intel·lectual amb necessitat de suport intermitent
+
+1.2.6.2.3.2.2 Servei de llar residència temporal o permanent per a persones amb discapacitat intel·lectual amb necessitat de suport limitat
+
+1.2.6.2.3.2.3 Servei de llar residència temporal o permanent per a persones amb discapacitat intel·lectual amb necessitat de suport limitat (trastorn de conducta)
+
+1.2.6.2.3.2.4 Servei de llar residència temporal o permanent per a persones amb discapacitat intel·lectual amb necessitat de suport extens
+
+1.2.6.2.3.2.5 Servei de llar residència temporal o permanent per a persones amb discapacitat intel·lectual amb necessitat de suport extens (trastorn de conducta)
+
+1.2.6.2.3.2.6 Servei de llar residència temporal o permanent per a persones amb discapacitat intel·lectual amb necessitat de suport generalitzat
+
+1.2.6.2.3.3 Serveis de centre residencial temporal o permanent per a persones amb discapacitat intel·lectual
+
+1.2.6.2.3.3.1 Servei de centre residencial temporal o permanent per a persones amb discapacitat intel·lectual amb necessitat de suport extens
+
+1.2.6.2.3.3.2 Servei de centre residencial temporal o permanent per a persones amb discapacitat intel·lectual amb necessitat de suport extens (trastorn de conducta)
+
+1.2.6.2.3.3.3 Servei de centre residencial temporal o permanent per a persones amb discapacitat intel·lectual amb necessitat de suport generalitzat
+
+1.2.6.2.3.3.4 Servei de centre residencial temporal o permanent per a persones amb discapacitat intel·lectual amb necessitat de suport generalitzat (amb problemes de salut o de salut mental afegits)
+
+1.2.6.2.4 Serveis de centres de dia ocupacionals per a persones amb discapacitat intel·lectual
+
+1.2.6.2.4.1 Serveis de centres de dia de teràpia ocupacional (STO) per a persones amb discapacitat intel·lectual
+
+1.2.6.2.4.1.1 Servei de centre de dia de teràpia ocupacional (STO) per a persones amb discapacitat intel·lectual
+
+1.2.6.2.4.1.2 Servei de centre de dia de teràpia ocupacional (STO) per a persones amb discapacitat intel·lectual, amb auxiliar
+
+1.2.6.2.4.2 Servei de centre de dia ocupacional d'inserció (SOI) per a persones amb discapacitat intel·lectual
+
+1.2.6.2.5 Servei de temps lliure per a persones amb discapacitat intel·lectual
+
+1.2.6.2.6 Servei de tutela per a persones amb discapacitat intel·lectual
+
+1.2.6.3 Serveis per a persones amb discapacitat física
+
+1.2.6.3.1 Servei de centre de dia d'atenció especialitzada temporal o permanent per a persones amb discapacitat física
+
+1.2.6.3.2 Servei de suport a l'autonomia a la pròpia llar per a persones amb discapacitat física
+
+1.2.6.3.3 Serveis d'acolliment residencial per a persones amb discapacitat física
+
+1.2.6.3.3.1 Servei de llar amb suport per a persones amb discapacitat física amb necessitat de suport intermitent
+
+1.2.6.3.3.2 Serveis de llar residència temporal o permanent per a persones amb discapacitat física
+
+1.2.6.3.3.2.1 Servei de llar residència temporal o permanent per a persones amb discapacitat física amb necessitat de suport intermitent
+
+1.2.6.3.3.2.2 Servei de llar residència temporal o permanent per a persones amb discapacitat física amb necessitat de suport limitat
+
+1.2.6.3.3.3 Serveis de centre residencial temporal o permanent per a persones amb discapacitat física
+
+1.2.6.3.3.3.1. Servei de centre residencial temporal o permanent per a persones amb discapacitat física amb necessitat de suport extens
+
+1.2.6.3.3.3.2 Servei de centre residencial temporal o permanent per a persones amb discapacitat física amb necessitat de suport generalitzat
+
+1.2.6.3.4 Serveis de centres de dia ocupacionals per a persones amb discapacitat física
+
+1.2.6.3.4.1 Serveis de centres de dia de teràpia ocupacional (STO) per a persones amb discapacitat física
+
+1.2.6.3.4.1.1 Servei de centre de dia de teràpia ocupacional (STO) per a persones amb discapacitat física
+
+1.2.6.3.4.1.2 Servei de centre de dia de teràpia ocupacional (STO) per a persones amb discapacitat física, amb auxiliar
+
+1.2.6.3.4.2 Servei de centre de dia ocupacional d'inserció (SOI) per a persones amb discapacitat física
+
+1.2.6.3.5 Serveis d'assistència personal per a persones amb discapacitat física.
+
+1.2.6.3.5.1 Servei d'assistència personal de suport en l'acompanyament a activitats laborals, ocupacionals i/o formatives, per a persones amb discapacitat física.
+
+1.2.6.3.5.2 Servei d'assistència personal de suport a la vida autònoma i d'integració social i comunitària, per a persones amb discapacitat física.
+
+1.2.6.4 Serveis per a persones amb discapacitat sensorial
+
+1.2.6.4.1 Servei d'intèrpret per a persones sordes
+
+1.2.6.4.2 Serveis d'assistència personal per a persones amb discapacitat sensorial sord-ceguesa
+
+1.2.6.4.2.1 Servei d'assistència personal de suport en l'acompanyament a activitats laborals, ocupacionals i/o formatives, per persones amb discapacitat sensorial sord-ceguesa.
+
+1.2.6.4.2.2 Servei d'assistència personal de suport a la vida autònoma i d'integració social i comunitària, per a persones amb discapacitat sensorial sord-ceguesa
+
+1.2.7 Persones amb problemàtica social derivada de malaltia mental
+
+1.2.7.1 Servei de suport a l'autonomia a la pròpia llar per a persones amb problemàtica social derivada de malaltia mental
+
+1.2.7.2 Serveis d'habitatges per a persones amb problemàtica social derivada de malaltia mental
+
+1.2.7.2.1 Servei de llar amb suport temporal o permanent per a persones amb problemàtica social derivada de malaltia mental
+
+1.2.7.2.2 Servei de llar residència temporal o permanent per a persones amb problemàtica social derivada de malaltia mental
+
+1.2.7.3 Servei de residència assistida temporal o permanent per a persones amb problemàtica social derivada de malaltia mental
+
+1.2.7.4 Serveis de club social
+
+1.2.7.4.1 Servei de club social (mòdul A)
+
+1.2.7.4.2 Servei de club social (mòdul B)
+
+1.2.7.5 Servei prelaboral
+
+1.2.7.6 Servei de tutela per a persones amb malaltia mental
+
+1.2.8 Persones amb drogodependències i/o altres addiccions
+
+1.2.8.1 Servei de prevenció d'addiccions
+
+1.2.8.2 Serveis de reinserció per a persones amb drogodependències i/o altres addiccions
+
+1.2.8.2.1 Servei de centre de dia per a persones amb addiccions
+
+1.2.8.2.2 Serveis de pis amb suport per a persones amb drogodependències
+
+1.2.8.2.2.1 Servei de pis amb suport per a persones amb drogodependències, baixa intensitat
+
+1.2.8.2.2.2 Servei de pis amb suport per a persones amb drogodependències, alta intensitat
+
+1.2.8.2.3 Serveis de comunitat terapèutica per a persones amb drogodependències
+
+1.2.8.2.3.1 Servei de comunitat terapèutica per a persones amb drogodependències, baixa intensitat
+
+1.2.8.2.3.2 Servei de comunitat terapèutica per a persones amb drogodependències, mitja intensitat
+
+1.2.8.2.3.3 Servei de comunitat terapèutica per a persones amb drogodependències, alta intensitat
+
+1.2.9 Persones afectades pel virus VIH/SIDA
+
+1.2.9.1 Servei de prevenció per a persones afectades pel virus VIH/SIDA
+
+1.2.9.2. Serveis de reinserció per a persones afectades pel virus VIH/SIDA
+
+1.2.9.2.1 Serveis temporal de llar amb suport per a persones afectades pel virus VIH/SIDA
+
+1.2.9.2.1.1 Servei temporal de llar amb suport per a persones afectades pel virus VIH/SIDA, baixa intensitat
+
+1.2.9.2.1.2 Servei temporal de llar amb suport per a persones afectades pel virus VIH/SIDA, alta intensitat
+
+1.2.9.2.2 Servei temporal de llar residència per a persones afectades pel virus VIH/SIDA
+
+1.2.10 Cuidadors/es (familiars o altres cuidadors/es no professionals)
+
+1.2.10.1 Servei de suport als familiars cuidadors/es i a altres cuidadors/es no professionals
+
+1.2.11 Famílies amb problemàtica social i risc d'exclusió social
+
+1.2.11.1 Servei d'atenció a les famílies
+
+1.2.12 Dones en situació de violència masclista i els seus fills i filles
+
+1.2.12.1 Servei d'atenció i acolliment d'urgències
+
+1.2.12.2 Serveis d'acolliment residencial per a dones en situació de violència masclista i per als seus fills i filles
+
+1.2.12.2.1 Servei d'acolliment i recuperació
+
+1.2.12.2.2 Servei de pis amb suport
+
+1.2.12.2.3 Servei de pis pont
+
+1.2.12.3 Servei d'intervenció especialitzada
+
+1.2.12.4 Servei tècnic de punt de trobada
+
+1.2.12.5 Servei de la línia d'atenció a les dones en situació de violència masclista
+
+1.2.13 Suport als serveis socials especialitzats
+
+1.2.13.1 Serveis de suport als serveis socials especialitzats
+
+1.3 Altres prestacions de serveis
+
+1.3.1 Serveis experimentals
+
+2. PRESTACIONS ECONÒMIQUES
+
+2.1 Prestacions econòmiques de dret subjectiu
+
+2.1.1 Prestació per a joves extutelats/ades
+
+2.1.2 Pensió no contributiva per jubilació
+
+2.1.3 Pensió no contributiva per invalidesa
+
+2.1.4 Prestació complementària per a pensionistes de la modalitat no contributiva, per invalidesa o jubilació
+
+2.1.5 Ajuts assistencials de protecció als i a les cònjuges supervivents
+
+2.1.6 Prestació per al manteniment de les despeses de la llar per a determinats col·lectius
+
+2.1.7 Prestació per a l'acolliment d'una persona menor d'edat tutelada per la Generalitat
+
+2.1.8 Prestació econòmica de caràcter universal per infant a càrrec
+
+2.1.9 Prestació econòmica de caràcter universal per part, adopció o acolliment múltiple
+
+2.1.10 Prestació econòmica vinculada al servei per a persones en situació de dependència
+
+2.1.11 Prestacions econòmiques d'assistència personal per a persones amb dependència
+
+2.1.11.1 Prestació econòmica d'assistència personal de suport en l'acompanyament a activitats laborals, ocupacionals i/o formatives
+
+2.1.11.2 Prestació econòmica d'assistència personal de suport a la vida autònoma i d'integració social i comunitària
+
+2.1.12 Prestació econòmica per a cures en l'entorn familiar i suport als/a les cuidadors/es no professionals
+
+2.1.13 Renda Mínima d'Inserció (RMI)
+
+2.1.14 Prestació per atendre les necessitats bàsiques
+
+2.1.15 Prestacions derivades de la Llei d'Integració Social del Minusvàlid (LISMI)
+
+2.1.16 Pensions assistencials del Fons d'Assistència Social (FAS)
+
+2.2 Prestacions econòmiques de dret de concurrència
+
+2.2.1 Ajudes econòmiques de caràcter social per als/per a les treballadors/res, beneficiaris/iàries i pensionistes del règim especial de la Seguretat Social dels treballadors del mar
+
+2.2.2 Ajut per part, adopció o acolliment múltiple, sotmès al nivell d'ingressos de la unitat familiar
+
+2.2.3 Ajut per adopció internacional
+
+2.2.4 Prestació per a l'acolliment residencial per a gent gran
+
+2.2.5 Prestació per a centre de dia per a gent gran
+
+2.2.6 Prestació per a habitatges tutelats per a gent gran
+
+2.2.7 Prestació per a estades temporal per a gent gran amb discapacitat
+
+2.2.8 Prestació per a l'accés als serveis d'habitatges per a persones amb problemàtica social derivada de malaltia mental
+
+2.3 Prestacions econòmiques d'urgència social
+
+3. PRESTACIONS TECNOLÒGIQUES
+
+3.1. Ajudes tècniques dependents del sistema de serveis socials
+
+3.1.1 Ajudes per a la mobilitat i el transport
+
+3.1.2 Ajudes per a l'autonomia personal i la comunicació
+
+3.2 Altres prestacions de suport a l'accessibilitat i de supressió de barreres dependents del sistema de serveis socials
+
+3.2.1 Ajudes per a la supressió de barreres arquitectòniques i de barreres en la comunicació
+
+3.2.2 Ajudes per a l'adaptació d'habitatges per a persones amb discapacitat
+
+Prestació
+
+1.1.1 Servei bàsic d'atenció social
+
+Garantia de la prestació
+
+Prestació garantida.
+
+Descripció/Definició
+
+Conjunt organitzat i coordinat d'accions professionals, integrat per equips tècnics, amb l'objectiu de millorar el benestar social i afavorir la integració de les persones.
+
+Objecte
+
+Promoure els mecanismes per conèixer, prevenir i intervenir en persones, famílies i grups socials, especialment si es troben en situació de risc social o d'exclusió.
+
+Funcions
+
+Informació, orientació i assessorament.
+
+Detecció i prevenció de situacions de risc social o d'exclusió.
+
+Aplicació del tractament de suport a persones, famílies o grups.
+
+Recepció i anàlisi de les demandes relatives a les necessitats socials de l'àrea territorial corresponent.
+
+Gestió dels serveis d'atenció domiciliària i els altres que siguin determinats per via reglamentària.
+
+Tramitació i seguiment de programes i prestacions que requereixin la seva intervenció.
+
+Tramitació de propostes de derivació als serveis socials d'atenció especialitzada. Treball social comunitari.
+
+Les altres funcions establertes per l'ordenament jurídic vigent.
+
+Tipologia de la prestació
+
+Prestació de servei: servei bàsic.
+
+Situació de la població destinatària
+
+Població general.
+
+Edat població destinatària
+
+Població general.
+
+Forma de prestació
+
+Mitjançant intervenció d'equip de professionals.
+
+Perfils professionals
+
+Treballador/a social, educador/a social.
+
+Ràtios de professionals
+
+3 treballadors/ores socials i 2 educadors/ores socials per cada 15.000 habitants.
+
+Estàndards de qualitat
+
+Els que estableixi el Pla de qualitat previst en la Llei de serveis socials per a aquesta prestació.
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquest servei són els següents: a) l'existència de situació de necessitat, d'acord amb els articles 8, 9 i 10 i l'Annex 2 del Decret 27/2003, de 21 de gener, d'atenció social primària; b) per a les persones estrangeres, els requisits establerts en la normativa vigent d'estrangeria i d'acollida i integració de les persones immigrades; c) la resta de requisits d'accés establerts en l'ordenament jurídic vigent.
+
+Prestació
+
+1.1.2.1 Servei d'ajuda a domicili
+
+Garantia de la prestació
+
+Prestació garantida.
+
+Descripció
+
+Conjunt organitzat i coordinat d'accions que es realitzen bàsicament a la llar de la persona i/o família, dirigides a proporcionar atencions personals, ajuda a la llar i suport social a aquelles persones i/o famílies amb dificultats de desenvolupament o d'integració social o manca d'autonomia personal. El servei d'ajuda a domicili podrà complementar-se amb altres modalitats d'atenció.
+
+Objecte
+
+Promoure una millor qualitat de vida de les persones usuàries, potenciant la seva autonomia personal i unes condicions adients de convivència en el seu propi entorn familiar i sociocomunitari.
+
+Funcions
+
+Atenció personal.
+
+Ajuda a la llar.
+
+Suport social i familiar.
+
+Relació amb l'entorn.
+
+Les altres funcions establertes per l'ordenament jurídic vigent.
+
+Tipologia de la prestació
+
+Prestació de servei: servei bàsic.
+
+Situació de la població destinatària
+
+Risc social i/o dependència.
+
+Edat població destinatària
+
+Població general.
+
+Forma de prestació
+
+Mitjançant intervenció d'equip de professionals.
+
+Perfils professionals
+
+Treballador/a social, treballador/a familiar, assistent d'atenció domiciliària, auxiliar de la llar, i si escau, altres professionals dels serveis socials, d'acord amb la normativa reguladora del servei.
+
+Ràtios de professionals
+
+Es disposarà de professionals suficients en nombre i perfil per a la prestació del servei.
+
+Estàndards de qualitat
+
+Els que estableixi el Pla de qualitat previst en la Llei de serveis socials per a aquesta prestació.
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquest servei són els següents: a) l'acreditació de la situació de necessitat, d'acord amb els articles 8, 9 i 10 i l'Annex 2 del Decret 27/2003, de 21 de gener, d'atenció social primària, i, també, d'acord amb la normativa específica del servei; b) si és el cas, l'acreditació de la situació de dependència, per mitjà de la resolució emesa per l'òrgan de valoració corresponent, d'acord amb el Reial Decret 504/2007, de 20 d'abril; c) si és el cas, el requisit de residència establert en la Llei 39/2006, de 14 de desembre; d) per a les persones estrangeres, els requisits establerts en la normativa vigent d'estrangeria i d'acollida i integració de les persones immigrades; e) si és el cas, l'abonament del preu públic, d'acord amb la normativa tributària; f) la resta de requisits d'accés establerts en l'ordenament jurídic vigent.
+
+Cost de referència
+
+Pendent de desplegament normatiu.
+
+Mòdul social
+
+Pendent de desplegament normatiu.
+
+Copagament
+
+Pendent de desplegament normatiu.
+
+Prestació
+
+1.1.2.2 Servei de les tecnologies de suport i cura
+
+Garantia de la prestació
+
+Prestació garantida.
+
+Descripció
+
+Constitueix una modalitat del servei d'atenció domiciliària el qual, amb la tecnologia adequada, permet detectar situacions d'emergència, donar una resposta rapida a aquestes situacions i garantir la comunicació permanent de la persona amb l'exterior. Aquest servei es presta mitjançant el suport d'un equip de professionals i de les tecnologies més adequades, en concret, teleassistència i telealarma.
+
+Objecte
+
+Promoure una millor qualitat de vida de les persones usuàries, potenciant la seva autonomia personal i unes condicions adients de convivència en el seu propi entorn familiar i sociocomunitari.
+
+Funcions
+
+Proporcionar un contacte permanent amb l'exterior i accés als serveis de la comunitat.
+
+Donar resposta de forma immediata en cas d'emergència.
+
+Donar seguretat i suport a la persona usuària i a la família.
+
+Evitar o retardar la institucionalització.
+
+Les altres funcions establertes per l'ordenament jurídic vigent.
+
+Tipologia de la prestació
+
+Prestació de servei: servei bàsic.
+
+Situació de la població destinatària
+
+Risc social i/o dependència.
+
+Edat població destinatària
+
+Població general.
+
+Forma de prestació
+
+Mitjançant intervenció d'equip de professionals i tecnologia.
+
+Perfils professionals
+
+Teleassistència: operador/a central de CRA (Central Receptora d'Alarmes), auxiliar d'equip mòbil, tècnic/a de suport social i operari/a d'instal·lacions. Telealarma: operador/a central de CRA.
+
+Ràtios de professionals
+
+Es disposarà de professionals suficients en nombre i perfil per a la prestació del servei.
+
+Estàndards de qualitat
+
+Els que estableixi el Pla de qualitat previst en la Llei de serveis socials per a aquesta prestació.
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquest servei són els següents: a) l'acreditació de la situació de necessitat, d'acord amb els articles 8, 9 i 10 i l'Annex 2 del Decret 27/2003, de 21 de gener, d'atenció social primària; b) per a les persones estrangeres, els requisits establerts en la normativa vigent d'estrangeria i d'acollida i integració de les persones immigrades; c) la resta de requisits d'accés establerts en l'ordenament jurídic vigent.
+
+Cost de referència
+
+Pendent de desplegament normatiu.
+
+Mòdul social
+
+Pendent de desplegament normatiu.
+
+Copagament
+
+Pendent de desplegament normatiu.
+
+Prestació
+
+1.1.3.1 Servei d'acolliment residencial d'urgència
+
+Garantia de la prestació
+
+Prestació garantida.
+
+Descripció
+
+Servei d'acolliment residencial que supleix temporalment la llar familiar en casos puntuals i d'urgència. El servei d'acolliment residencial d'urgència pot prestar-se en un establiment social o en qualsevol altre recurs que aconsegueixi la mateixa finalitat.
+
+Objecte
+
+Cobriment temporal de les necessitats bàsiques que han motivat la situació d'urgència.
+
+Funcions
+
+Allotjament.
+
+Acolliment i convivència.
+
+Suport social.
+
+Les altres funcions establertes per l'ordenament jurídic vigent.
+
+Tipologia de la prestació
+
+Prestació de servei: servei bàsic.
+
+Situació de la població destinatària
+
+Greu risc social.
+
+Edat població destinatària
+
+Població general.
+
+Forma de prestació
+
+En establiment residencial o mitjançant fórmules alternatives.
+
+Perfils professionals
+
+En el cas de prestació del servei mitjançant establiment: director/a responsable i 1 professional per torn, amb el perfil adequat. Suport social prestat pels serveis bàsics d'atenció social.
+
+Ràtios de professionals
+
+Es disposarà de professionals suficients en nombre i perfil per a la prestació del servei.
+
+Estàndards de qualitat
+
+Els que estableixi el Pla de qualitat previst en la Llei de serveis socials per a aquesta prestació.
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquest servei són els següents: a) l'existència de situació de necessitat, d'acord amb els articles 8, 9 i 10 i l'Annex 2 del Decret 27/2003, de 21 de gener, d'atenció social primària; b) per a les persones estrangeres, els requisits establerts en la normativa vigent d'estrangeria i d'acollida i integració de les persones immigrades; c) la resta de requisits d'accés establerts en l'ordenament jurídic vigent.
+
+Prestació
+
+1.1.3.2 Servei de residència temporal per a persones adultes en situació d'exclusió social
+
+Garantia de la prestació
+
+Prestació garantida.
+
+Descripció
+
+Servei d'acolliment residencial temporal i de suport a persones adultes en situació d'exclusió social que no disposen de condicions sociofamiliars i d'atenció per romandre al seu habitatge o que no en disposen.
+
+Objecte
+
+Acolliment residencial temporal, facilitant un entorn favorable, procurant el benestar de les persones ateses i facilitant la integració social, tot mantenint el màxim grau d'autonomia.
+
+Funcions
+
+Acolliment i convivència.
+
+Allotjament i manutenció.
+
+Bugaderia i repàs de la roba, si és el cas.
+
+Suport social.
+
+Cura de l'aspecte físic i del vestit.
+
+Programes d'activitats adreçats al manteniment de les aptituds i de la motivació, com també dels interessos i la integració laboral.
+
+Programes adreçats al manteniment de l'autonomia, com també de prevenció del deteriorament fisicopsíquic.
+
+Atenció familiar adreçada a l'afavoriment de les relacions de la família amb la persona usuària i el seu entorn.
+
+Garantir l'assistència sanitària.
+
+Les altres funcions establertes per l'ordenament jurídic vigent.
+
+Tipologia de la prestació
+
+Prestació de servei: servei bàsic.
+
+Situació de la població destinatària
+
+Greu risc social.
+
+Edat població destinatària
+
+De 18 a 65 anys.
+
+Forma de prestació
+
+En establiment residencial o mitjançant fórmules alternatives.
+
+Perfils professionals
+
+En el cas de prestació del servei mitjançant establiment: director/a responsable i 1 professional per torn, amb el perfil adequat. Suport social prestat pels serveis bàsics d'atenció social.
+
+Ràtios de professionals
+
+Es disposarà de professionals suficients en nombre i perfil per a la prestació del servei.
+
+Estàndards de qualitat
+
+Els que estableixi el Pla de qualitat previst en la Llei de serveis socials per a aquesta prestació.
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquest servei són els següents: a) l'acreditació de la situació de necessitat, d'acord amb els articles 8, 9 i 10 i l'Annex 2 del Decret 27/2003, de 21 de gener, d'atenció social primària; b) el requisit d'edat establert en aquesta disposició; c) per a les persones estrangeres, els requisits establerts en la normativa vigent d'estrangeria i d'acollida i integració de les persones immigrades; d) la resta de requisits d'accés establerts en l'ordenament jurídic vigent.
+
+Prestació
+
+1.1.4 Servei de menjador social
+
+Garantia de la prestació
+
+Prestació garantida.
+
+Descripció
+
+Servei que proporciona, de forma temporal, àpats elaborats a persones i famílies amb greus necessitats socials i que necessiten ajuda per a la subsistència. El servei de menjador pot prestar-se en un establiment social, mitjançant un servei d'ajuda a domicili o qualsevol altre recurs que aconsegueixi la mateixa finalitat.
+
+Objecte
+
+Assegurar una alimentació bàsica i l'atenció social.
+
+Funcions
+
+Proporcionar àpats.
+
+Assegurar una dieta adequada.
+
+Col·laborar en els plans d'intervenció de les persones i/o famílies.
+
+Ser referent per a la detecció i prevenció de situacions de necessitat.
+
+Les altres funcions establertes per l'ordenament jurídic vigent.
+
+Tipologia de la prestació
+
+Prestació de servei: servei bàsic.
+
+Situació de la població destinatària
+
+Greu risc social.
+
+Edat població destinatària
+
+Població general.
+
+Forma de prestació
+
+En establiment diürn o mitjançant fórmules alternatives.
+
+Perfils professionals
+
+En el cas de prestació del servei mitjançant establiment: director/a responsable i personal adequat i suficient d'acord amb la normativa d'hostaleria.
+
+Ràtios de professionals
+
+Es disposarà de professionals suficients en nombre i perfil per a la prestació del servei.
+
+Estàndards de qualitat
+
+Els que estableixi el Pla de qualitat previst en la Llei de serveis socials per a aquesta prestació.
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquest servei són els següents: a) l'acreditació de la situació de necessitat, d'acord amb els articles 8, 9 i 10 i l'Annex 2 del Decret 27/2003, de 21 de gener, d'atenció social primària; b) per a les persones estrangeres, els requisits establerts en la normativa vigent d'estrangeria i d'acollida i integració de les persones immigrades; c) la resta de requisits d'accés establerts en l'ordenament jurídic vigent.
+
+Prestació
+
+1.1.5 Servei d'assessorament tècnic d'atenció social
+
+Garantia de la prestació
+
+Prestació garantida.
+
+Descripció
+
+Servei que proporciona suport i assessorament tècnic a les funcions dels diferents equips i professionals dels serveis bàsics d'atenció social.
+
+Objecte
+
+Proporcionar suport i assessorament tècnic als equips multiprofessionals dels serveis bàsics d'atenció social, en l'exercici de les seves funcions, i atendre a les persones i/o famílies derivades pels professionals dels serveis bàsics d'atenció social quan sigui necessari.
+
+Funcions
+
+Suport i assessorament tècnic.
+
+Atenció en determinats casos.
+
+Les altres funcions establertes per l'ordenament jurídic vigent.
+
+Tipologia de la prestació
+
+Prestació de servei: servei bàsic.
+
+Situació de la població destinatària
+
+Professionals dels serveis bàsics d'atenció social i persones i/o famílies derivades per aquests serveis.
+
+Edat població destinatària
+
+Població general.
+
+Forma de prestació
+
+Mitjançant intervenció d'equip de professionals.
+
+Perfils professionals
+
+Treballador/a social, psicòleg/oga, pedagog/a, educador/a social, advocat/da i mediador/a intercultural.
+
+Ràtios de professionals
+
+Es disposarà de professionals suficients en nombre i perfil per a la prestació del servei.
+
+Estàndards de qualitat
+
+Els que estableixi el Pla de qualitat previst en la Llei de serveis socials per a aquesta prestació.
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquest servei són els següents: a) l'acreditació de la situació de necessitat, d'acord amb els articles 8, 9 i 10 i l'Annex 2 del Decret 27/2003, de 21 de gener, d'atenció social primària; b) per a les persones estrangeres, els requisits establerts en la normativa vigent d'estrangeria i d'acollida i integració de les persones immigrades; c) la resta de requisits d'accés establerts en l'ordenament jurídic vigent.
+
+Prestació
+
+1.1.6.1 Servei de centre obert
+
+Garantia de la prestació
+
+Prestació garantida.
+
+Descripció
+
+Servei diürn preventiu, fora de l'horari escolar, que dona suport, estimula i potencia l'estructuració i el desenvolupament de la personalitat, la socialització, l'adquisició d'aprenentatges bàsics i l'esbarjo, i compensa les deficiències socioeducatives de les persones ateses mitjançant el treball individualitzat, el grupal, la família, el treball en xarxa i amb la comunitat.
+
+Objecte
+
+Proporcionar atenció a tots els menors en situació de risc afavorint el seu desenvolupament personal i integració social i l'adquisició d'aprenentatges, prevenint i evitant el deteriorament de les situacions de risc i compensant dèficits socioeducatius.
+
+Funcions
+
+Prestar serveis d'intervenció socioeducativa no residencial per a infants i adolescents proporcionant-los acolliment i convivència, atenció individual i en grup, derivació i integració a recursos normalitzats de la comunitat, així com la coordinació amb els serveis bàsics d'atenció social pel treball familiar.
+
+Les altres funcions establertes per l'ordenament jurídic vigent.
+
+Tipologia de la prestació
+
+Prestació de servei: servei bàsic.
+
+Situació de la població destinatària
+
+Infants i adolescents que requereixen suport assistencial o formatiu, prioritàriament aquells que estan en situació de risc.
+
+Edat població destinatària
+
+De 3 a 18 anys.
+
+Forma de prestació
+
+En establiment diürn.
+
+Perfils professionals
+
+Director/a-coordinador/a (professional amb titulació universitària en l'àmbit de les ciències socials), educador/a social, integrador/a social i monitor/a de temps lliure, preferentment amb experiència en l'àmbit de la infància i l'adolescència en risc.
+
+Ràtios de professionals
+
+1 director/a-coordinador/a, ràtio no inferior a 0,2: 2 educadors/ores socials o 1 educador/a social i 1 integrador/a social per cada 20 usuaris. Es pot disposar de monitors/ores de temps lliure per activitats específicament lúdiques i de suport.
+
+Estàndards de qualitat
+
+Els que estableixi el Pla de qualitat previst en la Llei de serveis socials per a aquesta prestació.
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquest servei són els següents: a) els establerts en el Decret 27/2003, de 21 de gener, de l'atenció social primària: els infants i adolescents han de viure en l'àmbit de l'àrea bàsica respectiva, cal la comunicació dels pares, tutors o guardadors; tot menor que estigui en situació de desemparament amb mesura protectora d'atenció en la pròpia família, haurà de ser admès, si així ho requereixen els equips que intervenen; b) la resta dels requisits d'accés establerts en l'ordenament jurídic vigent.
+
+Prestació
+
+1.1.7 Serveis de suport als serveis socials bàsics
+
+Garantia de la prestació
+
+Subjecta a crèdits pressupostaris disponibles
+
+Descripció
+
+Serveis i programes que, tenint la naturalesa de serveis socials, poden complementar altres prestacions de serveis socials bàsics de la cartera de serveis socials. El contingut mínim de la prestació s'haurà de justificar en cada cas per part de l'entitat titular, especificant l'objecte i les funcions del servei, la població destinatària, la forma de prestació, els perfils i les ràtios dels professionals, els estàndards de qualitat i els criteris d'accés. Aquesta justificació haurà de ser validada pel departament de la Generalitat competent en matèria de serveis socials, atenent criteris de viabilitat, eficàcia, eficiència, qualitat i sostenibilitat, i d'acord amb l'establert a la disposició addicional vuitena d'aquest Decret.
+
+Prestació
+
+1.2.1.1 Servei de tutela per a infants i adolescents en situació de desemparament
+
+Garantia de la prestació
+
+Prestació garantida
+
+Descripció
+
+Servei dedicat a la protecció dels infants i adolescents en situació de desemparament.
+
+Objecte
+
+Cobrir les necessitats de suport, protecció i garantia dels drets personals i patrimonials dels infants i adolescents tutelats per l'Administració de la Generalitat de Catalunya.
+
+Funcions
+
+Assegurar la protecció de la persona menor d'edat tutelada en l'àmbit social, jurídic i econòmic, l'administració i la guarda dels seus bens, i en general l'exercici dels seus drets vetllant per a que tingui la millor qualitat de vida.
+
+Les altres funcions establertes per l'ordenament jurídic vigent.
+
+Tipologia de la prestació
+
+Prestació de servei: servei especialitzat
+
+Situació de la població destinatària
+
+Infants o adolescents declarats en situació de desemparament per resolució administrativa.
+
+Edat població destinatària
+
+De 0 a 18 anys
+
+Forma de prestació
+
+Mitjançant un equip de professionals.
+
+Perfils professionals
+
+Professionals amb titulació universitària: jurista, psicòleg/oga, pedagog/a, treballador/a social i educador/a social, preferentment amb experiència en l'àmbit de la infància i l'adolescència en risc.
+
+Ràtios de professionals
+
+Es disposarà de professionals suficients en nombre i perfil per a la prestació del servei.
+
+Estàndards de qualitat
+
+Els que estableixi el Pla de qualitat previst en la Llei de serveis socials per a aquesta prestació
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquest servei són els següents: a) desemparament del menor d'acord amb la Llei 14/2010, de 27 de maig, dels drets i les oportunitats en la infància i l'adolescència i el Decret 2/1997, de 7 de gener, pel qual s'aprova el Reglament de protecció dels menors desemparats i de l'adopció; b) la resta de requisits establerts en l'ordenament jurídic vigent.
+
+Prestació
+
+1.2.1.2 Servei especialitzat d'atenció a la infància desemparament i a l'adolescència (SEAIA)
+
+Garantia de la prestació
+
+Prestació garantida.
+
+Descripció
+
+Servei d'atenció a la infància i l'adolescència i a les seves famílies. Aquest servei es presta des dels equips d'atenció a la infància i l'adolescència (EAIA), distribuïts territorialment, i es dedica a la valoració, actuació i atenció d'infants en risc de desemparament o en situació de desemparament, així com el seguiment i el tractament de les seves famílies.
+
+Objecte
+
+Donar resposta a situacions i necessitats de les persones menors d'edat que requereixen, pel seu abordatge, una especialització tècnica .
+
+Funcions
+
+Donar suport tècnic als serveis socials bàsics i col·laborar-hi en les matèries de llur competència.
+
+Fer valoracions especialitzades que no es poden abordar des d'un servei social bàsic, tenint en compte els corresponents informes de derivació.
+
+Promoure, establir i aplicar mesures d'inserció social, laboral, educativa i familiar.
+
+Fer el seguiment , tractament i l'avaluació de les mesures de protecció.
+
+Elaboració i control dels plans de millorament.
+
+Coordinar-se amb els serveis socials bàsics, amb els professionals dels altres sistemes de benestar social, amb les entitats associatives i amb els altres serveis especialitzats.
+
+Les altres funcions establertes per l'ordenament jurídic vigent.
+
+Tipologia de la prestació
+
+Prestació de servei: servei especialitzat.
+
+Situació de la població destinatària
+
+Infants i adolescents en situació o risc de desemparament i les seves famílies.
+
+Edat població destinatària
+
+Infants i adolescents de 0 a 18 anys i les seves famílies.
+
+Forma de prestació
+
+Mitjançant intervenció d'equip de professionals.
+
+Perfils professionals
+
+Equip EAIA format per 4 professionals: psicòleg/oga, pedagog/a, treballador/a social i educador/a social, preferentment amb experiència en l'àmbit de la infància i l'adolescència en risc.
+
+Ràtios de professionals
+
+1 professional cada 40 infants exclosa la figura de l'educador/a social.
+
+Estàndards de qualitat
+
+Els que estableixi el Pla de qualitat previst en la Llei de serveis socials per a aquesta prestació.
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquest servei són els següents: a) desemparament del menor d'acord amb els articles 105 i següents de la Llei 14/2010, de 27 de maig, dels drets i les oportunitats en la infància i l'adolescència i articles 3 i 4 del Decret 2/1997, de 7 de gener, pel qual s'aprova el Reglament de protecció dels menors desemparats i de l'adopció; b) la resta de requisits establerts en l'ordenament jurídic vigent.
+
+Prestació
+
+1.2.1.3 Servei de centre d'acolliment
+
+Garantia de la prestació
+
+Prestació garantida.
+
+Descripció
+
+Serveis residencials d'estada limitada i transitòria, que tenen per objecte realitzar atenció, observació i el diagnòstic de la situació o risc de desemparament de menors respecte llurs familiars, per tal d'elaborar la corresponent proposta de mesura, quan és impossible o inconvenient realitzar l'estudi en el territori.
+
+Objecte
+
+Exercir l'atenció immediata i transitòria dels menors desemparats, analitzar la seva problemàtica i proposar el tipus de mesures aplicables.
+
+Funcions
+
+Fer el diagnòstic en centre i les valoracions especialitzades que no es poden abordar des del territori del menor, tenint en compte els corresponents informes de derivació.
+
+Exercir la guarda i educació dels infants i adolescents atesos.
+
+Les altres funcions establertes per l'ordenament jurídic vigent.
+
+Tipologia de la prestació
+
+Prestació de servei: servei especialitzat.
+
+Situació de la població destinatària
+
+Infants i adolescents en risc o situació de desemparament.
+
+Edat població destinatària
+
+De 0 a 18 anys.
+
+Forma de prestació
+
+En establiment residencial.
+
+Perfils professionals
+
+Director/a responsable (professional amb titulació universitària en l'àmbit de les ciències socials). Equip tècnic format per: treballador/a social, psicòleg/oga, pedagog/a, metge/essa. Equip educatiu format per educadors/es socials, preferentment amb experiència en l'àmbit de la infància i l'adolescència en risc.
+
+Ràtios de professionals
+
+Un/a director/a responsable. Un equip tècnic cada 30 infants. Educadors/res socials: no inferior a 0,20, incrementat fins 0,33 en cas d'infants de 0 a 3 anys.
+
+Estàndards de qualitat
+
+Els que estableixi el Pla de qualitat previst en la Llei de serveis socials per a aquesta prestació.
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquest servei són els següents: a) desemparament del menor d'acord amb els articles 105 i següents de la Llei 14/2010, de 27 de maig, dels drets i les oportunitats en la infància i l'adolescència; b) els articles 4 i 13 del Decret 2/1997, de 7 de gener, pel qual s'aprova el Reglament de protecció dels menors desemparats i de l'adopció; c) la resta de requisits establerts en l'ordenament jurídic vigent.
+
+Prestació
+
+1.2.1.4.1 Servei de centre residencial d'acció educativa (CRAE)
+
+Garantia de la prestació
+
+Prestació garantida.
+
+Descripció
+
+Servei d'acolliment residencial, per a la guarda i educació dels seus usuaris i usuàries, on resideixen temporalment amb la mesura administrativa d'acolliment simple en institució.
+
+Objecte
+
+Donar resposta a situacions i necessitats educatives i assistencials que requereixen una especialització tècnica en la seva guarda i educació alternativa a la seva família d'origen.
+
+Funcions
+
+Promoure, establir i aplicar mesures tècniques educatives i d'inserció social, laboral i familiar. Coordinar-se amb els serveis socials bàsics, amb professionals d' altres sistemes de benestar social, amb les entitats associatives i amb les que actuen en l'àmbit dels serveis especialitzats.
+
+Proporcionar als menors atesos tota la cobertura inherent a l'exercici de la guarda i educació.
+
+Les altres funcions establertes per l'ordenament jurídic vigent.
+
+Tipologia de la prestació
+
+Prestació de servei: servei especialitzat.
+
+Situació de la població destinatària
+
+Infants i adolescents amb mesura administrativa d'acolliment simple en institució.
+
+Edat població destinatària
+
+De 0 a 18 anys.
+
+Forma de prestació
+
+En establiment residencial.
+
+Perfils professionals
+
+Director/a responsable (professional amb titulació universitària en l'àmbit de les ciències socials), educadors/ores socials, preferentment amb experiència en l'àmbit de la infància i l'adolescència en risc.
+
+Ràtios de professionals
+
+Un/a director/a responsable. Centres de 0 a 3 anys: educador/a social/menor resident: no inferior a 0,25. Resta de centres: educador/a social/menor resident: no inferior a 0,15.
+
+Estàndards de qualitat
+
+Els que estableixi el Pla de qualitat previst en la Llei de serveis socials per a aquesta prestació.
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquest servei són els següents: a) desemparament del menor d'acord amb els articles 105 i següents de la Llei 14/2010, de 27 de maig, dels drets i les oportunitats en la infància i l'adolescència; b) article 4 del Decret 2/1997, de 7 de gener, pel qual s'aprova el Reglament de protecció dels menors desemparats i de l'adopció; c) la resta de requisits establerts en l'ordenament jurídic vigent.
+
+Prestació
+
+1.2.1.4.2 Servei de centre residencial d'educació intensiva (CREI)
+
+Garantia de la prestació
+
+Prestació garantida
+
+Descripció
+
+Servei residencial d'acolliment d'estada limitada que disposa de mesures estructurals de protecció, per a la guarda i educació de les seves persones usuàries, tutelades per l'Administració de la Generalitat de Catalunya, i que té com a objectiu donar resposta educativa i assistencial a adolescents i joves que presenten alteracions conductuals, que requereixen d'uns sistemes d'educació intensiva. El servei es pot complementar amb unitats específiques per els menors que presenten un rebuig manifest i notori a les mesures residencials de protecció.
+
+Objecte
+
+Donar resposta a les necessitats educatives i assistencials específiques d'adolescents i joves amb alteracions conductuals que requereixen una especialització tècnica alternativa en la seva cura i atenció.
+
+Funcions
+
+Promoure, establir i aplicar mesures educatives i d'inserció social, laboral i familiar.
+
+Coordinar-se amb els serveis socials bàsics, amb els equips professionals dels altres sistemes de benestar social, amb les entitats associatives i amb les que actuen en l'àmbit dels serveis socials especialitzats.
+
+Proporcionar als menors atesos tota la cobertura inherent a l'exercici de la guarda i educació.
+
+Les altres funcions establertes per l'ordenament jurídic vigent.
+
+Tipologia de la prestació
+
+Prestació de servei: servei especialitzat
+
+Situació de la població destinatària
+
+Adolescents i joves, tutelats pel servei territorial corresponent d'Atenció a la Infància i l'Adolescència, que presenten alteracions conductuals que requereixen d'uns sistemes d'educació intensiva.
+
+Edat població destinatària
+
+De 12 a 18 anys
+
+Forma de prestació
+
+En establiment residencial.
+
+Perfils professionals
+
+Director/a responsable (professional amb titulació universitària en l'àmbit de les ciències socials), educadors/ores socials, preferentment amb experiència en l'àmbit de la infància i l'adolescència en risc.
+
+Ràtios de professionals
+
+Un/a director/a responsable. Educador/a social/menor resident: no inferior a 0,20.
+
+Estàndards de qualitat
+
+Els que estableixi el Pla de qualitat previst en la Llei de serveis socials per a aquesta prestació
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquest servei són els següents: a) d'acord amb els articles 105 i següents de la Llei 14/2010, de 27 de maig, dels drets i les oportunitats en la infància i l'adolescència; b) article 4 del Decret 2/1997, de 7 de gener, pel qual s'aprova el Reglament de protecció dels menors desemparats i de l'adopció; c) la resta de requisits establerts a l'ordenament jurídic vigent.
+
+Prestació
+
+1.2.1.5 Servei de pis assistit per a joves de 16 a 18 anys
+
+Garantia de la prestació
+
+Prestació garantida
+
+Descripció
+
+Servei d'habitatge de caràcter assistencial i educatiu per a joves entre 16 i 18 anys amb mesura d'acolliment simple en institució, per a qui es considera necessari iniciar un procés de desinternament progressiu per assolir la majoria d'edat amb la capacitat suficient per obtenir la integració social, tot i mantenint-se la tutela i control per part de l'entitat pública de protecció de menors.
+
+Objecte
+
+Donar resposta a situacions i necessitats que requereixen una especialització tècnica alternativa a la seva família d'origen oferint guarda, educació i preparació per a la vida autònoma.
+
+Funcions
+
+Promoure, establir i aplicar mesures d'inserció social, laboral, educativa i familiar.
+
+Coordinar-se amb els serveis socials bàsics, amb els equips professionals dels altres sistemes de benestar social, amb les entitats associatives i amb les que actuen en l'àmbit dels serveis especialitzats.
+
+Proporcionar als menors atesos tota la cobertura inherent a l'exercici de la guarda i educació. Preparar el desinternament dels menors atesos de forma gradual i progressiva.
+
+Les altres funcions establertes per l'ordenament jurídic vigent.
+
+Tipologia de la prestació
+
+Prestació de servei: servei especialitzat
+
+Situació de la població destinatària
+
+Joves menors d'edat tutelats/ades que han estat en centres d'acció educativa de l'Administració de la Generalitat de Catalunya.
+
+Edat població destinatària
+
+De 16 a 18 anys.
+
+Forma de prestació
+
+Habitatge amb serveis comuns.
+
+Perfils professionals
+
+Director/a responsable (professional amb titulació universitària en l'àmbit de les ciències socials), educadors/ores socials, preferentment amb experiència en l'àmbit de la infància i l'adolescència en risc.
+
+Ràtios de professionals
+
+Un/a director/a responsable per cada pis assistit, un/a educador/a social permanent. A cada pis hi haurà una mitjana de 4-6 persones usuàries.
+
+Estàndards de qualitat
+
+Els que estableixi el Pla de qualitat previst en la Llei de serveis socials per a aquesta prestació.
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquest servei són els següents: a) desemparament del menor d'acord amb els articles 105 i següents de la Llei 14/2010, de 27 de maig, dels drets i les oportunitats en la infància i l'adolescència; b) article 4 del Decret 2/1997, de 7 de gener, pel qual s'aprova el Reglament de protecció dels menors desemparats i de l'adopció; c) la resta de requisits establerts en l'ordenament jurídic vigent.
+
+Prestació
+
+1.2.1.6 Servei de pis assistit per a joves majors de 18 anys
+
+Garantia de la prestació
+
+Subjecta a crèdits pressupostaris disponibles.
+
+Descripció
+
+Habitatges destinats a joves entre 18 i 21 anys sense recursos propis, ni familiars que en arribar a la majoria d'edat surten de les institucions on han estat acollits.
+
+Objecte
+
+Prestar un servei de caràcter assistencial servint de pont entre el recurs institucional i la plena autonomia personal.
+
+Funcions
+
+Oferir una alternativa al medi familiar inexistent, deteriorat o en greu dificultat.
+
+Oferir un acompanyament educatiu durant el procés d'assoliment de l'autonomia personal.
+
+Potenciar una educació integral dels joves per que fa a la dimensió personal, relacional, laboral i formativa.
+
+Coordinar-se amb els serveis socials bàsics, amb professionals dels altres sistemes de benestar social, amb les entitats associatives i amb les que actuen en l'àmbit dels serveis especialitzats.
+
+Les altres funcions establertes per l'ordenament jurídic vigent.
+
+Tipologia de la prestació
+
+Prestació de servei: servei especialitzat.
+
+Situació de la població destinatària
+
+Joves sense recursos propis, ni familiars, en especial joves que en arribar a la majoria d'edat surten de les institucions on han estat acollits.
+
+Edat població destinatària
+
+De 18 a 21 anys.
+
+Forma de prestació
+
+Habitatge amb serveis comuns.
+
+Perfils professionals
+
+Director/a responsable: educador/a social, preferentment amb experiència en l'àmbit de la infància i l'adolescència en risc.
+
+Ràtios de professionals
+
+1 educador/a social responsable per pis. Una mitjana de 4 persones usuàries per pis assistit.
+
+Estàndards de qualitat
+
+Els que estableixi el Pla de qualitat previst en la Llei de serveis socials per a aquesta prestació.
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquest servei són els següents a) els establerts en el Decret 284/1996, de 23 de juliol, de regulació del sistema català de serveis socials: joves que no tinguin recursos propis per assolir una autonomia global i que a partir d'un consentiment i compromís exprés, mostrin una clara motivació, responsabilitat, voluntarietat i capacitat d'esforç per a la seva inserció sociocultural; b) la resta de requisits d'accés establerts en l'ordenament jurídic vigent.
+
+Cost de referència
+
+41,53 euros/estada - 1.263,20 euros/mes
+
+Mòdul social
+
+1.003,20 euros/mes
+
+Copagament
+
+260 euros/mes
+
+Per al càlcul del copagament, s'estableix la referència del tant per cent de l'indicador de renda de suficiència de Catalunya (IRSC) a disposició del jove, segons la taula següent:
+
+Joves amb ingressos superiors a 1,5 IRSC
+
+260 €
+
+Joves amb ingressos fins a 1,5 IRSC
+
+170 €
+
+Joves amb ingressos iguals a l’IRSC
+
+57 €
+
+Joves amb ingressos entre el 70% i IRSC
+
+30 €
+
+Prestació
+
+1.2.1.7 Servei de residència o pisos per a joves vinculats a programes d'inserció laboral
+
+Garantia de la prestació
+
+Subjecta a crèdits pressupostaris disponibles
+
+Descripció
+
+Servei social residencial per a persones treballadores menors d'edat (de 16 a 18 anys) tutelades per l'Administració de la Generalitat de Catalunya i per persones majors d'edat (de 18 a 20 anys) extutelades.
+
+Objecte
+
+Donar resposta a situacions i necessitats assistencials, educatives i laborals que requereixen una especialització tècnica en la inserció laboral dels joves tutelats i extutelats, així com preparar-se per un itinerari d'integració social.
+
+Funcions
+
+Proporcionar als menors d'edat tutelats la cobertura inherent a l'exercici de la guarda i educació.
+
+Promoure, establir i aplicar mesures d'inserció laboral.
+
+Coordinar-se amb els serveis socials bàsics, amb professionals d'altres sistemes de benestar social, amb les entitats associatives i amb les que actuen en l'àmbit dels serveis especialitzats.
+
+Les altres funcions establertes per l'ordenament jurídic vigent.
+
+Tipologia de la prestació
+
+Prestació de servei: servei especialitzat
+
+Situació de la població destinatària
+
+Joves menors d'edat (16 a 18) tutelats/ades per l'Administració de la Generalitat de Catalunya i per majors d'edat (18 a 20) extutelats/ades.
+
+Edat població destinatària
+
+De 16 a 20 anys
+
+Forma de prestació
+
+En establiment residencial
+
+Perfils professionals
+
+Director/a responsable (professional amb titulació universitària en l'àmbit de les ciències socials), educadors/ores socials i insertors/ores laborals, preferentment amb experiència en l'àmbit de la infància i l'adolescència en risc.
+
+Ràtios de professionals
+
+Un/a director/a responsable. Residència: 1 educador/a social permanentment. Pis: 1 educador/a cada 8 usuaris/àries
+
+Estàndards de qualitat
+
+Els que estableixi el Pla de qualitat previst en la Llei de serveis socials per a aquesta prestació
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquest servei són els següents: a) menors d'edat: desemparament del menor d'acord amb els articles 105 i següents de la Llei 14/2010, de 27 de maig, dels drets i les oportunitats en la infància i l'adolescència i art. 4 del Decret 2/1997, de 7 de gener, pel qual s'aprova el Reglament de protecció dels menors desemparats i de l'adopció; b) majors d'edat: Decret 284/1996, de 23 de juliol, de regulació del sistema català de serveis socials; c) la resta de requisits establerts en l'ordenament jurídic vigent.
+
+Cost de referència
+
+41,53 euros/estada - 1.263,20 euros/mes
+
+Mòdul social
+
+1.003,20 euros/mes
+
+Copagament
+
+260 euros/mes
+
+Per al càlcul del copagament, s'estableix la referència del tant per cent de l'indicador de renda de suficiència de Catalunya (IRSC) a disposició del jove, segons la taula següent:
+
+Joves amb ingressos superiors a 1,5 IRSC
+
+260 €
+
+Joves amb ingressos fins a 1,5 IRSC
+
+170 €
+
+Joves amb ingressos iguals a l’IRSC
+
+57 €
+
+Joves amb ingressos entre el 70% i IRSC
+
+30 €
+
+Prestació
+
+1.2.1.8 Servei d'integració familiar
+
+Garantia de la prestació
+
+Prestació garantida.
+
+Descripció
+
+Servei que contempla les tasques derivades de la valoració i formació de la família o persona que sol·licita acollir o adoptar i la integració en aquesta d'un infant o un adolescents. Aquest servei pot ser realitzat per l'organisme públic competent de la Generalitat, per organismes de les entitats locals o per entitats col·laboradores públiques o privades sense ànim de lucre degudament acreditades.
+
+Objecte
+
+Donar resposta a situacions i necessitats dels infants i adolescents tutelats per la Generalitat que requereixen una especialització tècnica en la seva cura i atenció alternativa a la seva família d'origen amb la promoció de l'acolliment familiar.
+
+Funcions
+
+a) L'estudi, la valoració , la preparació de famílies que hagin sol·licitat un acolliment familiar o una adopció.
+
+b) La recerca de famílies acollidores o adoptives per al menor proposat.
+
+c) L'acoblament del menor en la família acollidora mitjançant l'equip especialitzat.
+
+d) El seguiment posterior del menor d'acord amb les directrius de l'òrgan competent.
+
+e) La formació de les famílies acollidores.
+
+f) La promoció de l'acolliment i/o de l'adopció.
+
+g) La col·laboració en la gestió del finançament del servei prestat per famílies acollidores en la forma en què s'estableixi mitjançant conveni.
+
+h) Les altres funcions que puguin ser encomanades per conveni, d'acord amb l'objecte i en el marc de la normativa vigent.
+
+Tipologia de la prestació
+
+Prestació de servei: servei especialitzat.
+
+Situació de la població destinatària
+
+Menors desemparats, sota les funcions tutelars de l'Administració, que necessitin una família acollidora, ja sigui per formalitzar un acolliment familiar simple o un acolliment familiar preadoptiu.
+
+Edat població destinatària
+
+De 0 a 18 anys.
+
+Forma de prestació
+
+Mitjançant intervenció d'equip de professionals.
+
+Perfils professionals
+
+Equip ICIF format per: psicòleg/oga o psicopedagog/a, treballador/a social. Si s'escau, educador/a social.
+
+Ràtios de professionals
+
+Com a mínim 1 psicòleg/oga o psicopedagog/a, 1 treballador/a social.
+
+Estàndards de qualitat
+
+Els que estableixi el Pla de qualitat previst en la Llei de serveis socials per a aquesta prestació.
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquest Servei són els següents: a) els establerts a l'article 8 del Decret 337/1995, de 28 de desembre, sobre l'acreditació i el funcionament de les institucions col·laboradores d'integració familiar i de les entitats col·laboradores d'adopció internacional; b) la resta de requisits d'accés establerts en l'ordenament jurídic vigent
+
+Prestació
+
+1.2.1.8.1 Servei d'unitat convivencial d'acció educativa
+
+Garantia de la prestació
+
+Prestació garantida.
+
+Descripció
+
+Servei d'integració familiar especialitzat d'infants i adolescents que es porta a terme per persones, prèviament seleccionades i qualificades per la raó de la titulació, formació i experiència relacionades amb la infància i l'adolescència.
+
+Objecte
+
+Donar resposta a situacions i necessitats que requereixen una especialització tècnica en la seva cura i atenció alternativa a la seva família d'origen.
+
+Funcions
+
+Promoure, establir i aplicar mesures d'inserció social, personal, educativa i familiar.
+
+Coordinar-se amb els serveis socials bàsics, amb els professionals dels altres sistemes de benestar social, amb les entitats associatives i amb les que actuen en l'àmbit dels serveis especialitzats.
+
+Proporcionar als menors atesos tota la cobertura inherent a l'exercici de la guarda i educació.
+
+Les altres funcions establertes per l'ordenament jurídic vigent.
+
+Tipologia de la prestació
+
+Prestació de servei: servei especialitzat.
+
+Situació de la població destinatària
+
+Infants i adolescents en règim de guarda o tutela per part de l'Administració de la Generalitat de Catalunya, amb proposta d'acolliment familiar simple.
+
+Edat població destinatària
+
+De 0 a 18 anys.
+
+Forma de prestació
+
+En habitatge amb servei comuns.
+
+Perfils professionals
+
+Professionals que tinguin una titulació, formació acadèmica i experiència en àmbits relacionats amb la infància i l'adolescència.
+
+Ràtios de professionals
+
+Un professional acollidor per UCAE. Cada UCAE pot acollir de 2 a 4 infants i/o adolescents. Cada 25 menors en UCAE comptaran amb el suport d'un/a educador/a social.
+
+Estàndards de qualitat
+
+Els que estableixi el Pla de qualitat previst en la Llei de serveis socials per a aquesta prestació.
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquest Servei són els següents: a) els establerts d'acord en els articles 105 i següents, i 131 de la Llei 14/2010, de 27 de maig, dels drets i les oportunitats en la infància i l'adolescència; b) la resta de requisits d'accés establerts en l'ordenament jurídic vigent.
+
+Prestació
+
+1.2.1.9 Servei de centre socioeducatiu diürn
+
+Garantia de la prestació
+
+Prestació garantida.
+
+Descripció
+
+Servei social especialitzat d'atenció diürna adreçat a adolescents en situació o risc de desemparament o risc de patir-ne, que ofereix activitats dirigides d'habilitats socials i /o de caràcter formatiu prelaboral amb l'objectiu que assoleixin una millor preparació per a la vida adulta. Es pot complementar amb atenció residencial, si escau.
+
+Objecte
+
+Proporcionar als adolescents les eines i les habilitats personals imprescindibles per a la seva permanència o incorporació als sistemes de formació reglats i/o professionalitzats.
+
+Funcions
+
+Promoure, establir i aplicar mesures d'inserció social, laboral, educativa i familiar.
+
+Coordinar-se amb els serveis socials bàsics, amb els professionals dels altres sistemes de benestar social, amb les entitats associatives i amb les que actuen en l'àmbit dels serveis especialitzats.
+
+Les altres funcions establertes per l'ordenament jurídic vigent.
+
+Tipologia de la prestació
+
+Prestació de servei: servei especialitzat.
+
+Situació de la població destinatària
+
+Adolescents en situació de risc o desemparament.
+
+Edat població destinatària
+
+De 12 a 18 anys.
+
+Forma de prestació
+
+En establiment diürn.
+
+Perfils professionals
+
+Director/a-coordinador/a (professional amb titulació universitària en l'àmbit de les ciències socials), educador/a social i integrador/a social, preferentment amb experiència en l'àmbit de la infància i l'adolescència en risc.
+
+Ràtios de professionals
+
+1 Director/a-cooordinador/a. Un professional d'atenció directa com a mínim cada 10 usuaris.
+
+Estàndards de qualitat
+
+Els que estableixi el Pla de qualitat previst en la Llei de serveis socials per a aquesta prestació.
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquest servei són els següents: a) desemparament del menor d'acord amb els articles 105 i següents de la Llei 14/2010, de 27 de maig, dels drets i les oportunitats en la infància i l'adolescència ; b) situació de risc de desemparament considerat com a tal pels serveis bàsics d'atenció social i els serveis especialitzats en infància; b) la resta de requisits establerts en l'ordenament jurídic vigent.
+
+Prestació
+
+1.2.1.10 Servei de centre socioeducatiu nocturn
+
+Garantia de la prestació
+
+Prestació garantida.
+
+Descripció
+
+Serveis residencials d'allotjament nocturn de curta durada de persones menors estrangeres nouvingudes no acompanyades, mentre es realitza la proposta més adequada.
+
+Objecte
+
+Prestar la primera acollida nocturna a infants i adolescents pressumptament desemparats recentment arribats a Catalunya.
+
+Funcions
+
+Donar informació i acollida.
+
+Realizar la valoració, la orientació i la prestació de suports.
+
+Les altres funcions establertes per l'ordenament jurídic vigent.
+
+Tipologia de la prestació
+
+Prestació de servei: servei especialitzat.
+
+Situació de la població destinatària
+
+Adolescents en situació de risc o desemparament.
+
+Edat població destinatària
+
+De 12 a 18 anys.
+
+Forma de prestació
+
+En establiment nocturn.
+
+Perfils professionals
+
+Educadors/ores socials, preferentment amb experiència en l'àmbit de la infància i l'adolescència en risc.
+
+Ràtios de professionals
+
+Educador/a social/menor: 0,10
+
+Estàndards de qualitat
+
+Els que estableixi el Pla de qualitat previst en la Llei de serveis socials per a aquesta prestació.
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquest servei són els següents: a) desemparament del menor d'acord amb els articles 105 i següents de la Llei 14/2010, de 27 de maig, dels drets i les oportunitats en la infància i l'adolescència; b) els articles 4 i 13 del Decret 2/1997, de 7 de gener, pel qual s'aprova el Reglament de protecció dels menors desemparats i de l'adopció; c) la resta de requisits establerts en l'ordenament jurídic vigent.
+
+Prestació
+
+1.2.1.11 Servei d'Acompanyament Especialitzat a Joves Tutelats i Extutelats (SAEJ)
+
+Garantia de la prestació
+
+Subjecta a crèdits pressupostaris disponibles.
+
+Descripció
+
+Servei destinat a prevenir i/o pal·liar la situació de risc de joves entre 16 i 20 anys, tutelats/des i extutelats/des, procurant la seva integració sociolaboral, fomentant la seva autonomia i emancipació.
+
+Objecte
+
+Donar resposta a situacions i necessitats que requereixen una especialització tècnica alternativa a un ingrés residencial.
+
+Funcions
+
+Proporcionar als menors atesos tota la cobertura inherent a l'exercici de la guarda i educació.
+
+Oferir un acompanyament educatiu durant el procés d'assoliment de l'autonomia personal donant suport i guia al jove en la recerca de recursos.
+
+Les altres funcions establertes per l'ordenament jurídic vigent.
+
+Tipologia de la prestació
+
+Prestació de servei: servei especialitzat.
+
+Situació de la població destinatària
+
+Joves tutelats/ades i extutelats/ades per l'Administració de la Generalitat de Catalunya.
+
+Edat població destinatària
+
+De 16 a 20 anys.
+
+Forma de prestació
+
+Mitjançant intervenció d'equip de professionals.
+
+Perfils professionals
+
+Director/a responsable (professional amb titulació universitària en l'àmbit de les ciències socials), educador/a social, insertor/a laboral i/o integrador/a social i advocat/da, preferentment amb experiència en l'àmbit de la infància i l'adolescència en risc.
+
+Ràtios de professionals
+
+Director/a responsable. 1 educador/a social, 1 insertor/a laboral o integrador/a social, 1 advocat/da, cada 10 usuaris.
+
+Estàndards de qualitat
+
+Els que estableixi el Pla de qualitat previst en la Llei de serveis socials per a aquesta prestació.
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquest servei són els següents: a) persona menor d'edat: articles 105 i següents de la Llei 14/2010, de 27 de maig, dels drets i les oportunitats en la infància i l'adolescència i article 4 del Decret 2/1997, de 7 de gener, pel qual s'aprova el Reglament dels menors desemparats i de l'adopció; b) en el cas dels majors d'edat: persones extutelats/des; c) la resta de requisits establerts en l'ordenament jurídic vigent..
+
+Cost de referència
+
+41,53 euros/estada - 1.263,20 euros/mes
+
+Mòdul social
+
+1.003,20 euros/mes
+
+Copagament
+
+260 euros/mes
+
+Per al càlcul del copagament, s'estableix la referència del tant per cent de l'indicador de renda de suficiència de Catalunya (IRSC) a disposició del jove, segons la taula següent:
+
+Joves amb ingressos superiors a 1,5 IRSC
+
+260 €
+
+Joves amb ingressos fins a 1,5 IRSC
+
+170 €
+
+Joves amb ingressos iguals a l’IRSC
+
+57 €
+
+Joves amb ingressos entre el 70% i IRSC
+
+30 €
+
+Prestació
+
+1.2.1.12 Servei de suport a l'adopció internacional
+
+Garantia de la prestació
+
+Subjecta a crèdits pressupostaris disponibles.
+
+Descripció
+
+Servei de suport consistent en la gestió i mediació per a l'adopció de menors en l'àmbit internacional. Aquest servei pot ser realitzat per l'organisme públic competent de la Generalitat o per entitats col·laboradores públiques o privades sense ànim de lucre que obtinguin la corresponent acreditació.
+
+Objecte
+
+Donar resposta a situacions i necessitats que requereixen una especialització tècnica.
+
+Assessorar i informar als sol.licitants d'adopció internacional, seguint les instruccions de l'Institut Català de l'Acolliment i de l'Adopció i, en especial, sobre les especificitats a cada país i les conseqüències jurídiques que es poden produir a Catalunya.
+
+Funcions
+
+Gestió i mediació per a l'adopció de menors en l'àmbit internacional.
+
+Les altres funcions establertes per l'ordenament jurídic vigent.
+
+Tipologia de la prestació
+
+Prestació de servei: servei especialitzat.
+
+Situació de la població destinatària
+
+Famílies sol·licitants d'adopció internacional.
+
+Edat població destinatària
+
+Població general.
+
+Forma de prestació
+
+Mitjançant intervenció d'equip de professionals.
+
+Perfils professionals
+
+Equip format per: advocat/da, psicòleg/oga o psicopedagog/a, treballador/a social.
+
+Ràtios de professionals
+
+Equip mínim de l'Entitat Col.laboradora d'Adopció Internacional: 1 advocat/da, 1 psicòleg/oga o psicopedagog/a, 1 treballador/a social.
+
+Estàndards de qualitat
+
+Els que estableixi el Pla de qualitat previst en la Llei de serveis socials per a aquesta prestació i el que estableix l'article 7.6 del Decret 97/2001, de 3 d'abril, sobre l'acreditació i el funcionament de les entitats col·laboradores d'adopció internacional.
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquest servei són els següents: a) els establerts en els articles 13 a 17 del Decret 97/2001, de 3 d'abril, sobre l'acreditació i el funcionament de les entitats col·laboradores d'adopció internacional; b) article 3 de la Llei 13/97, de 19 de novembre, de creació de l'institut Català de l'Acolliment i l'Adopció; c) la resta de requisits d'accés establerts en l'ordenament jurídic vigent.
+
+Cost de referència
+
+Pendent de desplegament normatiu.
+
+Mòdul social
+
+Pendent de desplegament normatiu.
+
+Copagament
+
+Pendent de desplegament normatiu.
+
+Prestació
+
+1.2.1.13 Servei d'atenció postadoptiva
+
+Garantia de la prestació
+
+Subjecta a crèdits pressupostaris disponibles.
+
+Descripció
+
+Servei que ofereix un espai de consulta, assessorament, orientació i intervenció individual i familiar per tractar dificultats puntuals que tenen a veure amb la integració dels infants al si de la seva família adoptiva.
+
+Objecte
+
+Donar resposta a situacions i necessitats que requereixen una especialització tècnica, atesa la complexitat que comporta tot procès d'adopció, es posarà una atenció especial en les crisis que puguin aparèixer dins el marc de l'adopció.
+
+Funcions
+
+Orientar i assessorar a famílies adoptives en les dificultats que expresen. Aquest suport tècnic es farà des de l'especialització en temes d'adopció.
+
+Les altres funcions establertes per l'ordenament jurídic vigent.
+
+Tipologia de la prestació
+
+Prestació de servei: servei especialitzat.
+
+Situació de la població destinatària
+
+Famílies amb fills i filles adoptats.
+
+Edat població destinatària
+
+Població general.
+
+Forma de prestació
+
+Mitjançant intervenció d'equip de professionals.
+
+Perfils professionals
+
+Equip format per pedagog/a, psicòleg/oga, treballador/a social.
+
+Ràtios de professionals
+
+70 casos anuals per equip.
+
+Estàndards de qualitat
+
+Els que estableixi el Pla de qualitat previst en la Llei de serveis socials per a aquesta prestació.
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquest servei són els següents: a) els establerts a l'article 3 de la Llei 13/1997, de 19 de novembre, de creació de l'Institut Català de l'Acolliment i de l'Adopció; b) article 8d del Decret 337/1995, de 28 de desembre, sobre l'acreditació i el funcionament de les institucions col.laboradores d'integració familiar i de les entitats col.laboradores d'adopció internacional; c) la resta de requisits d'accés establerts en l'ordenament jurídic vigent.
+
+Cost de referència
+
+Pendent de desplegament normatiu.
+
+Mòdul social
+
+Pendent de desplegament normatiu.
+
+Copagament
+
+Pendent de desplegament normatiu.
+
+Prestació
+
+1.2.1.14 Servei del Telèfon de la Infància (Infància Respon)
+
+Garantia de la prestació
+
+Prestació garantida.
+
+Descripció
+
+Atenció telefònica permanent i gratuïta de trucades relatives preferentment a situacions de risc per infants i adolescents.
+
+Objecte
+
+Informar, assessorar i orientar amb relació a qualsevol tipus de demanda que afecti la infància i l'adolescència. Derivar a la Unitat de Detecció i Prevenció de Maltractament Infantil (UDEPMI) de la Direcció General d'Atenció a l'Infància i l'Adolescència les denuncies de maltractaments greus a menors per tal de donar una resposta immediata
+
+Funcions
+
+Recepció i atenció de les trucades de ciutadans i professionals.
+
+Les altres funcions establertes per l'ordenament jurídic vigent.
+
+Tipologia de la prestació
+
+Prestació de servei: servei especialitzat.
+
+Situació de la població destinatària
+
+Infància i adolescència.
+
+Edat població destinatària
+
+Població general.
+
+Forma de prestació
+
+Mitjançant intervenció d'equip de professionals.
+
+Perfils professionals
+
+Professionals amb titulació universitària en l'àmbit de les ciències socials, preferentment amb experiència en l'àmbit de la infància i l'adolescència en risc.
+
+Ràtios de professionals
+
+Es disposarà de professionals suficients per a la prestació del servei en funció del nombre de trucades.
+
+Estàndards de qualitat
+
+Els que estableixi el Pla de qualitat previst en la Llei de serveis socials per a aquesta prestació.
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquest servei són els següents: a) els establerts en l'Acord GOV/121/2007, de 16 d'octubre, pel qual s'estableix la Unitat de Detecció i Prevenció de Maltractament Infantil (UDEPMI); b) per connectar amb el Telèfon de la Infància cal marcar el número gratuït 900 300 777 el qual està vinculat directament a la Unitat de Detecció i Prevenció del Maltractament Infantil (UDEPMI); c) la resta de requisits d'accés establerts en l'ordenament jurídic vigent.
+
+Prestació
+
+1.2.1.15 Servei d'equips de valoració de maltractaments infantils (EVAMI)
+
+Garantia de la prestació
+
+Prestació garantida
+
+Descripció
+
+Servei de valoració de maltractaments infantils. Aquest servei es presta des dels Equips de Valoració de Maltractaments Infantils (EVAMI), integrats per psicòleg/oga i treballador/a social. Aquests equips assessoren, valoren i informen els casos de maltractaments o sospita de maltractaments notificats a l'organisme competent des de l'àmbit sanitari.
+
+Objecte
+
+Donar resposta a situacions que requereixen una especialització tècnica en la valoració del maltractament infantil detectat des de l'àmbit sanitari i fer la proposta administrativa corresponent.
+
+Funcions
+
+Fer avaluacions especialitzades que no es poden abordar des d'un servei social bàsic, a partir dels corresponents informes de derivació de la Direcció General d'Atenció a la Infància i l'Adolescència.
+
+Les altres funcions establertes per l'ordenament jurídic vigent.
+
+Tipologia de la prestació
+
+Prestació de servei: servei especialitzat.
+
+Situació de la població destinatària
+
+Menors d'edat amb maltractament infantil sever detectats des de l'àmbit sanitari i que interessa una actuació immediata de protecció.
+
+Edat població destinatària
+
+De 0 a 18 anys.
+
+Forma de prestació
+
+Mitjançant intervenció d'equip de professionals.
+
+Perfils professionals
+
+Equip format per psicòleg/oga, treballador/a social, preferentment amb experiència en l'àmbit de la infància i l'adolescència en risc.
+
+Ràtios de professionals
+
+Equip de 2 professionals permanentment a cada servei territorial d'Atenció a la Infància i l'Adolescència.
+
+Estàndards de qualitat
+
+Els que estableixi el Pla de qualitat previst en la Llei de serveis socials per a aquesta prestació.
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquest servei són els següents: a) els establerts en la Llei 14/2010, de 27 de maig, dels drets i les oportunitats en la infància i l'adolescència i en el Decret 2/1997, de 7 de gener, pel qual s'aprova el Reglament de protecció dels menors desemparats i de l'adopció; b) la resta de requisits d'accés establerts en l'ordenament jurídic vigent.
+
+Prestació
+
+1.2.2.1.1 Servei de prevenció de les situacions de dependència
+
+Garantia de la prestació
+
+Prestació garantida per a les persones en situació de dependència, en aplicació de la Disposició Addicional 5a de la Llei 12/2007, d'11 d'octubre, de serveis socials. Subjecta a crèdits pressupostaris disponibles per a la resta.
+
+Descripció
+
+El servei ofereix un conjunt d'actuacions dirigides a valorar, orientar i coordinar els suports necessaris per oferir una atenció integral per a la prevenció de la dependència.
+
+Objecte
+
+Prevenir l'aparició o l'agreujament de malalties o discapacitats i de les seves seqüeles, mitjançant el desenvolupament coordinat, entre els serveis socials i de salut, d'actuacions de promoció de condicions de vida saludables, programes específics de caràcter preventiu i de rehabilitació dirigits a les persones grans i persones amb discapacitat i als qui es veuen afectats per processos d'alta dependència i/o complexitat assistencial.
+
+Funcions
+
+Les funcions que s'estableixin en la normativa reguladora corresponent.
+
+Tipologia de la prestació
+
+Prestació de servei: servei especialitzat.
+
+Situació de la població destinatària
+
+Dependència.
+
+Edat població destinatària
+
+Població en general.
+
+Forma de prestació
+
+Mitjançant intervenció d'equip de professionals.
+
+Perfils professionals
+
+Es disposarà de professionals suficients en nombre i perfil per a la prestació del servei.
+
+Ràtios de professionals
+
+Es disposarà de professionals suficients en nombre i perfil per a la prestació del servei.
+
+Estàndards de qualitat
+
+Els que estableixi el Pla de qualitat previst en la Llei de Serveis Socials per a aquesta prestació.
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquest servei són els següents: a) l'existència de situació de necessitat, d'acord amb la normativa reguladora del servei; b) si és el cas, l'acreditació de la situació de dependència, per mitjà de la resolució emesa per l'òrgan de valoració corresponent, d'acord amb el Reial Decret 504/2007, de 20 d'abril; c) la residència en un municipi de Catalunya; d) per a les persones estrangeres, els requisits establerts en la normativa vigent d'estrangeria i d'acollida i integració de les persones immigrades; e) la resta de requisits d'accés establerts en l'ordenament jurídic vigent.
+
+Prestació
+
+1.2.2.1.2 Servei de valoració de la dependència
+
+Garantia de la prestació
+
+Prestació garantida.
+
+Descripció
+
+Servei format per equips multidisciplinaris la missió dels quals és la valoració de la dependència, d'acord amb els barems aprovats per la Llei 39/2006, amb l'assessorament expert necessari per garantir-ne la qualitat.
+
+Objecte
+
+Valoració tècnica de la dependència i emissió de proposta de grau de dependència.
+
+Funcions
+
+Recepció i gestió de les demandes de valoració (requeriments de documentació, agenda i gestió d'incidències).
+
+Valoració del grau de dependència i de les revisions de grau per modificació de la situació.
+
+Elaboració de dictàmens-proposta per emetre la resolució de grau.
+
+Informació i orientació a la persona sobre el procés de reconeixement.
+
+Les altres funcions que estableix l'ordenament jurídic vigent.
+
+Tipologia de la prestació
+
+Prestació de servei: servei especialitzat.
+
+Situació de la població destinatària
+
+Dependència.
+
+Edat de la població destinatària
+
+Població en general.
+
+Forma de prestació
+
+Mitjançant la intervenció de l'equip de professionals.
+
+Perfils professionals
+
+Equip de valoració format per professionals de l'àmbit sanitari i/o social (amb titulació universitària).
+
+Estàndards de qualitat
+
+Els que estableixi el Pla de qualitat previst en la Llei de serveis socials per a aquesta prestació.
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquest servei són els següents: a) residir en un municipi de Catalunya i, si escau, complir el requisit de residència establert en la Llei 39/2006, de 14 de desembre; b) en el cas de les persones estrangeres, complir els requisits establerts en la normativa vigent d'estrangeria i d'acollida i integració de les persones immigrades; c) en el supòsit de revisió de la situació de dependència, acreditar-la mitjançant la resolució emesa per l'òrgan de valoració corresponent, d'acord amb el Reial decret 504/2007, de 20 d'abril; d) complir la resta de requisits d'accés establerts en l'ordenament jurídic vigent.
+
+Prestació
+
+1.2.2.1.3 Servei de transport adaptat
+
+Garantia de la prestació
+
+Subjecta a crèdits pressupostaris disponibles.
+
+Descripció
+
+Servei complementari de suport als serveis socials d'atenció especialitzada a persones amb discapacitat o dependència, consistent en la prestació d'un sistema de transport adaptat al grau de necessitat de suport de les possibles persones usuàries.
+
+Objecte
+
+Possibilitar l'accés a les persones amb discapacitat o dependència als serveis socials d'atenció especialitzada o aquells altres que permetin garantir la seva integració.
+
+Funcions
+
+Trasllat als serveis socials especialitzats o aquells altres que permetin garantir la integració de les persones usuàries.
+
+Les altres funcions establertes per l'ordenament jurídic vigent.
+
+Tipologia de la prestació
+
+Prestació de servei: servei especialitzat.
+
+Situació de la població destinatària
+
+Dependència.
+
+Edat població destinatària
+
+Població general.
+
+Perfils professionals
+
+Es disposarà de professionals suficients en nombre i perfil per a la prestació del servei.
+
+Ràtios de professionals
+
+Es disposarà de professionals suficients en nombre i perfil per a la prestació del servei.
+
+Estàndards de qualitat
+
+Els que estableixi el Pla de qualitat previst en la Llei de Serveis Socials per a aquesta prestació.
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquest servei són els següents: a) l'acreditació de la situació de necessitat, d'acord amb la normativa reguladora del servei; b) la residència en un municipi de Catalunya; c) per a les persones estrangeres, els requisits establerts en la normativa vigent d'estrangeria i d'acollida i integració de les persones immigrades; d) la resta de requisits d'accés establerts en l'ordenament jurídic vigent.
+
+Cost de referència
+
+Pendent de desplegament normatiu.
+
+Mòdul social
+
+Pendent de desplegament normatiu.
+
+Copagament
+
+Pendent de desplegament normatiu.
+
+Prestació
+
+1.2.2.1.4 Servei de centre per a l'autonomia personal
+
+Garantia de la prestació
+
+Subjecta a crèdits pressupostaris disponibles.
+
+Descripció
+
+Centre que ofereix un servei d'informació i orientació en aspectes relacionats amb la promoció de l'autonomia personal en les activitats de la vida diària i la relació amb l'entorn.
+
+Objecte
+
+Assessorar, informar i orientar a les persones en situació de dependència, en ajudes tècniques, accessibilitat i comunicació per aconseguir la millora en l'autonomia personal.
+
+Funcions
+
+Assessorar en els àmbits d'actuació següents: ajudes tècniques, accessibilitat i comunicació.
+
+Exposar ajudes tècniques.
+
+Participar en activitats d'innovació i desenvolupament en l'àmbit de l'autonomia personal.
+
+Innovació i desenvolupament en l'autonomia personal.
+
+Les altres funcions establertes per l'ordenament jurídic vigent.
+
+Tipologia de la prestació
+
+Prestació de servei: servei especialitzat.
+
+Situació de la població destinatària
+
+Dependència i persones amb discapacitat.
+
+Edat població destinatària
+
+Població general.
+
+Forma de prestació
+
+En establiment diürn.
+
+Perfils professionals
+
+Equip interdisciplinari especialitzat.
+
+Ràtios de professionals
+
+Es disposarà de professionals suficients en nombre i perfil per a la prestació del servei.
+
+Estàndards de qualitat
+
+Els que estableixi el Pla de qualitat previst en la Llei de Serveis Socials per a aquesta prestació.
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquest servei són els següents: a) l'acreditació de la situació de necessitat, d'acord amb la normativa reguladora del servei; b) la residència en un municipi de Catalunya; c) per a les persones estrangeres, els requisits establerts en la normativa vigent d'estrangeria i d'acollida i integració de les persones immigrades; d) la resta de requisits d'accés establerts en l'ordenament jurídic vigent.
+
+Prestació
+
+1.2.3.1 Servei de centre de dia per a gent gran de caràcter temporal o permanent
+
+Garantia de la prestació
+
+Subjecta a crèdits pressupostaris disponibles.
+
+Descripció
+
+Servei d'acolliment diürn que dóna suport a les persones grans que necessiten organització, supervisió i assistència en les activitats de la vida diària i complementen l'atenció pròpia de l'entorn familiar.
+
+Objecte
+
+Afavorir la recuperació i el manteniment de l'autonomia personal i social, mantenint la persona en el seu entorn personal, social i familiar en les millors condicions i proporcionar suport a les famílies en l'atenció a les persones grans dependents.
+
+Funcions
+
+Acolliment i convivència.
+
+Manutenció.
+
+Atenció personal en les activitats de la vida diària.
+
+Higiene personal.
+
+Readaptació funcional y social.
+
+Recuperació dels hàbits d'autonomia.
+
+Suport personal, social i familiar.
+
+Seguiment i prevenció de les alteracions de la salut.
+
+Les altres funcions establertes per l'ordenament jurídic vigent.
+
+Tipologia de la prestació
+
+Prestació de servei: servei especialitzat.
+
+Situació de la població destinatària
+
+Dependència i/o risc social.
+
+Edat població destinatària
+
+65 i més anys.
+
+Forma de prestació
+
+En establiment diürn.
+
+Perfils professionals
+
+Director/a responsable (professional amb titulació universitària, preferentment en l'àmbit de les ciències socials i de la salut), responsable higienicosanitari (metge/essa, infermer/a) i personal d'atenció directa: professionals amb titulació adient per donar atenció geriàtrica, animació sociocultural, teràpia ocupacional, fisioteràpia, atenció sanitària, psicològica i social.
+
+Ràtios de professionals
+
+Personal d'atenció directa en una proporció no inferior al 0,15, garantint l'atenció directa continuada durant les hores que es presta el servei.
+
+Estàndards de qualitat
+
+Publicació del Departament d'Acció Social i Ciutadania: "Indicadors d'avaluació de qualitat. Avaluació externa de qualitat dels centres de l'ICASS. Centres de dia de gent gran. Desembre 1999".
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquest servei són els següents: a) l'acreditació de la situació de necessitat, d'acord amb el que preveuen els articles 2, 3 i 7 del Decret 182/2003, de 22 de juliol, de regulació dels serveis d'acolliment diürn de centre de dia per a gent gran; b) si és el cas, l'acreditació de la situació de dependència, per mitjà de la resolució emesa per l'òrgan de valoració corresponent, d'acord amb el Reial Decret 504/2007, de 20 d'abril; c) el requisit d'edat establert en aquesta disposició; d) la residència en un municipi de Catalunya i, si és el cas, el requisit de residència establert en la Llei 39/2006, de 14 de desembre; e) per a les persones estrangeres, els requisits establerts en la normativa vigent d'estrangeria i d'acollida i integració de les persones immigrades; f) si és el cas, l'abonament del preu públic, d'acord amb el Decret 394/1996, de 12 de desembre, i l'Ordre ASC/432/2007, de 22 de novembre; g) la resta de requisits d'accés establerts en l'ordenament jurídic vigent.
+
+Cost de referència
+
+28,06 euros estada - 853,49 euros mes - 617,32 euros mes (dies laborables).
+
+Mòdul social
+
+324,47 euros mes - 234,68 euros mes (dies laborables).
+
+Copagament
+
+529,02 euros mes - 382,64 euros mes (dies laborables).
+
+Prestació
+
+1.2.3.2 Servei d'atenció integral a les persones grans en l'àmbit rural
+
+Garantia de la prestació
+
+Subjecta a crèdits pressupostaris disponibles.
+
+Descripció
+
+Servei d'atenció a les persones grans en l'àmbit rural, en el seu entorn habitual, que facilita els serveis assistencials ambulatoris, de forma continuada i integral, d'acord amb les necessitats de la persona gran pel desenvolupament de les activitats quotidianes, i per a la prevenció i l'assistència en les diferents etapes d'evolució cap a la dependència.
+
+Objecte
+
+Garantir la continuïtat en el desenvolupament de les activitats habituals de la persona gran en el seu entorn immediat de caràcter rural, des d'una organització comuna i comptant amb els serveis especialitzats existents en el territori.
+
+Funcions
+
+Integrar, en una estructura organitzativa única, els serveis d'atenció domiciliària i els serveis ambulatoris de caràcter bàsic.
+
+Disposar d'espais d'acollida i atenció específics destinats al compliment de les seves finalitats.
+
+Realitzar l'avaluació inicial de l'usuari, i elaborar el pla individual d'atenció.
+
+Oferir com a servei bàsic el suport al desenvolupament de les activitats bàsiques de la vida diària.
+
+Les altres funcions establertes per l'ordenament jurídic vigent.
+
+Tipologia de la prestació
+
+Prestació de servei: servei especialitzat.
+
+Situació de la població destinatària
+
+Dependència i/o risc social.
+
+Edat població destinatària
+
+65 i més anys.
+
+Forma de prestació
+
+En establiment i mitjançant intervenció de professionals.
+
+Perfils professionals
+
+El servei disposarà d'un professional responsable, i del personal d'atenció directa necessari per donar atenció geriàtrica, entre els quals, treballador/a familiar, auxiliar de geriatria o d'altres professionals amb la titulació adient per prestar les funcions corresponents.
+
+Ràtios de professionals
+
+El servei haurà de garantir la presència física d'almenys un professional d'atenció geriàtrica durant les hores de prestació del servei.
+
+Estàndards de qualitat
+
+Els que estableixi el Pla de qualitat previst en la Llei de serveis socials per a aquesta prestació.
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquest servei són els següents: a) l'acreditació de la situació de necessitat, d'acord amb allò establert per la normativa específica del servei; b) el requisit d'edat establert en aquesta disposició; c) la residència en un municipi de Catalunya d'àmbit rural, d'acord amb la normativa reguladora específica; d) per a les persones estrangeres, els requisits establerts en la normativa vigent d'estrangeria i d'acollida i integració de les persones immigrades; e) si és el cas, l'abonament del preu públic, d'acord amb el Decret 394/1996, de 12 de desembre; f) la resta de requisits d'accés establerts en l'ordenament jurídic vigent.
+
+Cost de referència
+
+Pendent de desplegament normatiu.
+
+Mòdul social
+
+Pendent de desplegament normatiu.
+
+Copagament
+
+Pendent de desplegament normatiu.
+
+Prestació
+
+1.2.3.3.1 Servei de llar residència per a gent gran de caràcter temporal o permanent
+
+Garantia de la prestació
+
+Subjecta a crèdits pressupostaris disponibles.
+
+Descripció
+
+Servei d'acolliment residencial de caràcter temporal o permanent per a persones grans que vulguin ingressar-hi.
+
+Objecte
+
+Facilitar a les persones grans amb un grau d'autonomia suficient per les activitats de la vida diària i que requereixen determinat nivell d'organització i suport personal, un entorn substitutori de la llar.
+
+Funcions
+
+Allotjament.
+
+Manutenció.
+
+Acolliment i convivència.
+
+Suport personal.
+
+Les altres funcions establertes per l'ordenament jurídic vigent.
+
+Tipologia de la prestació
+
+Prestació de servei: servei especialitzat.
+
+Situació de la població destinatària
+
+Risc social.
+
+Edat població destinatària
+
+65 i més anys.
+
+Forma de prestació
+
+Alternativa a la llar.
+
+Perfils professionals
+
+Director/a responsable (professional amb titulació universitària, preferentment en l'àmbit de les ciències socials i de la salut), responsable higienicosanitari (metge/essa, infermer/a) i personal per a la prestació de les funcions d'allotjament, manutenció, acolliment i convivència i suport personal.
+
+Ràtios de professionals
+
+Disposar d'1 responsable de la direcció tècnica del servei i de personal suficient per a la prestació adequada de les funcions esmentades, en una proporció persona/atès no inferior al 0,25. També es comptarà amb el suport d'un responsable higienicosanitari.
+
+Estàndards de qualitat
+
+Els que estableixi el Pla de qualitat previst en la Llei de serveis socials per a aquesta prestació.
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquest servei són els següents: a) l'acreditació de la situació de necessitat, d'acord amb allò establert en els articles 3, 4, 5, 6 i 7 i l'Annex de l'Ordre BEF/468/2003, de 10 de novembre; b) el requisit d'edat establert en aquesta disposició; c) la residència en un municipi de Catalunya, almenys dos anys abans de la data de presentació de sol·licitud, d) per a les persones estrangeres, els requisits establerts en la normativa vigent d'estrangeria i d'acollida i integració de les persones immigrades; e) si és el cas, l'abonament del preu públic, d'acord amb el Decret 394/1996, de 12 de desembre; f) la resta de requisits d'accés establerts en l'ordenament jurídic vigent.
+
+Cost de referència
+
+27,85 euros estada - 847,24 euros mes.
+
+Mòdul social
+
+174,94 euros mes.
+
+Copagament
+
+672,30 euros mes.
+
+Prestació
+
+1.2.3.3.2.1 Servei de residència assistida per a gent gran amb risc social de caràcter temporal o permanent
+
+Garantia de la prestació
+
+Subjecta a crèdits pressupostaris disponibles.
+
+Descripció
+
+Servei d'acolliment residencial, amb caràcter permanent o temporal, i d'assistència integral a les activitats de la vida diària per a persones grans amb dependències.
+
+Objecte
+
+Facilitar un entorn substitutiu de la llar, adequat i adaptat a les necessitats d'assistència i afavorir la recuperació i el manteniment del màxim grau d'autonomia personal i social.
+
+Funcions
+
+Allotjament. Manutenció.
+
+Bugaderia i repàs de la roba.
+
+Acolliment i convivència.
+
+Atenció personal en les activitats de la vida diària.
+
+Hàbits d'autonomia.
+
+Dinamització sociocultural.
+
+Manteniment de les funcions físiques i cognitives.
+
+Higiene personal.
+
+Suport social.
+
+Atenció familiar adreçada a l'afavoriment de les relacions de la família de la persona usuària el seu entorn.
+
+Garantir l'assistència sanitària.
+
+Les altres funcions establertes per l'ordenament jurídic vigent.
+
+Tipologia de la prestació
+
+Prestació de servei: servei especialitzat.
+
+Situació de la població destinatària
+
+Dependència i/o risc social.
+
+Edat població destinatària
+
+65 anys i més.
+
+Forma de prestació
+
+En establiment residencial.
+
+Perfils professionals
+
+Director/a responsable (professional amb titulació universitària, preferentment en l'àmbit de les ciències socials i de la salut), responsable higienicosanitari (metge/essa, infermer/a), infermer/a, auxiliar de gerontologia, fisioterapeuta, terapeuta ocupacional, treballador/a social, educador/a social, psicòleg/loga, metge/essa.
+
+Ràtios de professionals
+
+Director/a tècnic/a en els serveis residencials de més de 50 places serà d'un mínim de 30 hores setmanals o proporció equivalent. En tot cas la dedicació per serveis no serà inferior a 10 hores. Responsable higienicosanitari en residència assistida, a partir de 100 places jornada complerta o proporció equivalent. Dedicació mínima no serà inferior a 5 hores setmanals. Nivell baix de dependència per a les activitats de la vida diària: atenció directa 0,28/indirecta 0,12, amb la distribució del personal d'atenció directa següent: auxiliar de gerontologia, 420 hores/any per persona usuària; infermer/a, 37 hores/any per persona usuària; educador/a social, 17 hores/any per persona usuària; fisioterapeuta, 17 hores/any per persona usuària; treballador/a social, 17 hores/any per persona usuària.
+
+Estàndards de qualitat
+
+Publicació del Departament d'Acció Social i Ciutadania: "Indicadors d'avaluació de qualitat. Avaluació externa de qualitat dels centres de l'ICASS. Residències assistides de gent gran. Desembre 1999".
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquest servei són els següents: a) l'acreditació de la situació de necessitat, d'acord amb allò establert en els articles 3, 4, 5, 6 i 7 i l'Annex de l'Ordre BEF/468/2003, de 10 de novembre; b) el requisit d'edat establert en aquesta disposició; c) la residència en un municipi de Catalunya, almenys dos anys abans de la data de presentació de sol·licitud, i, si és el cas, el requisit de residència establert en la Llei 39/2006, de 14 de desembre; d) per a les persones estrangeres, els requisits establerts en la normativa vigent d'estrangeria i d'acollida i integració de les persones immigrades; e) si és el cas, l'abonament del preu públic, d'acord amb el Decret 394/1996, de 12 de desembre, i l'Ordre ASC/432/2007, de 22 de novembre; f) la resta de requisits d'accés establerts en l'ordenament jurídic vigent.
+
+Cost de referència
+
+45,53 euros estada - 1.384,88 euros mes.
+
+Mòdul social
+
+420,40 euros mes.
+
+Copagament
+
+964,48 euros mes.
+
+Prestació
+
+1.2.3.3.2.2 Servei de residència assistida per a gent gran de caràcter temporal o permanent. Grau II
+
+Garantia de la prestació
+
+Prestació garantida per a les persones en situació de dependència, en aplicació de la disposició addicional cinquena de la Llei 12/2007, d'11 d'octubre, de serveis socials.
+
+Descripció
+
+Servei d'acolliment residencial, amb caràcter permanent o temporal, i d'assistència integral a les activitats de la vida diària per a persones grans amb dependències.
+
+Objecte
+
+Facilitar un entorn substitutiu de la llar, adequat i adaptat a les necessitats d'assistència i afavorir la recuperació i el manteniment del màxim grau d'autonomia personal i social.
+
+Funcions
+
+Allotjament.
+
+Manutenció.
+
+Bugaderia i repàs de la roba.
+
+Acolliment i convivència.
+
+Atenció personal en les activitats de la vida diària.
+
+Hàbits d'autonomia.
+
+Dinamització sociocultural.
+
+Manteniment de les funcions físiques i cognitives.
+
+Higiene personal.
+
+Suport social.
+
+Atenció familiar adreçada a l'afavoriment de les relacions de la família de la persona usuària el seu entorn.
+
+Garantir l'assistència sanitària.
+
+Les altres funcions establertes per l'ordenament jurídic vigent.
+
+Tipologia de la prestació
+
+Prestació de servei: servei especialitzat.
+
+Situació de la població destinatària
+
+Dependència - grau II.
+
+Edat població destinatària
+
+65 i més anys.
+
+Forma de prestació
+
+En establiment residencial.
+
+Perfils professionals
+
+Director/a responsable (professional amb titulació universitària, preferentment en l'àmbit de les ciències socials i de la salut), responsable higienicosanitari (metge/essa, infermer/a), infermer/a, auxiliar de gerontologia, fisioterapeuta, terapeuta ocupacional, treballador/a social, educador/a social, psicòleg/loga, metge/essa.
+
+Ràtios de professionals
+
+Director/a tècnic/a en els serveis residencials de més de 50 places serà un mínim de 30 hores setmanals o proporció equivalent. En tot cas la dedicació per serveis no serà inferior a 10 hores. Responsable higienicosanitari en residència assistida, a partir de 100 places jornada complerta o proporció equivalent. Dedicació mínima no serà inferior a 5 hores setmanals. Nivell mitjà de dependència per a les activitats de la vida diària: atenció directa 0,34/indirecta 0,12, amb la distribució del personal següent: auxiliar de gerontologia, 450 hores/any per persona usuària; infermer/a, 60 hores/any per persona usuària; terapeuta ocupacional, 5 hores/any per persona usuària; educador/a social, 17 hores/any per persona usuària; fisioterapeuta, 35 hores/any per persona usuària; treballador/a social, 17 hores/any per persona usuària; psicòleg/oga, 17 hores/any per persona usuària; metge/essa, 10 hores/any per persona usuària.
+
+Estàndards de qualitat
+
+Publicació del Departament d'Acció Social i Ciutadania: "Indicadors d'avaluació de qualitat. Avaluació externa de qualitat dels centres de l'ICASS. Residències assistides de gent gran. Desembre 1999".
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquest servei són els següents: a) l'acreditació de la situació de necessitat, d'acord amb allò establert en els articles 3, 4, 5, 6 i 7 i l'Annex de l'Ordre BEF/468/2003, de 10 de novembre; b) si és el cas, l'acreditació de la situació de dependència, Grau II, per mitjà de la resolució emesa per l'òrgan de valoració corresponent, d'acord amb el Reial Decret 504/2007, de 20 d'abril; c) el requisit d'edat establert en aquesta disposició; d) la residència en un municipi de Catalunya, almenys dos anys abans de la data de presentació de sol·licitud, i, si és el cas, el requisit de residència establert en la Llei 39/2006, de 14 de desembre; e) per a les persones estrangeres, els requisits establerts en la normativa vigent d'estrangeria i d'acollida i integració de les persones immigrades; f) si és el cas, l'abonament del preu públic, d'acord amb el Decret 394/1996, de 12 de desembre, i l'Ordre ASC/432/2007, de 22 de novembre; g) la resta de requisits d'accés establerts en l'ordenament jurídic vigent f) la resta de requisits d'accés establerts en l'ordenament jurídic vigent.
+
+Cost de referència
+
+52,44 euros estada - 1.595,06 euros mes.
+
+Mòdul social
+
+518,29 euros mes.
+
+Copagament
+
+1.076,77 euros mes.
+
+Prestació
+
+1.2.3.3.2.3 Servei de residència assistida per a gent gran de caràcter temporal o permanent. Grau III
+
+Garantia de la prestació
+
+Prestació garantida per a les persones en situació de dependència, en aplicació de la disposició addicional cinquena de la Llei 12/2007, d'11 d'octubre, de serveis socials.
+
+Descripció
+
+Servei d'acolliment residencial, amb caràcter permanent o temporal, i d'assistència integral a les activitats de la vida diària per a persones grans amb dependències.
+
+Objecte
+
+Facilitar un entorn substitutiu de la llar, adequat i adaptat a les necessitats d'assistència i afavorir la recuperació i el manteniment del màxim grau d'autonomia personal i social.
+
+Funcions
+
+Allotjament.
+
+Manutenció.
+
+Bugaderia i repàs de la roba.
+
+Acolliment i convivència.
+
+Atenció personal en les activitats de la vida diària.
+
+Hàbits d'autonomia.
+
+Dinamització sociocultural.
+
+Manteniment de les funcions físiques i cognitives.
+
+Higiene personal.
+
+Suport social.
+
+Atenció familiar adreçada a l'afavoriment de les relacions de la família de la persona usuària el seu entorn.
+
+Garantir l'assistència sanitària.
+
+Les altres funcions establertes per l'ordenament jurídic vigent.
+
+Tipologia de la prestació
+
+Prestació de servei: servei especialitzat.
+
+Situació de la població destinatària
+
+Dependència - grau III.
+
+Edat població destinatària
+
+65 i més anys.
+
+Forma de prestació
+
+En establiment residencial.
+
+Perfils professionals
+
+Director/a responsable (professional amb titulació universitària, preferentment en l'àmbit de les ciències socials i de la salut), responsable higienicosanitari (metge/essa, infermer/a), infermer/a, auxiliar de gerontologia, fisioterapeuta, terapeuta ocupacional, treballador/a social, educador/a social, psicòleg/loga, metge/essa.
+
+Ràtios de professionals
+
+Director/a tècnic/a en els serveis residencials de més de 50 places serà un mínim de 30 hores setmanals o proporció equivalent. En tot cas la dedicació per serveis no serà inferior a 10 hores. Responsable higienicosanitari en residència assistida, a partir de 100 places jornada complerta o proporció equivalent. Dedicació mínima no serà inferior a 5 hores setmanals. Nivell alt de dependència per a les activitats de la vida diària: atenció directa 0,42/indirecta 0,12, amb la distribució del personal següent: auxiliar de gerontologia, 580 hores/any per persona usuària; infermer/a, 70 hores/any per persona usuària; terapeuta ocupacional, 17 hores/any per persona usuària; educador/a social, 17 hores/any per persona usuària; fisioterapeuta, 35 hores/any per persona usuària; treballador/a social, 17 hores/any per persona usuària; psicòleg/oga, 17 hores/any per persona usuària; metge/essa, 10 hores/any per persona usuària.
+
+Estàndards de qualitat
+
+Publicació del Departament d'Acció Social i Ciutadania: "Indicadors d'avaluació de qualitat. Avaluació externa de qualitat dels centres de l'ICASS. Residències assistides de gent gran. Desembre 1999".
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquest servei són els següents: a) l'acreditació de la situació de necessitat, d'acord amb allò establert en els articles 3, 4, 5, 6 i 7 i l'Annex de l'Ordre BEF/468/2003, de 10 de novembre; b) si és el cas, l'acreditació de la situació de dependència, Grau III, per mitjà de la resolució emesa per l'òrgan de valoració corresponent, d'acord amb el Reial Decret 504/2007, de 20 d'abril; c) el requisit d'edat establert en aquesta disposició; d) la residència en un municipi de Catalunya, almenys dos anys abans de la data de presentació de sol·licitud, i, si és el cas, el requisit de residència establert en la Llei 39/2006, de 14 de desembre; e) per a les persones estrangeres, els requisits establerts en la normativa vigent d'estrangeria i d'acollida i integració de les persones immigrades; f) si és el cas, l'abonament del preu públic, d'acord amb el Decret 394/1996, de 12 de desembre, i l'Ordre ASC/432/2007, de 22 de novembre; g) la resta de requisits d'accés establerts en l'ordenament jurídic vigent.
+
+Cost de referència
+
+61,46 euros estada - 1.869,41 euros mes.
+
+Mòdul social
+
+667,56 euros mes.
+
+Copagament
+
+1.201,85 euros mes.
+
+Prestació
+
+1.2.3.4 Servei d'habitatge tutelat per a gent gran de caràcter temporal o permanent
+
+Garantia de la prestació
+
+Subjecta a crèdits pressupostaris disponibles.
+
+Descripció
+
+Establiment que es compon d'un conjunt d'habitatges, reduïts o complets, en número variable i amb estances d'ús comú. Ofereixen un servei d'acolliment alternatiu a persones grans autònomes, les circumstàncies sociofamiliars de les quals no els permeten romandre en la pròpia llar.
+
+Objecte
+
+Dotar a les persones grans d'un habitatge adequat i practicable el qual afavoreix la màxima independència personal, constitueix el domicili habitual i afavoreix la vida comunitària i la integració social.
+
+Funcions
+
+Allotjament.
+
+Suport personal.
+
+Complementàriament es poden oferir serveis com: bugaderia, higiene de l'habitatge i altres.
+
+Les altres funcions establertes per l'ordenament jurídic vigent.
+
+Tipologia de la prestació
+
+Prestació de servei: servei especialitzat.
+
+Situació de la població destinatària
+
+Risc social.
+
+Edat població destinatària
+
+65 i més anys.
+
+Forma de prestació
+
+Alternativa a la llar.
+
+Perfils professionals
+
+Director/a responsable (professional amb titulació universitària, preferentment en l'àmbit de les ciències socials i de la salut), treballador/a social, i conserge i/o servei de teleassistència.
+
+Ràtios de professionals
+
+Disposar del personal necessari per les tasques del director/a tècnic/a, del treball social, i d'1 conserge, el/la qual juntament amb el servei de teleassistència, cobreixen les 24 h.
+
+Estàndards de qualitat
+
+Els que estableixi el Pla de qualitat previst en la Llei de Serveis Socials per a aquesta prestació.
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquest servei són els següents: a) l'acreditació de la situació de necessitat, d'acord amb allò establert en els articles 3, 4, 5, 6 i 7 i l'Annex de l'Ordre BEF/468/2003, de 10 de novembre; b) el requisit d'edat establert en aquesta disposició; c) la residència en un municipi de Catalunya, almenys dos anys abans de la data de presentació de sol·licitud; d) per a les persones estrangeres, els requisits establerts en la normativa vigent d'estrangeria i d'acollida i integració de les persones immigrades; e) si és el cas, l'abonament del preu públic, d'acord amb el Decret 394/1996, de 12 de desembre; f) la resta de requisits d'accés establerts en l'ordenament jurídic vigent.
+
+Cost de referència
+
+9,33 euros estada - 283,71 euros mes.
+
+Mòdul social
+
+59,40 euros mes.
+
+Copagament
+
+224,31 € mes.
+
+Prestació
+
+1.2.3.5 Servei de família d'acollida per a gent gran
+
+Garantia de la prestació
+
+Subjecta a crèdits pressupostaris disponibles.
+
+Descripció
+
+Servei d'acolliment de persones grans, en el domicili d'una persona o família, que no tinguin relació de parentiu, garantint la convivència mútua, la salut, la seguretat i el benestar físic i psíquic.
+
+Objecte
+
+El que estableixi la normativa reguladora del servei.
+
+Funcions
+
+Les que estableixi la normativa reguladora del servei.
+
+Tipologia de la prestació
+
+Prestació de servei: servei especialitzat.
+
+Situació de la població destinatària
+
+Risc social.
+
+Edat població destinatària
+
+65 i més anys.
+
+Estàndards de qualitat
+
+Els que estableixi el Pla de qualitat previst en la Llei de Serveis Socials per a aquesta prestació.
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquest servei són els següents: a) els establerts en el Decret 284/1996, de 23 de juliol, de regulació del sistema català de serveis socials; b) la resta de requisits d'accés establerts en l'ordenament jurídic vigent.
+
+Cost de referència
+
+Pendent de desplegament normatiu.
+
+Mòdul social
+
+Pendent de desplegament normatiu.
+
+Copagament
+
+Pendent de desplegament normatiu.
+
+Prestació
+
+1.2.3.6 Servei de suport a la capacitat jurídica per a persones grans
+
+Garantia de la prestació
+
+Prestació garantida
+
+Descripció
+
+Servei dut a terme per persones jurídiques sense ànim de lucre, dedicades a la protecció de les persones grans que tinguin proveïdes mesures judicials o notarials de suport a la capacitat jurídica.
+
+Objecte
+
+Cobrir les necessitats de suport, protecció i garantia de tots els drets (personals i patrimonials) i promoure l'autonomia personal de les persones grans que tinguin proveïdes mesures judicials o notarials de suport a la capacitat jurídica, en els termes que estableixi la corresponent resolució judicial o escriptura pública notarial.
+
+Funcions
+
+Totes les funcions necessàries en les àrees social, jurídica i econòmica per assegurar la protecció de la persona assistida, l'administració i la guarda dels seus béns i en general l'exercici dels seus drets, vetllant perquè tingui la màxima qualitat de vida orientada a la promoció de l'autonomia personal.
+
+Les altres funcions establertes per l'ordenament jurídic vigent.
+
+Tipologia de la prestació
+
+Prestació de servei: servei especialitzat
+
+Situació de la població destinatària
+
+Persones grans amb mesures de suport a la capacitat jurídica dictades judicialment o mitjançant escriptura pública notarial.
+
+Edat població destinatària
+
+A partir de 65 anys i menys de 65 anys amb malalties neurodegeneratives.
+
+Forma de prestació
+
+Mitjançant intervenció d'equip de professionals
+
+Perfils professionals
+
+Referent de suport a la capacitat jurídica, amb titulació universitària preferentment en l'àmbit social; auxiliar de suport a la capacitat jurídica amb la qualificació de, com a mínim, un cicle formatiu de grau mitjà; responsable econòmic amb titulació de, com a mínim, tècnic superior de formació professional de la branca d'administració amb coneixements d'especialització en comptabilitat i gestió financera; auxiliar comptable; advocat/ada.
+
+Ràtios de professionals
+
+El servei de suport a la capacitat jurídica comporta la possibilitat d'aplicar 4 mòduls en funció de les necessitats de suport:
+
+- Referent de suport a la capacitat jurídica: mòdul A: 1/70; mòdul B: 1/50; mòdul C: 1/22; mòdul D: 1/15.
+
+- Auxiliar de suport a la capacitat jurídica: mòdul A: 1/70; mòdul B: 1/50; mòdul C: 1/22; mòdul D: 1/15.
+
+- Advocat/da.
+
+- Responsable econòmic: fins a 100.
+
+- Auxiliar comptable: a partir de 100.
+
+Estàndards de qualitat
+
+Les entitats sense ànim de lucre que porten a terme mesures de suport per a persones grans en l'exercici de la seva capacitat jurídica han de complir els estàndards de qualitat que estableix el Decret 69/2020, de 14 de juliol, d'acreditació, concert social i gestió delegada en la Xarxa de Serveis Socials d'Atenció Pública.
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquest servei són els següents: a) Els requisits establerts en la resolució judicial de nomenament d'assistent a la capacitat jurídica, d'acord amb el que estableixen la legislació civil, processal civil i administrativa, i particularment, la Llei 8/2021, de 2 de juny, per la qual es reforma la legislació civil i processal per al suport de les persones amb discapacitat en l'exercici de la seva capacitat jurídica; el Decret llei 19/2021, de 31 d'agost, pel qual s'adapta el Codi civil de Catalunya a la reforma del procediment de modificació judicial de la capacitat; el Decret 188/1994, de 28 de juny, de creació de la Comissió d'Assessorament i Supervisió de les Persones Jurídiques sense Ànim de Lucre que tinguin atribuïdes la tutela de menors o mesures de suport a les persones amb discapacitat en l'exercici de la seva capacitat jurídica, modificat, pel que fa a la composició de l'esmentada Comissió, pel Decret 266/1998, de 6 d'octubre, i la Resolució DSO/2539/2022, de 3 d'agost, per la qual s'inclouen a l'Ordre TSF/218/2020, de 16 de desembre, per a la provisió dels serveis de la Xarxa de Serveis Socials d'Atenció Pública, els annexos que regulen les condicions d'execució i els criteris d'assignació per al servei d'atenció precoç i el servei de suport a les persones amb discapacitat, amb malaltia mental i gent gran en l'exercici de la seva capacitat jurídica, en règim de concert social (annex 41).b) El requisit d'edat establert per aquesta disposició.c) La residència en un municipi de Catalunya.d) Per a les persones estrangeres, els requisits establerts per la normativa vigent d'estrangeria i d'acollida i integració de les persones immigrades.e) La resta de requisits d'accés establerts per l'ordenament jurídic vigent.
+
+Prestació
+
+1.2.4.1 [ No vigent ]
+
+Garantia de la prestació
+
+Descripció
+
+Objecte
+
+Funcions
+
+Tipologia de la prestació
+
+Situació de la població destinatària
+
+Edat població destinatària
+
+Forma de prestació
+
+Perfils professionals
+
+Ràtios de professionals
+
+Estàndards de qualitat
+
+Criteris d'accés - normativa reguladora
+
+Cost de referència
+
+Copagament
+
+Prestació
+
+Garantia de la prestació
+
+Descripció
+
+Objecte
+
+Funcions
+
+Tipologia de la prestació
+
+Situació de la població destinatària
+
+at població destinatària
+
+Forma de prestació
+
+Perfils professionals
+
+Ràtios de professionals
+
+Estàndards de qualitat
+
+Criteris d'accés - normativa reguladora
+
+Cost de referència
+
+Mòdul social
+
+Copagament
+
+Prestació
+
+Garantia de la prestació
+
+Descripció
+
+Objecte
+
+Funcions
+
+Tipologia de la prestació
+
+Situació de la població destinatària
+
+Edat població destinatària
+
+Forma de prestació
+
+Perfils professionals
+
+Ràtios de professionals
+
+Estàndards de qualitat
+
+Criteris d'accés normativa reguladora
+
+Cost de referència
+
+Copagament
+
+Prestació
+
+1.2.5.1 Servei d'atenció precoç
+
+Garantia de la prestació
+
+Prestació garantida
+
+Descripció
+
+Servei que incideix en els trastorns del desenvolupament infantil i les situacions de risc que puguin provocar-los. El servei ofereix un conjunt d'actuacions de caire preventiu, de detecció, de diagnòstic i d'intervenció terapèutica, de caràcter interdisciplinar, que s'estén, en un sentit ampli, des del moment de la concepció fins que l'infant compleix els sis anys, abastant, per tant, l'etapa prenatal, perinatal, postnatal i petita infància.
+
+Objecte
+
+Atendre la població infantil des de la concepció fins que l'infant compleixi els sis anys pel que fa a la prevenció, la detecció, el diagnòstic i el tractament dels trastorns del desenvolupament o les situacions de risc de patir-los.
+
+Funcions
+
+Realitzar un diagnòstic interdisciplinar: funcional, sindròmic i etiològic del desenvolupament de l'infant, de la situació familiar i de l'entorn.
+
+Efectuar l'avaluació continuada del desenvolupament de l'infant.
+
+Fer la intervenció terapèutica interdisciplinària a l'infant i al seu entorn immediat de forma ambulatòria i periòdica.
+
+Col·laborar i cooperar amb els serveis socials, sanitaris, educatius i altres que desenvolupin tasques a nivell de prevenció i detecció precoç dels trastorns de desenvolupament i situacions de risc en la població infantil fins als sis anys.
+
+Orientar les famílies fent l'assessorament i suport als pares o tutors en els continguts que li siguin propis.
+
+Orientar els professionals de l'educació infantil en les etapes de 0 a 3 anys i de 3 a 6 anys pel que fa als trastorns del desenvolupament.
+
+Les altres funcions establertes per l'ordenament jurídic vigent.
+
+Tipologia de la prestació
+
+Prestació de servei: servei especialitzat
+
+Situació de la població destinatària
+
+Infants amb trastorns en el desenvolupament o amb risc de patir-los
+
+Edat població destinatària
+
+De 0 a 6 anys
+
+Forma de prestació
+
+En establiment diürn
+
+Perfils professionals
+
+Metge/essa neuropediatre/a, o de manera transitòria o excepcional metge/essa amb formació acreditada de pediatria o de neuropediatria; psicòleg/loga clínic, o psicòleg/loga amb formació acreditada en desenvolupament infantil; fisioterapeuta; logopeda; treballador/a social. Les figures professionals de psicomotricista i pedagog/a, tot i no ser obligatòries, són recomanables atès el ventall d'edat dels infants atesos.
+
+Ràtios de professionals
+
+Es garantiran professionals terapeutes suficients per tal que la freqüència assistencial mitjana en l'atenció dels infants quedi situada entre 0,8 i 1,2 hores setmanals.
+
+Estàndards de qualitat
+
+Publicació del Departament d'Acció Social i Ciutadania: "Indicadors d'avaluació de qualitat. Avaluació externa de qualitat dels centres de l'ICASS. Centres de desenvolupament infantil i atenció precoç. Juny 2001".
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquest servei són els següents: a) l'acreditació de la situació de necessitat, d'acord amb els articles 4 i 5 del Decret 261/2003, de 21 d'octubre, pel qual es regulen els serveis d'atenció precoç; b) el requisit d'edat establert en aquesta disposició; c) la residència habitual en un municipi de Catalunya; d) per a les persones estrangeres, els requisits establerts en la normativa vigent d'estrangeria i d'acollida i integració de les persones immigrades; e) la resta de requisits d'accés establerts en l'ordenament jurídic vigent.
+
+Prestació
+
+1.2.6.1.1.1 Servei d'orientació
+
+Garantia de la prestació
+
+Prestació garantida
+
+Descripció
+
+Servei on la persona usuària s'adreça, derivada generalment pels serveis bàsics d'atenció social, per rebre orientació especialitzada en atenció en base a les seves característiques i necessitats. Aquests serveis estan organitzats en unitats tècniques regionals i depenen dels Equips de Valoració i Orientació (EVO) i dels Centre d'Atenció al Disminuït (CAD).
+
+Objecte
+
+Donar informació-orientació especialitzada a les persones que s'adrecen al servei, mitjançant centres de referència.
+
+Funcions
+
+Adreçar al Servei de Valoració a les persones que ho sol·licitin o que ho necessitin.
+
+Coordinació amb altres serveis socials bàsics o especialitzats.
+
+Donar a conèixer a la persona usuària, a la seva família o al seu representant legal les possibilitats d'accés a altres serveis socials.
+
+Valoració de la idoneïtat d'una persona respecte a la demanda d'equipament.
+
+Disposar de dades suficients per poder planificar i per tenir un coneixement sobre les demandes.
+
+Les altres funcions establertes per l'ordenament jurídic vigent.
+
+Tipologia de la prestació
+
+Prestació de servei: servei especialitzat.
+
+Situació de la població destinatària
+
+Persones amb discapacitat intel·lectual, física o sensorial, les seves famílies o qui las representi legalment.
+
+Edat població destinatària
+
+Població general.
+
+Forma de prestació
+
+Mitjançant intervenció d'equip de professionals.
+
+Perfils professionals
+
+Treballador/a social i/o altre personal tècnic coneixedor de l'àmbit i dels recursos existents.
+
+Ràtios de professionals
+
+Es disposarà de professionals suficients en nombre i perfil per a la prestació del servei.
+
+Estàndards de qualitat
+
+Els que estableixi el Pla de qualitat previst en la Llei de Serveis Socials per a aquesta prestació.
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquest servei són els següents: a) la residència en un municipi de Catalunya; b) per a les persones estrangeres, els requisits establerts en la normativa vigent d'estrangeria i d'acollida i integració de les persones immigrades; c) la resta de requisits d'accés establerts en l'ordenament jurídic vigent.
+
+Prestació
+
+1.2.6.1.1.2 Servei de valoració de la discapacitat
+
+Garantia de la prestació
+
+Prestació garantida.
+
+Descripció
+
+Servei que es presta mitjançant la intervenció dels equips multiprofessionals de qualificació i reconeixement del grau de discapacitat, amb la finalitat d'emetre dictàmens tecnicofacultatius sobre les circumstàncies físiques, mentals i socials de les persones amb discapacitats físiques, intel·lectuals i sensorials que ho necessitin, a l'efecte de declarar-ne la condició de beneficiàries de les prestacions econòmiques o de serveis que els puguin correspondre. Aquests equips constitueixen els òrgans titulars de la funció pública de reconeixement de la condició legal de discapacitat.
+
+Objecte
+
+Valoració per al reconeixement de la condició legal de persona amb discapacitat i per a l'accés a altres prestacions, coordinació i suport tècnic.
+
+Funcions
+
+Emissió dels dictàmens tecnicofacultatius que es derivin del reconeixement de la condició legal de persona amb discapacitat i tots els dictàmens preceptius necessaris per a altres prestacions.
+
+Proposta d'assignació de prestacions o ingressos a serveis.
+
+Seguiment.
+
+Emissió de certificats d'aptitud laboral i per a l'ingrés a centres ocupacionals o centres especials de treball.
+
+Emissió de dictàmens d'adequació a lloc de treball en la funció pública.
+
+Les altres funcions establertes per l'ordenament jurídic vigent.
+
+Tipologia de la prestació
+
+Prestació de servei: servei especialitzat.
+
+Situació de la població destinatària
+
+Persones amb discapacitat.
+
+Edat de la població destinatària
+
+Població general.
+
+Forma de prestació
+
+Mitjançant la intervenció de l'equip de professionals.
+
+Perfils professionals
+
+Director o directora responsable i professionals dels àmbits sanitari i social (amb titulació universitària).
+
+Ràtios de professionals
+
+S'ha de disposar del nombre i els perfils suficients de professionals per a la prestació del servei.
+
+Estàndards de qualitat
+
+Els que estableixi el Pla de qualitat previst en la Llei de serveis socials per a aquesta prestació.
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquest servei són els següents: a) residir en un municipi de Catalunya; b) en el cas de les persones estrangeres, complir els requisits establerts en la normativa vigent d'estrangeria i d'acollida i integració de les persones immigrades; c) complir la resta de requisits d'accés establerts en l'ordenament jurídic vigent.
+
+Prestació
+
+1.2.6.1.1.1 Servei d'orientació
+
+Garantia de la prestació
+
+Prestació garantida
+
+Descripció
+
+Servei on la persona usuària s'adreça, derivada generalment pels serveis bàsics d'atenció social, per rebre orientació especialitzada en atenció en base a les seves característiques i necessitats. Aquests serveis estan organitzats en unitats tècniques regionals i depenen dels Equips de Valoració i Orientació (EVO) i dels Centre d'Atenció al Disminuït (CAD).
+
+Objecte
+
+Donar informació-orientació especialitzada a les persones que s'adrecen al servei, mitjançant centres de referència.
+
+Funcions
+
+Adreçar al Servei de Valoració a les persones que ho sol·licitin o que ho necessitin.
+
+Coordinació amb altres serveis socials bàsics o especialitzats.
+
+Donar a conèixer a la persona usuària, a la seva família o al seu representant legal les possibilitats d'accés a altres serveis socials.
+
+Valoració de la idoneïtat d'una persona respecte a la demanda d'equipament.
+
+Disposar de dades suficients per poder planificar i per tenir un coneixement sobre les demandes.
+
+Les altres funcions establertes per l'ordenament jurídic vigent.
+
+Tipologia de la prestació
+
+Prestació de servei: servei especialitzat.
+
+Situació de la població destinatària
+
+Persones amb discapacitat intel·lectual, física o sensorial, les seves famílies o qui las representi legalment.
+
+Edat població destinatària
+
+Població general.
+
+Forma de prestació
+
+Mitjançant intervenció d'equip de professionals.
+
+Perfils professionals
+
+Treballador/a social i/o altre personal tècnic coneixedor de l'àmbit i dels recursos existents.
+
+Ràtios de professionals
+
+Es disposarà de professionals suficients en nombre i perfil per a la prestació del servei.
+
+Estàndards de qualitat
+
+Els que estableixi el Pla de qualitat previst en la Llei de Serveis Socials per a aquesta prestació.
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquest servei són els següents: a) la residència en un municipi de Catalunya; b) per a les persones estrangeres, els requisits establerts en la normativa vigent d'estrangeria i d'acollida i integració de les persones immigrades; c) la resta de requisits d'accés establerts en l'ordenament jurídic vigent.
+
+Prestació
+
+1.2.6.2.1 Servei de centre de dia d'atenció especialitzada temporal o permanent per a persones amb discapacitat intel·lectual
+
+Garantia de la prestació
+
+Prestació garantida per a les persones en situació de dependència, en aplicació de la disposició addicional cinquena de la Llei 12/2007, d'11 d'octubre, de serveis socials. Subjecta a crèdits pressupostaris disponibles per a la resta.
+
+Descripció
+
+Servei d'acolliment diürn que presta atenció especialitzada a persones amb greus discapacitats intel·lectuals.
+
+Objecte
+
+Oferir atenció individual a les persones amb greus discapacitats, per aconseguir el màxim grau d'autonomia personal i d'integració social, i afavorir, així, el manteniment en el domicili.
+
+Funcions
+
+Donar suport a la família.
+
+Rehabilitació-habilitació.
+
+Dur a terme els programes i tractaments individuals.
+
+Desenvolupar les activitats del grup.
+
+Atenció a les activitats de la vida diària.
+
+Acolliment i convivència.
+
+Les altres funcions establertes per l'ordenament jurídic vigent.
+
+Tipologia de la prestació
+
+Prestació de servei: servei especialitzat.
+
+Situació de la població destinatària
+
+Dependència.
+
+Edat població destinatària
+
+De 18 a 65 anys.
+
+Forma de prestació
+
+En establiment diürn.
+
+Perfils professionals
+
+Director/a responsable (professional amb titulació universitària, preferentment en l'àmbit de les ciències socials i de la salut), responsable higienicosanitari (metge/essa, infermer/a), terapeuta ocupacional, fisioterapeuta, psicòleg/loga i monitor especialitzat.
+
+Ràtios de professionals
+
+Director/a responsable 1 per cada 64 usuaris/àries, responsable higienicosanitari 1 per cada 128 usuaris/àries, terapeuta ocupacional 1 per cada 128 usuaris/àries, fisioterapeuta 1 per cada 128 usuaris/àries, psicòleg/ologa 3 h/setmana, monitor/a especialitzat 1 per cada 6 usuaris/àries.
+
+Estàndards de qualitat
+
+Els que estableixi el Pla de qualitat previst en la Llei de Serveis Socials per a aquesta prestació.
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquest servei són: a) l'acreditació de la situació de necessitat, d'acord amb el que preveuen l'article 30 i l'annex (apartat 2.2.7) del Decret 284/1996, de 23 de juliol, de regulació del Sistema Català de Serveis Socials; b) si escau, l'acreditació de la situació de dependència, per mitjà de la resolució emesa per l'òrgan de valoració corresponent, d'acord amb el Reial decret 504/2007, de 20 d'abril; c) el requisit d'edat que estableix aquesta disposició; d) la residència en un municipi de Catalunya i, si escau, el requisit de residència que preveu la Llei 39/2006, de 14 de desembre; e) per a les persones estrangeres, els requisits que estableix la normativa vigent d'estrangeria i d'acollida i integració de les persones immigrades; f) si escau, l'abonament del preu públic, d'acord amb el Decret 394/1996, de 12 de desembre, i l'Ordre ASC/432/2007, de 22 de novembre, i g) la resta de requisits d'accés que preveu l'ordenament jurídic vigent.
+
+Cost de referència
+
+38,73 euros/estada - 851,90 euros/mes.
+
+Prestació
+
+1.2.6.2.2 Servei de suport a l'autonomia a la pròpia llar per a persones amb discapacitat intel·lectual
+
+Garantia de la prestació
+
+Subjecta a crèdits pressupostaris disponibles
+
+Descripció
+
+Servei que ofereix orientació i suport a les persones amb discapacitat psíquica amb necessitats de suport que viuen soles, en parella o bé conviuen amb altres persones (amb un nombre de quatre màxim), i que, en alguns aspectes, plantegen necessitats o tenen carències que no poden satisfer per a elles mateixes. La tinència de la llar pot correspondre a la pròpia persona usuària o a una de les persones usuàries o a l'entitat prestadora del servei.
+
+Objecte
+
+Contribuir al desenvolupament de la persona en les activitats de la vida diària, tant a la seva llar com en la comunitat, possibilitant la seva autonomia.
+
+Funcions
+
+Donar suport a la persona en les activitats d'autocura, domèstiques i comunitàries, per tal de millorar l'autogestió i la vida independent.
+
+Donar suport a la persona per planificar i gestionar la seva llar, els seus assumptes administratius i financers, la seva salut i la utilització dels recursos de la comunitat entre d'altres.
+
+Les altres funcions establertes per l'ordenament jurídic vigent.
+
+Tipologia de la prestació
+
+Prestació de servei: servei especialitzat
+
+Situació de la població destinatària
+
+Persones amb discapacitat
+
+Edat població destinatària
+
+De 18 a 65 anys
+
+Forma de prestació
+
+Mitjançant intervenció d'equip de professionals
+
+Perfils professionals
+
+Director/a responsable, psicòleg/òloga, pedagog/a, psicopedagog/a, treballador/a social, educador/a social, integrador/a social, auxiliar educador.
+
+Ràtios de professionals
+
+Ha de disposar d'un equip de professionals tècnics i personal d'atenció directa format, com a mínim, per:
+
+· Equip tècnic:
+
+Ha d'estar compost, com a mínim, per dos dels professionals amb títol universitari següents:
+
+- Un/a psicòleg/òloga
+
+- Un/a pedagog/a
+
+- Un/a psicopedagog/a
+
+- Un/a treballador/a social
+
+- Un/a educador/a social
+
+Un d'aquests professionals ha d'assumir les funcions de director/a responsable del servei.
+
+·Personal d'atenció directa:
+
+Pot ser un dels professionals següents:
+
+- Un/a auxiliar educador o un/a integrador/a social o un/a professional amb títol universitari que s'especifica a l'apartat anterior.
+
+Cal garantir que, entre tots els professionals que formen part del servei, es proporcioni una atenció mitjana per persona usuària no inferior a 10 hores setmanals en còmput mensual.
+
+Estàndards de qualitat
+
+Els que estableixi el Pla de qualitat previst en la Llei de Serveis Socials per a aquesta prestació.
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquest servei són els següents: a) l'acreditació de la situació de necessitat, d'acord amb el que preveuen els articles 2 i 5 i l'Annex 1 de l'Ordre BES/6/2002, de 10 de gener, i la convocatòria anual corresponent; b) el requisit d'edat establert en aquesta disposició; c) la residència legal en un municipi de Catalunya durant 5 anys, dos dels quals han de ser immediatament anteriors a la data de presentació de la sol·licitud; d) per a les persones estrangeres, els requisits establerts en la normativa vigent d'estrangeria i d'acollida i integració de les persones immigrades; e) la resta de requisits d'accés establerts en l'ordenament jurídic vigent.
+
+Cost de referència
+
+Pendent de desplegament normatiu
+
+Mòdul social
+
+Pendent de desplegament normatiu
+
+Copagament
+
+Pendent de desplegament normatiu
+
+Prestació
+
+1.2.6.2.3.1 Servei de llar amb suport per a persones amb discapacitat intel·lectual amb necessitat de suport intermitent
+
+Garantia de la prestació
+
+Subjecta a crèdits pressupostaris disponibles.
+
+Descripció
+
+Servei que es desenvolupa en l'estructura física d'un habitatge ordinari que constitueix el domicili habitual de les persones que l'habiten quan les seves circumstàncies personals, socials i familiars facin aconsellable un suport intermitent, d'acord amb l'establert al Decret 318/2006, de 25 de juliol, dels serveis d'acolliment residencial per a persones amb discapacitat.
+
+Objecte
+
+Afavorir la màxima independència, autonomia personal i social dels usuaris, així com la vida comunitària.
+
+Funcions
+
+Serveis bàsics:
+
+Allotjament.
+
+Acolliment i convivència.
+
+Manutenció.
+
+Atenció o cura personal.
+
+Atenció a la salut i seguretat personal a la llar.
+
+Foment dels hàbits d'autonomia personal.
+
+Convivència i foment de les relacions interpersonals i socials.
+
+Foment de l'oci i del lleure.
+
+Assessorament i supervisió.
+
+Atenció conductual.
+
+Serveis opcionals:
+
+S'entenen com a serveis opcionals tots aquells que no estiguin inclosos a l'apartat anterior, i que no siguin necessaris per a la seva provisió, i que la persona discapacitada pugui optar voluntàriament per què li siguin facilitats o no.
+
+Les altres funcions establertes per l'ordenament jurídic vigent.
+
+Tipologia de la prestació
+
+Prestació de servei: servei especialitzat.
+
+Situació de la població destinatària
+
+Dependència i/o risc social.
+
+Edat població destinatària
+
+De 18 a 65 anys.
+
+Forma de prestació
+
+Alternativa a la llar.
+
+Perfils professionals
+
+Director/a responsable, personal d'atenció directa per donar atenció personal, sanitària, psicològica i social.
+
+Ràtios de professionals
+
+Es disposarà d'una atenció global, mínima, de personal d'atenció directa de 292 hores/usuari/any per la provisió del suport intermitent. Es considera personal d'atenció directa els i les professionals amb la titulació adient per donar atenció personal, sanitària, psicològica i social, a més de la directora o el director tècnic de l'equipament. En recursos on exclusivament s'atengui a persones amb suport intermitent la jornada nocturna podrà ser atesa amb servei de teleassistència.
+
+Estàndards de qualitat
+
+Els que estableixi el Pla de qualitat previst en la Llei de Serveis Socials per a aquesta prestació.
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquest servei són els següents: a) l'acreditació de la situació de necessitat, d'acord amb el que preveuen els articles 2, 3, 4, 5 i 6 i l'annex 1 del Decret 318/2006, de 25 de juliol, dels serveis d'acolliment residencial per a persones amb discapacitat; b) si és el cas, l'acreditació de la situació de dependència, per mitjà de la resolució emesa per l'òrgan de valoració corresponent, d'acord amb el Reial Decret 504/2007, de 20 d'abril; c) el requisit d'edat establert en aquesta disposició; d) la residència en un municipi de Catalunya i, si és el cas, el requisit de residència establert en la Llei 39/2006, de 14 de desembre; e) per a les persones estrangeres, els requisits establerts en la normativa vigent d'estrangeria i d'acollida i integració de les persones immigrades; f) si és el cas, l'abonament del preu públic, d'acord amb el Decret 394/1996, de 12 de desembre, i l'Ordre ASC/432/2007, de 22 de novembre; g) la resta de requisits d'accés establerts en l'ordenament jurídic vigent.
+
+Cost de referència
+
+14,40 euros estada - 437,96 euros mes.
+
+Mòdul social
+
+89,30 euros mes.
+
+Copagament
+
+348,66 euros mes.
+
+Prestació
+
+1.2.6.2.3.2.1 Servei de llar residència temporal o permanent per a persones amb discapacitat intel·lectual amb necessitat de suport intermitent
+
+Garantia de la prestació
+
+Subjecta a crèdits pressupostaris disponibles.
+
+Descripció
+
+Servei d'acolliment residencial de caràcter temporal o permanent que té una funció substitutòria de la llar adequat per acollir a persones amb discapacitat psíquica amb necessitat de suport intermitent, d'acord amb l'establert al Decret 318/2006, de 25 de juliol, dels serveis d'acolliment residencial per a persones amb discapacitat.
+
+Objecte
+
+Afavorir i potenciar les habilitats d'autonomia personal, de la llar, oci, lleure i la vida comunitària dels usuaris.
+
+Funcions
+
+Serveis bàsics:
+
+Allotjament.
+
+Acolliment i convivència.
+
+Manutenció.
+
+Atenció o cura personal.
+
+Atenció a la salut i seguretat personal a la llar.
+
+Foment dels hàbits d'autonomia personal.
+
+Convivència i foment de les relacions interpersonals i socials.
+
+Foment de l'oci i del lleure.
+
+Assessorament i supervisió.
+
+Atenció conductual.
+
+Serveis opcionals:
+
+S'entenen com a serveis opcionals tots aquells que no estiguin inclosos a l'apartat anterior, i que no siguin necessaris per a la seva provisió, i que la persona discapacitada pugui optar voluntàriament per què li siguin facilitats o no.
+
+Les altres funcions establertes per l'ordenament jurídic vigent.
+
+Tipologia de la prestació
+
+Prestació de servei: servei especialitzat.
+
+Situació de la població destinatària
+
+Dependència i/o risc social.
+
+Edat població destinatària
+
+De 18 a 65 anys.
+
+Forma de prestació
+
+Alternativa a la llar.
+
+Perfils professionals
+
+Director/a responsable (professional amb titulació universitària, preferentment en l'àmbit de les ciències socials i de la salut), personal d'atenció directa per donar atenció personal, sanitària, psicològica i social.
+
+Ràtios de professionals
+
+Es disposarà d'una atenció global, mínima, de personal d'atenció directa de 292 hores/usuari/any per la provisió del suport intermitent. Es considera personal d'atenció directa els i les professionals amb la titulació adient per donar atenció personal, sanitària, psicològica i social, a més de la directora o el director tècnic de l'equipament. En recursos on exclusivament s'atengui a persones amb suport intermitent la jornada nocturna podrà ser atesa amb servei de teleassistència.
+
+Estàndards de qualitat
+
+Els que estableixi el Pla de qualitat previst en la Llei de Serveis Socials per a aquesta prestació.
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquest servei són els següents: a) l'acreditació de la situació de necessitat, d'acord amb el que preveuen els articles 2, 3, 4, 5 i 6 i l'annex 1 del Decret 318/2006, de 25 de juliol, dels serveis d'acolliment residencial per a persones amb discapacitat; b) si és el cas, l'acreditació de la situació de dependència, per mitjà de la resolució emesa per l'òrgan de valoració corresponent, d'acord amb el Reial Decret 504/2007, de 20 d'abril; c) el requisit d'edat establert en aquesta disposició; d) la residència en un municipi de Catalunya i, si és el cas, el requisit de residència establert en la Llei 39/2006, de 14 de desembre; e) per a les persones estrangeres, els requisits establerts en la normativa vigent d'estrangeria i d'acollida i integració de les persones immigrades; f) si és el cas, l'abonament del preu públic, d'acord amb el Decret 394/1996, de 12 de desembre, i l'Ordre ASC/432/2007, de 22 de novembre; g) la resta de requisits d'accés establerts en l'ordenament jurídic vigent.
+
+Cost de referència
+
+39,55 euros estada - 1.202,96 euros mes.
+
+Mòdul social
+
+245,32 euros mes.
+
+Copagament
+
+957,64 euros mes.
+
+Prestació
+
+1.2.6.2.3.2.2 Servei de llar residència temporal o permanent per a persones amb discapacitat intel·lectual amb necessitat de suport limitat
+
+Garantia de la prestació
+
+Subjecta a crèdits pressupostaris disponibles.
+
+Descripció
+
+Servei d'acolliment residencial de caràcter temporal o permanent que té una funció substitutòria de la llar adequat per acollir a persones amb discapacitat psíquica amb necessitat de suport limitat, d'acord amb el que estableix el Decret 318/2006, de 25 de juliol, dels serveis d'acolliment residencial per a persones amb discapacitat.
+
+Objecte
+
+Afavorir i potenciar les habilitats d'autonomia personal, de la llar, oci, lleure i la vida comunitària dels usuaris.
+
+Funcions
+
+Serveis bàsics:
+
+Allotjament.
+
+Acolliment i convivència.
+
+Manutenció.
+
+Atenció o cura personal.
+
+Atenció a la salut i seguretat personal a la llar.
+
+Foment dels hàbits d'autonomia personal.
+
+Convivència i foment de les relacions interpersonals i socials.
+
+Foment de l'oci i del lleure.
+
+Assessorament i supervisió.
+
+Atenció conductual.
+
+Serveis opcionals:
+
+S'entenen com a serveis opcionals tots aquells que no estiguin inclosos a l'apartat anterior, i que no siguin necessaris per a la seva provisió, i que la persona discapacitada pugui optar voluntàriament per què li siguin facilitats o no.
+
+Les altres funcions establertes per l'ordenament jurídic vigent.
+
+Tipologia de la prestació
+
+Prestació de servei: servei especialitzat.
+
+Situació de la població destinatària
+
+Dependència i/o risc social.
+
+Edat població destinatària
+
+De 18 a 65 anys.
+
+Forma de prestació
+
+Alternativa a la llar.
+
+Perfils professionals
+
+Director/a responsable (professional amb titulació universitària, preferentment en l'àmbit de les ciències socials i de la salut), personal d'atenció directa per donar atenció personal, sanitària, psicològica i social.
+
+Ràtios de professionals
+
+Es disposarà d'una atenció global, mínima, de personal d'atenció directa de 912 hores/usuari/any per a la provisió del suport limitat. Es considera personal d'atenció directa els i les professionals amb la titulació adient per donar atenció personal, sanitària, psicològica i social, a més de la directora o el director tècnic de l'equipament.
+
+Estàndards de qualitat
+
+Els que estableixi el Pla de qualitat previst en la Llei de Serveis Socials per a aquesta prestació.
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquest servei són els següents: a) l'acreditació de la situació de necessitat, d'acord amb el que preveuen els articles 2, 3, 4, 5 i 6 i l'annex 1 del Decret 318/2006, de 25 de juliol, dels serveis d'acolliment residencial per a persones amb discapacitat; b) si és el cas, l'acreditació de la situació de dependència, per mitjà de la resolució emesa per l'òrgan de valoració corresponent, d'acord amb el Reial Decret 504/2007, de 20 d'abril; c) el requisit d'edat establert en aquesta disposició; d) la residència en un municipi de Catalunya i, si és el cas, el requisit de residència establert en la Llei 39/2006, de 14 de desembre; e) per a les persones estrangeres, els requisits establerts en la normativa vigent d'estrangeria i d'acollida i integració de les persones immigrades; f) si és el cas, l'abonament del preu públic, d'acord amb el Decret 394/1996, de 12 de desembre, i l'Ordre ASC/432/2007, de 22 de novembre; g) la resta de requisits d'accés establerts en l'ordenament jurídic vigent.
+
+Cost de referència
+
+72,49 euros estada - 2.204,85 euros mes.
+
+Mòdul social
+
+764,24 euros mes.
+
+Copagament
+
+1.440,61 euros mes.
+
+Prestació
+
+1.2.6.2.3.2.3 Servei de llar residència temporal o permanent per a persones amb discapacitat intel·lectual amb necessitat de suport limitat (trastorns de conducta)
+
+Garantia de la prestació
+
+Subjecta a crèdits pressupostaris disponibles.
+
+Descripció
+
+Servei d'acolliment residencial de caràcter temporal o permanent que té una funció substitutòria de la llar adequat per acollir a persones amb discapacitat psíquica amb necessitat de suport limitat, d'acord amb el que estableix el Decret 318/2006, de 25 de juliol, dels serveis d'acolliment residencial per a persones amb discapacitat.
+
+Objecte
+
+Afavorir i potenciar les habilitats d'autonomia personal, de la llar, oci, lleure i la vida comunitària dels usuaris.
+
+Funcions
+
+Serveis bàsics:
+
+Allotjament.
+
+Acolliment i convivència.
+
+Manutenció.
+
+Atenció o cura personal.
+
+Atenció a la salut i seguretat personal a la llar.
+
+Foment dels hàbits d'autonomia personal.
+
+Convivència i foment de les relacions interpersonals i socials.
+
+Foment de l'oci i del lleure.
+
+Assessorament i supervisió.
+
+Atenció conductual.
+
+Serveis opcionals:
+
+S'entenen com a serveis opcionals tots aquells que no estiguin inclosos a l'apartat anterior, i que no siguin necessaris per a la seva provisió, i que la persona discapacitada pugui optar voluntàriament per què li siguin facilitats o no.
+
+Les altres funcions establertes per l'ordenament jurídic vigent.
+
+Tipologia de la prestació
+
+Prestació de servei: servei especialitzat.
+
+Situació de la població destinatària
+
+Dependència i/o risc social.
+
+Edat població destinatària
+
+De 18 a 65 anys.
+
+Forma de prestació
+
+Alternativa a la llar.
+
+Perfils professionals
+
+Director/a responsable (professional amb titulació universitària, preferentment en l'àmbit de les ciències socials i de la salut), personal d'atenció directa per donar atenció personal, sanitària, psicològica i social.
+
+Ràtios de professionals
+
+Es disposarà d'una atenció global, mínima, de personal d'atenció directa de 963 hores/usuari/any per qualsevol d'aquests suports, quan a més requereixin d'especial atenció per problemes de salut mental, comportament, o envelliment. Es considera personal d'atenció directa els i les professionals amb la titulació adient per donar atenció personal, sanitària, psicològica i social, a més de la directora o el director tècnic de l'equipament.
+
+Estàndards de qualitat
+
+Els que estableixi el Pla de qualitat previst en la Llei de Serveis Socials per a aquesta prestació.
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquest servei són els següents: a) l'acreditació de la situació de necessitat, d'acord amb el que preveuen els articles 2, 3, 4, 5 i 6 i l'annex 1 del Decret 318/2006, de 25 de juliol, dels serveis d'acolliment residencial per a persones amb discapacitat; b) si és el cas, l'acreditació de la situació de dependència, per mitjà de la resolució emesa per l'òrgan de valoració corresponent, d'acord amb el Reial Decret 504/2007, de 20 d'abril; c) el requisit d'edat establert en aquesta disposició; d) la residència en un municipi de Catalunya i, si és el cas, el requisit de residència establert en la Llei 39/2006, de 14 de desembre; e) per a les persones estrangeres, els requisits establerts en la normativa vigent d'estrangeria i d'acollida i integració de les persones immigrades; f) si és el cas, l'abonament del preu públic, d'acord amb el Decret 394/1996, de 12 de desembre, i l'Ordre ASC/432/2007, de 22 de novembre; g) la resta de requisits d'accés establerts en l'ordenament jurídic vigent.
+
+Cost de referència
+
+76,85 euros estada - 2.337,60 euros mes.
+
+Mòdul social
+
+806,95 euros mes.
+
+Copagament
+
+1.530,65 euros mes.
+
+Prestació
+
+1.2.6.2.3.2.4 Servei de llar residència temporal o permanent per a persones amb discapacitat intel·lectual amb necessitat de suport extens
+
+Garantia de la prestació
+
+Prestació garantida.
+
+Descripció
+
+Servei d'acolliment residencial de caràcter temporal o permanent que té una funció substitutòria de la llar adequat per acollir a persones amb discapacitat psíquica amb necessitat de suport extens, d'acord amb el que estableix el Decret 318/2006, de 25 de juliol, dels serveis d'acolliment residencial per a persones amb discapacitat.
+
+Objecte
+
+Afavorir i potenciar les habilitats d'autonomia personal, de la llar, oci, lleure i la vida comunitària dels usuaris.
+
+Funcions
+
+Serveis bàsics:
+
+Allotjament.
+
+Acolliment i convivència.
+
+Manutenció.
+
+Atenció o cura personal.
+
+Atenció a la salut i seguretat personal a la llar.
+
+Foment dels hàbits d'autonomia personal.
+
+Convivència i foment de les relacions interpersonals i socials.
+
+Foment de l'oci i del lleure.
+
+Assessorament i supervisió.
+
+Atenció conductual.
+
+Serveis opcionals:
+
+S'entenen com a serveis opcionals tots aquells que no estiguin inclosos a l'apartat anterior, i que no siguin necessaris per a la seva provisió, i que la persona discapacitada pugui optar voluntàriament per què li siguin facilitats o no.
+
+Les altres funcions establertes per l'ordenament jurídic vigent.
+
+Tipologia de la prestació
+
+Prestació de servei: servei especialitzat.
+
+Situació de la població destinatària
+
+Dependència i/o risc social.
+
+Edat població destinatària
+
+De 18 a 65 anys.
+
+Forma de prestació
+
+Alternativa a la llar.
+
+Perfils professionals
+
+Director/a responsable (professional amb titulació universitària, preferentment en l'àmbit de les ciències socials i de la salut), personal d'atenció directa per donar atenció personal, sanitària, psicològica i social.
+
+Ràtios de professionals
+
+Es disposarà d'una atenció global, mínima, de personal d'atenció directa de 963 hores/usuari/any.
+
+Estàndards de qualitat
+
+Els que estableixi el Pla de qualitat previst en la Llei de Serveis Socials per a aquesta prestació.
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquest servei són els següents: a) l'acreditació de la situació de necessitat, d'acord amb el que preveuen els articles 2, 3, 4, 5 i 6 i l'annex 1 del Decret 318/2006, de 25 de juliol, dels serveis d'acolliment residencial per a persones amb discapacitat; b) si és el cas, l'acreditació de la situació de dependència, per mitjà de la resolució emesa per l'òrgan de valoració corresponent, d'acord amb el Reial Decret 504/2007, de 20 d'abril; c) el requisit d'edat establert en aquesta disposició; d) la residència en un municipi de Catalunya i, si és el cas, el requisit de residència establert en la Llei 39/2006, de 14 de desembre; e) per a les persones estrangeres, els requisits establerts en la normativa vigent d'estrangeria i d'acollida i integració de les persones immigrades; f) si és el cas, l'abonament del preu públic, d'acord amb el Decret 394/1996, de 12 de desembre, i l'Ordre ASC/432/2007, de 22 de novembre; g) la resta de requisits d'accés establerts en l'ordenament jurídic vigent.
+
+Cost de referència
+
+76,85 euros estada - 2.337,60 euros mes.
+
+Mòdul social
+
+806,95 euros mes.
+
+Copagament
+
+1.530,65 euros mes.
+
+Prestació
+
+1.2.6.2.3.2.5 Servei de llar residència temporal o permanent per a persones amb discapacitat intel·lectual amb necessitat de suport extens (trastorns de conducta)
+
+Garantia de la prestació
+
+Prestació garantida.
+
+Descripció
+
+Servei d'acolliment residencial de caràcter temporal o permanent que té una funció substitutòria de la llar adequat per acollir a persones amb discapacitat psíquica amb necessitat de suport extens, d'acord amb el que estableix el Decret 318/2006, de 25 de juliol, dels serveis d'acolliment residencial per a persones amb discapacitat.
+
+Objecte
+
+Afavorir i potenciar les habilitats d'autonomia personal, de la llar, oci, lleure i la vida comunitària dels usuaris.
+
+Funcions
+
+Serveis bàsics:
+
+Allotjament.
+
+Acolliment i convivència.
+
+Manutenció.
+
+Atenció o cura personal.
+
+Atenció a la salut i seguretat personal a la llar.
+
+Foment dels hàbits d'autonomia personal.
+
+Convivència i foment de les relacions interpersonals i socials.
+
+Foment de l'oci i del lleure.
+
+Assessorament i supervisió.
+
+Atenció conductual.
+
+Serveis opcionals:
+
+S'entenen com a serveis opcionals tots aquells que no estiguin inclosos a l'apartat anterior, i que no siguin necessaris per a la seva provisió, i que la persona discapacitada pugui optar voluntàriament per què li siguin facilitats o no.
+
+Les altres funcions establertes per l'ordenament jurídic vigent.
+
+Tipologia de la prestació
+
+Prestació de servei: servei especialitzat.
+
+Situació de la població destinatària
+
+Dependència i/o risc social.
+
+Edat població destinatària
+
+De 18 a 65 anys.
+
+Forma de prestació
+
+Alternativa a la llar.
+
+Perfils professionals
+
+Director/a responsable (professional amb titulació universitària, preferentment en l'àmbit de les ciències socials i de la salut), personal d'atenció directa per donar atenció personal, sanitària, psicològica i social.
+
+Ràtios de professionals
+
+Es disposarà d'una atenció global, mínima, de personal d'atenció directa de 1.079 hores/usuari/any per la provisió del suport intermitent. Aquest nivell de suport fa referència a les persones amb discapacitat intel·lectual que requereixen un suport intermitent i limitat en les àrees d'habilitat adaptativa, però que, a causa de presentar trastorns de comportament greus, requereixen un suport extens.
+
+Estàndards de qualitat
+
+Els que estableixi el Pla de qualitat previst en la Llei de Serveis Socials per a aquesta prestació.
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquest servei són els següents: a) l'acreditació de la situació de necessitat, d'acord amb el que preveuen els articles 2, 3, 4, 5 i 6 i l'annex 1 del Decret 318/2006, de 25 de juliol, dels serveis d'acolliment residencial per a persones amb discapacitat; b) si és el cas, l'acreditació de la situació de dependència, per mitjà de la resolució emesa per l'òrgan de valoració corresponent, d'acord amb el Reial Decret 504/2007, de 20 d'abril; c) el requisit d'edat establert en aquesta disposició; d) la residència en un municipi de Catalunya i, si és el cas, el requisit de residència establert en la Llei 39/2006, de 14 de desembre; e) per a les persones estrangeres, els requisits establerts en la normativa vigent d'estrangeria i d'acollida i integració de les persones immigrades; f) si és el cas, l'abonament del preu públic, d'acord amb el Decret 394/1996, de 12 de desembre, i l'Ordre ASC/432/2007, de 22 de novembre; g) la resta de requisits d'accés establerts en l'ordenament jurídic vigent.
+
+Cost de referència
+
+89,35 euros estada - 2.717,81 euros mes.
+
+Mòdul social
+
+1.021,38 euros mes.
+
+Copagament
+
+1.696,43 euros mes.
+
+Prestació
+
+1.2.6.2.3.2.6 Servei de llar residència temporal o permanent per a persones amb discapacitat intel·lectual amb necessitat de suport generalitzat
+
+Garantia de la prestació
+
+Prestació garantida.
+
+Descripció
+
+Servei d'acolliment residencial de caràcter temporal o permanent que té una funció substitutòria de la llar adequat per acollir a persones amb discapacitat psíquica amb necessitat de suport generalitzat, d'acord amb el que estableix el Decret 318/2006, de 25 de juliol, dels serveis d'acolliment residencial per a persones amb discapacitat.
+
+Objecte
+
+Afavorir i potenciar les habilitats d'autonomia personal, de la llar, oci, lleure i la vida comunitària dels usuaris.
+
+Funcions
+
+Serveis bàsics:
+
+Allotjament.
+
+Acolliment i convivència.
+
+Manutenció.
+
+Atenció o cura personal.
+
+Atenció a la salut i seguretat personal a la llar.
+
+Foment dels hàbits d'autonomia personal.
+
+Convivència i foment de les relacions interpersonals i socials.
+
+Foment de l'oci i del lleure.
+
+Assessorament i supervisió.
+
+Atenció conductual.
+
+Serveis opcionals:
+
+S'entenen com a serveis opcionals tots aquells que no estiguin inclosos a l'apartat anterior, i que no siguin necessaris per a la seva provisió, i que la persona discapacitada pugui optar voluntàriament per què li siguin facilitats o no.
+
+Les altres funcions establertes per l'ordenament jurídic vigent.
+
+Tipologia de la prestació
+
+Prestació de servei: servei especialitzat.
+
+Situació de la població destinatària
+
+Dependència i/o risc social.
+
+Edat població destinatària
+
+De 18 a 65 anys.
+
+Forma de prestació
+
+Alternativa a la llar.
+
+Perfils professionals
+
+Director/a responsable (professional amb titulació universitària, preferentment en l'àmbit de les ciències socials i de la salut), personal d'atenció directa per donar atenció personal, sanitària, psicològica i social.
+
+Ràtios de professionals
+
+Es disposarà d'una atenció global, mínima, de personal d'atenció directa de 977 hores/usuari/any.
+
+Estàndards de qualitat
+
+Els que estableixi el Pla de qualitat previst en la Llei de Serveis Socials per a aquesta prestació
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquest servei són els següents: a) l'acreditació de la situació de necessitat, d'acord amb el que preveuen els articles 2, 3, 4, 5 i 6 i l'annex 1 del Decret 318/2006, de 25 de juliol, dels serveis d'acolliment residencial per a persones amb discapacitat; b) si és el cas, l'acreditació de la situació de dependència, per mitjà de la resolució emesa per l'òrgan de valoració corresponent, d'acord amb el Reial Decret 504/2007, de 20 d'abril; c) el requisit d'edat establert en aquesta disposició; d) la residència en un municipi de Catalunya i, si és el cas, el requisit de residència establert en la Llei 39/2006, de 14 de desembre; e) per a les persones estrangeres, els requisits establerts en la normativa vigent d'estrangeria i d'acollida i integració de les persones immigrades; f) si és el cas, l'abonament del preu públic, d'acord amb el Decret 394/1996, de 12 de desembre, i l'Ordre ASC/432/2007, de 22 de novembre; g) la resta de requisits d'accés establerts en l'ordenament jurídic vigent.
+
+Cost de referència
+
+83,29 euros estada - 2.533,40 euros mes.
+
+Mòdul social
+
+917,93 euros mes.
+
+Copagament
+
+1.615,47 euros mes.
+
+Prestació
+
+1.2.6.2.3.3.1 Servei de centre residencial temporal o permanent per a persones amb discapacitat intel·lectual amb necessitat de suport extens
+
+Garantia de la prestació
+
+Prestació garantida.
+
+Descripció
+
+Servei d'acolliment residencial de caràcter temporal o permanent que té una funció substitutòria de la llar, adequats per acollir a persones amb discapacitat psíquica amb una necessitat de suport extens, d'acord amb el que estableix el Decret 318/2006, de 25 de juliol, dels serveis d'acolliment residencial per a persones amb discapacitat.
+
+Objecte
+
+Facilitar un entorn substitutiu de la llar adequat i adaptat a les necessitats del usuaris i potenciar el desenvolupament autònom de les aptituds bàsiques de la vida diària i instrumentals.
+
+Funcions
+
+Serveis bàsics:
+
+Allotjament.
+
+Acolliment i convivència.
+
+Manutenció.
+
+Atenció o cura personal.
+
+Atenció a la salut i seguretat personal a la llar.
+
+Foment dels hàbits d'autonomia personal.
+
+Convivència i foment de les relacions interpersonals i socials.
+
+Foment de l'oci i del lleure.
+
+Atenció conductual.
+
+Serveis opcionals:
+
+S'entenen com a serveis opcionals tots aquells que no estiguin inclosos a l'apartat anterior, i que no siguin necessaris per a la seva provisió, i que la persona discapacitada pugui optar voluntàriament per què li siguin facilitats o no.
+
+Les altres funcions establertes per l'ordenament jurídic vigent.
+
+Tipologia de la prestació
+
+Prestació de servei: servei especialitzat.
+
+Situació de la població destinatària
+
+Dependència.
+
+Edat població destinatària
+
+De 18 a 65 anys.
+
+Forma de prestació
+
+En establiment residencial.
+
+Perfils professionals
+
+Director/a responsable (professional amb titulació universitària, preferentment en l'àmbit de les ciències socials i de la salut), responsable higienicosanitari (metge/essa, infermer/a), treballador/a social, psicòleg/loga o pedagog/a, neuròleg/loga o psiquiatre/a, metge/essa generalista, infermer/a, auxiliars i tècnics/ques per a l'atenció personal.
+
+Ràtios de professionals
+
+1.307 hores/usuari/any, amb la següent distribució: director/a tècnic, 1/60; treballador/a social, 1/240; psicòleg/oga o pedagog/a, 1/30; psiquiatre/a o neuròleg/òloga, 1/360; metge/essa generalista, 1/240; auxiliars i tècnics/ques per a l'atenció personal de dia, 1/5,5; auxiliars i tècnics/ques per a l'atenció personal de nit, 1/20; infermer/a, 1/30; fisioterapeuta, 1/60. Auxiliars i tècnics/ques per a l'atenció personal, la ràtio s'haurà de garantir en presencia física els 365 dies l'any. Resta de professionals, el còmput anual d'hores de cadascun es distribuirà uniformement. Personal d'atenció directa són els/les professionals amb la titulació adient per donar atenció personal, sanitària, psicològica i social, a més del/de la director/a tècnic/a de l'equipament. En funció de les característiques de les persones usuàries, es podrà variar les tipologies de personal.
+
+Estàndards de qualitat
+
+Publicació del Departament d'Acció Social i Ciutadania: "Indicadors d'avaluació de qualitat. Avaluació externa de qualitat de centres de l'ICASS. Centres de disminuïts psíquics". Desembre 1999".
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquest servei són els següents: a) l'acreditació de la situació de necessitat, d'acord amb el que preveuen els articles 2, 3, 4, 5 i 6 i l'annex 1 del Decret 318/2006, de 25 de juliol, dels serveis d'acolliment residencial per a persones amb discapacitat; b) si és el cas, l'acreditació de la situació de dependència, per mitjà de la resolució emesa per l'òrgan de valoració corresponent, d'acord amb el Reial Decret 504/2007, de 20 d'abril; c) el requisit d'edat establert en aquesta disposició; d) la residència en un municipi de Catalunya i, si és el cas, el requisit de residència establert en la Llei 39/2006, de 14 de desembre; e) per a les persones estrangeres, els requisits establerts en la normativa vigent d'estrangeria i d'acollida i integració de les persones immigrades; f) si és el cas, l'abonament del preu públic, d'acord amb el Decret 394/1996, de 12 de desembre, i l'Ordre ASC/432/2007, de 22 de novembre; g) la resta de requisits d'accés establerts en l'ordenament jurídic vigent.
+
+Cost de referència
+
+103,30 euros estada - 3.141,93 euros mes.
+
+Mòdul social
+
+1.176,70 euros mes.
+
+Copagament
+
+1.965,22 euros mes.
+
+Prestació
+
+1.2.6.2.3.3.2 Servei de centre residencial temporal o permanent per a persones amb discapacitat intel·lectual amb necessitat de suport extens (trastorns de conducta)
+
+Garantia de la prestació
+
+Prestació garantida.
+
+Descripció
+
+Servei d'acolliment residencial de caràcter temporal o permanent que té una funció substitutòria de la llar, adequats per acollir a persones amb discapacitat psíquica amb una necessitat de suport extens, d'acord amb el que estableix el Decret 318/2006, de 25 de juliol, dels serveis d'acolliment residencial per a persones amb discapacitat.
+
+Objecte
+
+Facilitar un entorn substitutiu de la llar adequat i adaptat a les necessitats del usuaris i potenciar el desenvolupament autònom de les aptituds bàsiques de la vida diària i instrumentals.
+
+Funcions
+
+Serveis bàsics:
+
+Allotjament.
+
+Acolliment i convivència.
+
+Manutenció.
+
+Atenció o cura personal.
+
+Atenció a la salut i seguretat personal a la llar.
+
+Foment dels hàbits d'autonomia personal.
+
+Convivència i foment de les relacions interpersonals i socials.
+
+Foment de l'oci i del lleure.
+
+Atenció conductual.
+
+Serveis opcionals:
+
+S'entenen com a serveis opcionals tots aquells que no estiguin inclosos a l'apartat anterior, i que no siguin necessaris per a la seva provisió, i que la persona discapacitada pugui optar voluntàriament per què li siguin facilitats o no.
+
+Les altres funcions establertes per l'ordenament jurídic vigent.
+
+Tipologia de la prestació
+
+Prestació de servei: servei especialitzat.
+
+Situació de la població destinatària
+
+Dependència.
+
+Edat població destinatària
+
+De 18 a 65 anys.
+
+Forma de prestació
+
+En establiment residencial.
+
+Perfils professionals
+
+Director/a responsable (professional amb titulació universitària, preferentment en l'àmbit de les ciències socials i de la salut), responsable higienicosanitari (metge/essa, infermer/a), treballador/a social, psicòleg/loga o pedagog/a, neuròleg/loga o psiquiatre/a, metge/essa generalista, infermer/a, auxiliars i tècnics/ques per a l'atenció personal.
+
+Ràtios de professionals
+
+1.462 hores/usuari/any, amb la següent distribució: director/a tècnic, 1/30; treballador/a social, 1/240; psicòleg/oga o pedagog/a, 1/30; psiquiatre/a o neuròleg/òloga, 1/120; metge/ssa generalista, 1/300; auxiliars i tècnics/ques per a l'atenció personal de dia, 1/5; auxiliars i tècnics/ques per a l'atenció personal de nit, 1/15; infermer/a, 1/30. Auxiliars i tècnics/ques per a l'atenció personal, la ràtio s'haurà de garantir en presencia física els 365 dies l'any. La resta de professionals d'atenció directa, el còmput anual d'hores de cadascun/a es distribuirà uniformement. Personal d'atenció directa són els/les professionals amb la titulació adient per donar atenció personal, sanitària, psicològica i social, a més del/de la director/a tècnic/a de l'equipament. En funció de les característiques de les persones usuàries, es podrà variar les tipologies de personal.
+
+Estàndards de qualitat
+
+Publicació del Departament d'Acció Social i Ciutadania: "Indicadors d'avaluació de qualitat. Avaluació externa de qualitat de centres de l'ICASS. Centres de disminuïts psíquics". Desembre 1999".
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquest servei són els següents: a) l'acreditació de la situació de necessitat, d'acord amb el que preveuen els articles 2, 3, 4, 5 i 6 i l'annex 1 del Decret 318/2006, de 25 de juliol, dels serveis d'acolliment residencial per a persones amb discapacitat; b) si és el cas, l'acreditació de la situació de dependència, per mitjà de la resolució emesa per l'òrgan de valoració corresponent, d'acord amb el Reial Decret 504/2007, de 20 d'abril; c) el requisit d'edat establert en aquesta disposició; d) la residència en un municipi de Catalunya i, si és el cas, el requisit de residència establert en la Llei 39/2006, de 14 de desembre; e) per a les persones estrangeres, els requisits establerts en la normativa vigent d'estrangeria i d'acollida i integració de les persones immigrades; f) si és el cas, l'abonament del preu públic, d'acord amb el Decret 394/1996, de 12 de desembre, i l'Ordre ASC/432/2007, de 22 de novembre; g) la resta de requisits d'accés establerts en l'ordenament jurídic vigent.
+
+Cost de referència
+
+118,76 euros estada - 3.612,27 euros mes.
+
+Mòdul social
+
+1.329,74 euros mes.
+
+Copagament
+
+2.282,53 euros mes.
+
+Prestació
+
+1.2.6.2.3.3.3 Servei de centre residencial temporal o permanent per a persones amb discapacitat intel·lectual amb necessitat de suport generalitzat
+
+Garantia de la prestació
+
+Prestació garantida.
+
+Descripció
+
+Servei d'acolliment residencial de caràcter temporal o permanent que té una funció substitutòria de la llar, adequats per acollir a persones amb discapacitat psíquica amb una necessitat de suport generalitzat, d'acord amb el que estableix el Decret 318/2006, de 25 de juliol, dels serveis d'acolliment residencial per a persones amb discapacitat.
+
+Objecte
+
+Facilitar un entorn substitutiu de la llar adequat i adaptat a les necessitats del usuaris i potenciar el desenvolupament autònom de les aptituds bàsiques de la vida diària i instrumentals.
+
+Funcions
+
+Serveis bàsics:
+
+Allotjament.
+
+Acolliment i convivència.
+
+Manutenció.
+
+Atenció o cura personal.
+
+Atenció a la salut i seguretat personal a la llar.
+
+Foment dels hàbits d'autonomia personal.
+
+Convivència i foment de les relacions interpersonals i socials.
+
+Foment de l'oci i del lleure.
+
+Atenció conductual.
+
+Serveis opcionals:
+
+S'entenen com a serveis opcionals tots aquells que no estiguin inclosos a l'apartat anterior, i que no siguin necessaris per a la seva provisió, i que la persona discapacitada pugui optar voluntàriament per què li siguin facilitats o no.
+
+Les altres funcions establertes per l'ordenament jurídic vigent.
+
+Tipologia de la prestació
+
+Prestació de servei: servei especialitzat.
+
+Situació de la població destinatària
+
+Dependència.
+
+Edat població destinatària
+
+De 18 a 65 anys.
+
+Forma de prestació
+
+En establiment residencial.
+
+Perfils professionals
+
+Director/a responsable (professional amb titulació universitària, preferentment en l'àmbit de les ciències socials i de la salut), responsable higienicosanitari (metge/essa, infermer/a), treballador/a social, psicòleg/loga o pedagog/a, neuròleg/loga o psiquiatre/a, metge/essa generalista, infermer/a, auxiliars i tècnics/ques per a l'atenció personal.
+
+Ràtios de professionals
+
+1.307 hores/usuari/any, amb la següent distribució: director/a tècnic, 1/60; treballador/a social, 1/240; psicòleg/oga o pedagog/a, 1/30; psiquiatre/a o neuròleg/òloga, 1/360; metge/essa generalista, 1/240; auxiliars i tècnics/ques per a l'atenció personal de dia, 1/5,5; auxiliars i tècnics/ques per a l'atenció personal de nit, 1/20; infermer/a, 1/30; fisioterapeuta, 1/60. Auxiliars i tècnics/ques per a l'atenció personal, la ràtio s'haurà de garantir en presencia física els 365 dies l'any. Resta de professionals, el còmput anual d'hores de cadascun/a es distribuirà uniformement. Personal d'atenció directa són els/les professionals amb la titulació adient per donar atenció personal, sanitària, psicològica i social, a més del/de la director/a tècnic/a de l'equipament. En funció de les característiques de les persones usuàries, es podrà variar les tipologies de personal.
+
+Estàndards de qualitat
+
+Publicació del Departament d'Acció Social i Ciutadania: "Indicadors d'avaluació de qualitat. Avaluació externa de qualitat de centres de l'ICASS. Centres de disminuïts psíquics". Desembre 1999".
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquest servei són els següents: a) l'acreditació de la situació de necessitat, d'acord amb el que preveuen els articles 2, 3, 4, 5 i 6 i l'annex 1 del Decret 318/2006, de 25 de juliol, dels serveis d'acolliment residencial per a persones amb discapacitat; b) si és el cas, l'acreditació de la situació de dependència, per mitjà de la resolució emesa per l'òrgan de valoració corresponent, d'acord amb el Reial Decret 504/2007, de 20 d'abril; c) el requisit d'edat establert en aquesta disposició; d) la residència en un municipi de Catalunya i, si és el cas, el requisit de residència establert en la Llei 39/2006, de 14 de desembre; e) per a les persones estrangeres, els requisits establerts en la normativa vigent d'estrangeria i d'acollida i integració de les persones immigrades; f) si és el cas, l'abonament del preu públic, d'acord amb el Decret 394/1996, de 12 de desembre, i l'Ordre ASC/432/2007, de 22 de novembre; g) la resta de requisits d'accés establerts en l'ordenament jurídic vigent.
+
+Cost de referència
+
+103,30 euros estada - 3.141,93 euros mes.
+
+Mòdul social
+
+1.176,70 euros mes.
+
+Copagament
+
+1.965,22 euros mes.
+
+Prestació
+
+1.2.6.2.3.3.4 Servei de centre residencial temporal o permanent per a persones amb discapacitat intel·lectual amb necessitat de suport generalitzat (amb problemes de salut o de salut mental afegits)
+
+Garantia de la prestació
+
+Prestació garantida.
+
+Descripció
+
+Servei d'acolliment residencial de caràcter temporal o permanent que té una funció substitutòria de la llar, adequats per acollir a persones amb discapacitat psíquica amb una necessitat de suport generalitzat, d'acord amb el que estableix el Decret 318/2006, de 25 de juliol, dels serveis d'acolliment residencial per a persones amb discapacitat.
+
+Objecte
+
+Facilitar un entorn substitutiu de la llar adequat i adaptat a les necessitats del usuaris i potenciar el desenvolupament autònom de les aptituds bàsiques de la vida diària i instrumentals.
+
+Funcions
+
+Serveis bàsics:
+
+Allotjament.
+
+Acolliment i convivència.
+
+Manutenció.
+
+Atenció o cura personal.
+
+Atenció a la salut i seguretat personal a la llar.
+
+Foment dels hàbits d'autonomia personal.
+
+Convivència i foment de les relacions interpersonals i socials.
+
+Foment de l'oci i del lleure.
+
+Atenció conductual.
+
+Serveis opcionals:
+
+S'entenen com a serveis opcionals tots aquells que no estiguin inclosos a l'apartat anterior, i que no siguin necessaris per a la seva provisió, i que la persona discapacitada pugui optar voluntàriament per què li siguin facilitats o no.
+
+Les altres funcions establertes per l'ordenament jurídic vigent.
+
+Tipologia de la prestació
+
+Prestació de servei: servei especialitzat.
+
+Situació de la població destinatària
+
+Dependència.
+
+Edat població destinatària
+
+De 18 a 65 anys.
+
+Forma de prestació
+
+En establiment residencial.
+
+Perfils professionals
+
+Director/a responsable (professional amb titulació universitària, preferentment en l'àmbit de les ciències socials i de la salut), responsable higienicosanitari (metge/essa, infermer/a), treballador/a social, psicòleg/loga o pedagog/a, neuròleg/loga o psiquiatre/a, metge/essa generalista, infermer/a, auxiliars i tècnics/ques per a l'atenció personal.
+
+Ràtios de professionals
+
+1.514 hores/usuari/any, amb la següent distribució: director/a tècnic/a, 1/60; treballador/a social, 1/240; psicòleg/oga o pedagog/a, 1/30; psiquiatre/a o neuròleg/òloga, 1/120; metge/essa generalista, 1/240; auxiliars i tècnics/ques per a l'atenció personal de dia, 1/4,5; auxiliars i tècnics/ques per a l'atenció personal de nit, 1/20; infermer/a, 1/30. Auxiliars i tècnics/ques per a l'atenció personal, la ràtio s'haurà de garantir en presencia física els 365 dies l'any. La resta de professionals d'atenció directa, el còmput anual d'hores de cadascun/a es distribuirà uniformement. Personal d'atenció directa són els/les professionals amb la titulació adient per donar atenció personal, sanitària, psicològica i social, a més del/de la director/a tècnic/a de l'equipament. En funció de les característiques de les persones usuàries, es podrà variar les tipologies de personal.
+
+Estàndards de qualitat
+
+Publicació del Departament d'Acció Social i Ciutadania: "Indicadors d'avaluació de qualitat. Avaluació externa de qualitat de centres de l'ICASS. Centres de disminuïts psíquics". Desembre 1999".
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquest servei són els següents: a) l'acreditació de la situació de necessitat, d'acord amb el que preveuen els articles 2, 3, 4, 5 i 6 i l'annex 1 del Decret 318/2006, de 25 de juliol, dels serveis d'acolliment residencial per a persones amb discapacitat; b) si és el cas, l'acreditació de la situació de dependència, per mitjà de la resolució emesa per l'òrgan de valoració corresponent, d'acord amb el Reial Decret 504/2007, de 20 d'abril; c) el requisit d'edat establert en aquesta disposició; d) la residència en un municipi de Catalunya i, si és el cas, el requisit de residència establert en la Llei 39/2006, de 14 de desembre; e) per a les persones estrangeres, els requisits establerts en la normativa vigent d'estrangeria i d'acollida i integració de les persones immigrades; f) si és el cas, l'abonament del preu públic, d'acord amb el Decret 394/1996, de 12 de desembre, i l'Ordre ASC/432/2007, de 22 de novembre; g) la resta de requisits d'accés establerts en l'ordenament jurídic vigent.
+
+Cost de referència
+
+112,83 euros estada - 3.431,84 euros mes.
+
+Mòdul social
+
+1.327,83 euros mes.
+
+Copagament
+
+2.104,01 euros mes.
+
+Prestació
+
+1.2.6.2.4.1.1 Servei de centre de dia de teràpia ocupacional (STO) per a persones amb discapacitat intel·lectual
+
+Garantia de la prestació
+
+Prestació garantida per a les persones en situació de dependència, en aplicació de la disposició addicional cinquena de la Llei 12/2007, d'11 d'octubre, de serveis socials. Subjecta a crèdits pressupostaris disponibles per a la resta.
+
+Descripció
+
+Servei dirigit a facilitar als seus destinataris una atenció diürna de tipus rehabilitador per tal que puguin assolir, dins les possibilitats de cada usuari/ària, la seva màxima integració social i laboral.
+
+Objecte
+
+Aconseguir la potenciació i manteniment de les capacitats de les persones ateses amb relació a l'obtenció de la seva màxima integració social i laboral, si s'escau.
+
+Funcions
+
+Ajustament personal.
+
+Ocupació terapèutica.
+
+Les altres funcions establertes per l'ordenament jurídic vigent.
+
+Tipologia de la prestació
+
+Prestació de servei: servei especialitzat.
+
+Situació de la població destinatària
+
+Dependència i/o risc social.
+
+Edat població destinatària
+
+De 18 a 65 anys.
+
+Forma de prestació
+
+En establiment diürn.
+
+Perfils professionals
+
+Director/a responsable (professional amb titulació universitària, preferentment en l'àmbit de les ciències socials i de la salut), monitor/a, terapeuta ocupacional o educador/a social, psicòleg/loga o pedagog/a, treballador/a social i personal especialitzat en la realització dels programes individuals de rehabilitació.
+
+Ràtios de professionals
+
+Monitor/a especialitzat, terapeuta ocupacional o educador/a social: 1 per cada 8 usuaris/es; psicòleg/loga o pedagog/a: 1 jornada completa cada 40 usuaris/es (l'atenció d'un/a d'aquests/es professionals s'ha de mantenir també quan el centre no arribi a aquell nombre d'usuaris/es, si bé en jornada proporcional a les hores globals d'estada dels/de les usuaris/es, per sobre dels 40 usuaris/es s'incrementarà proporcionalment també la presència dels tècnics/ques esmentats/des); treballador/a social: 1 per cada 80 usuaris/es.
+
+Estàndards de qualitat
+
+Els que estableixi el Pla de qualitat previst en la Llei de Serveis Socials per a aquesta prestació.
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquest servei són els següents: a) l'acreditació de la situació de necessitat, d'acord amb el que preveuen els articles 3, 8 i 9 del Decret 279/1987, de 27 d'agost, pel qual es regulen els centres ocupacionals per a discapacitats, i l'Annex 2 de l'Ordre de 28-7-1992; b) si és el cas, l'acreditació de la situació de dependència, per mitjà de la resolució emesa per l'òrgan de valoració corresponent, d'acord amb el Reial Decret 504/2007, de 20 d'abril; c) el requisit d'edat establert en aquesta disposició; d) la residència en un municipi de Catalunya i, si és el cas, el requisit de residència establert en la Llei 39/2006, de 14 de desembre; e) per a les persones estrangeres, els requisits establerts en la normativa vigent d'estrangeria i d'acollida i integració de les persones immigrades; f) si és el cas, l'abonament del preu públic, d'acord amb el Decret 394/1996, de 12 de desembre, i l'Ordre ASC/432/2007, de 22 de novembre; g) la resta de requisits d'accés establerts en l'ordenament jurídic vigent.
+
+Prestació
+
+1.2.6.2.4.1.2 Servei de centre de dia de teràpia ocupacional (STO) per a persones amb discapacitat intel·lectual, amb auxiliar
+
+Garantia de la prestació
+
+Prestació garantida per a les persones en situació de dependència, en aplicació de la disposició addicional cinquena de la Llei 12/2007, d'11 d'octubre, de serveis socials. Subjecta a crèdits pressupostaris disponibles per a la resta.
+
+Descripció
+
+Servei dirigit a facilitar als/a les seus/ves destinataris/es una atenció diürna de tipus rehabilitador per tal que puguin assolir, dins les possibilitats de cada usuari/a, la seva màxima integració social i laboral.
+
+Objecte
+
+Aconseguir la potenciació i manteniment de les capacitats de les persones ateses amb relació a l'obtenció de la seva màxima integració social i laboral, si s'escau.
+
+Funcions
+
+Ajustament personal.
+
+Ocupació terapèutica.
+
+Les altres funcions establertes per l'ordenament jurídic vigent.
+
+Tipologia de la prestació
+
+Prestació de servei: servei especialitzat.
+
+Situació de la població destinatària
+
+Dependència i/o risc social.
+
+Edat població destinatària
+
+De 18 a 65 anys.
+
+Forma de prestació
+
+En establiment diürn.
+
+Perfils professionals
+
+Director/a responsable (professional amb titulació universitària, preferentment en l'àmbit de les ciències socials i de la salut), monitor/a, auxiliar de monitor/a, terapeuta ocupacional o educador/a social, psicòleg/loga o pedagog/a, treballador/a social.
+
+Ràtios de professionals
+
+Monitor/a especialitzat, terapeuta ocupacional o educador/a social: 1 per cada 8 usuaris/es; auxiliar de monitor/a (quan el centre atengui persones amb una necessitat de contenció major, s'haurà d'incrementar el personal en un/a auxiliar de monitor/a per a cada 8 usuaris/es atesos/es en les condicions esmentades); psicòleg/loga o pedagog/a 1 jornada completa cada 40 usuaris/es (l'atenció d'un/a d'aquests/es professionals s'ha de mantenir també quan el centre no arribi a aquell nombre d'usuaris/es, si bé en jornada proporcional a les hores globals d'estada dels usuaris/es, per sobre dels 40 usuaris/es s'incrementarà proporcionalment també la presència dels/de les tècnics/ques esmentats/des); treballador/a social: 1 per cada 80 usuaris/es.
+
+Estàndards de qualitat
+
+Els que estableixi el Pla de qualitat previst en la Llei de Serveis Socials per a aquesta prestació.
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquest servei són els següents: a) l'acreditació de la situació de necessitat, d'acord amb el que preveuen els articles 3, 8 i 9 del Decret 279/1987, de 27 d'agost, pel qual es regulen els centres ocupacionals per a discapacitats, i l'Annex 2 de l'Ordre de 28-7-1992; b) si és el cas, l'acreditació de la situació de dependència, per mitjà de la resolució emesa per l'òrgan de valoració corresponent, d'acord amb el Reial Decret 504/2007, de 20 d'abril; c) el requisit d'edat establert en aquesta disposició; d) la residència en un municipi de Catalunya i, si és el cas, el requisit de residència establert en la Llei 39/2006, de 14 de desembre; e) per a les persones estrangeres, els requisits establerts en la normativa vigent d'estrangeria i d'acollida i integració de les persones immigrades; f) si és el cas, l'abonament del preu públic, d'acord amb el Decret 394/1996, de 12 de desembre, i l'Ordre ASC/432/2007, de 22 de novembre; g) la resta de requisits d'accés establerts en l'ordenament jurídic vigent.
+
+Prestació
+
+1.2.6.2.4.2 Servei de centre de dia ocupacional d'inserció (SOI) per a persones amb discapacitat intel·lectual
+
+Garantia de la prestació
+
+Prestació garantida per a les persones en situació de dependència, en aplicació de la disposició addicional cinquena de la Llei 12/2007, d'11 d'octubre, de serveis socials. Subjecta a crèdits pressupostaris disponibles per a la resta.
+
+Descripció
+
+Servei dirigit a facilitar als/a les seus/ves destinataris/es una atenció diürna de tipus rehabilitador per tal que puguin assolir, dins les possibilitats de cada usuari/a, la seva màxima integració laboral.
+
+Objecte
+
+Potenciar i conservar les capacitats laborals per tal que l'usuari d'aquest servei estigui en disposició d'integrar-se a l'activitat laboral quan les circumstàncies ho permetin, preveien també l'orientació cap al servei de teràpia ocupacional quan les necessitats d'atenció de l'usuari ho requereixi.
+
+Funcions
+
+Ajustament personal i social.
+
+Activitats prelaborals.
+
+Les altres funcions establertes per l'ordenament jurídic vigent.
+
+Tipologia de la prestació
+
+Prestació de servei: servei especialitzat.
+
+Situació de la població destinatària
+
+Dependència i/o risc social.
+
+Edat població destinatària
+
+De 18 a 65 anys.
+
+Forma de prestació
+
+En establiment diürn.
+
+Perfils professionals
+
+Psicòleg/loga, treballador/a social, monitor/a.
+
+Ràtios de professionals
+
+Psicòleg/loga: 1 a jornada completa per cada 100 usuaris/es. Quan el servei abasti més o menys usuaris/es caldrà ajustar proporcionalment la dedicació d'aquests tipus de professionals. Treballador/a social: 1 a jornada completa per cada 100 usuaris/es. Quan el servei abasti més o menys usuaris/es caldrà ajustar proporcionalment la dedicació d'aquests tipus de professionals. Monitor/a: 1 a jornada completa, fins a 14 usuaris/es. La dedicació d'aquest tipus de professional s'haurà d'incrementar proporcionalment per cada fracció corresponent a tres usuaris/es més.
+
+Estàndards de qualitat
+
+Els que estableixi el Pla de qualitat previst en la Llei de Serveis Socials per a aquesta prestació.
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquest servei són els següents: a) l'acreditació de la situació de necessitat, d'acord amb el que preveuen els articles 2 i 4 i la disposició addicional 1ª del Decret 336/1995,de 28 de desembre, pel qual es regula el Servei Ocupacional d'Inserció en els centres ocupacionals per a persones amb disminució; b) si és el cas, l'acreditació de la situació de dependència, per mitjà de la resolució emesa per l'òrgan de valoració corresponent, d'acord amb el Reial Decret 504/2007, de 20 d'abril; c) el requisit d'edat establert en aquesta disposició; d) la residència en un municipi de Catalunya i, si és el cas, el requisit de residència establert en la Llei 39/2006, de 14 de desembre; e) per a les persones estrangeres, els requisits establerts en la normativa vigent d'estrangeria i d'acollida i integració de les persones immigrades; f) si és el cas, l'abonament del preu públic, d'acord amb el Decret 394/1996, de 12 de desembre, i l'Ordre ASC/432/2007, de 22 de novembre; g) la resta de requisits d'accés establerts en l'ordenament jurídic vigent.
+
+Prestació
+
+1.2.6.2.5 Servei de temps lliure per a persones per a persones amb discapacitat intel·lectual
+
+Garantia de la prestació
+
+Subjecta a crèdits pressupostaris disponibles
+
+Descripció
+
+Servei dedicat a fer activitats de temps lliure per a persones amb discapacitat, promoguts per entitats jurídiques
+
+Objecte
+
+Potenciar la integració social de les persones amb discapacitat per mitjà de la promoció d'activitats de caràcter cultural, convivencial, d'esplai, de vacances, etc.
+
+Funcions
+
+Informació, orientació i suport en aquest àmbit.
+
+Activitats socioculturals, recreatives, de lleure i de manteniment.
+
+Captació de voluntariat en aquest àmbit.
+
+Sensibilització, promoció i suport personal i social.
+
+Altres complementaris.
+
+Les altres funcions establertes per l'ordenament jurídic vigent.
+
+Tipologia de la prestació
+
+Prestació de servei: servei especialitzat
+
+Situació de la població destinatària
+
+Dependència
+
+Edat població destinatària
+
+Població general
+
+Forma de prestació
+
+Mitjançant intervenció d'equip de professionals
+
+Perfils professionals
+
+Monitor/a, auxiliar de monitor/a, tècnic/a en l'àmbit del lleure
+
+Ràtios de professionals
+
+Es disposarà de professionals suficients en nombre i perfil per a la prestació del servei.
+
+Estàndards de qualitat
+
+Els que estableixi el Pla de qualitat previst en la Llei de Serveis Socials per a aquesta prestació
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquest servei són els següents: a) l'acreditació de la situació de necessitat, d'acord amb la normativa reguladora del servei; b) la residència en un municipi de Catalunya; c) per a les persones estrangeres, els requisits establerts en la normativa vigent d'estrangeria i d'acollida i integració de les persones immigrades; d) la resta de requisits d'accés establerts en l'ordenament jurídic vigent
+
+Cost de referència
+
+Pendent de desplegament normatiu.
+
+Mòdul social
+
+Pendent de desplegament normatiu.
+
+Copagament
+
+Pendent de desplegament normatiu.
+
+Prestació
+
+1.2.6.2.6 Servei de tutela per a persones amb discapacitat intel·lectual
+
+Garantia de la prestació
+
+Prestació garantida
+
+Descripció
+
+Servei dut a terme per persones jurídiques sense ànim de lucre, dedicades a la protecció de les persones amb discapacitat intel·lectual incapacitades judicialment o protegides per càrrecs tutelars designats judicialment.
+
+Objecte
+
+Cobrir les necessitats de suport, protecció i garantia de tots els drets (personals i patrimonials) i promoure l'autonomia personal de les persones incapacitades judicialment o en procés d'incapacitació en els termes que estableixi la corresponent resolució judicial.
+
+Funcions
+
+Totes aquelles funcions necessàries en l'àrea social, jurídica i econòmica per assegurar la protecció de la persona tutelada, l'administració i la guarda dels seus bens i en general l'exercici dels seus drets, vetllant perquè tingui la màxima qualitat de vida orientada a la promoció de l'autonomia personal.
+
+Les altres funcions establertes per l'ordenament jurídic vigent.
+
+Tipologia de la prestació
+
+Prestació de servei: servei especialitzat
+
+Situació de la població destinatària
+
+Persones amb discapacitat intel·lectual incapacitades legalment o protegides per càrrecs tutelars designats judicialment.
+
+Edat població destinatària
+
+18 i més anys
+
+Forma de prestació
+
+Mitjançant intervenció d'equip de professionals
+
+Perfils professionals
+
+Referent de tutela amb titulació universitària preferentment en l'àmbit social; auxiliar de tutela amb la qualificació que es determini; responsable econòmic amb titulació com a mínim de tècnic superior de formació professional de la branca d'administració amb coneixements d'especialització en comptabilitat i gestió financera; auxiliar comptable; advocat/da.
+
+Ràtios de professionals
+
+El servei de tutela comporta la possibilitat d'aplicar 4 mòduls en funció de les necessitats de suport.
+
+- Referent de tutela: mòdul A: 1/70; mòdul B: 1/50; mòdul C: 1/22; mòdul D: 1/15.
+
+- Auxiliar de tutela: mòdul A: 1/70; mòdul B: 1/50; mòdul C: 1/22; mòdul D: 1/15.
+
+- Advocat/da.
+
+- Responsable econòmic: fins a 100.
+
+- Auxiliar comptable: a partir de 100.
+
+Estàndards de qualitat
+
+Publicació del Departament d'Acció Social i Ciutadania: "Indicadors d'avaluació de qualitat. Avaluació externa de la qualitat de les entitats tutelars de Catalunya. Octubre 2002" (revisada el 2006)
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquest servei són els següents: a) els requisits establerts en la resolució judicial de nomenament de tutor, d'acord amb el que preveu la legislació civil, processal civil i administrativa, particularment, la Llei 25/2010, del 29 de juliol, del llibre segon del Codi civil de Catalunya, relatiu a la persona i la família, i el Decret 188/1994 de 28 de juny, de creació de la Comissió d'Assessorament i Supervisió de les Persones Jurídiques sense Ànim de Lucre que tinguin atribuïda la tutela de menors o incapacitat ; b) el requisit d'edat establert en aquesta disposició; c) la residència en un municipi de Catalunya; d) per a les persones estrangeres, els requisits establerts en la normativa vigent d'estrangeria i d'acollida i integració de les persones immigrades; e) la resta de requisits d'accés establerts en l'ordenament jurídic vigent
+
+Prestació
+
+1.2.6.3.1 Servei de centre de dia d'atenció especialitzada temporal o permanent per a persones amb discapacitat física
+
+Garantia de la prestació
+
+Prestació garantida per a les persones en situació de dependència, en aplicació de la disposició addicional cinquena de la Llei 12/2007, d'11 d'octubre, de serveis socials. Subjecta a crèdits pressupostaris disponibles per a la resta.
+
+Descripció
+
+Servei d'acolliment diürn que presta atenció especialitzada a persones amb greus discapacitats físiques.
+
+Objecte
+
+Oferir atenció individual a les persones amb greus discapacitats, per aconseguir el màxim grau d'autonomia personal i d'integració social, i afavorir, així, el manteniment en el domicili.
+
+Funcions
+
+Donar suport a la família.
+
+Rehabilitació-habilitació.
+
+Dur a terme els programes i tractaments individuals.
+
+Desenvolupar les activitats del grup.
+
+Atenció a les activitats de la vida diària.
+
+Acolliment i convivència.
+
+Les altres funcions establertes per l'ordenament jurídic vigent.
+
+Tipologia de la prestació
+
+Prestació de servei: servei especialitzat.
+
+Situació de la població destinatària
+
+Dependència.
+
+Edat població destinatària
+
+De 18 a 65 anys.
+
+Forma de prestació
+
+En establiment diürn.
+
+Perfils professionals
+
+Director/a responsable (professional amb titulació universitària, preferentment en l'àmbit de les ciències socials i de la salut), responsable higienicosanitari (metge/essa, infermer/a), terapeuta ocupacional, fisioterapeuta, psicòleg/òloga i monitor/a especialitzat.
+
+Ràtios de professionals
+
+Director/a responsable: 1 per cada 64 persones usuàries; responsable higienicosanitari: 1 per cada 128 persones usuàries; terapeuta ocupacional: 1 per cada 128 persones usuàries; fisioterapeuta: 1 per cada 128 persones usuàries; psicòleg/òloga: 3 h/setmana, i monitor/a especialitzat: 1 per cada 6 persones usuàries.
+
+Estàndards de qualitat
+
+Els que estableixi el Pla de qualitat que preveu la Llei de serveis socials per a aquesta prestació.
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquest servei són: a) l'acreditació de la situació de necessitat, d'acord amb el que preveuen l'article 30 i l'annex (apartat 2.2.7) del Decret 284/1996, de 23 de juliol, de regulació del Sistema Català de Serveis Socials; b) si escau, l'acreditació de la situació de dependència, per mitjà de la resolució emesa per l'òrgan de valoració corresponent, d'acord amb el Reial decret 504/2007, de 20 d'abril; c) el requisit d'edat que estableix aquesta disposició; d) la residència en un municipi de Catalunya i, si escau, el requisit de residència que preveu la Llei 39/2006, de 14 de desembre; e) per a les persones estrangeres, els requisits que estableix la normativa vigent d'estrangeria i d'acollida i integració de les persones immigrades; f) si escau, l'abonament del preu públic, d'acord amb el Decret 394/1996, de 12 de desembre, i l'Ordre ASC/432/2007, de 22 de novembre, i g) la resta de requisits d'accés que preveu l'ordenament jurídic vigent.
+
+Cost de referència
+
+38,73 euros/estada - 851,90 euros/mes.
+
+Prestació
+
+1.2.6.3.2 Servei de suport a l'autonomia a la pròpia llar per a persones amb discapacitat física
+
+Garantia de la prestació
+
+Subjecta a crèdits pressupostaris disponibles
+
+Descripció
+
+Servei que ofereix orientació i suport a les persones amb discapacitat física i/o persones sordcegues amb necessitats de suport que viuen soles, en parella o bé conviuen amb altres persones (amb un nombre de quatre màxim), i que, en alguns aspectes, plantegen necessitats o tenen carències que no poden satisfer per a elles mateixes. La tinència de la llar pot correspondre a la pròpia persona usuària, a una de les persones usuàries o a l'entitat prestadora del servei.
+
+Objecte
+
+Contribuir al desenvolupament de la persona en les activitats de la vida diària, tant a la seva llar com en la comunitat, possibilitant la seva autonomia.
+
+Funcions
+
+Donar suport a la persona en les activitats d'autocura, domèstiques i comunitàries, per tal de millorar l'autogestió i la vida independent.
+
+Donar suport a la persona per planificar i gestionar la seva llar, els seus assumptes administratius i financers, la seva salut i la utilització dels recursos de la comunitat entre d'altres.
+
+Les altres funcions establertes per l'ordenament jurídic vigent.
+
+Tipologia de la prestació
+
+Prestació de servei: servei especialitzat
+
+Situació de la població destinatària
+
+Persones amb discapacitat
+
+Edat població destinatària
+
+De 18 a 65 anys
+
+Forma de prestació
+
+Mitjançant intervenció d'equip de professionals
+
+Perfils professionals
+
+Director/a responsable, psicòleg/òloga, pedagog/a, psicopedagog/a, treballador/a social, educador/a social, integrador/a social, auxiliar educador.
+
+Ràtios de professionals
+
+Ha de disposar d'un equip de professionals tècnics i personal d'atenció directa format, com a mínim, per:
+
+· Equip tècnic:
+
+Ha d'estar compost, com a mínim, per dos dels professionals amb títol universitari següents:
+
+- Un/a psicòleg/òloga
+
+- Un/a pedagog/a
+
+- Un/a psicopedagog/a
+
+- Un/a treballador/a social
+
+- Un/a educador/a social
+
+Un d'aquests professionals ha d'assumir les funcions de director/a responsable del servei.
+
+·Personal d'atenció directa:
+
+Pot ser un dels professionals següents:
+
+- Un/a auxiliar educador o un/a integrador/a social o un/a professional amb títol universitari que s'especifica a l'apartat anterior.
+
+Cal garantir que, entre tots els professionals que formen part del servei, es proporcioni una atenció mitjana per persona usuària no inferior a 10 hores setmanals en còmput mensual.
+
+Estàndards de qualitat
+
+Els que estableixi el Pla de qualitat previst en la Llei de Serveis Socials per a aquesta prestació.
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquest servei són els següents: a) l'acreditació de la situació de necessitat, d'acord amb el que preveuen els articles 2 i 5 i l'Annex 1 de l'Ordre BES/6/2002, de 10 de gener, i la convocatòria anual corresponent; b) el requisit d'edat establert en aquesta disposició; c) la residència legal en un municipi de Catalunya durant 5 anys, dos dels quals han de ser immediatament anteriors a la data de presentació de la sol·licitud; d) per a les persones estrangeres, els requisits establerts en la normativa vigent d'estrangeria i d'acollida i integració de les persones immigrades; e) la resta de requisits d'accés establerts en l'ordenament jurídic vigent.
+
+Cost de referència
+
+Pendent de desplegament normatiu
+
+Mòdul social
+
+Pendent de desplegament normatiu
+
+Copagament
+
+Pendent de desplegament normatiu
+
+Prestació
+
+1.2.6.3.3.1 Servei de llar amb suport per a persones amb discapacitat física amb necessitat de suport intermitent
+
+Garantia de la prestació
+
+Subjecta a crèdits pressupostaris disponibles.
+
+Descripció
+
+Servei que es desenvolupa en l'estructura física d'un habitatge ordinari que constitueix el domicili habitual de les persones que l'habiten quan les seves circumstàncies personals, socials i familiars facin aconsellable un suport intermitent, d'acord amb el que estableix el Decret 318/2006, de 25 de juliol, dels serveis d'acolliment residencial per a persones amb discapacitat.
+
+Objecte
+
+Afavorir la màxima independència, autonomia personal i social dels usuaris, així com la vida comunitària.
+
+Funcions
+
+Serveis bàsics:
+
+Allotjament.
+
+Acolliment i convivència.
+
+Manutenció.
+
+Atenció o cura personal.
+
+Atenció a la salut i seguretat personal a la llar.
+
+Foment dels hàbits d'autonomia personal.
+
+Convivència i foment de les relacions interpersonals i socials.
+
+Foment de l'oci i del lleure.
+
+Assessorament i supervisió.
+
+Atenció conductual.
+
+Serveis opcionals:
+
+S'entenen com a serveis opcionals tots aquells que no estiguin inclosos a l'apartat anterior, i que no siguin necessaris per a la seva provisió, i que la persona discapacitada pugui optar voluntàriament per què li siguin facilitats o no.
+
+Les altres funcions establertes per l'ordenament jurídic vigent.
+
+Tipologia de la prestació
+
+Prestació de servei: servei especialitzat.
+
+Situació de la població destinatària
+
+Dependència i/o risc social.
+
+Edat població destinatària
+
+De 18 a 65 anys.
+
+Forma de prestació
+
+Alternativa a la llar.
+
+Perfils professionals
+
+Director/a responsable, personal d'atenció directa per donar atenció personal, sanitària, psicològica i social.
+
+Ràtios de professionals
+
+Es disposarà d'una atenció directa mínima de 430 hores/usuari/any per a la provisió del suport intermitent.
+
+En recursos on exclusivament s'atengui a persones amb suport intermitent, la jornada nocturna podrà ser atesa amb servei de teleassistència.
+
+Estàndards de qualitat
+
+Els que estableixi el Pla de qualitat previst en la Llei de Serveis Socials per a aquesta prestació.
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquest servei són els següents: a) l'acreditació de la situació de necessitat, d'acord amb el que preveuen els articles 2, 3, 4, 5 i 6 i l'annex 1 del Decret 318/2006, de 25 de juliol, dels serveis d'acolliment residencial pera persones amb discapacitat; b) si és el cas, l'acreditació de la situació de dependència, per mitjà de la resolució emesa per l'òrgan de valoració corresponent, d'acord amb el Reial Decret 504/2007, de 20 d'abril; c) el requisit d'edat establert en aquesta disposició; d) la residència en un municipi de Catalunya i, si és el cas, el requisit de residència establert en la Llei 39/2006, de 14 de desembre; e) per a les persones estrangeres, els requisits establerts en la normativa vigent d'estrangeria i d'acollida i integració de les persones immigrades; f) si és el cas, l'abonament del preu públic, d'acord amb el Decret 394/1996, de 12 de desembre, i l'Ordre ASC/432/2007, de 22 de novembre; g) la resta de requisits d'accés establerts en l'ordenament jurídic vigent.
+
+Cost de referència
+
+17,64 euros estada - 536,66 euros mes.
+
+Mòdul social
+
+161,00 euros mes.
+
+Copagament
+
+375,66 euros mes.
+
+Prestació
+
+1.2.6.3.3.2.1 Servei de llar residència temporal o permanent per a persones amb discapacitat física amb necessitat de suport intermitent
+
+Garantia de la prestació
+
+Subjecta a crèdits pressupostaris disponibles.
+
+Descripció
+
+Servei d'acolliment residencial de caràcter temporal o permanent que té una funció substitutòria de la llar adequat per acollir a persones amb discapacitat física, amb necessitat de suport intermitent, d'acord amb el que estableix el Decret 318/2006, de 25 de juliol, dels serveis d'acolliment residencial per a persones amb discapacitat.
+
+Objecte
+
+Afavorir i potenciar les habilitats d'autonomia personal, de la llar, oci, lleure i la vida comunitària dels usuaris.
+
+Funcions
+
+Serveis bàsics:
+
+Allotjament.
+
+Acolliment i convivència.
+
+Manutenció.
+
+Atenció o cura personal.
+
+Atenció a la salut i seguretat personal a la llar.
+
+Foment dels hàbits d'autonomia personal.
+
+Convivència i foment de les relacions interpersonals i socials.
+
+Foment de l'oci i del lleure.
+
+Assessorament i supervisió.
+
+Atenció conductual.
+
+Serveis opcionals:
+
+S'entenen com a serveis opcionals tots aquells que no estiguin inclosos a l'apartat anterior, i que no siguin necessaris per a la seva provisió, i que la persona discapacitada pugui optar voluntàriament per què li siguin facilitats o no.
+
+Les altres funcions establertes per l'ordenament jurídic vigent.
+
+Tipologia de la prestació
+
+Prestació de servei: servei especialitzat.
+
+Situació de la població destinatària
+
+Dependència i/o risc social.
+
+Edat població destinatària
+
+De 18 a 65 anys.
+
+Forma de prestació
+
+Alternativa a la llar.
+
+Perfils professionals
+
+Director/a responsable (professional amb titulació universitària, preferentment en l'àmbit de les ciències socials i de la salut), personal d'atenció directa per donar atenció personal, sanitària, psicològica i social.
+
+Ràtios de professionals
+
+Es disposarà d'una atenció directa mínima de 430 hores/usuari/any per la provisió del suport intermitent. En recursos on exclusivament s'atengui a persones amb suport intermitent, la jornada nocturna podrà ser atesa amb servei de teleassistència.
+
+Estàndards de qualitat
+
+Els que estableixi el Pla de qualitat previst en la Llei de Serveis Socials per a aquesta prestació.
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquest servei són els següents: a) l'acreditació de la situació de necessitat, d'acord amb el que preveuen els articles 2, 3, 4, 5 i 6 i l'annex 1 del Decret 318/2006, de 25 de juliol, dels serveis d'acolliment residencial pera persones amb discapacitat; b) si és el cas, l'acreditació de la situació de dependència, per mitjà de la resolució emesa per l'òrgan de valoració corresponent, d'acord amb el Reial Decret 504/2007, de 20 d'abril; c) el requisit d'edat establert en aquesta disposició; d) la residència en un municipi de Catalunya i, si és el cas, el requisit de residència establert en la Llei 39/2006, de 14 de desembre; e) per a les persones estrangeres, els requisits establerts en la normativa vigent d'estrangeria i d'acollida i integració de les persones immigrades; f) si és el cas, l'abonament del preu públic, d'acord amb el Decret 394/1996, de 12 de desembre, i l'Ordre ASC/432/2007, de 22 de novembre; g) la resta de requisits d'accés establerts en l'ordenament jurídic vigent.
+
+Cost de referència
+
+33,02 euros estada -1.004,23 euros mes.
+
+Mòdul social
+
+298,12 euros mes.
+
+Copagament
+
+706,11 euros mes.
+
+Prestació
+
+1.2.6.3.3.2.2 Servei de llar residència temporal o permanent per a persones amb discapacitat física amb necessitat de suport limitat
+
+Garantia de la prestació
+
+Subjecta a crèdits pressupostaris disponibles.
+
+Descripció
+
+Servei d'acolliment residencial de caràcter temporal o permanent que té una funció substitutòria de la llar adequat per acollir a persones amb discapacitat física, amb necessitat de suport limitat, d'acord amb el que estableix el Decret 318/2006, de 25 de juliol, dels serveis d'acolliment residencial per a persones amb discapacitat.
+
+Objecte
+
+Afavorir i potenciar les habilitats d'autonomia personal, de la llar, oci, lleure i la vida comunitària dels usuaris.
+
+Funcions
+
+Serveis bàsics:
+
+Allotjament.
+
+Acolliment i convivència.
+
+Manutenció.
+
+Atenció o cura personal.
+
+Atenció a la salut i seguretat personal a la llar.
+
+Foment dels hàbits d'autonomia personal.
+
+Convivència i foment de les relacions interpersonals i socials.
+
+Foment de l'oci i del lleure.
+
+Assessorament i supervisió.
+
+Atenció conductual.
+
+Serveis opcionals:
+
+S'entenen com a serveis opcionals tots aquells que no estiguin inclosos a l'apartat anterior, i que no siguin necessaris per a la seva provisió, i que la persona discapacitada pugui optar voluntàriament per què li siguin facilitats o no.
+
+Les altres funcions establertes per l'ordenament jurídic vigent.
+
+Tipologia de la prestació
+
+Prestació de servei: servei especialitzat.
+
+Situació de la població destinatària
+
+Dependència i/o risc social.
+
+Edat població destinatària
+
+De 18 a 65 anys.
+
+Forma de prestació
+
+Alternativa a la llar.
+
+Perfils professionals
+
+Director/a responsable (professional amb titulació universitària, preferentment en l'àmbit de les ciències socials i de la salut), personal d'atenció directa per donar atenció personal, sanitària, psicològica i social.
+
+Ràtios de professionals
+
+Es disposarà d'una atenció directa mínima de 1.032 hores/usuari/any per a la provisió del suport limitat.
+
+Estàndards de qualitat
+
+Els que estableixi el Pla de qualitat previst en la Llei de Serveis Socials per a aquesta prestació.
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquest servei són els següents: a) l'acreditació de la situació de necessitat, d'acord amb el que preveuen els articles 2, 3, 4, 5 i 6 i l'annex 1 del Decret 318/2006, de 25 de juliol, dels serveis d'acolliment residencial pera persones amb discapacitat; b) si és el cas, l'acreditació de la situació de dependència, per mitjà de la resolució emesa per l'òrgan de valoració corresponent, d'acord amb el Reial Decret 504/2007, de 20 d'abril; c) el requisit d'edat establert en aquesta disposició; d) la residència en un municipi de Catalunya i, si és el cas, el requisit de residència establert en la Llei 39/2006, de 14 de desembre; e) per a les persones estrangeres, els requisits establerts en la normativa vigent d'estrangeria i d'acollida i integració de les persones immigrades; f) si és el cas, l'abonament del preu públic, d'acord amb el Decret 394/1996, de 12 de desembre, i l'Ordre ASC/432/2007, de 22 de novembre; g) la resta de requisits d'accés establerts en l'ordenament jurídic vigent.
+
+Cost de referència
+
+64,44 euros estada - 1.960,04 euros mes.
+
+Mòdul social
+
+880,49 euros mes.
+
+Copagament
+
+1.079,55 euros mes.
+
+Prestació
+
+1.2.6.3.3.3.1 Servei de centre residencial temporal o permanent per a persones amb discapacitat física amb necessitat de suport extens
+
+Garantia de la prestació
+
+Prestació garantida.
+
+Descripció
+
+Servei d'acolliment residencial de caràcter temporal o permanent que té una funció substitutòria de la llar, adequats per acollir a persones amb discapacitat física amb una necessitat de suport extens, d'acord amb el que estableix el Decret 318/2006, de 25 de juliol, dels serveis d'acolliment residencial per a persones amb discapacitat.
+
+Objecte
+
+Facilitar un entorn substitutiu de la llar adequat i adaptat a les necessitats del usuaris i potenciar el desenvolupament autònom de les aptituds bàsiques de la vida diària i instrumentals.
+
+Funcions
+
+Serveis bàsics:
+
+Allotjament.
+
+Acolliment i convivència.
+
+Manutenció.
+
+Atenció o cura personal.
+
+Atenció a la salut i seguretat personal a la llar.
+
+Foment dels hàbits d'autonomia personal.
+
+Convivència i foment de les relacions interpersonals i socials.
+
+Foment de l'oci i del lleure.
+
+Atenció conductual.
+
+Serveis opcionals:
+
+S'entenen com a serveis opcionals tots aquells que no estiguin inclosos a l'apartat anterior, i que no siguin necessaris per a la seva provisió, i que la persona discapacitada pugui optar voluntàriament per què li siguin facilitats o no.
+
+Les altres funcions establertes per l'ordenament jurídic vigent.
+
+Tipologia de la prestació
+
+Prestació de servei: servei especialitzat.
+
+Situació de la població destinatària
+
+Dependència.
+
+Edat població destinatària
+
+De 18 a 65 anys.
+
+Forma de prestació
+
+En establiment residencial.
+
+Perfils professionals
+
+Director/a responsable (professional amb titulació universitària, preferentment en l'àmbit de les ciències socials i de la salut), responsable higienicosanitari (metge/essa, infermer/a), treballador/a social, psicòleg/loga o pedagog/a, neuròleg/loga o psiquiatre/a, metge/essa generalista, infermer/a, fisioterapeuta, auxiliars i tècnics/ques per a l'atenció personal.
+
+Ràtios de professionals
+
+Suport extens: 1.170 hores/usuari/any, amb la següent distribució: director/a responsable, 1/60; treballador/a social, 1/120; fisioterapeuta, 1/60; neuròleg/loga o psiquiatre/a, 1/480; metge/essa generalista, 1/240; infermer/a, 1/60; auxiliars i tècnics/ques per a l'atenció personal de dia, 1/5; auxiliars i tècnics/ques per a l'atenció personal de nit, 1/30. Auxiliars i tècnics/ques per a l'atenció personal, la ràtio s'haurà de garantir en presencia física els 365 dies l'any. Professionals d'atenció directa, es garantirà el còmput anual d'hores distribuïdes uniformement. Segons les característiques de les persones usuàries, es podrà variar les tipologies de personal.
+
+Estàndards de qualitat
+
+Publicació del Departament d'Acció Social i Ciutadania: "Indicadors d'avaluació de qualitat. Avaluació externa de qualitat dels centres de l'ICASS. Residències de disminuïts físics. Desembre 1999".
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquest servei són els següents: a) l'acreditació de la situació de necessitat, d'acord amb el que preveuen els articles 2, 3, 4, 5 i 6 i l'annex 1 del Decret 318/2006, de 25 de juliol, dels serveis d'acolliment residencial pera persones amb discapacitat; b) si és el cas, l'acreditació de la situació de dependència, per mitjà de la resolució emesa per l'òrgan de valoració corresponent, d'acord amb el Reial Decret 504/2007, de 20 d'abril; c) el requisit d'edat establert en aquesta disposició; d) la residència en un municipi de Catalunya i, si és el cas, el requisit de residència establert en la Llei 39/2006, de 14 de desembre; e) per a les persones estrangeres, els requisits establerts en la normativa vigent d'estrangeria i d'acollida i integració de les persones immigrades; f) si és el cas, l'abonament del preu públic, d'acord amb el Decret 394/1996, de 12 de desembre, i l'Ordre ASC/432/2007, de 22 de novembre; g) la resta de requisits d'accés establerts en l'ordenament jurídic vigent.
+
+Cost de referència
+
+97,09 euros estada - 2.953,17 euros mes
+
+Mòdul social
+
+1.130,62 euros mes
+
+Copagament
+
+1.822,55 euros mes
+
+Prestació
+
+1.2.6.3.3.3.2 Servei de centre residencial temporal o permanent per a persones amb discapacitat física amb necessitat de suport generalitzat
+
+Garantia de la prestació
+
+Prestació garantida.
+
+Descripció
+
+Servei d'acolliment residencial de caràcter temporal o permanent que té una funció substitutòria de la llar, adequats per acollir a persones amb discapacitat física amb una necessitat de suport generalitzat, d'acord amb el que estableix el Decret 318/2006, de 25 de juliol, dels serveis d'acolliment residencial per a persones amb discapacitat.
+
+Objecte
+
+Facilitar un entorn substitutiu de la llar adequat i adaptat a les necessitats del usuaris i potenciar el desenvolupament autònom de les aptituds bàsiques de la vida diària i instrumentals.
+
+Funcions
+
+Serveis bàsics:
+
+Allotjament.
+
+Acolliment i convivència.
+
+Manutenció.
+
+Atenció o cura personal.
+
+Atenció a la salut i seguretat personal a la llar.
+
+Foment dels hàbits d'autonomia personal.
+
+Convivència i foment de les relacions interpersonals i socials.
+
+Foment de l'oci i del lleure.
+
+Atenció conductual.
+
+Serveis opcionals:
+
+S'entenen com a serveis opcionals tots aquells que no estiguin inclosos a l'apartat anterior, i que no siguin necessaris per a la seva provisió, i que la persona discapacitada pugui optar voluntàriament per què li siguin facilitats o no.
+
+Les altres funcions establertes per l'ordenament jurídic vigent.
+
+Tipologia de la prestació
+
+Prestació de servei: servei especialitzat.
+
+Situació de la població destinatària
+
+Dependència.
+
+Edat població destinatària
+
+De 18 a 65 anys.
+
+Forma de prestació
+
+En establiment residencial.
+
+Perfils professionals
+
+Director/a responsable (professional amb titulació universitària, preferentment en l'àmbit de les ciències socials i de la salut), responsable higienicosanitari (metge/essa, infermer/a), treballador/a social, psicòleg/loga o pedagog/a, neuròleg/loga o psiquiatre/a, metge/essa generalista, infermer/a, fisioterapeuta, auxiliars i tècnics/ques per a l'atenció personal.
+
+Ràtios de professionals
+
+Suport generalitzat amb problemes de salut o mentals afegits: 1.496 hores/usuari/any, amb la següent distribució: director/a responsable, 1/60; treballador/a social, 1/120; fisioterapeuta, 1/60; neuròleg/loga o psiquiatre/a, 1/240; metge/essa generalista, 1/240; infermer/a, 1/30; auxiliars i tècnics/ques per a l'atenció personal de dia, 1/5; auxiliars i tècnics/ques per a l'atenció personal de nit, 1/15. Auxiliars i tècnics/ques per a l'atenció personal, la ràtio s'haurà de garantir en presencia física els 365 dies l'any. Professionals d'atenció directa, es garantirà el còmput anual d'hores distribuïdes uniformement. Segons les característiques de les persones usuàries, es podrà variar les tipologies de personal.
+
+Estàndards de qualitat
+
+Publicació del Departament d'Acció Social i Ciutadania: "Indicadors d'avaluació de qualitat. Avaluació externa de qualitat dels centres de l'ICASS. Residències de disminuïts físics. Desembre 1999".
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquest servei són els següents: a) l'acreditació de la situació de necessitat, d'acord amb el que preveuen els articles 2, 3, 4, 5 i 6 i l'annex 1 del Decret 318/2006, de 25 de juliol, dels serveis d'acolliment residencial pera persones amb discapacitat; b) si és el cas, l'acreditació de la situació de dependència, per mitjà de la resolució emesa per l'òrgan de valoració corresponent, d'acord amb el Reial Decret 504/2007, de 20 d'abril; c) el requisit d'edat establert en aquesta disposició; d) la residència en un municipi de Catalunya i, si és el cas, el requisit de residència establert en la Llei 39/2006, de 14 de desembre; e) per a les persones estrangeres, els requisits establerts en la normativa vigent d'estrangeria i d'acollida i integració de les persones immigrades; f) si és el cas, l'abonament del preu públic, d'acord amb el Decret 394/1996, de 12 de desembre, i l'Ordre ASC/432/2007, de 22 de novembre; g) la resta de requisits d'accés establerts en l'ordenament jurídic vigent.
+
+Cost de referència
+
+104,91 euros estada - 3.190,97 euros mes.
+
+Mòdul social
+
+1.381,50 euros mes.
+
+Copagament
+
+1.809,47 euros mes.
+
+Prestació
+
+1.2.6.3.4.1.1 Servei de centre de dia de teràpia ocupacional (STO) per a persones amb discapacitat física
+
+Garantia de la prestació
+
+Prestació garantida per a les persones en situació de dependència, en aplicació de la disposició addicional cinquena de la Llei 12/2007, d'11 d'octubre, de serveis socials. Subjecta a crèdits pressupostaris disponibles per a la resta.
+
+Descripció
+
+Servei dirigit a facilitar a les persones destinatàries una atenció diürna de tipus rehabilitador per tal que puguin assolir, dins les possibilitats de cada usuari/a, la seva màxima integració social i laboral.
+
+Objecte
+
+Aconseguir la potenciació i manteniment de les capacitats de les persones ateses amb relació a l'obtenció de la seva màxima integració social i laboral, si s'escau.
+
+Funcions
+
+Ajustament personal.
+
+Ocupació terapèutica.
+
+Les altres funcions establertes per l'ordenament jurídic vigent.
+
+Tipologia de la prestació
+
+Prestació de servei: servei especialitzat
+
+Situació de la població destinatària
+
+Dependència i/o risc social
+
+Edat població destinatària
+
+De 18 a 65 anys
+
+Forma de prestació
+
+En establiment diürn
+
+Perfils professionals
+
+Director/a responsable (professional amb titulació universitària, preferentment en l'àmbit de les ciències socials i de la salut), monitor/a especialitzat/da, terapeuta ocupacional o educador/a social, psicòleg/loga o pedagog/a, treballador/a social, personal especialitzat en la realització dels programes individuals de rehabilitació.
+
+Ràtios de professionals
+
+Monitor/a especialitzat, terapeuta ocupacional o educador/a social: 1 per cada 8 usuaris/es; psicòleg/loga o pedagog/a: 1 a jornada completa cada 40 usuaris/es (l'atenció d'un/a d'aquests/es professionals s'ha de mantenir també quan el centre no arribi a aquell nombre d'usuaris/es si bé en jornada proporcional a les hores globals d'estada dels usuaris/es, per sobre dels 40 usuaris/es s'incrementarà proporcionalment també la presència dels tècnics/ques esmentats); treballador/a social 1 per cada 80 usuaris/es.
+
+Estàndards de qualitat
+
+Els que estableixi el Pla de qualitat previst en la Llei de Serveis Socials per a aquesta prestació
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquest servei són els següents: a) l'acreditació de la situació de necessitat, d'acord amb el que preveuen els articles 3, 8 i 9 del Decret 279/1987, de 27 d'agost, pel qual es regulen els centres ocupacionals per a discapacitats, i l'Annex 2 de l'Ordre de 28-7-1992; b) si és el cas, l'acreditació de la situació de dependència, per mitjà de la resolució emesa per l'òrgan de valoració corresponent, d'acord amb el Reial Decret 504/2007, de 20 d'abril; c) el requisit d'edat establert en aquesta disposició; d) la residència en un municipi de Catalunya i, si és el cas, el requisit de residència establert en la Llei 39/2006, de 14 de desembre; e) per a les persones estrangeres, els requisits establerts en la normativa vigent d'estrangeria i d'acollida i integració de les persones immigrades; f) si és el cas, l'abonament del preu públic, d'acord amb el Decret 394/1996, de 12 de desembre, i l'Ordre ASC/432/2007, de 22 de novembre; g) la resta de requisits d'accés establerts en l'ordenament jurídic vigent
+
+Prestació
+
+1.2.6.3.4.1.2 Servei de centre de dia de teràpia ocupacional (STO) per a persones amb discapacitat física, amb auxiliar
+
+Garantia de la prestació
+
+Prestació garantida per a les persones en situació de dependència, en aplicació de la disposició addicional cinquena de la Llei 12/2007, d'11 d'octubre, de serveis socials. Subjecta a crèdits pressupostaris disponibles per a la resta.
+
+Descripció
+
+Servei dirigit a facilitar a les persones destinatàries una atenció diürna de tipus rehabilitador per tal que puguin assolir, dins les possibilitats de cada usuari/a, la seva màxima integració social i laboral.
+
+Objecte
+
+Aconseguir la potenciació i manteniment de les capacitats de les persones ateses amb relació a l'obtenció de la seva màxima integració social i laboral, si s'escau.
+
+Funcions
+
+Ajustament personal.
+
+Ocupació terapèutica.
+
+Les altres funcions establertes per l'ordenament jurídic vigent.
+
+Tipologia de la prestació
+
+Prestació de servei: servei especialitzat
+
+Situació de la població destinatària
+
+Dependència i/o risc social
+
+Edat població destinatària
+
+De 18 a 65 anys
+
+Forma de prestació
+
+En establiment diürn
+
+Perfils professionals
+
+Director/a responsable (professional amb titulació universitària, preferentment en l'àmbit de les ciències socials i de la salut), monitor/a especialitzat, auxiliar de monitor/a, terapeuta ocupacional o educador/a social, psicòleg/loga o pedagog/a, treballador/a social.
+
+Ràtios de professionals
+
+Monitor/a especialitzat, terapeuta ocupacional o educador/a social: 1 per cada 8 usuaris/es; auxiliar de monitor/a (quan el centre ocupacional atengui persones amb greus discapacitats físiques, amb el grau que es determini segons el barem establert, s'haurà d'incrementar el personal en 1 auxiliar de monitor/a per a cada 8 atesos en les condicions esmentades); psicòleg/loga o pedagog/a 1 a jornada completa cada 40 usuaris/es (l'atenció d'un/a d'aquests/es professionals s'ha de mantenir també quan el centre no arribi a aquell nombre d'usuaris/es si bé en jornada proporcional a les hores globals d'estada dels usuaris/es, per sobre dels 40 usuaris/es s'incrementarà proporcionalment també la presència dels tècnics/ques esmentats); treballador/a social: 1 per cada 80 usuaris/es.
+
+Estàndards de qualitat
+
+Els que estableixi el Pla de qualitat previst en la Llei de Serveis Socials per a aquesta prestació
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquest servei són els següents: a) l'acreditació de la situació de necessitat, d'acord amb el que preveuen els articles 3, 8 i 9 del Decret 279/1987, de 27 d'agost, pel qual es regulen els centres ocupacionals per a discapacitats, i l'Annex 2 de l'Ordre de 28-7-1992; b) si és el cas, l'acreditació de la situació de dependència, per mitjà de la resolució emesa per l'òrgan de valoració corresponent, d'acord amb el Reial Decret 504/2007, de 20 d'abril; c) el requisit d'edat establert en aquesta disposició; d) la residència en un municipi de Catalunya i, si és el cas, el requisit de residència establert en la Llei 39/2006, de 14 de desembre; e) per a les persones estrangeres, els requisits establerts en la normativa vigent d'estrangeria i d'acollida i integració de les persones immigrades; f) si és el cas, l'abonament del preu públic, d'acord amb el Decret 394/1996, de 12 de desembre, i l'Ordre ASC/432/2007, de 22 de novembre; g) la resta de requisits d'accés establerts en l'ordenament jurídic vigent
+
+Prestació
+
+1.2.6.3.4.2 Servei de centre de dia ocupacional d'inserció (SOI) per a persones amb discapacitat física
+
+Garantia de la prestació
+
+Prestació garantida per a les persones en situació de dependència, en aplicació de la disposició addicional cinquena de la Llei 12/2007, d'11 d'octubre, de serveis socials. Subjecta a crèdits pressupostaris disponibles per a la resta.
+
+Descripció
+
+Servei dirigit a facilitar als/a les seus/ves destinataris/es una atenció diürna de tipus rehabilitador per tal que puguin assolir, dins les possibilitats de cada usuari/a, la seva màxima integració laboral
+
+Objecte
+
+Potenciar i conservar les capacitats laborals per tal que l'usuari d'aquest servei estigui en disposició d'integrar-se a l'activitat laboral quan les circumstàncies ho permetin, preveien també l'orientació cap al servei de teràpia ocupacional quan les necessitats d'atenció de l'usuari ho requereixi.
+
+Funcions
+
+Ajustament personal i social.
+
+Activitats prelaborals.
+
+Les altres funcions establertes per l'ordenament jurídic vigent.
+
+Tipologia de la prestació
+
+Prestació de servei: servei especialitzat
+
+Situació de la població destinatària
+
+Dependència i/o risc social
+
+Edat població destinatària
+
+De 18 a 65 anys
+
+Forma de prestació
+
+En establiment diürn
+
+Perfils professionals
+
+Psicòleg/loga, treballador/a social, monitor/a
+
+Ràtios de professionals
+
+Psicòleg/loga: 1 a jornada completa per cada 100 usuaris/es. Quan el servei abasti més o menys usuaris/es caldrà ajustar proporcionalment la dedicació d'aquests tipus de professionals. Treballador/a social: 1 a jornada completa per cada 100 usuaris/es. Quan el servei abasti més o menys usuaris/es caldrà ajustar proporcionalment la dedicació d'aquests tipus de professionals. Monitor/a: 1 a jornada completa, fins a 14 usuaris/es. La dedicació d'aquest tipus de professional s'haurà d'incrementar proporcionalment per cada fracció corresponent a 3 usuaris/es més
+
+Estàndards de qualitat
+
+Els que estableixi el Pla de qualitat previst en la Llei de Serveis Socials per a aquesta prestació
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquest servei són els següents: a) l'acreditació de la situació de necessitat, d'acord amb el que preveuen els articles 2 i 4 i la disposició addicional 1ª del Decret 336/1995,de 28 de desembre, pel qual es regula el Servei Ocupacional d'Inserció en els centres ocupacionals per a persones amb disminució; b) si és el cas, l'acreditació de la situació de dependència, per mitjà de la resolució emesa per l'òrgan de valoració corresponent, d'acord amb el Reial Decret 504/2007, de 20 d'abril; c) el requisit d'edat establert en aquesta disposició; d) la residència en un municipi de Catalunya i, si és el cas, el requisit de residència establert en la Llei 39/2006, de 14 de desembre; e) per a les persones estrangeres, els requisits establerts en la normativa vigent d'estrangeria i d'acollida i integració de les persones immigrades; f) si és el cas, l'abonament del preu públic, d'acord amb el Decret 394/1996, de 12 de desembre, i l'Ordre ASC/432/2007, de 22 de novembre; g) la resta de requisits d'accés establerts en l'ordenament jurídic vigent
+
+Prestació
+
+1.2.6.3.5.1 Servei d'assistència personal de suport en l'acompanyament a activitats laborals, ocupacionals i/o formatives, per a persones amb discapacitat física.
+
+Garantia de la prestació
+
+Subjecta a crèdits pressupostaris disponibles.
+
+Descripció
+
+Servei amb el qual una entitat acreditada facilita, mitjançant l'assistència personal, el suport necessari a la persona amb dependència.
+
+Objecte
+
+Suport en l'acompanyament de la persona en situació de dependència en els desplaçaments a les activitats de caràcter laboral, ocupacional i/o formatiu, realitzades de forma habitual i regular i fora de la seva llar habitual.
+
+Funcions
+
+Proporcionar el suport personal necessari per vèncer les limitacions funcionals de les persones en situació de dependència.
+
+Col·laborar en la realització de les activitats bàsiques de la vida diària o en desenvolupament d'altres activitats per promoure la seva autonomia personal i fomentar la seva vida independent.
+
+Les altres funcions establertes per l'ordenament jurídic vigent.
+
+Tipologia de la prestació
+
+Prestació de servei: servei especialitzat
+
+Situació de la població destinatària
+
+Persones amb discapacitat física en situació de dependència severa-grau II, o dependència moderada-grau I
+
+Edat població destinatària
+
+De 16 a 64 anys
+
+Forma de prestació
+
+Mitjançant suport professional
+
+Perfils professionals
+
+Ser major de 18 anys en el moment de la signatura del contracte.
+
+Estar afiliat, d'alta i cotitzar en el règim de treballadors autònoms o en el règim corresponent de la Seguretat Social, d'acord amb la legislació vigent en la matèria.
+
+Els/les assistents personals hauran d'acreditar, per la prestació del servei, la qualificació professional que es determini en funció de la Resolució de 2 de desembre de 2008, per la que es publica l'Acord del Consejo Territorial del Sistema para la Autonomia y Atención a la Dependencia, sobre criteris comuns d'acreditació per garantir la qualitat dels centres i serveis del Sistema per l'Autonomia i l'Atenció a la Dependència o, en el seu cas, altres disposicions relatives a la descripció d'aquest perfil professional.
+
+Ràtios de professionals
+
+Suport professional fins a un màxim de 27,5 hores mensuals, en funció del grau de dependència de la persona.
+
+Estàndards de qualitat
+
+Els que estableixi el Pla de qualitat previst en la Llei de Serveis Socials per a aquesta prestació
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquest servei són els següents: a) estar reconeguda mitjançant la resolució corresponent com a persona en situació de dependència, d'acord amb el que preveu l'article 5 de la llei 39/2006, de 14 de desembre; b) el requisit d'edat establert en aquesta disposició; c) la residència en un municipi de Catalunya; d) per a les persones estrangeres, els requisits establerts en la normativa vigent d'estrangeria i d'acollida i integració de les persones immigrades; e) tenir capacitat per ordenar i supervisar les activitats de l'assistència personal, per sí mateixa o, si s'escau, mitjançant la persona representant legal; f) tenir 75% o més de discapacitat per causa física; g) estar reconeguda amb la necessitat del concurs d'una altra persona per a realitzar les activitats bàsiques de la vida diària; h) la resta de requisits d'accés establerts en l'ordenament jurídic vigent .
+
+Cost de referència
+
+13,04 euros/hora. Fins a un màxim de 358,60 euros/mes.
+
+Mòdul social
+
+Fins a un màxim de 125,51 euros/mes
+
+Copagament
+
+Fins a un màxim de 233,09 euros/mes
+
+Prestació
+
+1.2.6.3.5.2 Servei d'assistència personal de suport a la vida autònoma i d'integració social i comunitària, per a persones amb discapacitat física.
+
+Garantia de la prestació
+
+Subjecta a crèdits pressupostaris disponibles.
+
+Descripció
+
+Servei amb el qual una entitat acreditada facilita, mitjançant l'assistència personal, el suport necessari a la persona amb dependència.
+
+Objecte
+
+Suport en el desenvolupament d'activitats de la vida diària i suport en les activitats que la persona realitza de forma habitual i regular de caràcter laboral, ocupacional, formatiu, de relació social, cultural, de participació associativa i, en general, que afavoreixin el desenvolupament de la vida autònoma i independent
+
+Funcions
+
+Proporcionar el suport personal necessari per vèncer les limitacions funcionals de les persones en situació de dependència.
+
+Col·laborar en la realització de les activitats bàsiques de la vida diària o en desenvolupament d'altres activitats per promoure la seva autonomia personal i fomentar la seva vida independent.
+
+Facilitar l'atenció personal (suport a la higiene personal, l'alimentació, la mobilitat i la cura de la salut, entre d'altres).
+
+Facilitar el suport a l'organització, la neteja i l'ordre de la llar.
+
+Facilitar l'acompanyament i suport en gestions personals fora de la llar.
+
+Facilitar l'acompanyament i suport en les activitats laborals, ocupacionals, formatives, culturals, de participació associativa, comunitària i/o social i econòmica.
+
+Realitzar les altres accions que formin part del Pla d'activitats de la persona beneficiària.
+
+Les altres funcions establertes per l'ordenament jurídic vigent.
+
+Tipologia de la prestació
+
+Prestació de servei: servei especialitzat
+
+Situació de la població destinatària
+
+Persones amb discapacitat física en situació de dependència severa-grau II, o dependència moderada-grau I
+
+Edat població destinatària
+
+De 16 a 64 anys
+
+Forma de prestació
+
+Mitjançant suport professional
+
+Perfils professionals
+
+Ser major de 18 anys en el moment de la signatura del contracte.
+
+Estar afiliat, d'alta i cotitzar en el règim de treballadors autònoms o en el règim corresponent de la Seguretat Social, d'acord amb la legislació vigent en la matèria.
+
+Els/les assistents personals hauran d'acreditar, per la prestació del servei, la qualificació professional que es determini en funció de la Resolució de 2 de desembre de 2008, per la que es publica l'Acord del Consejo Territorial del Sistema para la Autonomia y Atención a la Dependencia, sobre criteris comuns d'acreditació per garantir la qualitat dels centres i serveis del Sistema per l'Autonomia i l'Atenció a la Dependència o, en el seu cas, altres disposicions relatives a la descripció d'aquest perfil professional.
+
+Ràtios de professionals
+
+Suport professional fins a un màxim de 63,5 hores mensuals, en funció del grau de dependència de la persona.
+
+Estàndards de qualitat
+
+Els que estableixi el Pla de qualitat previst en la Llei de Serveis Socials per a aquesta prestació
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquest servei són els següents: a) estar reconeguda mitjançant la resolució corresponent com a persona en situació de dependència, d'acord amb el que preveu l'article 5 de la llei 39/2006, de 14 de desembre; b) el requisit d'edat establert en aquesta disposició; c) la residència en un municipi de Catalunya; d) per a les persones estrangeres, els requisits establerts en la normativa vigent d'estrangeria i d'acollida i integració de les persones immigrades; e) tenir capacitat per ordenar i supervisar les activitats de l'assistència personal, per sí mateixa o, si s'escau, mitjançant la persona representant legal; f) tenir 75% o més de discapacitat per causa física; g) estar reconeguda amb la necessitat del concurs d'una altra persona per a realitzar les activitats bàsiques de la vida diària; h) aportar el Pla d'Activitats, realitzat de manera autodeterminada, on es defineixin les activitats més importants, a desenvolupar en un termini no inferior a un any. El Pla d'activitats serà avalat mitjançant un informe per una entitat acreditada prestadora de serveis d'assistència persona; i) la resta de requisits d'accés establerts en l'ordenament jurídic vigent.
+
+Cost de referència
+
+13,04 euros/hora. Fins a un màxim de 828,04 euros/mes.
+
+Mòdul social
+
+Fins a un màxim de 289,81 euros/mes
+
+Copagament
+
+Fins a un màxim de 538,23 euros/mes
+
+Prestació
+
+1.2.6.4.1 Servei d'intèrpret per a persones sordes
+
+Garantia de la prestació
+
+Subjecta a crèdits pressupostaris disponibles.
+
+Descripció
+
+Servei d'ajuda a la comunicació, mitjançant ajudes d'intèrpret, guies i mitjans tecnològics de suport a la comunicació oral per a persones sordes.
+
+Objecte
+
+Afavorir l'accessibilitat a la comunicació de les persones destinatàries.
+
+Funcions
+
+Les que estableixi la normativa reguladora del Servei.
+
+Tipologia de la prestació
+
+Prestació de servei: servei especialitzat.
+
+Situació de la població destinatària
+
+Dependència i risc social.
+
+Edat població destinatària
+
+Majors de 18 anys.
+
+Forma de prestació
+
+Mitjançant intervenció d'equip de professionals.
+
+Perfils professionals
+
+Es disposarà de professionals suficients en nombre i perfil per a la prestació del servei.
+
+Ràtios de professionals
+
+Es disposarà de professionals suficients en nombre i perfil per a la prestació del servei.
+
+Estàndards de qualitat
+
+Els que estableixi el Pla de qualitat previst en la Llei de Serveis Socials per a aquesta prestació.
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquest servei són els següents: a) l'acreditació de la situació de necessitat, d'acord amb la normativa reguladora del servei; b) la residència en un municipi de Catalunya; c) per a les persones estrangeres, els requisits establerts en la normativa vigent d'estrangeria i d'acollida i integració de les persones immigrades; d) la resta de requisits d'accés establerts en l'ordenament jurídic vigent.
+
+Cost de referència
+
+Pendent de desplegament normatiu.
+
+Mòdul social
+
+Pendent de desplegament normatiu.
+
+Copagament
+
+Pendent de desplegament normatiu.
+
+Prestació
+
+1.2.6.4.2.1 Servei d'assistència personal de suport en l'acompanyament a activitats laborals, ocupacionals i/o formatives, per persones amb discapacitat sensorial sord-ceguesa.
+
+Garantia de la prestació
+
+Subjecta a crèdits pressupostaris disponibles.
+
+Descripció
+
+Servei amb el qual una entitat acreditada facilita, mitjançant l'assistència personal, el suport necessari a la persona amb dependència.
+
+Objecte
+
+Suport en l'acompanyament de la persona en situació de dependència en els desplaçaments a les activitats de caràcter laboral, ocupacional i/o formatiu, realitzades de forma habitual i regular i fora de la seva llar habitual.
+
+Funcions
+
+Proporcionar el suport personal necessari per vèncer les limitacions funcionals de les persones en situació de dependència.
+
+Col·laborar en la realització de les activitats bàsiques de la vida diària o en desenvolupament d'altres activitats per promoure la seva autonomia personal i fomentar la seva vida independent.
+
+Les altres funcions establertes per l'ordenament jurídic vigent.
+
+Tipologia de la prestació
+
+Prestació de servei: servei especialitzat
+
+Situació de la població destinatària
+
+Persones amb discapacitat sensorial sord-ceguesa en situació de dependència severa-grau II, o dependència moderada-grau I
+
+Edat població destinatària
+
+De 16 a 64 anys
+
+Forma de prestació
+
+Mitjançant suport professional
+
+Perfils professionals
+
+Ser major de 18 anys en el moment de la signatura del contracte.
+
+Estar afiliat, d'alta i cotitzar en el règim de treballadors autònoms o en el règim corresponent de la Seguretat Social, d'acord amb la legislació vigent en la matèria.
+
+Els/les assistents personals hauran d'acreditar, per la prestació del servei, la qualificació professional que es determini en funció de la Resolució de 2 de desembre de 2008, per la que es publica l'Acord del Consejo Territorial del Sistema para la Autonomia y Atención a la Dependencia, sobre criteris comuns d'acreditació per garantir la qualitat dels centres i serveis del Sistema per l'Autonomia i l'Atenció a la Dependència o, en el seu cas, altres disposicions relatives a la descripció d'aquest perfil professional.
+
+Ràtios de professionals
+
+Suport professional fins a un màxim de 27,5 hores mensuals, en funció del grau de dependència de la persona.
+
+Estàndards de qualitat
+
+Els que estableixi el Pla de qualitat previst en la Llei de Serveis Socials per a aquesta prestació
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquest servei són els següents: a) estar reconeguda mitjançant la resolució corresponent com a persona en situació de dependència, d'acord amb el que preveu l'article 5 de la llei 39/2006, de 14 de desembre; b) el requisit d'edat establert en aquesta disposició; c) la residència en un municipi de Catalunya; d) per a les persones estrangeres, els requisits establerts en la normativa vigent d'estrangeria i d'acollida i integració de les persones immigrades; e) tenir capacitat per ordenar i supervisar les activitats de l'assistència personal, per sí mateixa o, si s'escau, mitjançant la persona representant legal; f) tenir 75% o més de discapacitat per causa física; g) estar reconeguda amb la necessitat del concurs d'una altra persona per a realitzar les activitats bàsiques de la vida diària; h) la resta de requisits d'accés establerts en l'ordenament jurídic vigent
+
+Cost de referència
+
+13,04 euros/hora. Fins a un màxim de 358,60 euros/mes.
+
+Mòdul social
+
+Fins a un màxim de 125,51 euros/mes
+
+Copagament
+
+Fins a un màxim de 233,09 euros/mes
+
+Prestació
+
+1.2.6.4.2.2 Servei d'assistència personal de suport a la vida autònoma i d'integració social i comunitària, per a persones amb discapacitat sensorial sord-ceguesa.
+
+Garantia de la prestació
+
+Subjecta a crèdits pressupostaris disponibles.
+
+Descripció
+
+Servei amb el qual una entitat acreditada facilita, mitjançant l'assistència personal, el suport necessari a la persona amb dependència.
+
+Objecte
+
+Suport en el desenvolupament d'activitats de la vida diària i suport en les activitats que la persona realitza de forma habitual i regular de caràcter laboral, ocupacional, formatiu, de relació social, cultural, de participació associativa i, en general, que afavoreixin el desenvolupament de la vida autònoma i independent
+
+Funcions
+
+Proporcionar el suport personal necessari per vèncer les limitacions funcionals de les persones en situació de dependència.
+
+Col·laborar en la realització de les activitats bàsiques de la vida diària o en desenvolupament d'altres activitats per promoure la seva autonomia personal i fomentar la seva vida independent.
+
+Facilitar l'atenció personal (suport a la higiene personal, l'alimentació, la mobilitat i la cura de la salut, entre d'altres).
+
+Facilitar el suport a l'organització, la neteja i l'ordre de la llar.
+
+Facilitar l'acompanyament i suport en gestions personals fora de la llar.
+
+Facilitar l'acompanyament i suport en les activitats laborals, ocupacionals, formatives, culturals, de participació associativa, comunitària i/o social i econòmica.
+
+Realitzar les altres accions que formin part del Pla d'activitats de la persona beneficiària.
+
+Les altres funcions establertes per l'ordenament jurídic vigent.
+
+Tipologia de la prestació
+
+Prestació de servei: servei especialitzat
+
+Situació de la població destinatària
+
+Persones amb discapacitat sensorial sord-ceguesa en situació de dependència severa-grau II, o dependència moderada-grau I
+
+Edat població destinatària
+
+De 16 a 64 anys
+
+Forma de prestació
+
+Mitjançant suport professional
+
+Perfils professionals
+
+Ser major de 18 anys en el moment de la signatura del contracte.
+
+Estar afiliat, d'alta i cotitzar en el règim de treballadors autònoms o en el règim corresponent de la Seguretat Social, d'acord amb la legislació vigent en la matèria.
+
+Els/les assistents personals hauran d'acreditar, per la prestació del servei, la qualificació professional que es determini en funció de la Resolució de 2 de desembre de 2008, per la que es publica l'Acord del Consejo Territorial del Sistema para la Autonomia y Atención a la Dependencia, sobre criteris comuns d'acreditació per garantir la qualitat dels centres i serveis del Sistema per l'Autonomia i l'Atenció a la Dependència o, en el seu cas, altres disposicions relatives a la descripció d'aquest perfil professional.
+
+Ràtios de professionals
+
+Suport professional fins a un màxim de 63,5 hores mensuals, en funció del grau de dependència de la persona.
+
+Estàndards de qualitat
+
+Els que estableixi el Pla de qualitat previst en la Llei de Serveis Socials per a aquesta prestació
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquest servei són els següents: a) estar reconeguda mitjançant la resolució corresponent com a persona en situació de dependència, d'acord amb el que preveu l'article 5 de la llei 39/2006, de 14 de desembre; b) el requisit d'edat establert en aquesta disposició; c) la residència en un municipi de Catalunya; d) per a les persones estrangeres, els requisits establerts en la normativa vigent d'estrangeria i d'acollida i integració de les persones immigrades; e) tenir capacitat per ordenar i supervisar les activitats de l'assistència personal, per sí mateixa o, si s'escau, mitjançant la persona representant legal; f) tenir 75% o més de discapacitat per causa física; g) estar reconeguda amb la necessitat del concurs d'una altra persona per a realitzar les activitats bàsiques de la vida diària; h) aportar el Pla d'Activitats, realitzat de manera autodeterminada, on es defineixin les activitats més importants, a desenvolupar en un termini no inferior a un any. El Pla d'activitats serà avalat mitjançant un informe per una entitat acreditada prestadora de serveis d'assistència persona; i) la resta de requisits d'accés establerts en l'ordenament jurídic vigent.
+
+Cost de referència
+
+13,04 euros/hora. Fins a un màxim de 828,04 euros/mes.
+
+Mòdul social
+
+Fins a un màxim de 289,81 euros/mes
+
+Copagament
+
+Fins a un màxim de 538,23 euros/mes
+
+Prestació
+
+1.2.7.1 Servei de suport a l'autonomia a la pròpia llar per a persones amb problemàtica social derivada de malaltia mental
+
+Garantia de la prestació
+
+Subjecta a crèdits pressupostaris disponibles
+
+Descripció
+
+Servei que ofereix orientació i suport a les persones amb problemàtica social derivada de malaltia mental amb necessitats de suport que viuen soles, en parella o bé conviuen amb altres persones (amb un nombre de quatre màxim), i que, en alguns aspectes, plantegen necessitats o tenen carències que no poden satisfer per elles mateixes. La tinència de la llar pot correspondre a la pròpia persona usuària, a una de les persones usuàries o a l'entitat prestadora del servei.
+
+Objecte
+
+Contribuir al desenvolupament de la persona en les activitats de la vida diària, tant a la seva llar com en la comunitat, possibilitant la seva autonomia.
+
+Funcions
+
+Donar suport a la persona en les activitats d'autocura, domèstiques i comunitàries, per tal de millorar l'autogestió i la vida independent.
+
+Donar suport a la persona per planificar i gestionar la seva llar, els seus assumptes administratius i financers, la seva salut i la utilització dels recursos de la comunitat entre d'altres.
+
+Les altres funcions establertes per l'ordenament jurídic vigent.
+
+Tipologia de la prestació
+
+Prestació de servei: servei especialitzat
+
+Situació de la població destinatària
+
+Persones amb discapacitat
+
+Edat població destinatària
+
+De 18 a 65 anys
+
+Forma de prestació
+
+Mitjançant intervenció d'equip de professionals
+
+Perfils professionals
+
+Director/a responsable, psicòleg/òloga, pedagog/a, psicopedagog/a, treballador/a social, educador/a social, integrador/a social, auxiliar educador.
+
+Ràtios de professionals
+
+Ha de disposar d'un equip de professionals tècnics i personal d'atenció directa format, com a mínim, per:
+
+· Equip tècnic:
+
+Ha d'estar compost, com a mínim, per dos dels professionals amb títol universitari següents:
+
+- Un/a psicòleg/òloga
+
+- Un/a pedagog/a
+
+- Un/a psicopedagog/a
+
+- Un/a treballador/a social
+
+- Un/a educador/a social
+
+Un d'aquests professionals ha d'assumir les funcions de director/a responsable del servei.
+
+·Personal d'atenció directa:
+
+Pot ser un dels professionals següents:
+
+- Un/a auxiliar educador o un/a integrador/a social o un/a professional amb títol universitari que s'especifica a l'apartat anterior.
+
+Cal garantir que, entre tots els professionals que formen part del servei, es proporcioni una atenció mitjana per persona usuària no inferior a 10 hores setmanals en còmput mensual.
+
+Estàndards de qualitat
+
+Els que estableixi el Pla de qualitat previst en la Llei de Serveis Socials per a aquesta prestació
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquest servei són els següents: a) l'acreditació de la situació de necessitat, d'acord amb el que preveuen els articles 2 i 5 i l'Annex 1 de l'Ordre BES/6/2002, de 10 de gener, i la convocatòria anual corresponent; b) el requisit d'edat establert en aquesta disposició; c) la residència legal en un municipi de Catalunya durant 5 anys, dos dels quals han de ser immediatament anteriors a la data de presentació de la sol·licitud; d) per a les persones estrangeres, els requisits establerts en la normativa vigent d'estrangeria i d'acollida i integració de les persones immigrades; e) la resta de requisits d'accés establerts en l'ordenament jurídic vigent.
+
+Cost de referència
+
+Pendent de desplegament normatiu
+
+Mòdul social
+
+Pendent de desplegament normatiu
+
+Copagament
+
+Pendent de desplegament normatiu
+
+Prestació
+
+1.2.7.2.1 Servei de llar amb suport temporal o permanent per a persones amb problemàtica social derivada de malaltia mental
+
+Garantia de la prestació
+
+Subjecta a crèdits pressupostaris disponibles.
+
+Descripció
+
+Servei que es desenvolupa en la estructura física d'un habitatge ordinari que constitueix el domicili de les persones que l'habiten quan la seva situació personal i social ho fa aconsellable.
+
+Objecte
+
+Facilitar un entorn substitutiu de la llar adequat i adaptat a les necessitats d'assistència de la persona que permeti potenciar l'autonomia personal i social, afavorint la vida comunitària i la integració social en un entorn normalitzat.
+
+Funcions
+
+Allotjament.
+
+Acolliment i convivència.
+
+Manutenció.
+
+Atenció a la salut i seguretat de la llar.
+
+Foment dels hàbits d'autonomia personal .
+
+Convivència i foment de les relacions interpersonals i socials.
+
+Foment de l'oci i del lleure.
+
+Les altres funcions establertes per l'ordenament jurídic vigent.
+
+Tipologia de la prestació
+
+Prestació de servei: servei especialitzat.
+
+Situació de la població destinatària
+
+Dependència i/o risc social.
+
+Edat població destinatària
+
+De 18 a 65 anys.
+
+Forma de prestació
+
+Alternativa a la llar.
+
+Perfils professionals
+
+Director/a responsable, treballador/a social o educador/a social de referència.
+
+Ràtios de professionals
+
+El personal d'atenció directa, inclòs el/la director/a responsable del servei, en cap cas no serà inferior a 1 persona per cada 20 usuaris/es o fracció. No cal que es doni una atenció permanent i present les 24 hores del dia, tot i que, en cas d'emergència, haurà haver-hi alguna persona localitzable telefònicament.
+
+Estàndards de qualitat
+
+Els que estableixi el Pla de qualitat previst en la Llei de Serveis Socials per a aquesta prestació.
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquest servei són els següents: a) l'acreditació de la situació de necessitat, d'acord amb el que preveuen els articles 2 i 7 de l'Ordre de 20 d'abril de 1998, l'Annex de l'Acord GOV/82/2008, de 6 de maig i la convocatòria corresponent, prèvia derivació del servei públic de salut mental competent; b) si és el cas, l'acreditació de la situació de dependència, per mitjà de la resolució emesa per l'òrgan de valoració corresponent, d'acord amb el Reial Decret 504/2007, de 20 d'abril; c) el requisit d'edat establert en aquesta disposició; d) la residència en un municipi de Catalunya durant 5 anys, dos dels quals immediatament anteriors a la data de presentació de la sol·licitud, o, si és el cas, el requisit de residència establert en la Llei 39/2006, de 14 de desembre; e) per a les persones estrangeres, els requisits establerts en la normativa vigent d'estrangeria i d'acollida i integració de les persones immigrades; f) si és el cas, l'abonament del preu públic, d'acord amb el Decret 394/1996, de 12 de desembre, i l'Ordre ASC/433/2007, de 22 de novembre; g) la resta de requisits d'accés establerts en l'ordenament jurídic vigent.
+
+Cost de referència
+
+22,74 euros estada - 691,74 euros mes.
+
+Mòdul social
+
+302 euros mes.
+
+Copagament
+
+389,74 euros mes.
+
+Prestació
+
+1.2.7.2.2 Servei de llar residència temporal o permanent per a persones amb problemàtica social derivada de malaltia mental
+
+Garantia de la prestació
+
+Subjecta a crèdits pressupostaris disponibles.
+
+Descripció
+
+Servei d'acolliment residencial, temporal o permanent, d'atenció a persones amb malaltia mental de llarga evolució i problemàtica social.
+
+Objecte
+
+Facilitar un entorn substitutiu a llar adequat i adaptat a les necessitats d'assistència de la persona que permeti potenciar l'autonomia personal i social, afavorint la integració a la vida comunitària.
+
+Funcions
+
+Allotjament.
+
+Acolliment i convivència.
+
+Manutenció.
+
+Suport personal, acompanyament i supervisió.
+
+Atenció a la salut i seguretat de la llar.
+
+Foment dels hàbits d'autonomia personal.
+
+Convivència i foment de les relacions interpersonals i socials.
+
+Foment de l'oci i del lleure.
+
+Les altres funcions establertes per l'ordenament jurídic vigent.
+
+Tipologia de la prestació
+
+Prestació de servei: servei especialitzat.
+
+Situació de la població destinatària
+
+Dependència i/o risc social.
+
+Edat població destinatària
+
+De 18 a 65 anys.
+
+Forma de prestació
+
+Alternativa a la llar.
+
+Perfils professionals
+
+Director/a (professional titulat en psicologia, preferentment en psicologia clínica), psicòleg/loga, treballador/a social o educador/a social, cuidador/a, psiquiatre de referència.
+
+Ràtios de professionals
+
+El personal d'atenció directa present, inclòs el/la director/a responsable del servei, en cap cas no serà inferior a 1 persona per cada 15 usuaris/es o fracció. En el cas de llars amb menys de 15 usuaris/es haurà d'haver-hi una altra persona localitzable telefònicament. En horari nocturn, el personal d'atenció directa present podrà ser d'1 sola persona per cada 30 usuaris/es quan la llar residència comparteixi l'equipament amb un altre establiment o servei que pugui donar un suport presencial en cas d'emergència.
+
+Estàndards de qualitat
+
+Publicació del Departament d'Acció Social i Ciutadania: "Indicadors d'avaluació de qualitat. Avaluació externa de qualitat dels centres de l'ICASS. Llars residències per a persones amb discapacitat derivada de malaltia mental. Gener 2005".
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquest servei són els següents: a) l'acreditació de la situació de necessitat, d'acord amb el que preveuen els articles 2 i 7 de l'Ordre de 20 d'abril de 1998, l'Annex de l'Acord GOV/82/2008, de 6 de maig, i la convocatòria anual corresponent, prèvia derivació del servei públic de salut mental competent; b) si és el cas, l'acreditació de la situació de dependència, per mitjà de la resolució emesa per l'òrgan de valoració corresponent, d'acord amb el Reial Decret 504/2007, de 20 d'abril; c) el requisit d'edat establert en aquesta disposició; d) la residència en un municipi de Catalunya durant 5 anys, dos dels quals immediatament anteriors a la data de presentació de la sol·licitud, o, si és el cas, el requisit de residència establert en la Llei 39/2006, de 14 de desembre; e) per a les persones estrangeres, els requisits establerts en la normativa vigent d'estrangeria i d'acollida i integració de les persones immigrades; f) si és el cas, l'abonament del preu públic, d'acord amb el Decret 394/1996, de 12 de desembre, i l'Ordre ASC/433/2007, de 22 de novembre; g) la resta de requisits d'accés establerts en l'ordenament jurídic vigent.
+
+Cost de referència
+
+58,69 euros estada - 1.785,17 euros mes.
+
+Mòdul social
+
+681,12 euros mes.
+
+Copagament
+
+1.104,05 euros mes.
+
+Prestació
+
+1.2.7.3 Servei de residència assistida temporal o permanent per a persones amb problemàtica social derivada de malaltia mental
+
+Garantia de la prestació
+
+Prestació garantida per a les persones en situació de dependència, en aplicació de la disposició addicional cinquena de la Llei 12/2007, d'11 d'octubre, de serveis socials. Subjecta a crèdits pressupostaris disponibles per a la resta.
+
+Descripció
+
+Servei d'acolliment residencial, temporal o permanent, d'atenció a persones amb malaltia mental de llarga evolució i problemàtica social, que precisen d'un major suport d'atenció psiquiàtrica i de salut.
+
+Objecte
+
+Facilitar un entorn substitutiu a llar adequat i adaptat a les necessitats d'assistència integral de la persona que permeti potenciar l'autonomia personal i social, afavorint la integració a la vida comunitària.
+
+Funcions
+
+Allotjament.
+
+Acolliment i convivència.
+
+Manutenció.
+
+Suport personal, assessorament i supervisió.
+
+Atenció a la salut i seguretat de la llar.
+
+Foment dels hàbits d'autonomia personal.
+
+Convivència i foment de les relacions interpersonals i socials.
+
+Foment de l'oci i del lleure.
+
+Suport sanitari .
+
+Suport en les AVD.
+
+Les altres funcions establertes per l'ordenament jurídic vigent.
+
+Tipologia de la prestació
+
+Prestació de servei: servei especialitzat
+
+Situació de la població destinatària
+
+Dependència
+
+Edat població destinatària
+
+De 18 a 65 anys
+
+Forma de prestació
+
+En establiment residencial
+
+Perfils professionals
+
+Director/a responsable, treballador/a social o educador/a social, psicòleg/loga, personal cuidador amb la formació necessària per complir les funcions del servei i el personal sanitari que determini el Departament competent en matèria de salut.
+
+Ràtios de professionals
+
+El personal d'atenció directa present, inclòs el/la director/a responsable del servei, en cap cas no serà inferior a 1 persona per cada 15 usuaris/es o fracció. En el cas de residències amb menys de 15 usuaris/es haurà d'haver-hi una altra persona localitzable telefònicament. En horari nocturn, el personal d'atenció directa present podrà ser d'1 sola persona per cada 30 usuaris/es quan la residència comparteixi l'equipament amb un altre establiment o servei que pugui donar un suport presencial en cas d'emergència. Suport psiquiàtric i d'atenció a la salut especialitzat de la xarxa psiquiàtrica.
+
+Estàndards de qualitat
+
+Els que estableixi el Pla de qualitat previst en la Llei de Serveis Socials per a aquesta prestació
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquest servei són els següents: a) l'acreditació de la situació de necessitat, d'acord amb el que preveuen els articles 2 i 7 de l'Ordre de 20 d'abril de 1998, l'Annex de l'Acord GOV/82/2008, de 6 de maig, i la convocatòria corresponent, prèvia derivació del servei públic de salut mental competent; b) si és el cas, l'acreditació de la situació de dependència, per mitjà de la resolució emesa per l'òrgan de valoració corresponent, d'acord amb el Reial Decret 504/2007, de 20 d'abril; c) el requisit d'edat establert en aquesta disposició; d) la residència en un municipi de Catalunya durant 5 anys, dos dels quals immediatament anteriors a la data de presentació de la sol·licitud, o, si és el cas, el requisit de residència establert en la Llei 39/2006, de 14 de desembre; e) per a les persones estrangeres, els requisits establerts en la normativa vigent d'estrangeria i d'acollida i integració de les persones immigrades; f) si és el cas, l'abonament del preu públic, d'acord amb el Decret 394/1996, de 12 de desembre, i l'Ordre ASC/433/2007, de 22 de novembre; g) la resta de requisits d'accés establerts en l'ordenament jurídic vigent
+
+Cost de referència
+
+Pendent de desplegament normatiu.
+
+Mòdul social
+
+Pendent de desplegament normatiu.
+
+Copagament
+
+Pendent de desplegament normatiu.
+
+Prestació
+
+1.2.7.4.1 Servei de club social (mòdul A)
+
+Garantia de la prestació
+
+Subjecta a crèdits pressupostaris disponibles
+
+Descripció
+
+Recurs per a fomentar, dins d'un marc de relacions, la participació i la inclusió social mitjançant el lleure. Es constitueix com una estructura de suport social per tal que les persones que hi participen disposin d'una xarxa social de referència i puguin superar els obstacles que dificulten la seva participació en activitats del seu entorn comunitari i, d'aquesta manera, poder gaudir del seu temps de lleure d'una forma satisfactòria. La capacitat del servei és de 15 a 30 usuaris/àries a la setmana
+
+Objecte
+
+Fomentar, dins d'un marc de relacions, la participació i la inclusió social, mitjançant el lleure.
+
+Funcions
+
+Proporcionar una estructura i motivació per a la realització de les activitats de lleure.
+
+Promoure aspectes d'autonomia personal i facilitar oportunitats de participació en la comunitat, desenvolupant la seva activitat en els contextos naturals i immediats de la persona.
+
+Les altres funcions establertes per l'ordenament jurídic vigent.
+
+Tipologia de la prestació
+
+Prestació de servei: servei especialitzat
+
+Situació de la població destinatària
+
+Dependència i/o risc social
+
+Edat població destinatària
+
+De 18 a 65 anys
+
+Forma de prestació
+
+En establiment diürn
+
+Perfils professionals
+
+Coordinador/a (professional amb titulació universitària, preferentment en l'àmbit de les ciències socials i de la salut), monitor/a o professional auxiliar i tallerista
+
+Ràtios de professionals
+
+Coordinador/a, 30 h/setmana; monitor/a, 30 h/setmana; tallerista, 3 h/setmana
+
+Estàndards de qualitat
+
+Publicació del Departament d'Acció Social i Ciutadania: "Indicadors de qualitat: clubs socials d'atenció a persones amb malaltia mental. Juliol de 2009".
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquest servei són els següents: a) l'acreditació de la situació de necessitat, per mitjà de la resolució emesa per l'òrgan competent, d'acord amb el barem establert per reglament; b) la residència en un municipi de Catalunya; c) per a les persones estrangeres, els requisits establerts en la normativa vigent d'estrangeria i d'acollida i integració de les persones immigrades; d) la resta de requisits d'accés establerts en l'ordenament jurídic vigent
+
+Cost de referència
+
+Pendent de desplegament normatiu.
+
+Mòdul social
+
+Pendent de desplegament normatiu.
+
+Copagament
+
+Pendent de desplegament normatiu.
+
+Prestació
+
+1.2.7.4.2 Servei de club social (mòdul B)
+
+Garantia de la prestació
+
+Subjecta a crèdits pressupostaris disponibles
+
+Descripció
+
+Recurs per a fomentar, dins d'un marc de relacions, la participació i la inclusió social mitjançant el lleure. Es constitueix com una estructura de suport social per tal que les persones que hi participen disposin d'una xarxa social de referència i puguin superar els obstacles que dificulten la seva participació en activitats del seu entorn comunitari i, d'aquesta manera, poder gaudir del seu temps de lleure d'una forma satisfactòria. La capacitat del servei és de 31 a 70 usuaris/àries a la setmana.
+
+Objecte
+
+Fomentar, dins d'un marc de relacions, la participació i la inclusió social, mitjançant el lleure.
+
+Funcions
+
+Proporcionar una estructura i motivació per a la realització de les activitats de lleure.
+
+Promoure aspectes d'autonomia personal i facilitar oportunitats de participació en la comunitat, desenvolupant la seva activitat en els contextos naturals i immediats de la persona.
+
+Les altres funcions establertes per l'ordenament jurídic vigent.
+
+Tipologia de la prestació
+
+Prestació de servei: servei especialitzat
+
+Situació de la població destinatària
+
+Dependència i/o risc social
+
+Edat població destinatària
+
+De 18 a 65 anys
+
+Forma de prestació
+
+En establiment diürn
+
+Perfils professionals
+
+Coordinador/a (professional amb titulació universitària, preferentment en l'àmbit de les ciències socials i de la salut); educador/a (professional amb titulació universitària en l'àmbit de les ciències socials, preferentment en educació social); monitor/a o professional auxiliar; tallerista.
+
+Ràtios de professionals
+
+Coordinador/a, 30 h/setmana; educador o similar, 26 h/setmana; monitor/a, 46 h/setmana; tallerista, 6 h/setmana
+
+Estàndards de qualitat
+
+Publicació del Departament d'Acció Social i Ciutadania: "Indicadors de qualitat: clubs socials d'atenció a persones amb malaltia mental. Juliol de 2009".
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquest servei són els següents: a) l'acreditació de la situació de necessitat, per mitjà de la resolució emesa per l'òrgan competent, d'acord amb el barem establert per reglament; b) la residència en un municipi de Catalunya; c) per a les persones estrangeres, els requisits establerts en la normativa vigent d'estrangeria i d'acollida i integració de les persones immigrades; d) la resta de requisits d'accés establerts en l'ordenament jurídic vigent.
+
+Cost de referència
+
+Pendent de desplegament normatiu.
+
+Mòdul social
+
+Pendent de desplegament normatiu.
+
+Copagament
+
+Pendent de desplegament normatiu.
+
+Prestació
+
+1.2.7.5 Servei prelaboral
+
+Garantia de la prestació
+
+Subjecta a crèdits pressupostaris disponibles
+
+Descripció
+
+Servei social especialitzat, d'intervenció en persones amb trastorn mental, estabilitzats i compensats de la seva malaltia, amb la finalitat d'aconseguir una integració laboral .
+
+Objecte
+
+Capacitar i habilitar la persona amb trastorn mental sever per iniciar un itinerari d'inserció laboral per tal d'aconseguir la seva integració social i laboral.
+
+Funcions
+
+Aconseguir que la persona atesa adquireixi, recuperi i mantingui capacitats suficients per permetre-li la inserció i el manteniment, el màxim temps possible, en una activitat laboral.
+
+Establir el recorregut assistencial de la persona atesa per tal d'aconseguir la integració al treball.
+
+Les altres funcions establertes per l'ordenament jurídic vigent.
+
+Tipologia de la prestació
+
+Prestació de servei: servei especialitzat
+
+Situació de la població destinatària
+
+Dependència i/o risc social
+
+Edat població destinatària
+
+De 18 a 50 anys
+
+Forma de prestació
+
+En establiment diürn
+
+Perfils professionals
+
+Coordinador/a, psicòleg/loga, treballador/a social, mestre de taller, monitor/a
+
+Ràtios de professionals
+
+Per cada 25 usuaris/es: coordinador/a, 10 h/setmana; psicòleg/loga, 30 h/setmana; treballador/a social, 30 h/setmana; mestre de taller, 40 h/setmana; monitor/a 80 h/setmana
+
+Estàndards de qualitat
+
+Els que estableixi el Pla de qualitat previst en la Llei de Serveis Socials per a aquesta prestació
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquest servei són els següents: a) l'acreditació de la situació de necessitat, per mitjà de la resolució emesa per l'òrgan competent, d'acord amb el barem establert per reglament; b) la residència en un municipi de Catalunya; c) per a les persones estrangeres, els requisits establerts en la normativa vigent d'estrangeria i d'acollida i integració de les persones immigrades; d) la resta de requisits d'accés establerts en l'ordenament jurídic vigent.
+
+Prestació
+
+1.2.7.6Servei de suport a la capacitat jurídica per a persones amb malaltia mental
+
+Garantia de la prestació
+
+Prestació garantida
+
+Descripció
+
+Servei prestat per entitats sense ànim de lucre, orientat al suport de persones amb malaltia mental, que disposen de mesures de suport a la capacitat jurídica establertes per via judicial o notarial.
+
+Objecte
+
+Cobrir les necessitats de suport, protecció i garantia de tots els drets (personals i patrimonials) i promoure l'autonomia personal de les persones amb malaltia mental que tinguin proveïdes mesures judicials o notarials de suport a la capacitat jurídica, en els termes que estableixi la corresponent resolució judicial o escriptura pública notarial.
+
+Funcions
+
+Totes les funcions necessàries en les àrees social, jurídica i econòmica per assegurar la protecció de la persona assistida, l'administració i la guarda dels seus béns i en general l'exercici dels seus drets, vetllant perquè tingui la màxima qualitat de vida orientada a la promoció de l'autonomia personal.
+
+Les altres funcions establertes per l'ordenament jurídic vigent.
+
+Tipologia de la prestació
+
+Prestació de servei: servei especialitzat
+
+Situació de la població destinatària
+
+Persones amb malaltia mental amb mesures de suport a la capacitat jurídica dictades judicialment o mitjançant escriptura pública notarial.
+
+Edat població destinatària
+
+A partir de 18 anys.
+
+Forma de prestació
+
+Mitjançant intervenció d'equip de professionals
+
+Perfils professionals
+
+Referent de suport a la capacitat jurídica, amb titulació universitària preferentment en l'àmbit social; auxiliar de suport amb la qualificació de, com a mínim, un cicle formatiu de grau mitjà; responsable econòmic amb titulació de, com a mínim, tècnic superior de formació professional de la branca d'administració amb coneixements d'especialització en comptabilitat i gestió financera; auxiliar comptable; advocat/ada.
+
+Ràtios de professionals
+
+El servei de suport a la capacitat jurídica comporta la possibilitat d'aplicar 4 mòduls en funció de les necessitats de suport.
+
+- Referent de suport a la capacitat jurídica: mòdul A: 1/70; mòdul B: 1/50; mòdul C: 1/22; mòdul D: 1/15.
+
+- Auxiliar de suport a la capacitat jurídica: mòdul A: 1/70; mòdul B: 1/50; mòdul C: 1/22; mòdul D: 1/15.
+
+- Advocat/da.
+
+- Responsable econòmic: fins a 100.
+
+- Auxiliar comptable: a partir de 100.
+
+Estàndards de qualitat
+
+Les entitats sense ànim de lucre que porten a terme mesures de suport per a persones amb malaltia mental en l'exercici de la seva capacitat jurídica han de complir els estàndards de qualitat que estableix el Decret 69/2020, de 14 de juliol, d'acreditació, concert social i gestió delegada en la Xarxa de Serveis Socials d'Atenció Pública.
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquest servei són els següents: a) Els requisits establerts per la resolució judicial de nomenament d'assistent a la capacitat jurídica d'acord amb el que estableixen la legislació civil, processal civil i administrativa, i particularment, la Llei 8/2021, de 2 de juny, per la qual es reforma la legislació civil i processal per al suport de les persones amb discapacitat en l'exercici de la seva capacitat jurídica; el Decret llei 19/2021, de 31 d'agost, pel qual s'adapta el Codi civil de Catalunya a la reforma del procediment de modificació judicial de la capacitat; el Decret 188/1994, de 28 de juny, de creació de la Comissió d'Assessorament i Supervisió de les Persones Jurídiques sense Ànim de Lucre que tinguin atribuïdes la tutela de menors o mesures de suport a les persones amb discapacitat en l'exercici de la seva capacitat jurídica, modificat, pel que fa a la composició de l'esmentada Comissió, pel Decret 266/1998, de 6 d'octubre, i la Resolució DSO/2539/2022, de 3 d'agost, per la qual s'inclouen a l'Ordre TSF/218/2020, de 16 de desembre, per a la provisió dels serveis de la Xarxa de Serveis Socials d'Atenció Pública, els annexos que regulen les condicions d'execució i els criteris d'assignació per al servei d'atenció precoç i el servei de suport a les persones amb discapacitat, amb malaltia mental i gent gran en l'exercici de la seva capacitat jurídica, en règim de concert social (annex 41).b) El requisit d'edat establert per aquesta disposició.c) La residència en un municipi de Catalunya.d) Per a les persones estrangeres, els requisits establerts per la normativa vigent d'estrangeria i d'acollida i integració de les persones immigrades.e) La resta de requisits d'accés establerts per l'ordenament jurídic vigent.
+
+Prestació
+
+1.2.8.1 Servei de prevenció d'addiccions
+
+Garantia de la prestació
+
+Subjecta a crèdits pressupostaris disponibles.
+
+Descripció
+
+Conjunt d'actuacions adreçades a influir sobre els factors de risc i de protecció davant de les addiccions. Aquests serveis es coordinen amb la intervenció específica del Departament de Salut.
+
+Objecte
+
+Facilitar informació sobre les addiccions i els seus efectes per tal d'incrementar les estratègies de protecció davant del risc , amb a finalitat de reduir les repercussions negatives (en els àmbits individual, familiar i social) i aconseguir el màxim nivell de reinserció comunitària de les persones afectades.
+
+Funcions
+
+Facilitar informació sobre els efectes de les addiccions a la població general i a les persones afectades.
+
+Evitar la progressió des de l'inici de l'adicció cap a situacions d'abús.
+
+Detectar problemes de les addiccions en les seves fases primerenques.
+
+Reduir riscos i danys relacionats amb les addiccions, especialment els relacionats amb el consum de drogues.
+
+Fomentar estratègies per a la promoció de la salut integral i de suport a l'adhesió a tractaments per millorar la qualitat de vida.
+
+Les altres funcions establertes per l'ordenament jurídic vigent.
+
+Tipologia de la prestació
+
+Prestació de servei: servei especialitzat.
+
+Situació de la població destinatària
+
+Risc social.
+
+Edat població destinatària
+
+Població general.
+
+Forma de prestació
+
+Mitjançant intervenció d'equip de professionals.
+
+Perfils professionals
+
+Es disposarà de professionals suficients en nombre i perfil per a la prestació del servei.
+
+Ràtios de professionals
+
+Es disposarà de professionals suficients en nombre i perfil per a la prestació del servei.
+
+Estàndards de qualitat
+
+Els que estableixi el Pla de qualitat previst en la Llei de Serveis Socials per a aquesta prestació.
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquest servei són els següents: a) la residència en un municipi de Catalunya; b) per a les persones estrangeres, els requisits establerts en la normativa vigent d'estrangeria i d'acollida i integració de les persones immigrades; c) la resta de requisits d'accés establerts en l'ordenament jurídic vigent.
+
+Prestació
+
+1.2.8.2.1 Servei de centre de dia per a persones amb addiccions
+
+Garantia de la prestació
+
+Subjecta a crèdits pressupostaris disponibles
+
+Descripció
+
+Servei d'acolliment diürn que desenvolupa activitats d'inserció social, integració laboral i acompanyament als processos de tractaments terapèutics.
+
+Objecte
+
+Facilitar suport i ajuda a les persones amb drogodependències i/o altres addiccions, mitjançant diversos programes d'intervenció, per assolir l'abstinència i potenciar la reinserció social.
+
+Funcions
+
+Potenciar el desenvolupament d'habilitats personals i de relació.
+
+Promoure el manteniment de la salut i hàbits de vida saludables.
+
+Potenciar la vinculació i adhesió dels consumidors a la xarxa d'atenció a les drogodependències.
+
+Adquisició d'hàbits i recursos personal per a aconseguir mantenir l'abstinència i prevenir les recaigudes.
+
+Potenciar el manteniment de vincles familiars i terapèutics.
+
+Promoure la participació activa, adquisició d'hàbits i responsabilitats.
+
+Facilitar formació ocupacional i prelaboral.
+
+Les altres funcions establertes per l'ordenament jurídic vigent.
+
+Tipologia de la prestació
+
+Prestació de servei: servei especialitzat
+
+Situació de la població destinatària
+
+Dependència i/o risc social
+
+Edat població destinatària
+
+A partir de 18 anys
+
+Forma de prestació
+
+En establiment diürn
+
+Perfils professionals
+
+Director/a responsable, educador/a social, metge/essa, psicòleg/loga. Coordinador/a titulat/da en l'àmbit sanitari, psicològic, pedagògic o social i podrà compartir tasques amb l'educador/a social. El suport social, psicològic i mèdic es realitzarà de forma directa per part de l'entitat o bé de forma externa per part dels CAS de referència.
+
+Ràtios de professionals
+
+Disposar del personal d'atenció directa, que inclou el director/a responsable o coordinador/a del centre, en una ràtio no inferior al 0,10.
+
+Estàndards de qualitat
+
+Els que estableixi el Pla de qualitat previst en la Llei de Serveis Socials per a aquesta prestació
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquest servei són els següents: a) l'acreditació de la situació de necessitat, per mitjà de la resolució emesa per l'òrgan competent, d'acord amb el barem establert per reglament; b) la residència en un municipi de Catalunya; c) per a les persones estrangeres, els requisits establerts en la normativa vigent d'estrangeria i d'acollida i integració de les persones immigrades; d) la resta de requisits d'accés establerts en l'ordenament jurídic vigent
+
+Cost de referència
+
+Pendent de desplegament normatiu.
+
+Mòdul social
+
+Pendent de desplegament normatiu.
+
+Copagament
+
+Pendent de desplegament normatiu.
+
+Prestació
+
+1.2.8.2.2.1 Servei de pis amb suport per a persones amb drogodependències, baixa intensitat
+
+Garantia de la prestació
+
+Subjecta a crèdits pressupostaris disponibles
+
+Descripció
+
+Servei que es desenvolupa en la estructura física d'un habitatge ordinari que dona suport als processos de tractament, rehabilitació i d'inserció social de les persones amb drogodependències.
+
+Objecte
+
+Facilitar suport als processos de tractament i rehabilitació de persones amb problemes derivats del consum de drogues amb la finalitat de promoure la seva reincorporació al medi familiar i/o a l'entorn social.
+
+Funcions
+
+Facilitar allotjament i alimentació bàsica.
+
+Promoure la participació activa i el desenvolupament de l'autonomia personal.
+
+Acompanyament i suport per a fomentar la integració comunitària.
+
+Potenciar el desenvolupament d'habilitats personals i de relació, manteniment i/o millorant els vincles familiars i terapèutics.
+
+Promoure el manteniment de la salut i hàbits de vida saludables.
+
+Adquisició d'habilitats i capacitats personals per a aconseguir mantenir l'abstinència i prevenir les recaigudes.
+
+Facilitar pautes d'autocura, autocontrol i resolució de conflictes.
+
+Les altres funcions establertes per l'ordenament jurídic vigent.
+
+Tipologia de la prestació
+
+Prestació de servei: servei especialitzat
+
+Situació de la població destinatària
+
+Dependència i/o risc social
+
+Edat població destinatària
+
+A partir de 18 anys
+
+Forma de prestació
+
+Alternativa a la llar
+
+Perfils professionals
+
+Director/a tècnic/a, monitor/a o cuidador/a, educador/a social, treballador/a social
+
+Ràtios de professionals
+
+Un total de 80 hores/setmana amb una ràtio global d'atenció directa de 0,25, amb la distribució següent: personal cuidador, 40 hores setmanals, educador/a social, 22 hores setmanals, treballador/a social, 10 hores setmanals i director/a tècnic/a, 8 hores setmanals. Per cada unitat de 8 usuaris/es cal garantir una presència professional mínima d'atenció directa de 12 hores diàries de dilluns a divendres, i de 10 hores diàries els festius i caps de setmana.
+
+Estàndards de qualitat
+
+Publicació del Departament d'Acció Social i Ciutadania: "Indicadors de qualitat. Comunitats terapèutiques i pisos amb suport per a persones amb drogodependències. Juny 2009".
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquest servei són els següents: a) l'acreditació de la situació de necessitat, per mitjà de la resolució emesa per l'òrgan competent, d'acord amb el barem establert per reglament; b) la residència en un municipi de Catalunya; c) per a les persones estrangeres, els requisits establerts en la normativa vigent d'estrangeria i d'acollida i integració de les persones immigrades; d) la resta de requisits d'accés establerts en l'ordenament jurídic vigent
+
+Cost de referència
+
+41,19 euros estada - 1.252,82 euros mes
+
+Mòdul social
+
+511,86 euros mes
+
+Copagament
+
+740,96 euros mes
+
+Prestació
+
+1.2.8.2.2.2 Servei de pis amb suport per a persones amb drogodependències, alta intensitat
+
+Garantia de la prestació
+
+Subjecta a crèdits pressupostaris disponibles
+
+Descripció
+
+Servei que es desenvolupa en la estructura física d'un habitatge ordinari que dona suport als processos de tractament, rehabilitació i d'inserció social de les persones amb drogodependències.
+
+Objecte
+
+Facilitar suport als processos de tractament i rehabilitació de persones amb problemes derivats del consum de drogues amb la finalitat de promoure la seva reincorporació al medi familiar i/o a l'entorn social.
+
+Funcions
+
+Facilitar allotjament i alimentació bàsica.
+
+Promoure la participació activa i el desenvolupament de l'autonomia personal.
+
+Acompanyament i suport per a fomentar la integració comunitària.
+
+Potenciar el desenvolupament d'habilitats personals i de relació, manteniment i/o millorant els vincles familiars i terapèutics.
+
+Promoure el manteniment de la salut i hàbits de vida saludables.
+
+Adquisició d'habilitats i capacitats personals per a aconseguir mantenir l'abstinència i prevenir les recaigudes.
+
+Facilitar pautes d'autocura, autocontrol i resolució de conflictes.
+
+Les altres funcions establertes per l'ordenament jurídic vigent.
+
+Tipologia de la prestació
+
+Prestació de servei: servei especialitzat
+
+Situació de la població destinatària
+
+Dependència i/o risc social
+
+Edat població destinatària
+
+A partir de 18 anys
+
+Forma de prestació
+
+Alternativa a la llar
+
+Perfils professionals
+
+Director/a tècnic/a, monitor/a o cuidador/a, educador/a social, treballador/a social
+
+Ràtios de professionals
+
+Un total de 128 hores/setmana amb una ràtio global d'atenció directa de 0,40, amb la distribució següent: personal cuidador, 70 hores setmanals, educador/a social, 38 hores setmanals, treballador/a social, 10 hores setmanals, director/a tècnic/a, 10 hores setmanals. Per cada unitat de 8 usuaris/es cal garantir una presència professional mínima d'atenció directa de 12 hores diàries de dilluns a divendres, i de 10 hores diàries els festius i caps de setmana.
+
+Estàndards de qualitat
+
+Publicació del Departament d'Acció Social i Ciutadania: "Indicadors de qualitat. Comunitats terapèutiques i pisos amb suport per a persones amb drogodependències. Juny 2009".
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquest servei són els següents: a) l'acreditació de la situació de necessitat, per mitjà de la resolució emesa per l'òrgan competent, d'acord amb el barem establert per reglament; b) la residència en un municipi de Catalunya; c) per a les persones estrangeres, els requisits establerts en la normativa vigent d'estrangeria i d'acollida i integració de les persones immigrades; d) la resta de requisits d'accés establerts en l'ordenament jurídic vigent.
+
+Cost de referència
+
+48,03 euros estada - 1.461,01 euros mes
+
+Mòdul social
+
+710,80 euros mes
+
+Copagament
+
+750,21 euros mes
+
+Prestació
+
+1.2.8.2.3.1 Servei de comunitat terapèutica per a persones amb drogodependències, baixa intensitat
+
+Garantia de la prestació
+
+Subjecta a crèdits pressupostaris disponibles
+
+Descripció
+
+Serveis d'acolliment residencial que, amb caràcter transitori, procurant un règim d'autogestió com a eina socialitzadora, proporcionen a les persones amb dependència de l'alcohol i d'altres drogodependents en el seu procés de rehabilitació, l'acolliment, cura i la vida comunitària per tal de facilitar la seva integració social. Servei de suport a la prestació sociosanitària.
+
+Objecte
+
+Substituir la llar de forma transitòria i garantir el seguiment i la intervenció professional en el procés de terapèutic de rehabilitació de persones amb problemes derivats del consum de drogues amb la finalitat d'aconseguir una millora en el control i extinció de la drogodependència així com la integració social.
+
+Funcions
+
+Facilitar allotjament i alimentació bàsica.
+
+Proporcionar els recursos terapèutics suficients per permetre una intervenció professional àmplia, intensiva i integral sobre la problemàtica sociosanitària derivada de la drogodependència.
+
+Promoure la participació activa i el desenvolupament de l'autonomia personal.
+
+Acompanyament i suport per a fomentar la integració comunitària.
+
+Potenciar el desenvolupament d'habilitats personals i de relació, mantenint i/o millorant els vincles familiars i terapèutics.
+
+Promoure el manteniment de la salut i hàbits de vida saludables.
+
+Potenciar la vinculació i adhesió a la xarxa d'atenció a les Drogodependències.
+
+Adquisició d'habilitats i capacitats personals per a aconseguir mantenir l'abstinència, i prevenir les recaigudes.
+
+Facilitar pautes d'autocura, autocontrol i resolució de conflictes.
+
+Les altres funcions establertes per l'ordenament jurídic vigent.
+
+Tipologia de la prestació
+
+Prestació de servei: servei especialitzat
+
+Situació de la població destinatària
+
+Dependència i/o risc social
+
+Edat població destinatària
+
+A partir de 18 anys
+
+Forma de prestació
+
+En establiment residencial
+
+Perfils professionals
+
+Director/a tècnic/a, metge/essa, psicòleg/loga, diplomat/da en infermeria, treballador/a social, monitor/a. El suport social, psicològic i mèdic es realitzarà de forma directa per part de l'entitat o bé de forma externa per part dels CAS de referència.
+
+Ràtios de professionals
+
+Per cada unitat de 30 usuaris/es, 243 h/setmana de professional d'atenció directa, amb una ràtio de 0,20.
+
+Estàndards de qualitat
+
+Publicació del Departament d'Acció Social i Ciutadania: "Indicadors de qualitat. Comunitats terapèutiques i pisos amb suport per a persones amb drogodependències. Juny 2009".
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquest servei són els següents: a) l'acreditació de la situació de necessitat, per mitjà de la resolució emesa per l'òrgan competent, d'acord amb el barem establert per reglament; b) la residència en un municipi de Catalunya; c) per a les persones estrangeres, els requisits establerts en la normativa vigent d'estrangeria i d'acollida i integració de les persones immigrades; d) la resta de requisits d'accés establerts en l'ordenament jurídic vigent
+
+Cost de referència
+
+Llarga estada: 48,03 euros estada - 1.461,01 euros mes
+
+Mòdul social
+
+Llarga estada: 394,97 euros mes
+
+Copagament
+
+Llarga estada: 1.066,04 euros mes
+
+Prestació
+
+1.2.8.2.3.2 Servei de comunitat terapèutica per a persones amb drogodependències, mitja intensitat
+
+Garantia de la prestació
+
+Subjecta a crèdits pressupostaris disponibles
+
+Descripció
+
+Serveis d'acolliment residencial que, amb caràcter transitori, procurant un règim d'autogestió com a eina socialitzadora, proporcionen a les persones amb dependència de l'alcohol i d'altres drogodependents en el seu procés de rehabilitació, l'acolliment, cura i la vida comunitària per tal de facilitar la seva integració social. Servei de suport a la prestació sociosanitària.
+
+Objecte
+
+Substituir la llar de forma transitòria i garantir el seguiment i la intervenció professional en el procés de terapèutic de rehabilitació de persones amb problemes derivats del consum de drogues amb la finalitat d'aconseguir una millora en el control i extinció de la drogodependència així com la integració social.
+
+Funcions
+
+Facilitar allotjament i alimentació bàsica.
+
+Proporcionar els recursos terapèutics suficients per permetre una intervenció professional àmplia, intensiva i integral sobre la problemàtica sociosanitària derivada de la drogodependència.
+
+Promoure la participació activa i el desenvolupament de l'autonomia personal.
+
+Acompanyament i suport per a fomentar la integració comunitària.
+
+Potenciar el desenvolupament d'habilitats personals i de relació, mantenint i/o millorant els vincles familiars i terapèutics.
+
+Promoure el manteniment de la salut i hàbits de vida saludables.
+
+Potenciar la vinculació i adhesió a la xarxa d'atenció a les drogodependències.
+
+Adquisició d'habilitats i capacitats personals per a aconseguir mantenir l'abstinència, i prevenir les recaigudes.
+
+Facilitar pautes d'autocura, autocontrol i resolució de conflictes.
+
+Les altres funcions establertes per l'ordenament jurídic vigent.
+
+Tipologia de la prestació
+
+Prestació de servei: servei especialitzat
+
+Situació de la població destinatària
+
+Dependència i/o risc social
+
+Edat població destinatària
+
+A partir de 18 anys
+
+Forma de prestació
+
+En establiment residencial
+
+Perfils professionals
+
+Director/a tècnic/a, metge/essa, psicòleg/loga, diplomat/da en infermeria, treballador/a social, monitor/a. El suport social, psicològic i mèdic es realitzarà de forma directa per part de l'entitat o bé de forma externa per part dels CAS de referència.
+
+Ràtios de professionals
+
+Per cada unitat de 30 usuaris/es, 343 h/setmana de professional d'atenció directa, amb una ràtio de 0,29.
+
+Estàndards de qualitat
+
+Publicació del Departament d'Acció Social i Ciutadania: "Indicadors de qualitat. Comunitats terapèutiques i pisos amb suport per a persones amb drogodependències. Juny 2009".
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquest servei són els següents: a) l'acreditació de la situació de necessitat, per mitjà de la resolució emesa per l'òrgan competent, d'acord amb el barem establert per reglament; b) la residència en un municipi de Catalunya; c) per a les persones estrangeres, els requisits establerts en la normativa vigent d'estrangeria i d'acollida i integració de les persones immigrades; d) la resta de requisits d'accés establerts en l'ordenament jurídic vigent
+
+Cost de referència
+
+Mitja estada: 50,74 euros estada - 1.543,36 euros mes
+
+Mòdul social
+
+Mitja estada: 563,37 euros mes
+
+Copagament
+
+Mitja estada: 979,99 euros mes
+
+Prestació
+
+1.2.8.2.3.3 Servei de comunitat terapèutica per a persones amb drogodependències, alta intensitat
+
+Garantia de la prestació
+
+Subjecta a crèdits pressupostaris disponibles
+
+Descripció
+
+Serveis d'acolliment residencial que, amb caràcter transitori, procurant un règim d'autogestió com a eina socialitzadora, proporcionen a les persones amb dependència de l'alcohol i d'altres drogodependents en el seu procés de rehabilitació, l'acolliment, cura i la vida comunitària per tal de facilitar la seva integració social. Servei de suport a la prestació sociosanitària.
+
+Objecte
+
+Substituir la llar de forma transitòria i garantir el seguiment i la intervenció professional en el procés de terapèutic de rehabilitació de persones amb problemes derivats del consum de drogues amb la finalitat d'aconseguir una millora en el control i extinció de la drogodependència així com la integració social.
+
+Funcions
+
+Facilitar allotjament i alimentació bàsica.
+
+Proporcionar els recursos terapèutics suficients per permetre una intervenció professional àmplia, intensiva i integral sobre la problemàtica sociosanitària derivada de la drogodependència.
+
+Promoure la participació activa i el desenvolupament de l'autonomia personal.
+
+Acompanyament i suport per a fomentar la integració comunitària.
+
+Potenciar el desenvolupament d'habilitats personals i de relació, mantenint i/o millorant els vincles familiars i terapèutics.
+
+Promoure el manteniment de la salut i hàbits de vida saludables.
+
+Potenciar la vinculació i adhesió a la xarxa d'atenció a les drogodependències.
+
+Adquisició d'habilitats i capacitats personals per a aconseguir mantenir l'abstinència, i prevenir les recaigudes.
+
+Facilitar pautes d'autocura, autocontrol i resolució de conflictes.
+
+Les altres funcions establertes per l'ordenament jurídic vigent.
+
+Tipologia de la prestació
+
+Prestació de servei: servei especialitzat
+
+Situació de la població destinatària
+
+Dependència i/o risc social
+
+Edat població destinatària
+
+A partir de 18 anys
+
+Forma de prestació
+
+En establiment residencial
+
+Perfils professionals
+
+Director/a tècnic/a, metge/essa, psicòleg/loga, diplomat/da en infermeria, treballador/a social, monitor/a. El suport social, psicològic i mèdic es realitzarà de forma directa per part de l'entitat o bé de forma externa per part dels CAS de referència.
+
+Ràtios de professionals
+
+Per cada unitat de 30 usuaris/es, 426 h/setmana de professional d'atenció directa, amb una ràtio de 0,36.
+
+Estàndards de qualitat
+
+Publicació del Departament d'Acció Social i Ciutadania: "Indicadors de qualitat. Comunitats terapèutiques i pisos amb suport per a persones amb drogodependències. Juny 2009".
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquest servei són els següents: a) l'acreditació de la situació de necessitat, per mitjà de la resolució emesa per l'òrgan competent, d'acord amb el barem establert per reglament; b) la residència en un municipi de Catalunya; c) per a les persones estrangeres, els requisits establerts en la normativa vigent d'estrangeria i d'acollida i integració de les persones immigrades; d) la resta de requisits d'accés establerts en l'ordenament jurídic vigent.
+
+Cost de referència
+
+Curta estada: 67,43 euros estada - 2.051,03 euros mes .
+
+Mòdul social
+
+Curta estada: 838,36 euros mes.
+
+Copagament
+
+Curta estada: 1.212,67 euros mes.
+
+Prestació
+
+1.2.9.1 Servei de prevenció per a persones afectades pel virus VIH/SIDA
+
+Garantia de la prestació
+
+Subjecta a crèdits pressupostaris disponibles
+
+Descripció
+
+Conjunt d' actuacions adreçades a influir sobre els factors de risc i protecció davant del VIH.Aquests serveis es coordinen amb la intervenció específica del Departament de Salut.
+
+Objecte
+
+Facilitar informació i millorar els coneixements de la SIDA per tal d'incrementar les estratègies de protecció i reduir les repercussions del contagi (en els àmbits individual, familiar i social) per tal d'aconseguir el màxim nivell de reinserció comunitària de les persones afectades.
+
+Funcions
+
+Facilitar informació sobre aspectes relacionats amb el VIH/sida a la població en general i a les persones afectades.
+
+Potenciar mesures de sensibilització a la població general i a professionals, institucions i entitats de la comunitat.
+
+Fomentar estratègies per a la promoció de la salut integral i de suport a l'adhesió a tractaments per millorar la qualitat de vida.
+
+Afavorir la integració/reinserció social de les persones afectades.
+
+Les altres funcions establertes per l'ordenament jurídic vigent.
+
+Tipologia de la prestació
+
+Prestació de servei: servei especialitzat
+
+Situació de la població destinatària
+
+Persones afectades pel virus VIH/SIDA
+
+Edat població destinatària
+
+Població general
+
+Forma de prestació
+
+Mitjançant intervenció d'equip de professionals
+
+Perfils professionals
+
+Es disposarà de professionals suficients en nombre i perfil per a la prestació del servei.
+
+Ràtios de professionals
+
+Es disposarà de professionals suficients en nombre i perfil per a la prestació del servei.
+
+Estàndards de qualitat
+
+Els que estableixi el Pla de qualitat previst en la Llei de Serveis Socials per a aquesta prestació
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquest servei són els següents: a) la residència en un municipi de Catalunya; b) per a les persones estrangeres, els requisits establerts en la normativa vigent d'estrangeria i d'acollida i integració de les persones immigrades; c) la resta de requisits d'accés establerts en l'ordenament jurídic vigent.
+
+Prestació
+
+1.2.9.2.1.1 Servei temporal de llar amb suport per a persones afectades pel virus VIH/SIDA, baixa intensitat
+
+Garantia de la prestació
+
+Subjecta a crèdits pressupostaris disponibles
+
+Descripció
+
+Servei que es desenvolupa en la estructura física d'un habitatge ordinari que dona suport als processos de tractament, rehabilitació i d'inserció social de les persones afectades pel VIH/sida .
+
+Objecte
+
+Facilitar suport als processos de rehabilitació de persones afectades de VIH/sida, amb la finalitat de facilitar i promoure la seva reincorporació a l'entorn social.
+
+Funcions
+
+Facilitar allotjament i alimentació bàsica.
+
+Promoure la participació activa i el desenvolupament de l'autonomia personal.
+
+Acompanyament i suport per a fomentar la integració comunitària.
+
+Potenciar el desenvolupament d'habilitats personals i de relació, manteniment i/o millorant els vincles familiars i terapèutics.
+
+Atendre la salut i acompanyar a la persona en el seu propi procés.
+
+Promoure hàbits de vida saludables.
+
+Facilitar informació per garantir la prevenció.
+
+Les altres funcions establertes per l'ordenament jurídic vigent.
+
+Tipologia de la prestació
+
+Prestació de servei: servei especialitzat
+
+Situació de la població destinatària
+
+Dependència i/o risc social
+
+Edat població destinatària
+
+De 18 a 65 anys
+
+Forma de prestació
+
+Alternativa a la llar
+
+Perfils professionals
+
+Director/a tècnic/a, monitor/a o cuidador/a, educador/a social, treballador/a social.
+
+Ràtios de professionals
+
+Un total de 80 hores/setmana amb una ràtio global d'atenció directa de 0,25, amb la distribució següent: personal cuidador, 40 hores setmanals, educador/a social, 22 hores setmanals, treballador/a social, 10 hores setmanals, director/a tècnic/a, 8 hores setmanals. Per a cada unitat de 8 usuaris/es cal garantir una presència professional mínima d'atenció directa de 12 hores diàries de dilluns a divendres i de 10 hores diàries els festius i caps de setmana.
+
+Estàndards de qualitat
+
+Publicació del Departament d'Acció Social i Ciutadania: "Indicadors de qualitat. Llars residència i pisos amb suport per a persones amb SIDA. Març 2009".
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquest servei són els següents: a) l'acreditació de la situació de necessitat, per mitjà de la resolució emesa per l'òrgan competent, d'acord amb el barem establert per reglament; b) el requisit d'edat establert en aquesta disposició; c) la residència en un municipi de Catalunya; d) per a les persones estrangeres, els requisits establerts en la normativa vigent d'estrangeria i d'acollida i integració de les persones immigrades; e) la resta de requisits d'accés establerts en l'ordenament jurídic vigent.
+
+Cost de referència
+
+41,19 euros estada - 1.252,82 euros mes.
+
+Mòdul social
+
+511,86 euros mes.
+
+Copagament
+
+740,96 euros mes.
+
+Prestació
+
+1.2.9.2.1.2 Servei temporal de llar amb suport per a persones afectades pel virus VIH/SIDA, alta intensitat
+
+Garantia de la prestació
+
+Subjecta a crèdits pressupostaris disponibles
+
+Descripció
+
+Servei que es desenvolupa en la estructura física d'un habitatge ordinari que dona suport als processos de tractament, rehabilitació i d'inserció social de les persones afectades pel VIH/sida .
+
+Objecte
+
+Facilitar suport als processos de rehabilitació de persones afectades de VIH/sida, amb la finalitat de facilitar i promoure la seva reincorporació a l'entorn social.
+
+Funcions
+
+Facilitar allotjament i alimentació bàsica.
+
+Promoure la participació activa i el desenvolupament de l'autonomia personal.
+
+Acompanyament i suport per a fomentar la integració comunitària.
+
+Potenciar el desenvolupament d'habilitats personals i de relació, manteniment i/o millorant els vincles familiars i terapèutics.
+
+Atendre la salut i acompanyar a la persona en el seu propi procés.
+
+Promoure hàbits de vida saludables.
+
+Facilitar informació per garantir la prevenció.
+
+Les altres funcions establertes per l'ordenament jurídic vigent.
+
+Tipologia de la prestació
+
+Prestació de servei: servei especialitzat
+
+Situació de la població destinatària
+
+Dependència i/o risc social
+
+Edat població destinatària
+
+De 18 a 65 anys
+
+Forma de prestació
+
+Alternativa a la llar
+
+Perfils professionals
+
+Director/a tècnic/a, monitor/a o cuidador/a, educador/a social, treballador/a social.
+
+Ràtios de professionals
+
+Un total de 128 hores/setmana, amb una ràtio global d'atenció directa de 0,25, amb la distribució següent: personal cuidador, 70 hores setmanals, educador/a social, 38 hores setmanals, treballador/a social, 10 hores setmanals, director/a tècnic/a, 10 hores setmanals. Per a cada unitat de 8 usuaris/es cal garantir una presència professional mínima d'atenció directa de 12 hores diàries de dilluns a divendres i de 10 hores diàries els festius i caps de setmana.
+
+Estàndards de qualitat
+
+Publicació del Departament d'Acció Social i Ciutadania: "Indicadors de qualitat. Llars residència i pisos amb suport per a persones amb SIDA. Març 2009".
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquest servei són els següents: a) l'acreditació de la situació de necessitat, per mitjà de la resolució emesa per l'òrgan competent, d'acord amb el barem establert per reglament; b) el requisit d'edat establert en aquesta disposició; c) la residència en un municipi de Catalunya; d) per a les persones estrangeres, els requisits establerts en la normativa vigent d'estrangeria i d'acollida i integració de les persones immigrades; e) la resta de requisits d'accés establerts en l'ordenament jurídic vigent.
+
+Cost de referència
+
+48,03 euros estada - 1.461,01 € mes.
+
+Mòdul social
+
+802,89 euros mes.
+
+Copagament
+
+658,12 euros mes.
+
+Prestació
+
+1.2.9.2.2 Servei temporal de llar residència per a persones afectades pel virus VIH/SIDA
+
+Garantia de la prestació
+
+Subjecta a crèdits pressupostaris disponibles
+
+Descripció
+
+Servei d'acolliment residencial d'atenció a persones amb VIH/sida en situació de vulnerabilitat social, que substitueix la llar i garanteix el seguiment i la intervenció professional en el seu procés terapèutic.
+
+Objecte
+
+Facilitar suport i acompanyament al tractament de les persones afectades per HIV/SIDA indicat quan per l'afectació de la malaltia i per la situació social en la que es troba la persona es requereix una intervenció àmplia, intensiva i integral, i que té per finalitat millorar la qualitat de vida.
+
+Funcions
+
+Facilitar allotjament i alimentació bàsica.
+
+Promoure la participació activa i el desenvolupament de l'autonomia personal.
+
+Acompanyament i suport per a fomentar la integració comunitària.
+
+Millorar els vincles familiars i terapèutics.
+
+Promoure el manteniment de la salut i hàbits de vida saludables.
+
+Potenciar la vinculació i adhesió als tractaments.
+
+Facilitar informació per garantir la prevenció.
+
+Facilitar pautes d'autocura, autocontrol i resolució de conflictes.
+
+Atendre la salut i acompanyar a la persona en el seu propi procés.
+
+Les altres funcions establertes per l'ordenament jurídic vigent.
+
+Tipologia de la prestació
+
+Prestació de servei: servei especialitzat
+
+Situació de la població destinatària
+
+Dependència i/o risc social
+
+Edat població destinatària
+
+De 18 a 65 anys
+
+Forma de prestació
+
+En establiment residencial
+
+Perfils professionals
+
+Director/a tècnic/a, monitor/a o cuidador/a, educador/a social, treballador/a social i diplomat/da en infermeria.
+
+Ràtios de professionals
+
+Per cada unitat de 25 usuaris/es un total de 442 hores/setmana, amb una ràtio de 0,44.
+
+Estàndards de qualitat
+
+Publicació del Departament d'Acció Social i Ciutadania: "Indicadors de qualitat. Llars residència i pisos amb suport per a persones amb SIDA. Març 2009".
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquest servei són els següents: a) l'acreditació de la situació de necessitat, per mitjà de la resolució emesa per l'òrgan competent, d'acord amb el barem establert per reglament; b) el requisit d'edat establert en aquesta disposició; c) la residència en un municipi de Catalunya; d) per a les persones estrangeres, els requisits establerts en la normativa vigent d'estrangeria i d'acollida i integració de les persones immigrades; e) la resta de requisits d'accés establerts en l'ordenament jurídic vigent.
+
+Cost de referència
+
+67,43 euros estada - 2.051,03 euros mes.
+
+Mòdul social
+
+919,41 euros mes.
+
+Copagament
+
+1.131,61 euros mes.
+
+Prestació
+
+1.2.10.1 Servei de suport als familiars cuidadors/es i altres cuidadors/es no professionals
+
+Garantia de la prestació
+
+Prestació garantida per a les persones en situació de dependència, en aplicació de la disposició addicional cinquena de la Llei 12/2007, d'11 d'octubre, de serveis socials. Subjecta a crèdits pressupostaris disponibles per a la resta.
+
+Descripció
+
+Servei de suport, que duen a terme professionals especialitzats/des per atendre aquelles situacions que requereixen una atenció particular, oferint atenció, orientació, assessorament i formació als familiars cuidadors i altres cuidadors/es no professionals quan es troben en situacions de dificultat.
+
+Objecte
+
+El que estableixi la normativa reguladora del servei.
+
+Funcions
+
+Les que estableixi la normativa reguladora del servei.
+
+Tipologia de la prestació
+
+Prestació de servei: servei especialitzat
+
+Situació de la població destinatària
+
+Dependència
+
+Edat població destinatària
+
+Població general
+
+Forma de prestació
+
+Mitjançant intervenció d'equip de professionals
+
+Perfils professionals
+
+Es disposarà de professionals suficients en nombre i perfil per a la prestació del servei.
+
+Ràtios de professionals
+
+Es disposarà de professionals suficients en nombre i perfil per a la prestació del servei.
+
+Estàndards de qualitat
+
+Els que estableixi el Pla de qualitat previst en la Llei de Serveis Socials per a aquesta prestació
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquest servei són els següents: a) l'acreditació de la situació de necessitat, d'acord amb la normativa reguladora del servei; b) la residència en un municipi de Catalunya; c) per a les persones estrangeres, els requisits establerts en la normativa vigent d'estrangeria i d'acollida i integració de les persones immigrades; d) la resta de requisits d'accés establerts en l'ordenament jurídic vigent.
+
+Prestació
+
+1.2.11.1 Servei d'atenció a les famílies
+
+Garantia de la prestació
+
+Subjecta a crèdits pressupostaris disponibles
+
+Descripció
+
+Serveis d'orientació, atenció i assessorament a les famílies, adreçats a afavorir el benestar de les famílies amb fills i filles a càrrec que, sense incorporar teràpies individuals ni grupals, creen espais de consulta, orientació i assessorament a disposició de les famílies per tal de plantejar, resoldre, derivar o oferir recursos a qüestions diverses de comunicació i relació que afecten l'àmbit familiar.
+
+Objecte
+
+Oferir a les famílies recursos d'assessorament, atenció i orientació que els hi permeti una criança de qualitat dels seus infants.
+
+Funcions
+
+Oferir un acompanyament i orientació en processos de problemàtica comunicativa i relacional entre els membres de les famílies.
+
+Detectar situacions de risc i derivar als recursos adients per a resoldre les problemàtiques detectades.
+
+Posar a l'abast de les famílies espais de reflexió i intercanvi d'experiències en els processos de criança.
+
+Les altres funcions establertes per l'ordenament jurídic vigent.
+
+Tipologia de la prestació
+
+Prestació de servei: servei especialitzat
+
+Situació de la població destinatària
+
+Famílies amb necessitat de suport
+
+Edat població destinatària
+
+Població general
+
+Forma de prestació
+
+Mitjançant intervenció d'equip de professionals
+
+Perfils professionals
+
+Es disposarà de professionals suficients en nombre i perfil per a la prestació del servei.
+
+Ràtios de professionals
+
+Es disposarà de professionals suficients en nombre i perfil per a la prestació del servei.
+
+Estàndards de qualitat
+
+Els que estableixi el Pla de qualitat previst en la Llei de Serveis Socials per a aquesta prestació.
+
+Criteris d'accés - normativa reguladora
+
+Pendent de desplegament normatiu.
+
+Prestació
+
+1.2.12.1 Servei d'atenció i acolliment d'urgències
+
+Garantia de la prestació
+
+Prestació garantida
+
+Descripció
+
+Serveis que faciliten acolliment temporal, de curta durada, a les dones que estan o han estat sotmeses a situacions de violència masclista i, si és el cas, a llurs filles i fills, per tal de garantir-ne la seguretat personal. Així mateix, han de facilitar recursos personals i socials que permetin una resolució de la situació de crisi
+
+Objecte
+
+Oferir un espai d'acollida i seguretat confortable, que respecti la seva intimitat i la de les filles i fills davant d'una situació d'urgència
+
+Funcions
+
+Oferir un espai de d'acollida immediat i temporal que permeti la reflexió per tal que pugui prendre aquelles decisions més adequades per sortir de la situació de violència viscuda.
+
+Vetllar per la integritat i seguretat física de la dona i les seves filles i fills a càrrec.
+
+Acompanyar la dona en les diferents gestions que hagi d'efectuar durant la seva estada al servei.
+
+Treballar en coordinació amb els serveis i recursos de la xarxa integral del territori per tal d'oferir a la dona una atenció i acompanyament integral en tot el seu procés de recuperació.
+
+Les altres funcions establertes per l'ordenament jurídic vigent.
+
+Tipologia de la prestació
+
+Prestació de servei: servei especialitzat
+
+Situació de la població destinatària
+
+Dones que pateixen qualsevol forma de violència masclista en l'àmbit de la parella, l'àmbit familiar o l'àmbit social o comunitari en la manifestació d'agressions sexuals, de tràfic i explotació sexual, de mutilació genital femenina o risc de patir-la i de matrimoni forçós.
+
+Edat població destinatària
+
+Població en general
+
+Forma de prestació
+
+En establiment residencial
+
+Perfils professionals
+
+Es disposarà de professionals suficients en nombre i perfil per a la prestació del servei.
+
+Ràtios de professionals
+
+Es disposarà de professionals suficients en nombre i perfil per a la prestació del servei.
+
+Estàndards de qualitat
+
+Els que estableixi el Pla de qualitat previst en la Llei de Serveis Socials per a aquesta prestació.
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquest Servei són els següents: a) els establerts en la Llei 5/2008, de 24 d'abril, del dret de les dones a eradicar la violència masclista; b) la resta de requisits d'accés establerts en l'ordenament jurídic vigent.
+
+Prestació
+
+1.2.12.2.1 Servei d'acolliment i recuperació
+
+Garantia de la prestació
+
+Prestació garantida
+
+Descripció
+
+Serveis especialitzats, residencials i temporals, que ofereixen acolliment i atenció integral per a possibilitar el procés de recuperació i reparació a les dones i a llurs filles i fills dependents, que requereixen un espai de protecció a causa de la situació de risc motivada per la violència masclista, tot vetllant per llur autonomia.
+
+Objecte
+
+Acolliment i recuperació integral de les dones que han estat o estan en situació de violència masclista en l'àmbit de la parella, així com dels seus fills i filles a càrrec i potenciar els programes específics i integrals de recuperació.
+
+Funcions
+
+Substituir la llar, és a dir, totes aquelles actuacions que fan referència a la vida quotidiana de la dona i llurs infants durant l'estada al servei.
+
+Dissenyar, juntament amb la dona, un itinerari de recuperació psicosocial per a ella i els seus fills i filles.
+
+Oferir una atenció individualitzada i específica que faciliti el treball amb les dones i els seus fills i filles envers aquells aspectes vinculats als processos de recuperació de la situació de maltractament viscuda.
+
+Coordinar les actuacions amb els diferents recursos de la xarxa d'atenció i recuperació integral i la xarxa de recursos comunitària per tal de garantir l'acompanyament de la dona en el seu procés cap a l'autonomia personal.
+
+Les altres funcions establertes per l'ordenament jurídic vigent.
+
+Tipologia de la prestació
+
+Prestació de servei: servei especialitzat
+
+Situació de la població destinatària
+
+Dones que pateixen qualsevol forma de violència masclista en l'àmbit de la parella, l'àmbit familiar o l'àmbit social o comunitari en la manifestació d'agressions sexuals, de tràfic i explotació sexual, de mutilació genital femenina o risc de patir-la i de matrimoni forçós.
+
+Edat població destinatària
+
+Població en general
+
+Forma de prestació
+
+En establiment residencial
+
+Perfils professionals
+
+Directora responsable (professional amb titulació universitària, preferenment en l'àmbit de les ciències socials), treballadora social, psicòloga, advocada, integradora social, educadora social, mediadora cultural.
+
+Ràtios de professionals
+
+Un equip professional per cada establiment format per 1 directora responsable, 1 treballadora social, 2 psicòlogues, 1 advocada, 1 tècnica integradora social, 6 educadores socials i 1 mediadora cultural.
+
+Estàndards de qualitat
+
+Publicació del Departament d'Acció Social i Ciutadania: "Indicadors d'avaluació de qualitat. Avaluació externa de qualitat dels centres de l'ICASS. Cases d'acolliment per a dones maltractades. Novembre 2000"
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquest Servei són els següents: a) els establerts en la Llei 5/2008, de 24 d'abril, del dret de les dones a eradicar la violència masclista; b) la resta de requisits d'accés establerts en l'ordenament jurídic vigent.
+
+Prestació
+
+1.2.12.2.2 Servei de pis amb suport
+
+Garantia de la prestació
+
+Prestació garantida
+
+Descripció
+
+Servei d'acolliment temporal destinat a les dones i els seus fills i filles a càrrec, que es troben en situació de violència masclista, que han hagut d'abandonar el domicili familiar i que disposen de recursos personals i econòmics per fer front a aquesta situació però amb el suport personal, psicològic i jurídic de professionals del servei.
+
+Objecte
+
+Oferir un acolliment temporal a les dones i les seves filles i fills per tal de garantir una continuïtat en el procés de recuperació iniciat als Serveis d'Acolliment i Recuperació.
+
+Funcions
+
+Facilitar la plena autonomia, independència i responsabilitat de les dones que han de deixar casa seva per estar en una situació de violència masclista.
+
+Oferir un servei d'acompanyament que permeti a les dones i llurs infants adquirir la plena autonomia personal i familiar.
+
+Les altres funcions establertes per l'ordenament jurídic vigent.
+
+Tipologia de la prestació
+
+Prestació de servei: servei especialitzat
+
+Situació de la població destinatària
+
+Dones que pateixen qualsevol forma de violència masclista en l'àmbit de la parella, l'àmbit familiar o l'àmbit social o comunitari en la manifestació d'agressions sexuals, de tràfic i explotació sexual, de mutilació genital femenina o risc de patir-la i de matrimoni forçós.
+
+Edat població destinatària
+
+Població en general
+
+Forma de prestació
+
+En establiment
+
+Perfils professionals
+
+Directora responsable, educadora social, psicòloga.
+
+Ràtios de professionals
+
+1 directora responsable, 2 educadores socials, 1 psicòloga.
+
+Estàndards de qualitat
+
+Publicació del Departament d'Acció Social i Ciutadania: "Indicadors d'avaluació de qualitat. Avaluació externa de qualitat dels centres de l'ICASS. Cases d'acolliment per a dones maltractades. Novembre 2000".
+
+Criteris d'accés normativa reguladora
+
+Aquests serveis corresponen als serveis substitutoris de la llar definits a la Llei 5/2008, de 24 d'abril, del dret de les dones a eradicar la violència masclista. Els requisits per accedir a aquest Servei són els següents: a) els establerts en la Llei 5/2008; b) la resta de requisits d'accés establerts en l'ordenament jurídic vigent.
+
+Prestació
+
+1.2.12.2.3 Servei de pis pont
+
+Garantia de la prestació
+
+Prestació garantida
+
+Descripció
+
+Servei d'acolliment temporal de continuació del procés iniciat als serveis d'acolliment amb l'objectiu de continuar el pla de treball amb la dona i els seus fills i filles, i facilitar la plena integració sociolaboral, mitjançant un suport personal, psicològic, mèdic, social, jurídic i de lleure, dut a terme per professionals especialitzats.
+
+Objecte
+
+Oferir un acolliment temporal a les dones i les seves filles i fills per tal de garantir una continuïtat en el procés de recuperació iniciat als Serveis d'Acolliment i Recuperació.
+
+Funcions
+
+Facilitar la plena autonomia, independència i responsabilitat de les dones que han de deixar casa seva per estar en una situació de violència masclista.
+
+Oferir un servei d'acompanyament que permeti a les dones i llurs infants adquirir la plena autonomia personal i familiar.
+
+Les altres funcions establertes per l'ordenament jurídic vigent.
+
+Tipologia de la prestació
+
+Prestació de servei: servei especialitzat
+
+Situació de la població destinatària
+
+Dones que pateixen qualsevol forma de violència masclista en l'àmbit de la parella, l'àmbit familiar o l'àmbit social o comunitari en la manifestació d'agressions sexuals, de tràfic i explotació sexual, de mutilació genital femenina o risc de patir-la i de matrimoni forçós
+
+Edat població destinatària
+
+Població en general
+
+Forma de prestació
+
+En establiment
+
+Perfils professionals
+
+Directora responsable, educadora social.
+
+Ràtios de professionals
+
+1 directora responsable, 1 educadora social.
+
+Estàndards de qualitat
+
+Publicació del Departament d'Acció Social i Ciutadania: "Indicadors d'avaluació de qualitat. Avaluació externa de qualitat dels centres de l'ICASS. Cases d'acolliment per a dones maltractades. Novembre 2000"
+
+Criteris d'accés normativa reguladora
+
+Aquests serveis corresponen als serveis substitutoris de la llar definits a la Llei 5/2008, de 24 d'abril, del dret de les dones a eradicar la violència masclista. Els requisits per accedir a aquest Servei són els següents: a) els establerts en la Llei 5/2008; b) la resta de requisits d'accés establerts en l'ordenament jurídic vigent.
+
+Prestació
+
+1.2.12.3 Servei d'intervenció especialitzada
+
+Garantia de la prestació
+
+Prestació garantida
+
+Descripció
+
+Serveis que ofereixen atenció integral i recursos en el procés de recuperació i reparació a les dones que han patit o pateixen situació de violència, i també a llurs filles i fills. Així mateix, els esmentats serveis han d'incidir en la prevenció, la sensibilització i la implicació comunitària.
+
+Objecte
+
+Oferir informació, atenció i recuperació a les dones que han estat o estan en processos de violència masclista així com a les seves filles i fills a càrrec i potenciar els programes específics i integrals de prevenció, assistència i reparació.
+
+Funcions
+
+Proporcionar una atenció social i terapèutica especialitzada i continuada en relació al procés de violència viscut.
+
+Adequar el model d'intervenció social, legal i terapèutic al procés de les dones que han patit o pateixen violència.
+
+Treballar coordinadament amb serveis externs, atenent el procés específic de cadascuna de les dones.
+
+Les altres funcions establertes per l'ordenament jurídic vigent.
+
+Tipologia de la prestació
+
+Prestació de servei: servei especialitzat.
+
+Situació de la població destinatària
+
+Dones en procés de recuperació de violència masclista i els seus fills i filles a càrrec.
+
+Edat població destinatària
+
+Població en general.
+
+Forma de prestació
+
+Mitjançant intervenció d'equip de professionals.
+
+Perfils professionals
+
+Directora responsable (professional amb titulació universitària, preferenment en l'àmbit de les ciències socials) , treballadora social, educadora social, psicòloga, inseridora laboral, advocada.
+
+Ràtios de professionals
+
+Un equip professional per cada establiment format per 1 directora responsable, 2 treballadores socials, 3 psicòlogues, 1 advocada, 1 inseridora laboral i 2 educadores socials.
+
+Estàndards de qualitat
+
+Els que estableixi el Pla de qualitat previst en la Llei de Serveis Socials per a aquesta prestació.
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquest Servei són els següents: a) els establerts en la Llei 5/2008, de 24 d'abril, del dret de les dones a eradicar la violència masclista; b) la resta de requisits d'accés establerts en l'ordenament jurídic vigent.
+
+Prestació
+
+1.2.12.4 Servei tècnic de punt de trobada
+
+Garantia de la prestació
+
+Prestació garantida
+
+Descripció
+
+És un recurs destinat a atendre i prevenir, en un lloc neutral i transitori i en presència de personal qualificat, la problemàtica que sorgeix en els processos de conflictivitat familiar i, en concret, en el compliment del règim de visites dels fills i filles establert per als supòsits de separació o divorci dels progenitors o per als supòsits d'exercici de la tutela per part de l'Administració pública, amb la finalitat d'assegurar la protecció del menor.
+
+Objecte
+
+Garantir als i a les menors llur dret a relacionar-se amb els seus progenitors i/o familiars, tot preservant-los de la relació conflictiva i/o de violència masclista de les persones adultes.
+
+Funcions
+
+Facilitar la trobada del o la menor amb el progenitor o progenitors no custodis i/o la família extensa.
+
+Oferir un espai i context adequats perquè els i les menors es trobin amb els seus familiars biològics.
+
+Afavorir la normalització del desenvolupament del règim de visites.
+
+Vetllar per la integritat física i psíquica dels i de les menors i de les persones membres de la família, en els casos en que el compliment del règim de visites pugui comportar un risc de violència en especial en els supòsits de violència intrafamiliar i masclista.
+
+Les altres funcions establertes per l'ordenament jurídic vigent.
+
+Tipologia de la prestació
+
+Prestació de servei: servei especialitzat.
+
+Situació de la població destinatària
+
+Famílies en processos de separació o divorci conflictiu que precisen un espai neutral per el compliment del règim de visites per als seus fills/filles, i en determinats casos d'exercici de la tutela dels infants per part de l'Administració Pública.
+
+Edat població destinatària
+
+Població en general.
+
+Forma de prestació
+
+En establiment diürn. Mitjançant intervenció d'equip de professionals.
+
+Perfils professionals
+
+Coordinador/a amb titulació universitària en psicològia, psicòleg/oga, treballador/a social i educador/a social.
+
+Ràtios de professionals
+
+Equip professional per servei format per 1 director/a responsable, 2 tècnics/ques de suport, 2 tècnics/ques d'acompanyament.
+
+Estàndards de qualitat
+
+Els que estableixi el Pla de qualitat previst en la Llei de Serveis Socials per a aquesta prestació.
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquest Servei són els següents: a) els establerts en la Llei 5/2008, de 24 d'abril, del dret de les dones a eradicar la violència masclista; b) la resta de requisits d'accés establerts en l'ordenament jurídic vigent.
+
+Prestació
+
+1.2.12.5 Servei de la línia d'atenció a les dones en situació de violència masclista
+
+Garantia de la prestació
+
+Prestació garantida
+
+Descripció
+
+Recurs universal de caràcter gratuït d'orientació i assessorament immediat que ofereix atenció i informació integrals sobre els recursos públics i privats a l'abast de totes les persones a les quals els és aplicable la Llei 5/2008, de 24 d'abril del dret de les dones a eradicar la violència masclista.
+
+Objecte
+
+Atenció telefònica, per xat i per correu electrònic, 24 hores, gratuïta i confidencial, dins de l'àmbit territorial de Catalunya.
+
+Funcions
+
+Atendre telefònicament, les vint-i-quatre h. tots els dies de l'any, les peticions que es realitzin des de qualsevol punt de Catalunya.
+
+Derivar les trucades, en el seu cas, als serveis d'atenció especialitzats o a d'altres que es cregui pertinent.
+
+Actuar com a centre de seguiment de les actuacions que s'hagin de realitzar per a l'atenció de les situacions d'emergència.
+
+Fer el seguiment telefònic d'aquells casos en què s'hagi produït una situació d'emergència, comunicant a l'Institut Català de les Dones, en un termini màxim de vint-i-quatre hores, l'estat de la situació.
+
+Realitzar un treball de contenció i atenció a les dones que disposin de dispositius electrònics de protecció.
+
+Tenir un coneixement acurat i constantment actualitzat respecte del mapa de recursos per a les dones en situació de violència de tots els territoris de Catalunya, així com dels protocols i circuits existents a nivell nacional i local.
+
+Garantir la confidencialitat de les dades de les dones usuàries del servei.
+
+Establir la coordinació amb els serveis d'emergència en els casos necessaris, concretament amb el Servei de Trucades d'Urgència 112 Catalunya.
+
+Les altres funcions establertes per l'ordenament jurídic vigent.
+
+Tipologia de la prestació
+
+Prestació de servei: servei especialitzat.
+
+Situació de la població destinatària
+
+Població en general.
+
+Edat població destinatària
+
+Població en general.
+
+Forma de prestació
+
+Mitjançant intervenció d'equip de professionals, via telefònica, per correu electrònic i per xat.
+
+Perfils professionals
+
+Coordinador/a, treballador/a social, psicòleg/oga, advocada i metgessa.
+
+Ràtios de professionals
+
+Es disposarà de professionals suficients en nombre i perfil per a la prestació del servei.
+
+Estàndards de qualitat
+
+Els que estableixi el Pla de qualitat previst en la Llei de Serveis Socials per a aquesta prestació.
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquest Servei són els següents: a) els establerts en la Llei 5/2008, de 24 d'abril, del dret de les dones a eradicar la violència masclista; b) la resta de requisits d'accés establerts en l'ordenament jurídic vigent.
+
+Prestació
+
+1.2.13.1 Serveis de suport als serveis socials especialitzats
+
+Garantia de la prestació
+
+Subjecta a crèdits pressupostaris disponibles
+
+Descripció
+
+Serveis i programes que, tenint la naturalesa de serveis socials, poden complementar altres prestacions de serveis socials especialitzats de la cartera de serveis socials. El contingut mínim de la prestació s'haurà de justificar en cada cas per part de l'entitat titular, especificant l'objecte i les funcions del servei, la població destinatària, la forma de prestació, els perfils i les ràtios dels professionals, els estàndards de qualitat i els criteris d'accés. Aquesta justificació haurà de ser validada pel departament de la Generalitat competent en matèria de serveis socials, atenent criteris de viabilitat, eficàcia, eficiència, qualitat i sostenibilitat, i d'acord amb l'establert a la disposició addicional vuitena d'aquest Decret.
+
+Prestació
+
+1.3.1 Serveis i programes de caràcter experimental, no enquadrables en cap dels serveis descrits als apartats anteriors
+
+Garantia de la prestació
+
+Subjecta a crèdits pressupostaris disponibles
+
+Descripció
+
+El contingut mínim de la prestació l'haurà de justificar en cada cas l'entitat titular, especificant l'objecte i les funcions del servei, la població destinatària, la forma de prestació, els perfils i les ràtios dels professionals, els estàndards de qualitat, els criteris d'accés i la previsió d'avaluació del servei experimental. Aquesta justificació haurà de ser validada pel departament de la Generalitat competent en matèria de serveis socials, atenent criteris de viabilitat, eficàcia, eficiència, qualitat i sostenibilitat, i d'acord amb el que estableix la disposició addicional vuitena d'aquest Decret.
+
+Prestació
+
+2.1.1 Prestació per a joves extutelats/ades
+
+Garantia de la prestació
+
+Prestació garantida
+
+Descripció
+
+Prestació de dret subjectiu, de forma temporal, que té per finalitat atendre les situacions de necessitats d'aquelles persones joves que han estat tutelades per l'organisme públic competent en matèria de protecció de menors de la Generalitat de Catalunya, des que compleixen 18 anys i fins que compleixen 21 anys, si no disposen d'ingressos econòmics per fer front a les despeses essencials, sempre i quan visquin de forma autònoma i fora del nucli familiar.
+
+Objecte
+
+Atendre determinades situacions de necessitat dels joves de 18 a 21 anys extutelats per l'organisme públic competent en matèria de protecció de menors de la Generalitat de Catalunya,que viuen de forma autònoma fora del nucli familiar biològic.
+
+Tipologia de la prestació
+
+Prestació econòmica
+
+Situació de la població destinatària
+
+Joves que visquin de manera autònoma i que hagin estat tres anys tutelats per l'Administració de la Generalitat
+
+Edat població destinatària
+
+De 18 a 21 anys
+
+Forma de prestació
+
+Prestació econòmica temporal
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquesta prestació econòmica són els següents: a) els establerts en la Llei 13/2006, del 27 de juliol, de prestacions socials de caràcter econòmic i en el Decret 123/2007, de 29 de maig, pel qual es determina el règim aplicable a la sol·licitud i concessió de les prestacions socials de caràcter econòmic de dret subjectiu i es concreten els requisits per al reconeixement del dret a les prestacions creades en desplegament de la Llei 13/2006, de 27 de juliol, de prestacions socials de caràcter econòmic; b) la resta de requisits d'accés establerts en l'ordenament jurídic vigent .
+
+Tractament fiscal
+
+Rendiment subjecte a l'impost sobre la renda de les persones físiques (IRPF) i no exempt. Rendiment del treball. Això no obstant, la determinació de l'obligació de declarar de cada contribuent perceptor de l'ajut s'efectuarà conforme a les regles de l'article 96 de la Llei 35/2006, de 28 de novembre, de l'Impost sobre la Renda de les Persones Físiques i de modificació parcial de les lleis dels Impostos sobre Societats, sobre la Renda de no Residents i sobre el Patrimoni.
+
+Prestació
+
+2.1.2 Pensió no contributiva per jubilació
+
+Garantia de la prestació
+
+Prestació garantida
+
+Descripció
+
+Prestació econòmica individualitzada, de caràcter periòdic, reconeguda a la gent gran, per raó de la seva edat, que no han cotitzat mai a la Seguretat Social o bé un temps insuficient per a tenir dret a una pensió contributiva i que es troben en estat de necessitat
+
+Objecte
+
+Atendre les mancances derivades la situació de necessitat de la població destinatària
+
+Tipologia de la prestació
+
+Prestació econòmica
+
+Situació de la població destinatària
+
+Baix nivell d'ingressos
+
+Edat població destinatària
+
+65 anys i més
+
+Forma de prestació
+
+Prestació econòmica permanent
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquesta prestació econòmica són els següents: a) els requisits d'edat, residència i manca d'ingressos econòmics establerts en l'article 167 del Reial Decret Legislatiu 1/1994, de 20 de juny, pel qual s'aprova el text refós de la Llei de la Seguretat Social, i en la normativa d'actualització i desenvolupament corresponents; b)la resta de requisits d'accés establerts en l'ordenament jurídic vigent.
+
+Tractament fiscal
+
+Rendiment subjecte a l'impost sobre la renda de les persones físiques (IRPF) i no exempt. Rendiment del treball. Això no obstant, la determinació de l'obligació de declarar de cada contribuent perceptor de l'ajut s'efectuarà conforme a les regles de l'article 96 de la Llei 35/2006, de 28 de novembre, de l'Impost sobre la Renda de les Persones Físiques i de modificació parcial de les lleis dels Impostos sobre Societats, sobre la Renda de no Residents i sobre el Patrimoni.
+
+Prestació
+
+2.1.3 Pensió no contributiva per invalidesa
+
+Garantia de la prestació
+
+Prestació garantida
+
+Descripció
+
+Prestació econòmica individualitzada, de caràcter periòdic, reconeguda a persones que pateixen un determinat grau de discapacitat, que no han cotitzat mai a la Seguretat Social o bé un temps insuficient per a tenir dret a un pensió contributiva i que es troben en estat de necessitat
+
+Objecte
+
+Atendre les mancances derivades la situació de necessitat de la població destinatària
+
+Tipologia de la prestació
+
+Prestació econòmica
+
+Situació de la població destinatària
+
+Dependència
+
+Edat població destinatària
+
+De 18 a 65 anys amb un grau de discapacitat igual o superior al 65%
+
+Forma de prestació
+
+Prestació econòmica permanent
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquesta prestació econòmica són els següents: a) els requisits d'edat, residència i manca d'ingressos econòmics establerts en l'article 167 del Reial Decret Legislatiu 1/1994, de 20 de juny, pel qual s'aprova el text refós de la Llei de la Seguretat Social, i en la normativa d'actualització i desenvolupament corresponents; b)la resta de requisits d'accés establerts en l'ordenament jurídic vigent.
+
+Tractament fiscal
+
+Rendiment subjecte a l'impost sobre la renda de les persones físiques (IRPF) i no exempt. Rendiment del treball. Això no obstant, la determinació de l'obligació de declarar de cada contribuent perceptor de l'ajut s'efectuarà conforme a les regles de l'article 96 de la Llei 35/2006, de 28 de novembre, de l'Impost sobre la Renda de les Persones Físiques i de modificació parcial de les lleis dels Impostos sobre Societats, sobre la Renda de no Residents i sobre el Patrimoni.
+
+Prestació
+
+2.1.4 Prestació complementària per a pensionistes de la modalitat no contributiva, per invalidesa o jubilació
+
+Garantia de la prestació
+
+Prestació garantida
+
+Descripció
+
+Prestació de dret subjectiu destinada a complementar la pensió de la modalitat no contributiva del Sistema de la Seguretat Social per aquelles persones que no es poden incorporar al món laboral
+
+Objecte
+
+Atendre les mancances derivades la situació de necessitat de la població destinatària
+
+Tipologia de la prestació
+
+Prestació econòmica
+
+Situació de la població destinatària
+
+Baix nivell d'ingressos
+
+Edat població destinatària
+
+Per a la prestació per invalidesa: de 18 a 65 anys amb un grau de discapacitat igual o superior al 65% i per a la prestació per jubilació: 65 anys i més
+
+Forma de prestació
+
+Prestació econòmica permanent.
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquesta prestació econòmica són els següents: a) l'acreditació de la situació de necessitat, d'acord amb allò establert en els articles 4, 12, 13, 14, 15 i 21 de la Llei 13/2006, del 27 de juliol, de prestacions socials de caràcter econòmic, i en els articles 8, 9 i 24 del Decret 123/2007, de 29 de maig; b) el requisit d'edat indicat en aquesta mateixa disposició; c) el requisit de residència establert en l'article 4 de la Llei 13/2006, de 27 de juliol, i desenvolupat per l'article 7 del Decret 123/2007, de 29 de maig; d) per a les persones estrangeres, els requisits establerts en la normativa vigent d'estrangeria i d'acollida i integració de les persones immigrades; e) la resta de requisits d'accés establerts en l'ordenament jurídic vigent .
+
+Tractament fiscal
+
+Rendiment subjecte a l'impost sobre la renda de les persones físiques (IRPF) i no exempt. Rendiment del treball. Això no obstant, la determinació de l'obligació de declarar de cada contribuent perceptor de l'ajut s'efectuarà conforme a les regles de l'article 96 de la Llei 35/2006, de 28 de novembre, de l'Impost sobre la Renda de les Persones Físiques i de modificació parcial de les lleis dels Impostos sobre Societats, sobre la Renda de no Residents i sobre el Patrimoni.
+
+Prestació
+
+2.1.5 Ajuts assistencials de protecció als i a les cònjuges supervivents
+
+Garantia de la prestació
+
+Prestació garantida - a extingir
+
+Descripció
+
+Prestació econòmica d'assistència social, complementària a la pensió de viduïtat.
+
+Objecte
+
+Atendre les mancances derivades la situació de necessitat de la població destinatària
+
+Tipologia de la prestació
+
+Prestació econòmica
+
+Situació de la població destinatària
+
+Baix nivell d'ingressos
+
+Edat població destinatària
+
+Població general
+
+Forma de prestació
+
+Prestació econòmica permanent.
+
+Criteris d'accés - normativa reguladora
+
+Només disponible per a persones ja beneficiàries.
+
+Tractament fiscal
+
+Rendiment subjecte a l'impost sobre la renda de les persones físiques (IRPF) i no exempt. Rendiment del treball. Això no obstant, la determinació de l'obligació de declarar de cada contribuent perceptor de l'ajut s'efectuarà conforme a les regles de l'article 96 de la Llei 35/2006, de 28 de novembre, de l'Impost sobre la Renda de les Persones Físiques i de modificació parcial de les lleis dels Impostos sobre Societats, sobre la Renda de no Residents i sobre el Patrimoni.
+
+Prestació
+
+2.1.6 Prestació per al manteniment de les despeses de la llar per a determinats col·lectius
+
+Garantia de la prestació
+
+Prestació garantida.
+
+Descripció
+
+Prestació econòmica d'assistència social adreçada a les persones que no poden atendre amb llurs ingressos les despeses pròpies del manteniment de la llar habitual, pel fet que el cònjuge o el familiar fins al segon grau de consanguinitat o afinitat amb qui compartien aquestes despeses ha mort.
+
+Objecte
+
+Atendre les mancances derivades la situació de necessitat de la població destinatària.
+
+Tipologia de la prestació
+
+Prestació econòmica.
+
+Situació de la població destinatària
+
+Baix nivell d'ingressos.
+
+Edat població destinatària
+
+Població general.
+
+Forma de prestació
+
+Prestació econòmica permanent.
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquesta prestació econòmica són els següents: a) l'acreditació de la situació de necessitat, d'acord amb allò establert en els articles 4, 12, 13, 14, 15 i 20 de la Llei 13/2006, del 27 de juliol, de prestacions socials de caràcter econòmic, i en els articles 8, 9 i 21 del Decret 123/2007, de 29 de maig; b) el requisit de residència establert en l'article 4 de la Llei 13/2006, de 27 de juliol, i desenvolupat per l'article 7 del Decret 123/2007, de 29 de maig; c) per a les persones estrangeres, els requisits establerts en la normativa vigent d'estrangeria i d'acollida i integració de les persones immigrades; d) la resta de requisits d'accés establerts en l'ordenament jurídic vigent.
+
+Tractament fiscal
+
+Rendiment subjecte a l'impost sobre la renda de les persones físiques (IRPF) i no exempt. Rendiment del treball. Això no obstant, la determinació de l'obligació de declarar de cada contribuent perceptor de l'ajut s'efectuarà conforme a les regles de l'article 96 de la Llei 35/2006, de 28 de novembre, de l'Impost sobre la Renda de les Persones Físiques i de modificació parcial de les lleis dels Impostos sobre Societats, sobre la Renda de no Residents i sobre el Patrimoni.
+
+Prestació
+
+2.1.7 Prestació per a l'acolliment d'una persona menor d'edat tutelada per la Generalitat
+
+Garantia de la prestació
+
+Prestació garantida.
+
+Descripció
+
+Prestació temporal de dret subjectiu amb la finalitat d'atendre les despeses de manteniment d'una persona menor d'edat tutelada per la Generalitat en mesura d'acolliment en família extensa o en família aliena.
+
+Objecte
+
+Atendre les despeses de manteniment dels menors d'edat tutelats per l'Administració que es troben sota la mesura d'acolliment familiar en família extensa o aliena, en acolliment preadoptiu de menors amb discapacitat i en acolliment familiar en unitat convivencial d'acció educativa.
+
+Tipologia de la prestació
+
+Prestació econòmica.
+
+Situació de la població destinatària
+
+Famílies amb menors d'edat tutelats per la Generalitat de Catalunya que es troben en una de les situacions següents: a) Acolliment familiar simple en família extensa o aliena b) Acolliment familiar permanent en família extensa o aliena c) Acolliment familiar en unitat convivencial d'acció educativa d) Acolliment preadoptiu de menors amb discapacitat.
+
+Edat població destinatària
+
+De 0 a 18 anys.
+
+Forma de prestació
+
+Prestació econòmica temporal.
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquesta prestació econòmica són els següents: a) els establerts en la Llei 13/2006, del 27 de juliol, de prestacions socials de caràcter econòmic i en el Decret 123/2007, de 29 de maig, pel qual es determina el règim aplicable a la sol·licitud i concessió de les prestacions socials de caràcter econòmic de dret subjectiu i es concreten els requisits per al reconeixement del dret a les prestacions creades en desplegament de la Llei 13/2006, de 27 de juliol, de prestacions socials de caràcter econòmic. b) la resta de requisits d'accés establerts en l'ordenament jurídic vigent.
+
+Tractament fiscal
+
+Rendiments exempts de l'impost sobre la renda de les persones físiques (IRPF) (art. 7.i de la Llei 35/2006, de 28 de novembre, de l'Impost sobre la Renda de les Persones Físiques i de modificació parcial de les lleis dels Impostos sobre Societats, sobre la Renda de no Residents i sobre el Patrimoni).
+
+Prestació
+
+2.1.8 Prestació econòmica de caràcter universal per infant a càrrec
+
+Garantia de la prestació
+
+Prestació garantida.
+
+Descripció
+
+Prestació de dret subjectiu encaminada a recolzar econòmicament la tasca de criança de les famílies amb infants de 0 a 3 anys o de 0 a 6 anys en els casos de famílies nombroses i monoparentals.
+
+Objecte
+
+Impulsar polítiques de protecció econòmica de les famílies.
+
+Tipologia de la prestació
+
+Prestació econòmica.
+
+Situació de la població destinatària
+
+Famílies amb infants a càrrec de 0 a 3 anys, i fins a 6 si la família és nombrosa i/o monoparental.
+
+Edat població destinatària
+
+Població en general.
+
+Forma de prestació
+
+Prestació econòmica temporal.
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquesta prestació econòmica són els següents: a) els establerts en la Llei 18/2003, de 4 de juliol, de suport a les famílies i en l'Ordre anual de convocatòria; b) la resta de requisits d'accés establerts en l'ordenament jurídic vigent .
+
+Tractament fiscal
+
+Rendiments exempts de l'impost sobre la renda de les persones físiques (IRPF) (art. 7.h de la Llei 35/2006, de 28 de novembre, de l'Impost sobre la Renda de les Persones Físiques i de modificació parcial de les lleis dels Impostos sobre Societats, sobre la Renda de no Residents i sobre el Patrimoni).
+
+Prestació
+
+2.1.9 Prestació econòmica de caràcter universal per part, adopció o acolliment múltiple
+
+Garantia de la prestació
+
+Prestació garantida.
+
+Descripció
+
+Prestació de dret subjectiu encaminada a recolzar econòmicament aquelles famílies en el moment de l'arribada de més d'un infant.
+
+Objecte
+
+Impulsar polítiques de protecció econòmica de les famílies.
+
+Tipologia de la prestació
+
+Prestació econòmica.
+
+Situació de la població destinatària
+
+Famílies amb part, adopció o acolliment múltiple durant l'any en curs.
+
+Edat població destinatària
+
+Població en general.
+
+Forma de prestació
+
+Prestació econòmica temporal.
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquesta prestació econòmica són els següents: a) els establerts en la Llei 18/2003, de 4 de juliol, de suport a les famílies i en l'Ordre anual de convocatòria; b) la resta de requisits d'accés establerts en l'ordenament jurídic vigent .
+
+Tractament fiscal
+
+Rendiments exempts de l'impost sobre la renda de les persones físiques (IRPF) (art. 7.h de la Llei 35/2006, de 28 de novembre, de l'Impost sobre la Renda de les Persones Físiques i de modificació parcial de les lleis dels Impostos sobre Societats, sobre la Renda de no Residents i sobre el Patrimoni).
+
+Prestació
+
+2.1.10 Prestació econòmica vinculada al servei per a persones en situació de dependència
+
+Garantia de la prestació
+
+Prestació garantida per a les persones en situació de dependència, en aplicació de la disposició addicional cinquena de la Llei 12/2007, d'11 d'octubre, de serveis socials. Subjecta a crèdits pressupostaris disponibles per a la resta.
+
+Descripció
+
+La prestació econòmica tindrà caràcter periòdic i es reconeixerà només quan l'accés a un servei públic o concertat no sigui possible, i s'establirà en funció del grau, nivell de dependència i la capacitat econòmica del beneficiari. Aquesta prestació estarà vinculada a l'adquisició del servei al qual es té el dret reconegut.
+
+Objecte
+
+Donar suport a la despesa derivada de l'ús d'un servei de centre de dia, Servei d'ajuda a domicili o centre residencial en aquelles situacions en les que no hi hagi disponibilitat del mateix servei a la xarxa pública de serveis socials.
+
+Tipologia de la prestació
+
+Prestació econòmica.
+
+Situació de la població destinatària
+
+Dependència.
+
+Edat població destinatària
+
+Població general.
+
+Forma de prestació
+
+Prestació econòmica permanent.
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquesta prestació econòmica són els següents: a) l'acreditació de la situació de dependència, per mitjà de la resolució emesa per l'òrgan de valoració corresponent, d'acord amb el Reial Decret 504/2007, de 20 d'abril; b) la residència en un municipi de Catalunya i el requisit de residència establert en l'article 5 de la Llei 39/2006, de 14 de desembre; c) per a les persones estrangeres, els requisits establerts en la normativa vigent d'estrangeria i d'acollida i integració de les persones immigrades. d) la resta de requisits d'accés establerts en l'ordenament jurídic vigent.
+
+Tractament fiscal
+
+Rendiments exempts de l'impost sobre la renda de les persones físiques (IRPF) (art. 7.x de la Llei 35/2006, de 28 de novembre, de l'Impost sobre la Renda de les Persones Físiques i de modificació parcial de les lleis dels Impostos sobre Societats, sobre la Renda de no Residents i sobre el Patrimoni).
+
+Prestació
+
+2.1.11.1 Prestació econòmica d'assistència personal de suport en l'acompanyament a activitats laborals, ocupacionals i/o formatives.
+
+Garantia de la prestació
+
+Prestació garantida per a les persones en situació de dependència, en aplicació de la Disposició Addicional 5a de la Llei 12/2007, d'11 d'octubre, de serveis socials.
+
+Descripció
+
+Prestació econòmica, amb la qual es contribueix al cost de la contractació, per part de la persona amb dependència, del/de l'assistent personal, ja sigui amb contractació directa o mitjançant una entitat acreditada. Es presta en règim horari de dedicació parcial per un període de fins a un màxim de 80 hores mensuals.
+
+Objecte
+
+Suport en l'acompanyament de la persona en situació de dependència en els desplaçaments a les activitats de caràcter laboral, ocupacional i/o formatiu, realitzades de forma habitual i regular i fora de la seva llar habitual.
+
+Tipologia de la prestació
+
+Prestació econòmica
+
+Situació de la població destinatària
+
+Gran dependència-grau III
+
+Edat població destinatària
+
+Població en general
+
+Forma de prestació
+
+Prestació econòmica permanent
+
+Criteris d'accés normativa reguladora
+
+Els requisits per accedir a la prestació són els següents: a) estar reconeguda mitjançant la resolució corresponent com a persona en situació de dependència, d'acord amb el que preveu l'article 5 de la llei 39/2006, de 14 de desembre; b) la residència en un municipi de Catalunya i el requisit de residència establert en l'article 5 de la Llei 39/2006, de 14 de desembre; c) tenir capacitat per ordenar i supervisar les activitats de l'assistència personal, per sí mateixa o, si s'escau, mitjançant la persona representant legal. d) participar, de forma habitual i regular, en activitats laborals, ocupacionals i/o formatives; e) per a les persones estrangeres, els requisits establerts en la normativa vigent d'estrangeria i d'acollida i integració de les persones immigrades; f) la resta de requisits d'accés establerts en l'ordenament jurídic vigent.
+
+Tractament fiscal
+
+Rendiments exempts de l'impost sobre la renda de les persones físiques (IRPF) (art. 7.x de la Llei 35/2006, de 28 de novembre, de l'Impost sobre la Renda de les Persones Físiques i de modificació parcial de les lleis dels Impostos sobre Societats, sobre la Renda de no Residents i sobre el Patrimoni).
+
+Prestació
+
+2.1.11.2 Prestació econòmica d'assistència personal de suport a la vida autònoma i d'integració social i comunitària.
+
+Garantia de la prestació
+
+Prestació garantida per a les persones en situació de dependència, en aplicació de la Disposició Addicional 5a de la Llei 12/2007, d'11 d'octubre, de serveis socials. Subjecta a crèdits pressupostaris disponibles per a la resta.
+
+Descripció
+
+Prestació econòmica, amb la qual es contribueix al cost de la contractació, per part de la persona amb dependència, del/de l'assistent personal, ja sigui amb contractació directa o mitjançant una entitat acreditada. Es presta en règim horari de dedicació complerta superior a 80 hores mensuals.
+
+Objecte
+
+Suport en el desenvolupament d'activitats de la vida diària i el suport en les activitats que la persona realitza de forma habitual i regular de caràcter laboral, ocupacional, formatiu, de relació social, cultural, de participació associativa i, en general, que afavoreixin el desenvolupament de la vida autònoma i independent
+
+Tipologia de la prestació
+
+Prestació econòmica
+
+Situació de la població destinatària
+
+Gran dependència-grau III
+
+Edat població destinatària
+
+De 16 a 64 anys
+
+Forma de prestació
+
+Prestació econòmica permanent
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a la prestació són els següents: a) estar reconeguda mitjançant la resolució corresponent com a persona en situació de dependència, d'acord amb el que preveu l'article 5 de la llei 39/2006, de 14 de desembre; b) el requisit d'edat establert en aquesta disposició; c) tenir capacitat per ordenar i supervisar les activitats de l'assistència personal, per sí mateixa o, si s'escau, mitjançant la persona representant legal; d) la residència en un municipi de Catalunya i el requisit de residència establert en l'article 5 de la Llei 39/2006, de 14 de desembre; e) Aportar el Pla d'Activitats, realitzat de manera autodeterminada, on es defineixin les activitats més importants, a desenvolupar en un termini no inferior a un any; f) per a les persones estrangeres, els requisits establerts en la normativa vigent d'estrangeria i d'acollida i integració de les persones immigrades; g) la resta de requisits d'accés establerts en l'ordenament jurídic vigent .
+
+Tractament fiscal
+
+Rendiments exempts de l'impost sobre la renda de les persones físiques (IRPF) (art. 7.x de la Llei 35/2006, de 28 de novembre, de l'Impost sobre la Renda de les Persones Físiques i de modificació parcial de les lleis dels Impostos sobre Societats, sobre la Renda de no Residents i sobre el Patrimoni).
+
+Prestació
+
+2.1.12 Prestació econòmica per a cures en l'entorn familiar i suport als/a les cuidadors/es no professionals
+
+Garantia de la prestació
+
+Prestació garantida per a les persones en situació de dependència, en aplicació de la disposició addicional cinquena de la Llei 12/2007, d'11 d'octubre, de serveis socials. Subjecta a crèdits pressupostaris disponibles per a la resta.
+
+Descripció
+
+Prestació econòmica adreçada a l'atenció a la persona beneficiària quan aquesta és atesa pel seu entorn familiar.
+
+Objecte
+
+Facilitar l'atenció de la persona en situació de dependència en el seu entorn familiar.
+
+Tipologia de la prestació
+
+Prestació econòmica.
+
+Situació de la població destinatària
+
+Dependència.
+
+Edat població destinatària
+
+Població en general.
+
+Forma de prestació
+
+Prestació econòmica permanent.
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquesta prestació econòmica són els següents: a) l'acreditació de la situació de dependència, per mitjà de la resolució emesa per l'òrgan de valoració corresponent, d'acord amb el Reial Decret 504/2007, de 20 d'abril; b) la residència en un municipi de Catalunya i el requisit de residència establert en l'article 5 de la Llei 39/2006, de 14 de desembre; c) per a les persones estrangeres, els requisits establerts en la normativa vigent d'estrangeria i d'acollida i integració de les persones immigrades; d) la resta de requisits d'accés establerts en l'ordenament jurídic vigent.
+
+Tractament fiscal
+
+Rendiments exempts de l'impost sobre la renda de les persones físiques (IRPF) (art. 7.x de la Llei 35/2006, de 28 de novembre, de l'Impost sobre la Renda de les Persones Físiques i de modificació parcial de les lleis dels Impostos sobre Societats, sobre la Renda de no Residents i sobre el Patrimoni).
+
+Prestació
+
+2.1.13 Renda Mínima d'Inserció (RMI)
+
+Garantia de la prestació
+
+Prestació garantida.
+
+Descripció
+
+És un dret subjectiu de caràcter universal envers els ciutadans i les ciutadanes amb greus dificultats econòmiques i socials que reuneixin els requisits per ser-ne beneficiaris/es. La prestació econòmica es complementa amb accions de suport a la integració social, de formació d'adults i de suport a la inserció laboral.
+
+Objecte
+
+Prestar suport adequat a totes les persones a qui els calgui per atendre i per afavorir la seva inserció o reinserció social i laboral.
+
+Tipologia de la prestació
+
+Prestació econòmica.
+
+Situació de la població destinatària
+
+Baix nivell d'ingressos.
+
+Edat població destinatària
+
+El requisit d'edat previst per l'article 6.1.d de la Llei 10/1997, de 3 de juliol.
+
+Forma de prestació
+
+Prestació econòmica temporal.
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquesta prestació econòmica són els següents: a) els requisits establerts per l'article 6 de la Llei 10/1997, de 3 de juliol, de la renda mínima d'inserció de Catalunya, i en la normativa d'actualització i desenvolupament corresponent, entre els quals hi ha el compromís de participar en les activitats del Pla d'Inserció i Reinserció; i b) la resta de requisits d'accés establerts en l'ordenament jurídic vigent.
+
+Tractament fiscal
+
+Rendiment subjecte a l'impost sobre la renda de les persones físiques (IRPF) i no exempt. Rendiment del treball. Això no obstant, la determinació de l'obligació de declarar de cada contribuent perceptor de l'ajut s'efectuarà conforme a les regles de l'article 96 de la Llei 35/2006, de 28 de novembre, de l'Impost sobre la Renda de les Persones Físiques i de modificació parcial de les lleis dels Impostos sobre Societats, sobre la Renda de no Residents i sobre el Patrimoni.
+
+Prestació
+
+2.1.14 Prestació per atendre les necessitats bàsiques
+
+Garantia de la prestació
+
+Prestació garantida.
+
+Descripció
+
+Prestació de dret subjectiu per atendre les despeses derivades del manteniment de les necessitats bàsiques de les persones en les que concorrin les circumstàncies establertes i, per tant, en siguin beneficiàries.
+
+Objecte
+
+Atendre les mancances derivades la situació de necessitat de la població destinatària.
+
+Tipologia de la prestació
+
+Prestació econòmica.
+
+Situació de la població destinatària
+
+Baix nivell d'ingressos.
+
+Edat població destinatària
+
+65 i més anys.
+
+Forma de prestació
+
+Prestació econòmica permanent.
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquesta prestació econòmica són els següents: a) l'acreditació de la situació de necessitat, d'acord amb allò establert en els articles 4, 12, 13, 14, 15 i 23 de la Llei 13/2006, del 27 de juliol, de prestacions socials de caràcter econòmic, i en els articles 8, 9 i 31 del Decret 123/2007, de 29 de maig; b) el requisit d'edat indicat en aquesta mateixa disposició; c) el requisit de residència establert en l'article 4 de la Llei 13/2006, de 27 de juliol, i desenvolupat per l'article 7 del Decret 123/2007, de 29 de maig; d) per a les persones estrangeres, els requisits establerts en la normativa vigent d'estrangeria i d'acollida i integració de les persones immigrades; e) la resta de requisits d'accés establerts en l'ordenament jurídic vigent.
+
+Tractament fiscal
+
+Rendiment subjecte a l'impost sobre la renda de les persones físiques (IRPF) i no exempt. Rendiment del treball. Això no obstant, la determinació de l'obligació de declarar de cada contribuent perceptor de l'ajut s'efectuarà conforme a les regles de l'article 96 de la Llei 35/2006, de 28 de novembre, de l'Impost sobre la Renda de les Persones Físiques i de modificació parcial de les lleis dels Impostos sobre Societats, sobre la Renda de no Residents i sobre el Patrimoni.
+
+Prestació
+
+2.1.15 Prestacions derivades de la Llei d'Integració Social dels Minusvàlids (LISMI)
+
+Garantia de la prestació
+
+Prestació garantida - a extingir, excepte la de mobilitat i compensació per despeses de transport
+
+Descripció
+
+SUBSIDI DE MOBILITAT I COMPENSACIÓ PER DESPESES DE TRANSPORT (SMDT), prestació econòmica de caràcter periòdic destinada a atendre les despeses originades per desplaçaments. ASSISTÈNCIA SANITÀRIA I PRESTACIONS FARMACÈUTIQUES (ASPF), prestació de serveis destinats a conservar i restablir la salut dels beneficiaris. SUBSIDI DE GARANTIA D'INGRESSOS MÍNIMS (SGIM), prestació econòmica de caràcter periòdic destinada a persones que en la seva vigència varen acreditar una disminució igual o superior al 65% i la impossibilitat d'obtenir una ocupació adequada. SUBSIDI PER ASSISTÈNCIA DE TERCERA PERSONA (SATP), prestació econòmica de caràcter periòdic destinada a persones que en la seva vigència varen acreditar una disminució igual o superior al 75%, i la necessitat de l'assistència d'una altra persona.
+
+Objecte
+
+Atendre les mancances derivades la situació de necessitat de la població destinatària
+
+Tipologia de la prestació
+
+Prestació econòmica
+
+Situació de la població destinatària
+
+Dependència
+
+Edat població destinatària
+
+Població general
+
+Forma de prestació
+
+Prestació econòmica permanent.
+
+Criteris d'accés - normativa reguladora
+
+Només disponible per a persones ja beneficiàries, excepte el subsidi de mobilitat i compensació per despeses de transport, regulat al Reial Decret 383/1984, d'1 de febrer.
+
+Tractament fiscal
+
+Subsidi de mobilitat i compensació per despeses de transport (SMDT): Rendiment subjecte a l'impost sobre la renda de les persones físiques (IRPF) i no exempt. Guany patrimonial. Això no obstant, la determinació de l'obligació de declarar de cada contribuent perceptor de l'ajut s'efectuarà conforme a les regles de l'article 96 de la Llei 35/2006, de 28 de novembre, de l'Impost sobre la Renda de les Persones Físiques i de modificació parcial de les lleis dels Impostos sobre Societats, sobre la Renda de no Residents i sobre el Patrimoni.
+
+Assistència sanitària i prestacions farmacèutiques (ASPF): Exempt de l'impost sobre la renda de les persones físiques (IRPF).
+
+Subsidi de garantia d'ingressos mínims (SGIM): Rendiment subjecte a l'impost sobre la renda de les persones físiques (IRPF) i no exempt. Rendiment del treball. Això no obstant, la determinació de l'obligació de declarar de cada contribuent perceptor de l'ajut s'efectuarà conforme a les regles de l'article 96 de la Llei 35/2006, de 28 de novembre, de l'Impost sobre la Renda de les Persones Físiques i de modificació parcial de les lleis dels Impostos sobre Societats, sobre la Renda de no Residents i sobre el Patrimoni.
+
+Subsidi per assistència de tercera persona (SATP): Exempt de l'impost sobre la renda de les persones físiques (IRPF) (art. 7.x de la Llei 35/2006, de 28 de novembre, de l'Impost sobre la Renda de les Persones Físiques i de modificació parcial de les lleis dels Impostos sobre Societats, sobre la Renda de no Residents i sobre el Patrimoni).
+
+Prestació
+
+2.1.16 Pensions assistencials del Fons d'Assistència Social (FAS)
+
+Garantia de la prestació
+
+Prestació garantida - a extingir.
+
+Descripció
+
+Les pensions assistencials del fons d'assistència social (FAS) consisteixen en una prestació econòmica individualitzada i de caràcter periòdic amb càrrec a l'assistència social. Hi ha dues modalitats: FAS VELLESA: a favor de persones grans, FAS MALALTIA: a favor de persones malaltes o amb disminució. NOTA: Ambdues modalitats d'aquesta prestació han estat suprimides pel Reial decret llei 5/1992, però aquelles persones que ja n'eren beneficiàries les continuaran percebent mentre no canviï la seva situació. Per tant, no s'admeten noves sol·licituds.
+
+Objecte
+
+Atendre les mancances derivades la situació de necessitat de la població destinatària.
+
+Tipologia de la prestació
+
+Prestació econòmica.
+
+Situació de la població destinatària
+
+Dependència i gent gran.
+
+Edat població destinatària
+
+Població general.
+
+Forma de prestació
+
+Prestació econòmica permanent.
+
+Criteris d'accés - normativa reguladora
+
+Només disponible per a persones ja beneficiàries.
+
+Tractament fiscal
+
+Rendiment subjecte a l'impost sobre la renda de les persones físiques (IRPF) i no exempt. Rendiment del treball. Això no obstant, la determinació de l'obligació de declarar de cada contribuent perceptor de l'ajut s'efectuarà conforme a les regles de l'article 96 de la Llei 35/2006, de 28 de novembre, de l'Impost sobre la Renda de les Persones Físiques i de modificació parcial de les lleis dels Impostos sobre Societats, sobre la Renda de no Residents i sobre el Patrimoni.
+
+Prestació
+
+2.2.1 Ajudes econòmiques de caràcter social per als/per a les treballadors/res, beneficiaris/iàries i pensionistes del règim especial de la Seguretat Social dels treballadors del mar
+
+Garantia de la prestació
+
+Subjecta a crèdits pressupostaris disponibles.
+
+Descripció
+
+Prestació econòmica destinada a les persones afiliades i beneficiàries del règim especial de la Seguretat Social dels treballadors del mar, i s'estableixen per atendre totes aquelles situacions que, per si mateixes, no originen dret a prestació reglamentària de la Seguretat Social, o el reconeixement de les quals, en cas d'originar aquest dret, no suposi l'abonament de l'import total de la despesa ocasionada.
+
+Objecte
+
+Ajudar a afrontar situacions generals i de greu necessitat, mitjançant prestacions econòmiques de caràcter social.
+
+Tipologia de la prestació
+
+Prestació econòmica.
+
+Situació de la població destinatària
+
+Persones afiliades al règim especial de treballadors del mar i familiars beneficiaris.
+
+Edat població destinatària
+
+Població en general.
+
+Forma de prestació
+
+Prestació econòmica puntual.
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquesta prestació econòmica són els següents: a) els establerts en l'Ordre anual de convocatòria; b) la resta de requisits d'accés establerts en l'ordenament jurídic vigent.
+
+Tractament fiscal
+
+Rendiment subjecte a l'impost sobre la renda de les persones físiques (IRPF) i no exempt. Rendiment del treball. Això no obstant, la determinació de l'obligació de declarar de cada contribuent perceptor de l'ajut s'efectuarà conforme a les regles de l'article 96 de la Llei 35/2006, de 28 de novembre, de l'Impost sobre la Renda de les Persones Físiques i de modificació parcial de les lleis dels Impostos sobre Societats, sobre la Renda de no Residents i sobre el Patrimoni.
+
+Prestació
+
+2.2.2 Ajut per part, adopció o acolliment múltiple, sotmès al nivell d'ingressos de la unitat familiar
+
+Garantia de la prestació
+
+Subjecta a crèdits pressupostaris disponibles.
+
+Descripció
+
+Ajuda destinada a recolzar econòmicament a les famílies amb menys ingressos per a fer front a les despeses derivades de l'arribada a la família de dos o més infants (bessonada, trigèmins, etc.), per part, adopció i/o acolliment.
+
+Objecte
+
+Impulsar polítiques de protecció econòmica de les famílies.
+
+Tipologia de la prestació
+
+Prestació econòmica.
+
+Situació de la població destinatària
+
+Famílies amb part, adopció i/o acolliment múltiple de dos o més infants. (Ajut sotmès al nivell de renda familiar).
+
+Edat població destinatària
+
+Població en general.
+
+Forma de prestació
+
+Prestació econòmica temporal.
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquesta prestació econòmica són els següents: a) els establerts en la Llei 18/2003, de 4 de juliol, de suport a les famílies i en l'Ordre anual de convocatòria; b) la resta de requisits d'accés establerts en l'ordenament jurídic vigent.
+
+Tractament fiscal
+
+Rendiments exempts de l'impost sobre la renda de les persones físiques (IRPF) (art. 7.h de la Llei 35/2006, de 28 de novembre, de l'Impost sobre la Renda de les Persones Físiques i de modificació parcial de les lleis dels Impostos sobre Societats, sobre la Renda de no Residents i sobre el Patrimoni).
+
+Prestació
+
+2.2.3 Ajut per adopció internacional
+
+Garantia de la prestació
+
+Subjecta a crèdits pressupostaris disponibles.
+
+Descripció
+
+Ajuda destinada a recolzar econòmicament a les famílies en els processos d'adopció internacional.
+
+Objecte
+
+Impulsar polítiques de protecció econòmica de les famílies.
+
+Tipologia de la prestació
+
+Prestació econòmica.
+
+Situació de la població destinatària
+
+Famílies amb adopció internacional durant l'any en curs. (Ajut sotmès al nivell de renda familiar).
+
+Edat població destinatària
+
+Població en general.
+
+Forma de prestació
+
+Prestació econòmica temporal.
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquesta prestació econòmica són els següents: a) els establerts en la Llei 18/2003, de 4 de juliol, de suport a les famílies i en l'Ordre anual de convocatòria; b) la resta de requisits d'accés establerts en l'ordenament jurídic vigent.
+
+Tractament fiscal
+
+Rendiments exempts de l'impost sobre la renda de les persones físiques (IRPF) (art. 7.h de la Llei 35/2006, de 28 de novembre, de l'Impost sobre la Renda de les Persones Físiques i de modificació parcial de les lleis dels Impostos sobre Societats, sobre la Renda de no Residents i sobre el Patrimoni).
+
+Prestació
+
+2.2.4 Prestació per a l'acolliment residencial per a gent gran
+
+Garantia de la prestació
+
+Subjecta a crèdits pressupostaris disponibles.
+
+Descripció
+
+Prestació econòmica de dret de concurrència i de caràcter permanent, destinada a les persones grans que necessitin un acolliment residencial, i que no disposin de recursos econòmics suficients per accedir a una plaça no finançada amb càrrec al pressupost de la Generalitat de Catalunya.
+
+Objecte
+
+Complementar els ingressos de la persona gran per permetre el seu accés a places residencials no finançades amb càrrec al pressupost de la Generalitat de Catalunya.
+
+Tipologia de la prestació
+
+Prestació econòmica.
+
+Situació de la població destinatària
+
+Població general.
+
+Edat població destinatària
+
+65 i més anys.
+
+Forma de prestació
+
+Prestació econòmica permanent.
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquesta prestació econòmica són els següents: a) l'acreditació de la situació de necessitat, d'acord amb allò establert en l'Annex del l'Acord GOV/82/2008, de 6 de maig; b) el requisit d'edat indicat en aquesta disposició; c) la residència en un municipi de Catalunya durant 5 anys, dels quals dos immediatament anteriors a la data de presentació de la sol·licitud; d) no complir els requisits necessaris per accedir als drets derivats de la Llei 39/2006, de 14 de desembre; e) per a les persones estrangeres, els requisits establerts en la normativa vigent d'estrangeria i d'acollida i integració de les persones immigrades; f) la resta de requisits d'accés establerts en l'ordenament jurídic vigent.
+
+Tractament fiscal
+
+Rendiments exempts de l'impost sobre la renda de les persones físiques (IRPF) a persones amb discapacitat amb un grau de minusvalia igual o superior al 65% o més grans de 65 anys, sempre que la resta dels seus ingressos no siguin superiors al doble de l'IPREM. Cas de no restar exemptes es considera guany patrimonial. (art. 7.i de la Llei 35/2006, de 28 de novembre, de l'Impost sobre la Renda de les Persones Físiques i de modificació parcial de les lleis dels Impostos sobre Societats, sobre la Renda de no Residents i sobre el Patrimoni).
+
+Prestació
+
+2.2.5 Prestació per a centre de dia per a gent gran
+
+Garantia de la prestació
+
+Subjecta a crèdits pressupostaris disponibles.
+
+Descripció
+
+Prestació econòmica de dret de concurrència i de caràcter permanent, destinada a les persones grans que necessitin plaça en un centre de dia, i que no disposin de recursos econòmics suficients per accedir a una plaça no finançada amb càrrec al pressupost de la Generalitat de Catalunya.
+
+Objecte
+
+Complementar els ingressos de la persona gran per permetre el seu accés a places de centre de dia no finançades amb càrrec al pressupost de la Generalitat de Catalunya.
+
+Tipologia de la prestació
+
+Prestació econòmica.
+
+Situació de la població destinatària
+
+Població general.
+
+Edat població destinatària
+
+65 i més anys.
+
+Forma de prestació
+
+Prestació econòmica permanent.
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquesta prestació econòmica són els següents: a) l'acreditació de la situació de necessitat, d'acord amb allò establert en l'Annex del l'Acord GOV/82/2008, de 6 de maig; b) el requisit d'edat indicat en aquesta disposició; c) la residència en un municipi de Catalunya durant 5 anys, dels quals dos immediatament anteriors a la data de presentació de la sol·licitud; d) no complir els requisits necessaris per accedir als drets derivats de la Llei 39/2006, de 14 de desembre; e) per a les persones estrangeres, els requisits establerts en la normativa vigent d'estrangeria i d'acollida i integració de les persones immigrades; f) la resta de requisits d'accés establerts en l'ordenament jurídic vigent.
+
+Tractament fiscal
+
+Rendiments exempts de l'impost sobre la renda de les persones físiques (IRPF) a persones amb discapacitat amb un grau de minusvalia igual o superior al 65% o més grans de 65 anys, sempre que la resta dels seus ingressos no siguin superiors al doble de l'IPREM. Cas de no restar exemptes es considera guany patrimonial. (art. 7.i de la Llei 35/2006, de 28 de novembre, de l'Impost sobre la Renda de les Persones Físiques i de modificació parcial de les lleis dels Impostos sobre Societats, sobre la Renda de no Residents i sobre el Patrimoni).
+
+Prestació
+
+2.2.6 Prestació per a habitatges tutelats per a gent gran
+
+Garantia de la prestació
+
+Subjecta a crèdits pressupostaris disponibles.
+
+Descripció
+
+Prestació econòmica de dret de concurrència i de caràcter permanent, destinada a les persones grans que necessitin plaça en un habitatge tutelat, i que no disposin de recursos econòmics suficients per accedir a una plaça no finançada amb càrrec al pressupost de la Generalitat de Catalunya.
+
+Objecte
+
+Complementar els ingressos de la persona gran per permetre el seu accés a places d'habitatges tutelats no finançades amb càrrec al pressupost de la Generalitat de Catalunya.
+
+Tipologia de la prestació
+
+Prestació econòmica.
+
+Situació de la població destinatària
+
+Població general.
+
+Edat població destinatària
+
+65 i més anys.
+
+Forma de prestació
+
+Prestació econòmica permanent.
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquesta prestació econòmica són els següents: a) l'acreditació de la situació de necessitat, d'acord amb allò establert en l'Annex del l'Acord GOV/82/2008, de 6 de maig; b) el requisit d'edat indicat en aquesta disposició; c) la residència en un municipi de Catalunya durant 5 anys, dels quals dos immediatament anteriors a la data de presentació de la sol·licitud; d) no complir els requisits necessaris per accedir als drets derivats de la Llei 39/2006, de 14 de desembre; e) per a les persones estrangeres, els requisits establerts en la normativa vigent d'estrangeria i d'acollida i integració de les persones immigrades; f) la resta de requisits d'accés establerts en l'ordenament jurídic vigent.
+
+Tractament fiscal
+
+Rendiment subjecte a I'impost sobre la renda de les persones físiques (IRPF) i no exempt. Guany patrimonial. Això no obstant, la determinació de l'obligació de declarar de cada contribuent perceptor de l'ajut s'efectuarà conforme a les regles de l'article 96 de la Llei 35/2006, de 28 de novembre, de l'Impost sobre la Renda de les Persones Físiques i de modificació parcial de les lleis dels Impostos sobre Societats, sobre la Renda de no Residents i sobre el Patrimoni.
+
+Prestació
+
+2.2.7 Prestació per a estades temporal per a gent gran amb discapacitat
+
+Garantia de la prestació
+
+Subjecta a crèdits pressupostaris disponibles.
+
+Descripció
+
+Prestació econòmica de dret de concurrència i de caràcter puntual, destinada a persones grans amb discapacitat per permetre el seu accés a un servei d'acolliment residencial o de centre de dia, amb una estada amb caràcter temporal, i que no disposin de recursos econòmics suficients per accedir a una plaça no finançada amb càrrec al pressupost de la Generalitat de Catalunya.
+
+Objecte
+
+Complementar els ingressos de la persona gran amb discapacitat per permetre el seu accés temporal a un servei d'acolliment residencial o de centre de dia no finançades amb càrrec al pressupost de la Generalitat de Catalunya.
+
+Tipologia de la prestació
+
+Prestació econòmica.
+
+Situació de la població destinatària
+
+Població general.
+
+Edat població destinatària
+
+65 i més anys.
+
+Forma de prestació
+
+Prestació econòmica puntual.
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquesta prestació econòmica són els següents: a) l'acreditació de la situació de necessitat, d'acord amb allò establert en l'Annex del l'Acord GOV/82/2008, de 6 de maig; b) el requisit d'edat indicat en aquesta disposició; c) la residència en un municipi de Catalunya durant 5 anys, dels quals dos immediatament anteriors a la data de presentació de la sol·licitud; d) no complir els requisits necessaris per accedir als drets derivats de la Llei 39/2006, de 14 de desembre; e) per a les persones estrangeres, els requisits establerts en la normativa vigent d'estrangeria i d'acollida i integració de les persones immigrades; f) la resta de requisits d'accés establerts en l'ordenament jurídic vigent.
+
+Tractament fiscal
+
+Rendiments exempts de l'impost sobre la renda de les persones físiques (IRPF) a persones amb discapacitat amb un grau de minusvalia igual o superior al 65% o més grans de 65 anys, sempre que la resta dels seus ingressos no siguin superiors al doble de l'IPREM. Cas de no restar exemptes es considera guany patrimonial. (art. 7.i de la Llei 35/2006, de 28 de novembre, de l'Impost sobre la Renda de les Persones Físiques i de modificació parcial de les lleis dels Impostos sobre Societats, sobre la Renda de no Residents i sobre el Patrimoni).
+
+Prestació
+
+2.2.8 Prestació per a l'accés als serveis d'habitatges per a persones amb problemàtica social derivada de malaltia mental
+
+Garantia de la prestació
+
+Subjecta a crèdits pressupostaris disponibles.
+
+Descripció
+
+Prestació econòmica de dret de concurrència i de caràcter permanent, destinada a les persones amb problemàtica social derivada de malaltia mental que necessitin un acolliment residencial en un habitatge amb serveis comuns, en les seves modalitats de llar residència o llar amb suport, i que no disposin de recursos econòmics suficients per accedir a una plaça no finançada amb fons públics.
+
+Objecte
+
+Facilitar l'accés als serveis d'habitatges per a persones amb problemàtica social derivada de malaltia mental.
+
+Tipologia de la prestació
+
+Prestació econòmica.
+
+Situació de la població destinatària
+
+Persones amb discapacitat derivada de malaltia mental.
+
+Edat població destinatària
+
+Menys de 65 anys.
+
+Forma de prestació
+
+Prestació econòmica permanent.
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquesta prestació econòmica són els següents: a) l'acreditació de la situació de necessitat, d'acord amb allò establert en l'Annex del l'Acord GOV/82/2008, de 6 de maig; b) el requisit d'edat indicat en aquesta disposició; c) la residència en un municipi de Catalunya durant 5 anys, dels quals dos immediatament anteriors a la data de presentació de la sol·licitud; d) no complir els requisits necessaris per accedir als drets derivats de la Llei 39/2006, de 14 de desembre; e) un grau de discapacitat igual o superior al 65 % pel que fa a la malaltia mental i capacitat per desenvolupar activitats de la vida diària només amb supervisió externa i poder viure en règim obert; f) complir les característiques d'un trastorn mental sever, d'acord amb la valoració de l'òrgan competent; g) no requerir atenció sanitària continuada; h) per a les persones estrangeres, els requisits establerts en la normativa vigent d'estrangeria i d'acollida i integració de les persones immigrades; i) la resta de requisits d'accés establerts en l'ordenament jurídic vigent.
+
+Tractament fiscal
+
+Rendiments exempts de l'impost sobre la renda de les persones físiques (IRPF) a persones amb discapacitat amb un grau de minusvalia igual o superior al 65% o més grans de 65 anys, sempre que la resta dels seus ingressos no siguin superiors al doble de l'IPREM. Cas de no restar exemptes es considera guany patrimonial. (art. 7.i de la Llei 35/2006, de 28 de novembre, de l'Impost sobre la Renda de les Persones Físiques i de modificació parcial de les lleis dels Impostos sobre Societats, sobre la Renda de no Residents i sobre el Patrimoni).
+
+Prestació
+
+2.3 Prestacions econòmiques d'urgència social
+
+Garantia de la prestació
+
+Subjecta a crèdits pressupostaris disponibles.
+
+Descripció
+
+Les prestacions econòmiques d'urgència social tenen per finalitat atendre situacions de necessitats puntuals, urgents i bàsiques, de subsistència com ara; l'alimentació, el vestit, i l'allotjament i es financen amb càrrec als pressupostos de les entitats locals, d'acord amb les competències que tenen en l'àmbit dels serveis socials bàsics, segons la legislació aplicable.
+
+Objecte
+
+Ajudar persones individuals o famílies que, per causes sobrevingudes de caràcter greu, es troben en una situació d'urgent necessitat.
+
+Tipologia de la prestació
+
+Prestació econòmica.
+
+Situació de la població destinatària
+
+Greu risc social.
+
+Edat població destinatària
+
+Població en general.
+
+Forma de prestació
+
+Prestació econòmica puntual.
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquesta prestació econòmica són els següents: a) els requisits generals establerts en la Llei 13/2006, del 27 de juliol, de prestacions socials de caràcter econòmic, i en la normativa d'actualització i desenvolupament corresponent; b) la resta de requisits d'accés establerts en l'ordenament jurídic vigent.
+
+Tractament fiscal
+
+Rendiment subjecte a I'impost sobre la renda de les persones físiques (IRPF) i no exempt. Guany patrimonial. Això no obstant, la determinació de l'obligació de declarar de cada contribuent perceptor de l'ajut s'efectuarà conforme a les regles de l'article 96 de la Llei 35/2006, de 28 de novembre, de l'Impost sobre la Renda de les Persones Físiques i de modificació parcial de les lleis dels Impostos sobre Societats, sobre la Renda de no Residents i sobre el Patrimoni.
+
+Prestació
+
+3.1.1 Ajudes per a la mobilitat i el transport
+
+Garantia de la prestació
+
+Subjecta a crèdits pressupostaris disponibles.
+
+Descripció
+
+Són aquelles actuacions i productes dedicats a suprimir barreres de mobilitat i transport, destinats a persones amb discapacitat amb mobilitat reduïda o que necessitin un vehicle adaptat.
+
+Objecte
+
+Contribuir a cobrir les despeses ocasionades per la mobilitat i el transport, i proporcionar a les persones amb discapacitat els mitjans per augmentar la seva capacitat de desplaçament.
+
+Tipologia de la prestació
+
+Prestació tecnològica.
+
+Situació de la població destinatària
+
+Dependència i/o persones amb discapacitat.
+
+Edat població destinatària
+
+Població general.
+
+Forma de prestació
+
+Mobilitat: prestació tecnològica puntual. Transport: prestació tecnològica temporal.
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquesta prestació tecnològica són els següents: a) els requisits generals establerts en els articles 2, 11, 12 i 13 del Decret 24/1998, de 4 de febrer, pel qual es regula el Programa d'ajudes d'atenció social a persones amb disminució, i en la normativa d'actualització i desenvolupament corresponent; b) la resta de requisits d'accés establerts en l'ordenament jurídic vigent.
+
+Tractament fiscal
+
+Rendiment subjecte a I'impost sobre la renda de les persones físiques (IRPF) i no exempt. Guany patrimonial. Això no obstant, la determinació de l'obligació de declarar de cada contribuent perceptor de l'ajut s'efectuarà conforme a les regles de l'article 96 de la Llei 35/2006, de 28 de novembre, de l'Impost sobre la Renda de les Persones Físiques i de modificació parcial de les lleis dels Impostos sobre Societats, sobre la Renda de no Residents i sobre el Patrimoni.
+
+Prestació
+
+3.1.2 Ajudes per a l'autonomia personal i la comunicació
+
+Garantia de la prestació
+
+Subjecta a crèdits pressupostaris disponibles.
+
+Descripció
+
+Conjunt d'aparells o equips que permeten a la persona poder tenir un major grau d'independència per a les activitats de la vida diària bàsiques, instrumentals i avançades, i que permeten aconseguir la integració i participació de la persona amb l'entorn que viu i s'interrelaciona. En persones amb discapacitats sensorials també es considera ajuda el/la intèrpret i el/la guia intèrpret per a l'alumnat sord o sordcec més gran de 18 anys que cursa ensenyament reglat obligatori o formació ocupacional en centres autoritzats.
+
+Objecte
+
+Contribuir a cobrir les despeses d'adquisició dels ajuts tècnics que estan directament relacionats amb la causa de la discapacitat de la persona beneficiària.
+
+Tipologia de la prestació
+
+Prestació tecnològica.
+
+Situació de la població destinatària
+
+Dependència i/o persones amb discapacitat.
+
+Edat població destinatària
+
+Població general.
+
+Forma de prestació
+
+Prestació tecnològica puntual.
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquesta prestació tecnològica són els següents: a) els requisits generals establerts en els articles 2 i 14 del Decret 24/1998, de 4 de febrer, pel qual es regula el Programa d'ajudes d'atenció social a persones amb disminució, i en la normativa d'actualització i desenvolupament corresponent; b) la resta de requisits d'accés establerts en l'ordenament jurídic vigent.
+
+Tractament fiscal
+
+Únicament, estaran exempts de tributació en l'impost sobre la renda de les persones físiques (IRPF) els ajuts que tinguin com a finalitat la recuperació o millora de la salut i, a més, que cobreixin tractaments no coberts per la Seguritat Social o mutualitat equivalent. D'acord amb el criteri de la Direcció General de Tributs exposat en les consultes 1785-01 i 0640-00, així com en la nota de l'AEAT de 17 de febrer de 2003. La tipologia és la següent: ajuts tècnics per a persones amb discapacitat visual, auditiva o física. - Es defineixen com a tots aquells mitjans que, actuant com a intermediaris entre la persona i l'entorn, li possibiliten l'accés al nivell general de qualitat de vida. Tenen la consideració de guany patrimonial, llevat dels ajuts següents el quals queden exceptuats de gravamen: - Ulleres i lents de contactes; - Audiòfons; - Actualització del processador extern de l'implant coclear. Això no obstant, la determinació de l'obligació de declarar de cada contribuent perceptor de l'ajut s'efectuarà conforme a les regles de l'article 96 de la Llei 35/2006, de 28 de novembre, de l'Impost sobre la Renda de les Persones Físiques i de modificació parcial de les lleis dels Impostos sobre Societats, sobre la Renda de no Residents i sobre el Patrimoni.
+
+Prestació
+
+3.2.1 Ajudes per a la supressió de barreres arquitectòniques i de barreres en la comunicació
+
+Garantia de la prestació
+
+Subjecta a crèdits pressupostaris disponibles.
+
+Descripció
+
+Són les actuacions destinades a suprimir barreres arquitectòniques i barreres en la comunicació per mitjà d'aquelles instal·lacions o equipaments que facin accessible la informació a tothom.
+
+Objecte
+
+Facilitar l'autonomia personal a les persones amb discapacitat.
+
+Tipologia de la prestació
+
+Prestació tecnològica.
+
+Situació de la població destinatària
+
+Població general.
+
+Edat població destinatària
+
+Població general.
+
+Forma de prestació
+
+Prestació tecnològica puntual.
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquesta prestació tecnològica són els següents: a) els criteris generals establerts en el Decret 135/1995, de 24 de març, de desplegament de la Llei 20/1991, de 25 de novembre, de promoció de l'accessibilitat i de supressió de barreres arquitectòniques, i d'aprovació del Codi d'accessibilitat; b) els requisits específics previstos en la convocatòria periòdica de subvencions corresponent; c) la resta de requisits d'accés establerts en l'ordenament jurídic vigent.
+
+Tractament fiscal
+
+Rendiment subjecte a I'impost sobre la renda de les persones físiques (IRPF) i no exempt. Guany patrimonial. Això no obstant, la determinació de l'obligació de declarar de cada contribuent perceptor de l'ajut s'efectuarà conforme a les regles de l'article 96 de la Llei 35/2006, de 28 de novembre, de l'Impost sobre la Renda de les Persones Físiques i de modificació parcial de les lleis dels Impostos sobre Societats, sobre la Renda de no Residents i sobre el Patrimoni.
+
+Prestació
+
+3.2.2 Ajudes per a l'adaptació d'habitatges per a persones amb discapacitat
+
+Garantia de la prestació
+
+Subjecta a crèdits pressupostaris disponibles
+
+Descripció
+
+Actuacions destinades a l'adaptació o accessibilitat de l'habitatge de les persones amb discapacitat o mobilitat reduïda per tal de fer-lo ac
+
+cessible i funcional, mitjançant l'atorgament d'ajuts a fons perdut.
+
+Objecte
+
+Facilitar l'autonomia personal a les persones amb discapacitat.
+
+Tipologia de la prestació
+
+Prestació tecnològica.
+
+Situació de la població destinatària
+
+Dependència i/o persones amb discapacitat.
+
+Edat població destinatària
+
+Població general.
+
+Forma de prestació
+
+Prestació tecnològica puntual.
+
+Criteris d'accés - normativa reguladora
+
+Els requisits per accedir a aquesta prestació tecnològica són els següents: a) els criteris generals establerts en el Decret 135/1995, de 24 de març, de desplegament de la Llei 20/1991, de 25 de novembre, de promoció de l'accessibilitat i de supressió de barreres arquitectòniques, i d'aprovació del Codi d'accessibilitat; b) els requisits específics previstos en la convocatòria periòdica de subvencions corresponent c) la resta de requisits d'accés establerts en l'ordenament jurídic vigent.
+
+Tractament fiscal
+
+Rendiment subjecte a I'impost sobre la renda de les persones físiques (IRPF) i no exempt. Guany patrimonial. Això no obstant, la determinació de l'obligació de declarar de cada contribuent perceptor de l'ajut s'efectuarà conforme a les regles de l'article 96 de la Llei 35/2006, de 28 de novembre, de l'Impost sobre la Renda de les Persones Físiques i de modificació parcial de les lleis dels Impostos sobre Societats, sobre la Renda de no Residents i sobre el Patrimoni.
+
+
+## Annex 2
+
+a) Impulsar i desenvolupar el Pla estratègic de serveis socials 2010-2013.
+
+b) Impulsar i desenvolupar el Pla de qualitat de serveis socials.
+
+c) Impulsar la nova ordenació dels serveis socials bàsics.
+
+d) Promoure el desenvolupament reglamentari per tal que cada persona usuària o unitat de convivència que accedeixi a la xarxa de serveis socials d'atenció pública tingui assignada una persona professional de referència.
+
+e) Impulsar la ordenació del Servei d'atenció domiciliària.
+
+f) Promoure la reglamentació de l'autorització administrativa per a la instal·lació i funcionament de centres i establiments amb la finalitat de garantir el compliment dels requisits normatius i de qualitat per a la realització d'activitats de serveis socials, i la reglamentació del Registre d'Entitats que hagin obtingut l'autorització corresponent per prestar serveis socials, d'acord amb l'establert a la llei 12/2007, d'11 d'octubre, de serveis socials.
+
+g) Impulsar l'establiment de les condicions d'acreditació exigibles a qualsevol entitat, amb independència de la seva titularitat, per tal de formar part de la xarxa de serveis socials d'atenció pública.
+
+h) Constituir i impulsar els òrgans de participació del sistema català de serveis socials: Consell General de Serveis Socials, consells de participació de serveis socials adscrits als ens locals i consells de participació dels centres de serveis socials.
+
+i) Constituir i impulsar els òrgans de coordinació del sistema català de serveis socials: Consell de Coordinació de Benestar Social i Comitè d'Avaluació de Necessitats de Serveis Socials.
+
+j) Definir el marc estratègic per a la creació i desenvolupament del Sistema d'informació social.
+
+k) Dissenyar el Pla director de formació 2011-2013 en l'àmbit dels serveis socials.
+
+l) Posar en marxa i impulsar el Comitè d'experts i expertes en formació en l'àmbit de l'acció social.
+
+m) Promoure el suport formatiu dels cuidadors no professionals en l'entorn familiar per millorar la seva capacitat de tenir cura d'una persona depenent i establir els continguts que ha de tenir aquesta formació.
+
+n) Crear i posar en marxa del Comitè d'ètica en l'àmbit dels serveis socials per a la promoció dels valors i les bones pràctiques en aquest àmbit.
+
+o) Elaborar el Pla director de recerca i innovació en serveis socials.
+
+p) Crear i posar en funcionament l'Observatori Català de la Pobresa, la Vulnerabilitat Social i la Inclusió Social, per a l'estudi de les polítiques d'inclusió social a Catalunya.
+
+q) Redissenyar la Renda Mínima d'Inserció d'acord amb les previsions de l'Acord estratègic per la internacionalització, la qualitat de l'ocupació i la competitivitat de l'economia catalana 2008-2011.
+
+r) Potenciar la disminució dels temps d'estada dels infants i adolescents en centres residencials i centres d'acollida, mitjançant la posada en marxa de programes de suport al desinternament i d'actuacions de suport per afavorir, quan és possible, el retorn a la família o en família extensa.
+
+s) Crear i posar en marxa el Consell Nacional d'Infància i Adolescència de Catalunya.
+
+t) Impulsar el desplegament, un cop sigui aprovada pel Parlament de Catalunya, de la Llei dels drets i les oportunitats de la infància i l'adolescència de Catalunya.
+
+u) Impulsar el desplegament del Pla director d'infància i adolescència, d'acord amb l'establert a l'article 38 de la Llei 12/2007, d'11 d'octubre, de serveis socials, referit al desplegament del Pla estratègic de serveis socials mitjançant plans sectorials, i fer-ne el seguiment i l'avaluació.
+
+v) Potenciar i incrementar l'oferiment de famílies acollidores, mitjançant la constitució i acreditament de noves entitats col·laboradores per a la integració familiar (ICIF) i la realització de noves campanyes de promoció de l'acolliment.
+
+w) Crear dues noves modalitats d'acolliment: l'acolliment permanent i l'acolliment familiar especialitzat en unitat convivencial d'acció educativa adreçada a infants i adolescents que requereixen una atenció més especialitzada.
+
+x) Continuar millorant els processos i tràmits de les adopcions nacionals.
+
+y) Impulsar l'ordenació de la Xarxa d'atenció i recuperació integral per a les dones en situacions de violència masclista.
+

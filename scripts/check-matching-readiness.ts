@@ -1,3 +1,4 @@
+import {loadOfficialCatalog} from '../lib/official-catalog';
 import { createClient } from "@supabase/supabase-js";
 import WebSocket from "ws";
 
@@ -17,15 +18,17 @@ async function main() {
     count("master_services"),
   ]);
   const catalogSource = process.env.MATCHING_CATALOG_SOURCE;
+  let officialReady=false; try {await loadOfficialCatalog(supabase); officialReady=true;} catch {} 
   const masterAuthorized = process.env.ALLOW_MASTER_MATCHING === "true";
   const checks = [
     { label: "OpenAI API key", ready: Boolean(process.env.OPENAI_API_KEY), detail: process.env.OPENAI_API_KEY ? "configurada" : "falta OPENAI_API_KEY" },
     { label: "Model", ready: Boolean(process.env.OPENAI_MATCHING_MODEL), detail: process.env.OPENAI_MATCHING_MODEL ? "configurat" : "falta OPENAI_MATCHING_MODEL" },
     { label: "Evidència", ready: documents > 0 && chunks > 0, detail: `${documents} documents · ${chunks} fragments` },
-    { label: "Catàleg", ready: catalogSource === "official" || (catalogSource === "master" && masterAuthorized), detail: catalogDetail(catalogSource, masterAuthorized, catalogEntries) },
+    { label: "Catàleg", ready: catalogSource === "official" && officialReady, detail: catalogDetail(catalogSource, masterAuthorized, catalogEntries) },
     { label: "Treballs en cua", ready: queuedJobs > 0, detail: `${queuedJobs} treballs` },
   ];
   console.log("Preparació del matching\n");
+  if (!checks.every(check=>check.ready)) process.exitCode=1;
   checks.forEach((check) => console.log(`${check.ready ? "OK" : "PENDENT"} · ${check.label}: ${check.detail}`));
   console.log(`\nEstat: ${checks.every((check) => check.ready) ? "PREPARAT" : "BLOQUEJAT"}`);
 }

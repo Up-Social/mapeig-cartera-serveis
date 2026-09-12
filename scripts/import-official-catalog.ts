@@ -1,0 +1,12 @@
+import {readFileSync} from 'node:fs';
+import {createClient} from '@supabase/supabase-js';
+import {validateCatalog} from '../lib/official-catalog';
+const url=process.env.NEXT_PUBLIC_SUPABASE_URL!;
+if (!url || !['localhost','127.0.0.1','[::1]'].includes(new URL(url).hostname)) throw Error('Importació permesa exclusivament a Supabase local');
+const db=createClient(url,process.env.SUPABASE_SECRET_KEY??process.env.SUPABASE_SERVICE_ROLE_KEY!);
+const {version,services}=JSON.parse(readFileSync(process.argv[2]??'data/legal/cartera.json','utf8'));
+validateCatalog(services);
+if(!version.validated) throw Error('La versió encara no està validada');
+const result=await db.rpc('install_official_catalog',{p_version:version,p_services:services});
+if(result.error)throw result.error;
+console.log(`Catàleg ${version.id} instal·lat localment`);
