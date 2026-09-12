@@ -1,3 +1,4 @@
+import {analysisSchema,validateAnalysis,type AnalysisOutput} from '../lib/analysis-contract';
 import {loadOfficialCatalog,assertEligible} from '../lib/official-catalog';
 import { createClient } from "@supabase/supabase-js";
 import WebSocket from "ws";
@@ -17,7 +18,6 @@ const limitArg = process.argv.indexOf("--limit");
 const limit = limitArg >= 0 ? Number.parseInt(process.argv[limitArg + 1] ?? "1", 10) : runId ? 50 : 1;
 if (!Number.isInteger(limit) || limit < 1 || limit > 50) throw new Error("--limit ha de ser entre 1 i 50");
 
-type CandidateOutput = { code: string; score: number; rationale: string; evidence_ordinals: number[]; evidence_explanation: string };
 type EnrichmentOutput = { title: string | null; provider_name: string | null; provider_nif: string | null; mechanism: string | null; award_date: string | null; amount: number | null; contracting_body: string | null; target_population: string | null; summary: string; confidence: number; evidence_ordinals: number[] };
 
 async function main() {
@@ -64,11 +64,12 @@ async function processJob(job: { id: string; run_id: string; source_record_id: s
     });
     const raw = await response.json() as Record<string, unknown>;
     if (!response.ok) throw new Error(`OpenAI ${response.status}: ${JSON.stringify(raw)}`);
-    const parsed = JSON.parse(extractOutputText(raw)) as { enrichment?: EnrichmentOutput; candidates: CandidateOutput[] };
-    const catalogByCode = new Map((catalog ?? []).map((item) => [item.service_code, item]));
+    const parsed = JSON.parse(extractOutputText(raw)) as AnalysisOutput & { enrichment?: EnrichmentOutput };
+    
     for (const candidate of parsed.candidates) assertEligible(candidate.code,official.all);
-    const candidates = parsed.candidates.slice(0, 3);
-    if (!candidates.length) throw new Error("La resposta no conté cap candidat vàlid del catàleg");
+    const analysis=validateAnalysis(parsed,official.all,chunks.length);
+    const candidates = analysis.candidates;
+
 
     const candidatesWithEvidence = candidates.map((candidate) => ({
       candidate,
@@ -85,16 +86,8 @@ async function processJob(job: { id: string; run_id: string; source_record_id: s
 
     if (parsed.enrichment) await persistEnrichment(record.id, parsed.enrichment, chunks);
 
-    await supabase.from("matching_candidates").delete().eq("pipeline_job_id", job.id);
-    for (const [index, { candidate, evidence }] of candidatesWithEvidence.entries()) {
-      const target = catalogByCode.get(candidate.code)!;
-      const { data: inserted, error: candidateError } = await supabase.from("matching_candidates").insert({ pipeline_job_id: job.id, target_catalog: "official", catalog_version_id: official.version.id, target_code: candidate.code, target_name: target.service_name, rank: index + 1, score: candidate.score, rationale: candidate.rationale, engine: "openai-responses", engine_version: model, raw_response: { response_id: raw.id, usage: raw.usage } }).select("id").single();
-      if (candidateError) throw candidateError;
-      const { error: evidenceError } = await supabase.from("matching_candidate_evidence").insert(evidence.map((chunk) => ({ candidate_id: inserted.id, evidence_chunk_id: chunk.id, explanation: candidate.evidence_explanation })));
-      if (evidenceError) throw evidenceError;
-    }
-    await supabase.from("pipeline_jobs").update({ status: "needs_review", completed_at: new Date().toISOString() }).eq("id", job.id);
-    await supabase.from("source_records").update({ processing_status: "revisio", updated_at: new Date().toISOString() }).eq("id", job.source_record_id);
+    const saved=await supabase.rpc('persist_analysis',{p_job:job.id,p_version:official.version.id,p_result:analysis,p_candidates:candidatesWithEvidence.map(({candidate,evidence})=>({...candidate,evidence,model,metadata:{response_id:raw.id,usage:raw.usage}})),p_evidence:analysis.evidence_ordinals.map(n=>chunks[n-1])});
+    if(saved.error)throw saved.error;
     await addUsage(job.run_id, raw.usage);
     await finishRunIfDone(job.run_id);
     console.log(`${record.source_record_id}: ${candidates.length} candidats · revisió necessària`);
@@ -136,9 +129,9 @@ async function assertNotPreviouslySelected(sourceRecordId: string, currentJobId:
   if ((runs ?? []).some((run) => run.parameters?.purpose !== "inspection")) throw new Error("Cas omès: aquest registre o un duplicat ja havia entrat en un altre lot de matching.");
 }
 
-function candidatesSchema() { return { type: "array", maxItems: 3, items: { type: "object", additionalProperties: false, required: ["code","score","rationale","evidence_ordinals","evidence_explanation"], properties: { code: { type: "string" }, score: { type: "number", minimum: 0, maximum: 1 }, rationale: { type: "string", minLength: 60, maxLength: 1200 }, evidence_ordinals: { type: "array", items: { type: "integer", minimum: 1 } }, evidence_explanation: { type: "string", minLength: 20, maxLength: 450 } } } }; }
-function candidatesOnlySchema() { return { type: "object", additionalProperties: false, required: ["candidates"], properties: { candidates: candidatesSchema() } }; }
-function combinedSchema() { return { type: "object", additionalProperties: false, required: ["enrichment","candidates"], properties: { enrichment: { type: "object", additionalProperties: false, required: ["title","provider_name","provider_nif","mechanism","award_date","amount","contracting_body","target_population","summary","confidence","evidence_ordinals"], properties: { title: nullableString(), provider_name: nullableString(), provider_nif: nullableString(), mechanism: nullableString(), award_date: nullableString(), amount: { anyOf: [{ type: "number" }, { type: "null" }] }, contracting_body: nullableString(), target_population: nullableString(), summary: { type: "string" }, confidence: { type: "number", minimum: 0, maximum: 1 }, evidence_ordinals: { type: "array", items: { type: "integer", minimum: 1 } } }, }, candidates: candidatesSchema() } }; }
+function candidatesSchema() { return { type: "array", maxItems: 3, items: { type: "object", additionalProperties: false, required: ["code","score","rationale","evidence_ordinals","evidence_explanation","population_compatible","legal_reference"], properties: { population_compatible: {type:"boolean"}, legal_reference:{type:"string"}, code: { type: "string" }, score: { type: "number", minimum: 0, maximum: 1 }, rationale: { type: "string", minLength: 60, maxLength: 1200 }, evidence_ordinals: { type: "array", items: { type: "integer", minimum: 1 } }, evidence_explanation: { type: "string", minLength: 20, maxLength: 450 } } } }; }
+function candidatesOnlySchema() { return { type: "object", additionalProperties: false, required: Object.keys(analysisSchema(candidatesSchema())), properties: analysisSchema(candidatesSchema()) }; }
+function combinedSchema() { return { type: "object", additionalProperties: false, required: ["enrichment",...Object.keys(analysisSchema(candidatesSchema()))], properties: { enrichment: { type: "object", additionalProperties: false, required: ["title","provider_name","provider_nif","mechanism","award_date","amount","contracting_body","target_population","summary","confidence","evidence_ordinals"], properties: { title: nullableString(), provider_name: nullableString(), provider_nif: nullableString(), mechanism: nullableString(), award_date: nullableString(), amount: { anyOf: [{ type: "number" }, { type: "null" }] }, contracting_body: nullableString(), target_population: nullableString(), summary: { type: "string" }, confidence: { type: "number", minimum: 0, maximum: 1 }, evidence_ordinals: { type: "array", items: { type: "integer", minimum: 1 } } }, }, ...analysisSchema(candidatesSchema()) } }; }
 
 function buildInput(record: Record<string, unknown>, catalog: Array<Record<string, unknown>>, chunks: Array<{ content: string }>) {
   return `PROVISIÓ\n${JSON.stringify({ dataset: record.source_dataset, id: record.source_record_id, mechanism: record.mechanism, title: record.title, provider: record.provider_name, amount: record.amount, original: sanitizeSourcePayload(record.source_payload) })}\n\nEVIDÈNCIA OFICIAL\n${chunks.map((chunk, index) => `[${index + 1}] ${chunk.content}`).join("\n\n")}\n\nCATÀLEG\n${catalog.map((item) => `${item.service_code} | ${item.service_name} | ${item.sector_scope ?? ""}`).join("\n")}`;

@@ -545,10 +545,6 @@ export async function reviewMatching(input: {
         { onConflict: "source_record_id" },
       ).select("id").single();
     if (provisionError) throw provisionError;
-    if (false && entityResult.data?.id && provision) {
-      const relation = await supabase.from("entity_catalog_relations").upsert({ entity_id: entityResult.data.id, service_code: service.service_code, relation_type: "confirmed", source_type: "provision", source_reference: provision.id, evidence: `Provisió aprovada; NIF exacte ${normalizedNif}` }, { onConflict: "entity_id,service_code,relation_type,source_type,source_reference" });
-      if (relation.error) throw relation.error;
-    }
     const { error: recordUpdateError } = await supabase
       .from("source_records")
       .update({
