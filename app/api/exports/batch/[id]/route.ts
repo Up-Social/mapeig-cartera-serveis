@@ -33,7 +33,7 @@ export async function GET(
   const { data, error } = await supabase
     .from("service_provisions")
     .select(
-      "id,source_id,call_url,regulatory_basis_url,provider_name,provider_nif,mechanism,award_date,amount,contracting_body,target_population,source_reference,service_code,master_services(service_name)",
+      "id,source_id,call_url,regulatory_basis_url,provider_name,provider_nif,mechanism,award_date,amount,contracting_body,target_population,source_reference,service_code,master_services(service_name),official_services(service_name)",
     )
     .in("source_record_id", recordIds)
     .order("created_at");
@@ -45,7 +45,7 @@ export async function GET(
     );
 
   let bytes: Uint8Array;
-  try { bytes = await createProvisionExcel((data ?? []).map((item) => ({ ...item, service_name: relationName(item.master_services) })) as unknown as ProvisionExcelRow[]); }
+  try { bytes = await createProvisionExcel((data ?? []).map((item) => ({ ...item, service_name: relationName(item.official_services ?? item.master_services) })) as unknown as ProvisionExcelRow[]); }
   catch (error) { return Response.json({ error: error instanceof Error ? error.message : String(error) }, { status: 500 }); }
   const stamp = new Date().toISOString().replace(/[:T]/g, "-").slice(0, 16);
   const batchNumber = String(run.batch_number).padStart(8, "0");

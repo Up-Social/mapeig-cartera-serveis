@@ -1,3 +1,4 @@
+import type {StoredAnalysis} from './analysis-contract';
 import type { FinancingType } from "./financing-types";
 import type { MatchingCandidate } from "./workbench-types";
 import type { PhaseProgress } from "./pipeline-progress";
@@ -13,7 +14,7 @@ export type BatchJob = {
   id: string; sourceRecordId: string; sourceDataset: SourceDataset; financingType: FinancingType; externalId: string; title: string;
   status: string; preparationStatus: EvidencePreparationStatus; preparationMessage: string | null;
   errorMessage: string | null; enrichmentStatus: string; enrichmentError: string | null; processingStatus: string;
-  matchingCandidates: MatchingCandidate[];
+  analysis?:StoredAnalysis|null; matchingCandidates: MatchingCandidate[];
   hasProvision: boolean;
 };
 export type BatchSummary = {

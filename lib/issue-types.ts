@@ -55,6 +55,8 @@ export type IssuePage = {
 };
 
 export function classifyIssue(record: SourceRecord): IssueRecord | null {
+  if (record.analysis?.reviewed_classification === 'out_of_portfolio') return null;
+
   if (record.reviewDecision === "rejected") {
     return issue(record, "rejected", "review", record.reviewReason ?? "La revisió humana ha determinat que el cas no encaixa amb cap servei de la Cartera.", null);
   }

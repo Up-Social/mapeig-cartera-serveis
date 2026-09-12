@@ -3,7 +3,7 @@ import type { SourceRecord } from "./workbench-types";
 type ReviewInput = {
   candidateId?: string;
   serviceCode?: string;
-  outcome: "select" | "reject" | "insufficient";
+  outcome: "select" | "reject" | "insufficient" | "outside";
   notes?: string;
 };
 

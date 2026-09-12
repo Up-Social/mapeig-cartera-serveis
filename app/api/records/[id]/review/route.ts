@@ -2,7 +2,7 @@ import { reviewMatching } from "@/app/actions";
 import { getSourceRecord } from "@/lib/records-page";
 import { isUuid } from "@/lib/uuid";
 
-const OUTCOMES = new Set(["select", "reject", "insufficient"]);
+const OUTCOMES = new Set(["select", "reject", "insufficient", "outside"]);
 
 export async function POST(
   request: Request,
@@ -23,7 +23,7 @@ export async function POST(
     }
     await reviewMatching({
       sourceRecordId: id,
-      outcome: body.outcome as "select" | "reject" | "insufficient",
+      outcome: body.outcome as "select" | "reject" | "insufficient" | "outside",
       candidateId:
         typeof body.candidateId === "string" ? body.candidateId : undefined,
       serviceCode:

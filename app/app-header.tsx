@@ -16,6 +16,7 @@ const links = [
   { href: "/review", label: "Revisió", icon: CheckSquare, count: "review" },
   { href: "/issues", label: "Incidències", icon: TriangleAlert, count: "issues" },
   { href: "/approved", label: "Aprovats", icon: FileCheck2, count: "approved" },
+  { href: "/analysis", label: "Classificacions", icon: CheckSquare },
   { href: "/catalog", label: "Catàleg", icon: BookOpen },
   { href: "/entities", label: "Entitats", icon: Building2 },
   { href: "/process", label: "Procés", icon: Route },

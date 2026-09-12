@@ -1,3 +1,4 @@
+import {latestAnalysis} from './latest-analysis';
 import "server-only";
 import { createClient } from "@supabase/supabase-js";
 import type { ProcessingStatus, ReviewQueue, SourcePage, SourceRecord } from "./workbench-types";
@@ -92,6 +93,7 @@ export function mapRecord(row: Record<string, unknown>): SourceRecord {
         chunkCount: Number(item.chunk_count ?? 0),
       };
     }) : [],
+    analysis:latestAnalysis(row.pipeline_jobs),
     matchingCandidates: mapLatestCandidates(row.pipeline_jobs),
     matchingError: mapLatestMatchingError(row.pipeline_jobs),
     reviewDecision: mapReviewDecision(row.review_decisions),
@@ -107,7 +109,7 @@ export function mapRecord(row: Record<string, unknown>): SourceRecord {
 export function mapLatestCandidates(value: unknown): SourceRecord["matchingCandidates"] {
   if (!Array.isArray(value)) return [];
   const jobs = [...value].map((job) => job as Record<string, unknown>).sort((a, b) => String(b.created_at).localeCompare(String(a.created_at)));
-  const latest = jobs.find((job) => Array.isArray(job.matching_candidates) && job.matching_candidates.length > 0);
+  const latest = jobs[0];
   if (!latest || !Array.isArray(latest.matching_candidates)) return [];
   return latest.matching_candidates.map((candidate) => {
     const item = candidate as Record<string, unknown>;
@@ -127,7 +129,7 @@ export function mapLatestCandidates(value: unknown): SourceRecord["matchingCandi
   }).sort((a, b) => a.rank - b.rank);
 }
 
-export const RECORD_SELECT = "*,source_documents(id,url,document_type,source_fields,status,mime_type,text_preview,text_length,extraction_method,quality_score,quality_flags,chunk_count),record_enrichments(extracted_title,provider_name,provider_nif,mechanism,award_date,amount,contracting_body,target_population,summary,confidence,engine_version,record_enrichment_evidence(evidence_chunks(ordinal,content))),review_decisions(decision,reason,created_at),pipeline_jobs(id,run_id,status,error_message,created_at,pipeline_runs(batch_number),matching_candidates(id,pipeline_job_id,rank,target_code,target_name,score,rationale,engine_version,matching_candidate_evidence(explanation,evidence_chunks(ordinal,content))))";
+export const RECORD_SELECT = "*,source_documents(id,url,document_type,source_fields,status,mime_type,text_preview,text_length,extraction_method,quality_score,quality_flags,chunk_count),record_enrichments(extracted_title,provider_name,provider_nif,mechanism,award_date,amount,contracting_body,target_population,summary,confidence,engine_version,record_enrichment_evidence(evidence_chunks(ordinal,content))),review_decisions(decision,reason,created_at),pipeline_jobs(id,run_id,status,error_message,created_at,analysis_results(*),pipeline_runs(batch_number),matching_candidates(id,pipeline_job_id,rank,target_code,target_name,score,rationale,engine_version,matching_candidate_evidence(explanation,evidence_chunks(ordinal,content))))";
 
 function mapLatestRun(value: unknown) {
   if (!Array.isArray(value) || !value.length) return null;

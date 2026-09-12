@@ -20,6 +20,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
+import { AnalysisResult } from "@/components/analysis-result";
 import { MatchingCandidateAnalysis } from "@/components/matching-candidate-analysis";
 import {
   isRecordOperationTerminal,
@@ -397,7 +398,7 @@ function DetailPanel({
             </span>
           </div>
           <div className="mt-3 space-y-3">
-            {record.matchingCandidates.map((candidate) => <MatchingCandidateAnalysis key={candidate.id} candidate={candidate} />)}
+            <AnalysisResult analysis={record.analysis} candidates={record.matchingCandidates}/>
           </div>
           {record.reviewDecision ? (
             <p className="mt-3 rounded-xl bg-neutral-100 p-3 text-xs font-semibold">

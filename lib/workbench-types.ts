@@ -1,3 +1,4 @@
+import type {StoredAnalysis} from './analysis-contract';
 export type ProcessingStatus = "pendent" | "preparant" | "preparat" | "processant" | "completat" | "revisio" | "sense_evidencia" | "rebutjat" | "error";
 import type { FinancingType } from "./financing-types";
 
@@ -12,7 +13,7 @@ export type SourceRecord = {
   enrichmentStatus: "pending" | "processing" | "completed" | "error";
   enrichmentError: string | null;
   sourceDocuments: SourceDocument[];
-  matchingCandidates: MatchingCandidate[];
+  analysis?:StoredAnalysis|null; matchingCandidates: MatchingCandidate[];
   matchingError: string | null;
   reviewDecision: "approved" | "corrected" | "rejected" | "insufficient_evidence" | null;
   reviewReason?: string | null;

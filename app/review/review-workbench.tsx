@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { StableAccordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { MatchingCandidateAnalysis } from "@/components/matching-candidate-analysis";
+import { AnalysisResult } from "@/components/analysis-result";
 import { displaySourceIdentifier } from "@/lib/source-identifiers";
 import { sourcePayloadFieldLabel, sourcePayloadValue } from "@/lib/source-payload-display";
 import { sourceDocumentStatusLabel, sourceDocumentTypeLabel } from "@/lib/ui-labels";
@@ -162,7 +162,7 @@ function ReviewDetail({
   const [editing, setEditing] = useState(!record.reviewDecision);
   const [message, setMessage] = useState("");
   const [pending, startTransition] = useTransition();
-  function submit(outcome: "select" | "reject" | "insufficient") {
+  function submit(outcome: "select" | "reject" | "insufficient" | "outside") {
     if (outcome !== "select" && !notes.trim()) {
       setMessage(
         "Explica breument el motiu del rebuig o quina evidència falta.",
@@ -289,10 +289,10 @@ function ReviewDetail({
       </section>
       <section className="mt-5 border-t pt-5">
         <h4 className="text-sm font-semibold">
-          Candidats i servei del catàleg
+          Resultat de l’anàlisi
         </h4>
         <div className="mt-3 space-y-3">
-          {record.matchingCandidates.map((candidate) => <MatchingCandidateAnalysis key={candidate.id} candidate={candidate} />)}
+          <AnalysisResult analysis={record.analysis} candidates={record.matchingCandidates}/>
         </div>
       </section>
       {editing && (
@@ -303,7 +303,7 @@ function ReviewDetail({
             onChange={(event) => setSelection(event.target.value)}
             className="form-control mt-3"
           >
-            <optgroup label="Candidats proposats">
+            <optgroup label="Servei proposat i alternatives">
               {record.matchingCandidates.map((candidate) => (
                 <option key={candidate.id} value={`candidate:${candidate.id}`}>
                   {candidate.targetCode} · {Math.round(candidate.score * 100)}%
@@ -319,6 +319,7 @@ function ReviewDetail({
               ))}
             </optgroup>
           </select>
+          <Button variant="outline" disabled={pending || !record.analysis} onClick={()=>submit("outside")}>Fora de cartera</Button>
           <Textarea
             value={notes}
             onChange={(event) => setNotes(event.target.value)}

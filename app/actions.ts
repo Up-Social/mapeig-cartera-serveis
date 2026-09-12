@@ -3,7 +3,6 @@ import { revalidatePath } from "next/cache";
 import { createServerSupabase } from "@/lib/records-page";
 import { dispatchWorkerTask } from "@/lib/worker-dispatch";
 import { requireUuid } from "@/lib/uuid";
-import { resolveRegulatoryBasisUrl } from "@/lib/provision-links";
 
 export async function createProcessingBatch(recordIds: string[]) {
   const ids = [...new Set(recordIds)];
@@ -386,237 +385,12 @@ export async function reviewMatching(input: {
   sourceRecordId: string;
   candidateId?: string;
   serviceCode?: string;
-  outcome: "select" | "reject" | "insufficient";
+  outcome: "select" | "reject" | "insufficient" | "outside";
   notes?: string;
 }) {
-  const supabase = createServerSupabase();
-  const notes = input.notes?.trim().slice(0, 1000) || null;
-  if (input.outcome !== "select" && !notes) {
-    throw new Error(
-      "Cal indicar el motiu del rebuig o de la manca d'evidència.",
-    );
-  }
+  const {error}=await createServerSupabase().rpc('review_analysis',{p_record:input.sourceRecordId,p_outcome:input.outcome,p_candidate:input.candidateId??null,p_code:input.serviceCode??null,p_notes:input.notes?.trim().slice(0,1000)??null});
+  if(error)throw error;
 
-  const { data: record, error: recordError } = await supabase
-    .from("source_records")
-    .select(
-      "*,source_documents(url,document_type,source_fields),record_enrichments(provider_name,provider_nif,mechanism,award_date,amount,contracting_body,target_population)",
-    )
-    .eq("id", input.sourceRecordId)
-    .single();
-  if (recordError) throw recordError;
-  const { data: jobs, error: jobsError } = await supabase
-    .from("pipeline_jobs")
-    .select("id,run_id,created_at")
-    .eq("source_record_id", input.sourceRecordId)
-    .order("created_at", { ascending: false })
-    .limit(1);
-  if (jobsError) throw jobsError;
-  const job = jobs?.[0];
-  if (!job) throw new Error("No hi ha cap matching completat per revisar.");
-
-  if (input.outcome === "select") {
-    if (!input.candidateId && !input.serviceCode)
-      throw new Error("Falta el servei seleccionat.");
-    const { data: candidate, error: candidateError } = input.candidateId
-      ? await supabase
-          .from("matching_candidates")
-          .select("id,rank,target_code,target_name,score,rationale")
-          .eq("id", input.candidateId)
-          .eq("pipeline_job_id", job.id)
-          .single()
-      : { data: null, error: null };
-    if (candidateError) throw candidateError;
-    const targetCode = input.serviceCode?.trim() || candidate?.target_code;
-    const { data: service, error: serviceError } = await supabase
-      .from("eligible_official_services")
-      .select("service_code,service_name,version_id")
-      .eq("service_code", targetCode)
-      .single();
-    if (serviceError) throw serviceError;
-    const decision =
-      candidate?.rank === 1 && !input.serviceCode ? "approved" : "corrected";
-    const score = candidate?.score ?? null;
-    const rationale =
-      candidate?.rationale ??
-      notes ??
-      "Servei seleccionat manualment durant la revisió.";
-    const { data: review, error: reviewError } = await supabase
-      .from("review_decisions")
-      .insert({
-        source_record_id: record.id,
-        previous_code: record.cartera_code,
-        final_code: service.service_code,
-        decision,
-        reason: notes,
-        reviewer: "local_user",
-      })
-      .select("id,created_at")
-      .single();
-    if (reviewError) throw reviewError;
-    const { error: evaluationError } = await supabase
-      .from("matching_evaluations")
-      .insert({
-        pipeline_job_id: job.id,
-        candidate_id: candidate?.id ?? null,
-        verdict: "correct",
-        expected_code: service.service_code,
-        notes,
-        evaluator: "local_user",
-      });
-    if (evaluationError) throw evaluationError;
-    const payload = (record.source_payload ?? {}) as Record<string, unknown>;
-    const documents = Array.isArray(record.source_documents)
-      ? (record.source_documents as Array<{
-          url: string;
-          document_type: string;
-          source_fields: string[] | null;
-        }>)
-      : [];
-    const enrichment = Array.isArray(record.record_enrichments)
-      ? record.record_enrichments[0]
-      : record.record_enrichments;
-    const providerNif = enrichment?.provider_nif ?? firstText(payload, ["NIF entidad", "NIF entidad beneficiaria", "NIF del adjudicatario"]);
-    const normalizedNif = providerNif?.toUpperCase().replace(/[^A-Z0-9]/g, "") ?? null;
-    const entityResult = normalizedNif ? await supabase.from("entities").select("id").eq("nif", normalizedNif).maybeSingle() : { data: null, error: null };
-    if (entityResult.error) throw entityResult.error;
-    const callUrl =
-      firstText(payload, [
-        "Enlace de la última publicación",
-        "Document conveni",
-        "Enllaç convocatòria",
-      ]) ??
-      documentUrl(documents, [
-        "publication",
-        "agreement",
-        "contracting_profile",
-      ]);
-    const { data: provision, error: provisionError } = await supabase
-      .from("service_provisions")
-      .upsert(
-        {
-          source_record_id: record.id,
-          source_id:
-            firstText(payload, [
-              "Código del expediente",
-              "Número conveni definitiu",
-              "Clau",
-              "registre",
-            ]) ?? String(record.source_record_id).split("::")[0],
-          call_url: callUrl,
-          regulatory_basis_url: resolveRegulatoryBasisUrl(
-            payload,
-            documents,
-          ),
-          provider_name: enrichment?.provider_name ?? record.provider_name,
-          provider_nif: normalizedNif,
-          entity_id: entityResult.data?.id ?? null,
-          mechanism: enrichment?.mechanism ?? record.mechanism,
-          award_date:
-            enrichment?.award_date ??
-            firstDate(payload, [
-              "Fecha concesión",
-              "Data signatura",
-              "Fecha de adjudicación",
-            ]),
-          amount: enrichment?.amount ?? record.amount,
-          contracting_body:
-            enrichment?.contracting_body ??
-            firstText(payload, [
-              "Organo contratante",
-              "Órgano de contratación",
-              "Organismes signants per part de la Generalitat",
-            ]),
-          target_population:
-            enrichment?.target_population ??
-            firstText(payload, [
-              "Población objetivo / beneficiarios",
-              "Col·lectiu",
-              "Población objetivo",
-            ]),
-          source_reference: `${record.source_dataset}/${record.source_record_id}`,
-          service_code: service.service_code,
-          catalog_version_id: service.version_id,
-          matching_candidate_id: candidate?.id ?? null,
-          review_decision_id: review.id,
-          approved_at: review.created_at,
-          updated_at: new Date().toISOString(),
-        },
-        { onConflict: "source_record_id" },
-      ).select("id").single();
-    if (provisionError) throw provisionError;
-    const { error: recordUpdateError } = await supabase
-      .from("source_records")
-      .update({
-        cartera_code: service.service_code,
-        cartera_name: service.service_name,
-        confidence: score,
-        evidence: rationale,
-        processing_status: "completat",
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", record.id);
-    if (recordUpdateError) throw recordUpdateError;
-    await supabase
-      .from("pipeline_jobs")
-      .update({ status: decision })
-      .eq("id", job.id);
-  } else {
-    const decision =
-      input.outcome === "reject" ? "rejected" : "insufficient_evidence";
-    const verdict =
-      input.outcome === "reject" ? "incorrect" : "insufficient_evidence";
-    const { error: reviewError } = await supabase
-      .from("review_decisions")
-      .insert({
-        source_record_id: record.id,
-        previous_code: record.cartera_code,
-        final_code: null,
-        decision,
-        reason: notes,
-        reviewer: "local_user",
-      });
-    if (reviewError) throw reviewError;
-    const { error: evaluationError } = await supabase
-      .from("matching_evaluations")
-      .insert({
-        pipeline_job_id: job.id,
-        candidate_id: null,
-        verdict,
-        notes,
-        evaluator: "local_user",
-      });
-    if (evaluationError) throw evaluationError;
-    const existingProvision = await supabase.from("service_provisions").select("id").eq("source_record_id", record.id).maybeSingle();
-    if (existingProvision.error) throw existingProvision.error;
-    if (existingProvision.data) {
-      const relationDelete = await supabase.from("entity_catalog_relations").delete().eq("relation_type", "confirmed").eq("source_type", "provision").eq("source_reference", existingProvision.data.id);
-      if (relationDelete.error) throw relationDelete.error;
-    }
-    const { error: deleteError } = await supabase
-      .from("service_provisions")
-      .delete()
-      .eq("source_record_id", record.id);
-    if (deleteError) throw deleteError;
-    const { error: updateError } = await supabase
-      .from("source_records")
-      .update({
-        cartera_code: null,
-        cartera_name: null,
-        confidence: null,
-        evidence: null,
-        processing_status:
-          input.outcome === "reject" ? "rebutjat" : "sense_evidencia",
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", record.id);
-    if (updateError) throw updateError;
-    await supabase
-      .from("pipeline_jobs")
-      .update({ status: decision })
-      .eq("id", job.id);
-  }
-  await refreshRunCounters(job.run_id);
   revalidatePath("/");
   revalidatePath("/review");
   revalidatePath("/issues");
@@ -625,11 +399,6 @@ export async function reviewMatching(input: {
   return { ok: true };
 }
 
-async function refreshRunCounters(runId: string) {
-  const supabase = createServerSupabase();
-  const { error } = await supabase.rpc("refresh_pipeline_run", { p_run_id: runId });
-  if (error) throw error;
-}
 
 function firstText(payload: Record<string, unknown>, keys: string[]) {
   for (const key of keys) {
@@ -638,21 +407,8 @@ function firstText(payload: Record<string, unknown>, keys: string[]) {
   }
   return null;
 }
-function firstDate(payload: Record<string, unknown>, keys: string[]) {
-  const value = firstText(payload, keys);
-  if (!value) return null;
-  const date = new Date(value);
-  return Number.isNaN(date.valueOf()) ? null : date.toISOString().slice(0, 10);
-}
-function documentUrl(
-  documents: Array<{ url: string; document_type: string }>,
-  types: string[],
-) {
-  return (
-    documents.find((document) => types.includes(document.document_type))?.url ??
-    null
-  );
-}
+
+
 function actionErrorMessage(error: unknown) {
   return (error instanceof Error
     ? error.message
