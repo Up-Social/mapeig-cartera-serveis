@@ -1,3 +1,4 @@
+import {buildNormativeInput,MATCHING_INSTRUCTIONS,scopeFactsSchema,validateScopeFacts,type ScopeFacts} from '../lib/normative-matching';
 import {analysisSchema,validateAnalysis,type AnalysisOutput} from '../lib/analysis-contract';
 import {loadOfficialCatalog,assertEligible} from '../lib/official-catalog';
 import { createClient } from "@supabase/supabase-js";
@@ -18,7 +19,7 @@ const limitArg = process.argv.indexOf("--limit");
 const limit = limitArg >= 0 ? Number.parseInt(process.argv[limitArg + 1] ?? "1", 10) : runId ? 50 : 1;
 if (!Number.isInteger(limit) || limit < 1 || limit > 50) throw new Error("--limit ha de ser entre 1 i 50");
 
-type EnrichmentOutput = { title: string | null; provider_name: string | null; provider_nif: string | null; mechanism: string | null; award_date: string | null; amount: number | null; contracting_body: string | null; target_population: string | null; summary: string; confidence: number; evidence_ordinals: number[] };
+type EnrichmentOutput = { scope_facts:ScopeFacts; title: string | null; provider_name: string | null; provider_nif: string | null; mechanism: string | null; award_date: string | null; amount: number | null; contracting_body: string | null; target_population: string | null; summary: string; confidence: number; evidence_ordinals: number[] };
 
 async function main() {
   let request = supabase.from("pipeline_jobs").select("id,run_id,source_record_id").eq("status", runId ? "ready" : "queued").order("created_at").limit(limit);
@@ -40,7 +41,7 @@ async function processJob(job: { id: string; run_id: string; source_record_id: s
   try {
     await assertNotPreviouslySelected(job.source_record_id, job.id, allowPreviousSelection);
     const [{ data: record, error: recordError }, official] = await Promise.all([
-      supabase.from("source_records").select("id,source_dataset,source_record_id,mechanism,title,provider_name,amount,source_payload,record_enrichments(id,summary,provider_name,provider_nif,mechanism,award_date,amount,contracting_body,target_population),source_documents!inner(id,status)").eq("id", job.source_record_id).eq("source_documents.status", "fetched").single(),
+      supabase.from("source_records").select("id,source_dataset,source_record_id,mechanism,title,provider_name,amount,source_payload,record_enrichments(id,summary,provider_name,provider_nif,mechanism,award_date,amount,contracting_body,target_population,scope_facts),source_documents!inner(id,status)").eq("id", job.source_record_id).eq("source_documents.status", "fetched").single(),
       loadOfficialCatalog(supabase),
     ]);
     if (recordError) throw recordError;
@@ -57,9 +58,9 @@ async function processJob(job: { id: string; run_id: string; source_record_id: s
       body: JSON.stringify({
         model,
         instructions: existingEnrichment ? matchingInstructions() : `Primer extreu camps estructurats exclusivament dels fragments oficials; usa null si no hi consten. ${matchingInstructions()}`,
-        input: buildInput({ ...record, verified_enrichment: existingEnrichment }, catalog ?? [], chunks),
+        input: buildNormativeInput({ ...record, verified_enrichment: existingEnrichment }, catalog, official.all, official.version.general_context, chunks),
         text: { format: { type: "json_schema", name: "matching_candidates", strict: true, schema: existingEnrichment ? candidatesOnlySchema() : combinedSchema() } },
-        max_output_tokens: 1800,
+        max_output_tokens: 4000,
       }),
     });
     const raw = await response.json() as Record<string, unknown>;
@@ -131,18 +132,7 @@ async function assertNotPreviouslySelected(sourceRecordId: string, currentJobId:
 
 function candidatesSchema() { return { type: "array", maxItems: 3, items: { type: "object", additionalProperties: false, required: ["code","score","rationale","evidence_ordinals","evidence_explanation","population_compatible","legal_reference"], properties: { population_compatible: {type:"boolean"}, legal_reference:{type:"string"}, code: { type: "string" }, score: { type: "number", minimum: 0, maximum: 1 }, rationale: { type: "string", minLength: 60, maxLength: 1200 }, evidence_ordinals: { type: "array", items: { type: "integer", minimum: 1 } }, evidence_explanation: { type: "string", minLength: 20, maxLength: 450 } } } }; }
 function candidatesOnlySchema() { return { type: "object", additionalProperties: false, required: Object.keys(analysisSchema(candidatesSchema())), properties: analysisSchema(candidatesSchema()) }; }
-function combinedSchema() { return { type: "object", additionalProperties: false, required: ["enrichment",...Object.keys(analysisSchema(candidatesSchema()))], properties: { enrichment: { type: "object", additionalProperties: false, required: ["title","provider_name","provider_nif","mechanism","award_date","amount","contracting_body","target_population","summary","confidence","evidence_ordinals"], properties: { title: nullableString(), provider_name: nullableString(), provider_nif: nullableString(), mechanism: nullableString(), award_date: nullableString(), amount: { anyOf: [{ type: "number" }, { type: "null" }] }, contracting_body: nullableString(), target_population: nullableString(), summary: { type: "string" }, confidence: { type: "number", minimum: 0, maximum: 1 }, evidence_ordinals: { type: "array", items: { type: "integer", minimum: 1 } } }, }, ...analysisSchema(candidatesSchema()) } }; }
-
-function buildInput(record: Record<string, unknown>, catalog: Array<Record<string, unknown>>, chunks: Array<{ content: string }>) {
-  return `PROVISIÓ\n${JSON.stringify({ dataset: record.source_dataset, id: record.source_record_id, mechanism: record.mechanism, title: record.title, provider: record.provider_name, amount: record.amount, original: sanitizeSourcePayload(record.source_payload) })}\n\nEVIDÈNCIA OFICIAL\n${chunks.map((chunk, index) => `[${index + 1}] ${chunk.content}`).join("\n\n")}\n\nCATÀLEG\n${catalog.map((item) => `${item.service_code} | ${item.service_name} | ${item.sector_scope ?? ""}`).join("\n")}`;
-}
-
-function sanitizeSourcePayload(value: unknown) {
-  if (!value || typeof value !== "object" || Array.isArray(value)) return {};
-  return Object.fromEntries(Object.entries(value as Record<string, unknown>).filter(([key, field]) =>
-    !key.startsWith("Fórmula ·") && !(typeof field === "string" && field.trim().startsWith("=")),
-  ));
-}
+function combinedSchema() { return { type: "object", additionalProperties: false, required: ["enrichment",...Object.keys(analysisSchema(candidatesSchema()))], properties: { enrichment: { type: "object", additionalProperties: false, required: ["scope_facts","title","provider_name","provider_nif","mechanism","award_date","amount","contracting_body","target_population","summary","confidence","evidence_ordinals"], properties: { scope_facts:scopeFactsSchema, title: nullableString(), provider_name: nullableString(), provider_nif: nullableString(), mechanism: nullableString(), award_date: nullableString(), amount: { anyOf: [{ type: "number" }, { type: "null" }] }, contracting_body: nullableString(), target_population: nullableString(), summary: { type: "string" }, confidence: { type: "number", minimum: 0, maximum: 1 }, evidence_ordinals: { type: "array", items: { type: "integer", minimum: 1 } } }, }, ...analysisSchema(candidatesSchema()) } }; }
 
 function extractOutputText(response: Record<string, unknown>) {
   if (typeof response.output_text === "string") return response.output_text;
@@ -152,11 +142,12 @@ function extractOutputText(response: Record<string, unknown>) {
 }
 
 function nullableString() { return { anyOf: [{ type: "string" }, { type: "null" }] }; }
-function matchingInstructions() { return "Classifica la provisió contra el catàleg utilitzant les dades contrastades i els fragments oficials. Proposa com a màxim tres candidats ordenats. El rationale ha de tenir exactament tres línies: 'Encaix:', que relacioni un fet concret de la prestació amb el servei; 'Diferenciació:', que el compari amb els altres candidats; i 'Limitació:', que indiqui una diferència o dada absent real. evidence_explanation ha de resumir en una o dues frases quina dada oficial sobre l'objecte, actuacions, població o modalitat sustenta l'encaix. No usis import, pressupost, CPV ni òrgan com a evidència principal si no són determinants. No inventis codis ni fets. Una puntuació baixa és preferible a una falsa certesa. Respon en català professional i concís."; }
+function matchingInstructions() {return MATCHING_INSTRUCTIONS;}
 
 async function persistEnrichment(sourceRecordId: string, enrichment: EnrichmentOutput, chunks: Array<{ id: string }>) {
+  validateScopeFacts(enrichment.scope_facts,chunks.length);
   const awardDate = enrichment.award_date && /^\d{4}-\d{2}-\d{2}$/.test(enrichment.award_date) ? enrichment.award_date : null;
-  const { data, error } = await supabase.from("record_enrichments").upsert({ source_record_id: sourceRecordId, extracted_title: enrichment.title, provider_name: enrichment.provider_name, provider_nif: enrichment.provider_nif, mechanism: enrichment.mechanism, award_date: awardDate, amount: enrichment.amount, contracting_body: enrichment.contracting_body, target_population: enrichment.target_population, summary: enrichment.summary, confidence: enrichment.confidence, engine: "openai-responses", engine_version: model, updated_at: new Date().toISOString() }, { onConflict: "source_record_id" }).select("id").single();
+  const { data, error } = await supabase.from("record_enrichments").upsert({ source_record_id: sourceRecordId, extracted_title: enrichment.title, provider_name: enrichment.provider_name, provider_nif: enrichment.provider_nif, mechanism: enrichment.mechanism, award_date: awardDate, amount: enrichment.amount, contracting_body: enrichment.contracting_body, target_population: enrichment.target_population, scope_facts:enrichment.scope_facts, summary: enrichment.summary, confidence: enrichment.confidence, engine: "openai-responses", engine_version: model, updated_at: new Date().toISOString() }, { onConflict: "source_record_id" }).select("id").single();
   if (error) throw error;
   const { error: deleteError } = await supabase.from("record_enrichment_evidence").delete().eq("enrichment_id", data.id);
   if (deleteError) throw deleteError;
