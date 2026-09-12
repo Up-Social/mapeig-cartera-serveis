@@ -25,7 +25,7 @@ export async function analyzeRecord(c:Context,job:{id:string;source_record_id:st
   await commit(c,job.id,'enrichment',{enrichment:result,model,usage:raw.usage,evidence:[...new Set(result.evidence_ordinals)].map(n=>chunks[n-1])});
  }else{
   const catalog=await loadOfficialCatalog(c.db);
-  const raw=await providerRequest(c,`ai:${job.id}:matching`,{model,instructions:MATCHING_INSTRUCTIONS,input:buildNormativeInput({...r.data,verified_enrichment:Array.isArray(r.data.record_enrichments)?r.data.record_enrichments[0]:r.data.record_enrichments},catalog.eligible,catalog.all,catalog.version.general_context,chunks),text:{format:{type:'json_schema',name:'analysis',strict:true,schema:candidatesOnlySchema()}},max_output_tokens:4000});
+  const raw=await providerRequest(c,`ai:${job.id}:matching`,{model,instructions:MATCHING_INSTRUCTIONS,input:buildNormativeInput({...r.data,verified_enrichment:Array.isArray(r.data.record_enrichments)?r.data.record_enrichments[0]:r.data.record_enrichments},catalog.eligible,catalog.all,catalog.version.general_context,chunks),text:{format:{type:'json_schema',name:'analysis',strict:true,schema:candidatesOnlySchema(catalog.eligible.map(service=>service.service_code))}},max_output_tokens:4000});
   await rpc(c.db,'cloud_provider_usage',{...lease(c),p_key:`usage:${job.id}:analysis`,p_usage:raw.usage??{}});
   let result:AnalysisOutput;
   try {result=validateAnalysis(normalizeMissingScope(JSON.parse(extractOutputText(raw))),catalog.all,chunks.length);}catch {throw new CloudFailure('validation');}
