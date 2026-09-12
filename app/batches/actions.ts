@@ -15,6 +15,7 @@ export async function generateBalancedSample(excludedIds: string[] = []) {
 }
 
 export async function createAutomatedBatch(size: number) {
+  if(executionMode()==='disabled')throw new Error('Execució desactivada en aquest entorn.');
   if (!Number.isInteger(size) || size < 1 || size > 50)
     throw new Error("La mida del lot ha de ser un enter entre 1 i 50.");
   if(executionMode()==='vercel_workflow'){const id=await rpc<string>(cloudDb(),'cloud_create_automated',{p_size:size});await launchRun(id);return {id};}
@@ -68,6 +69,7 @@ export async function replaceSampleRecord(
 }
 
 export async function createGuidedBatch(recordIds: string[]) {
+  if(executionMode()==='disabled')throw new Error('Execució desactivada en aquest entorn.');
   const ids = validateIds(recordIds);
   if (ids.length !== 4)
     throw new Error("El lot ha de contenir exactament 4 registres.");
@@ -160,6 +162,7 @@ export async function createGuidedBatch(recordIds: string[]) {
 }
 
 export async function startBatchPreparation(runId: string) {
+  if(executionMode()==='disabled')throw new Error('Execució desactivada en aquest entorn.');
   const id = validateId(runId);
   const supabase = createServerSupabase();
   const { data, error } = await supabase
@@ -186,6 +189,7 @@ export async function startBatchPreparation(runId: string) {
 }
 
 export async function startBatchMatching(runId: string) {
+  if(executionMode()==='disabled')throw new Error('Execució desactivada en aquest entorn.');
   const id = validateId(runId);
   const supabase = createServerSupabase();
   const { count, error: countError } = await supabase
@@ -211,6 +215,7 @@ export async function startBatchMatching(runId: string) {
 }
 
 export async function replaceFailedBatchJob(runId: string, jobId: string) {
+  if(executionMode()==='disabled')throw new Error('Execució desactivada en aquest entorn.');
   const run = validateId(runId);
   const job = validateId(jobId);
   const supabase = createServerSupabase();

@@ -63,7 +63,9 @@ export async function extractDocument(c:Context,id:string,url:string,ocr:boolean
   await checkpoint(c,`document:${id}`,result);return result;
  }catch(error){
   if(error instanceof CloudFailure||error instanceof CloudYield)throw error;
-  const status=(error as {status?:number;statusCode?:number}).status??(error as {statusCode?:number}).statusCode;
+  const status=(error as {response?:Response}).response?.status;
+  const code=(error as {json?:{error?:{code?:string}}}).json?.error?.code;
+  if(code&&/quota|usage_limit|limit_exceeded/.test(code)){blocked='vercel_quota';throw new CloudFailure('vercel_quota');}
   if(status===429)throw new CloudFailure('transient',30);
   if(status===402){blocked='vercel_quota';throw new CloudFailure('vercel_quota');}
   if(status===401||status===403)throw new CloudFailure('credentials');

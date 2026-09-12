@@ -1,5 +1,6 @@
 export type ExecutionMode = 'local' | 'queue' | 'vercel_workflow' | 'disabled';
 export function executionMode(env: Record<string, string | undefined> = process.env): ExecutionMode {
+  if (env.WORKER_EXECUTION_MODE === 'disabled') return 'disabled';
   if (env.VERCEL_ENV === 'preview') return 'disabled';
   if (env.WORKER_EXECUTION_MODE === 'vercel_workflow') {
     return env.VERCEL_ENV === 'production' ? 'vercel_workflow' : 'disabled';

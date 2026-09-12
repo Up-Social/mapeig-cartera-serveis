@@ -7,6 +7,7 @@ import { dispatchWorkerTask } from "@/lib/worker-dispatch";
 import { requireUuid } from "@/lib/uuid";
 
 export async function createProcessingBatch(recordIds: string[]) {
+  if(executionMode()==='disabled')throw new Error('Execució desactivada en aquest entorn.');
   const ids = [...new Set(recordIds)];
   if (ids.length < 1 || ids.length > 50)
     throw new Error("Selecciona entre 1 i 50 registres.");
@@ -49,6 +50,7 @@ export async function createProcessingBatch(recordIds: string[]) {
 }
 
 export async function processRecordAutomatically(sourceRecordId: string) {
+  if(executionMode()==='disabled')throw new Error('Execució desactivada en aquest entorn.');
   const id = requireUuid(sourceRecordId);
   if(executionMode()==='vercel_workflow')return {runId:await createCloudRun([id])};
   const supabase = createServerSupabase();
@@ -103,6 +105,7 @@ export async function processRecordAutomatically(sourceRecordId: string) {
 }
 
 export async function recoverRecordWithOcr(sourceRecordId: string) {
+  if(executionMode()==='disabled')throw new Error('Execució desactivada en aquest entorn.');
   const id = requireUuid(sourceRecordId);
   if(executionMode()==='vercel_workflow')return {runId:await createCloudRun([id],true),documents:0};
   const supabase = createServerSupabase();
@@ -165,6 +168,7 @@ export async function recoverRecordWithOcr(sourceRecordId: string) {
 }
 
 export async function prepareRecordSources(sourceRecordId: string) {
+  if(executionMode()==='disabled')throw new Error('Execució desactivada en aquest entorn.');
   const id = requireUuid(sourceRecordId);
   const supabase = createServerSupabase();
   const { data: record, error } = await supabase
@@ -246,6 +250,7 @@ export async function prepareRecordSources(sourceRecordId: string) {
 }
 
 export async function enrichRecordFromSources(sourceRecordId: string) {
+  if(executionMode()==='disabled')throw new Error('Execució desactivada en aquest entorn.');
   const id = requireUuid(sourceRecordId);
   const supabase = createServerSupabase();
   const { data: record, error } = await supabase
@@ -292,6 +297,7 @@ export async function enrichRecordFromSources(sourceRecordId: string) {
 }
 
 export async function matchPreparedRecord(sourceRecordId: string) {
+  if(executionMode()==='disabled')throw new Error('Execució desactivada en aquest entorn.');
   const id = requireUuid(sourceRecordId);
   const supabase = createServerSupabase();
   const { data: record, error } = await supabase

@@ -1,6 +1,6 @@
 import {randomUUID} from 'node:crypto';
 import {cloudDb,CLOUD_VERSION,rpc,lease,checkpoint,readCheckpoint,commit,type Context} from './context';
-import {publicFailure,failureLabels,CloudYield} from './errors';
+import {publicFailure,failureLabels,CloudYield,CloudFailure} from './errors';
 import {discoverRecordDocuments} from '../pipeline/discovery';
 import {extractDocument} from './documents';
 import {splitText,hash} from '../pipeline/chunks';
@@ -34,12 +34,14 @@ export async function advance(task:string,workflow:string):Promise<{done:boolean
    let processed=false;
    for(const doc of docs.data){
     if(doc.status==='fetched'&&doc.chunk_count>0)continue;
+    if(await readCheckpoint(c,`document_failed:${doc.id}`))continue;
     const run=await db.from('pipeline_runs').select('parameters').eq('id',t.data.run_id).maybeSingle();
-    const result=await extractDocument(c,doc.id,doc.url,run.data?.parameters?.ocr_recovery===true);
-    if(result.partial)throw new (await import('./errors')).CloudFailure('document');
+    let result:Awaited<ReturnType<typeof extractDocument>>;
+    try {result=await extractDocument(c,doc.id,doc.url,run.data?.parameters?.ocr_recovery===true);if(result.partial)throw new CloudFailure('document');}
+    catch(error){if(error instanceof CloudFailure&&error.kind==='document'){await checkpoint(c,`document_failed:${doc.id}`,{kind:'document'});processed=true;break;}throw error;}
     await commit(c,job.id,'document',{...result,id:doc.id,text_hash:hash(result.text),chunks:splitText(result.text).map((content,ordinal)=>({ordinal,content,hash:hash(content)}))});processed=true;break;
    }
-   if(!processed){await commit(c,job.id,'ready',{});if(t.data.task_type==='prepare_run')await checkpoint(c,`${job.id}:complete`,true);}
+   if(!processed){if(!docs.data.some(d=>d.status==='fetched'&&d.chunk_count>0))throw new CloudFailure('document');await commit(c,job.id,'ready',{});if(t.data.task_type==='prepare_run')await checkpoint(c,`${job.id}:complete`,true);}
   }else{
    const r=await db.from('source_records').select('enrichment_status').eq('id',job.source_record_id).single();if(r.error)throw Error();
    if(r.data.enrichment_status!=='completed')await analyzeRecord(c,job,'enrichment');
