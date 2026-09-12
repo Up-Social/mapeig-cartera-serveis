@@ -32,7 +32,9 @@ export async function analyzeRecord(c:Context,job:{id:string;source_record_id:st
   try {result=validateAnalysis(normalizeMissingScope(JSON.parse(extractOutputText(raw))),catalog.all,chunks.length);}catch {throw new CloudFailure('validation');}
   if(result.classification==='in_portfolio'){
    if(!await readCheckpoint(c,`${job.id}:audit-ready`)){await checkpoint(c,`${job.id}:audit-ready`,true);throw new CloudYield(1);}
-   const audit=await providerRequest(c,`ai:${job.id}:${POSITIVE_AUDIT_VERSION}`,{model,instructions:POSITIVE_AUDIT_INSTRUCTIONS,input:positiveAuditInput(result,catalog.all,catalog.version.general_context,chunks),text:{format:{type:'json_schema',name:'positive_audit',strict:true,schema:positiveAuditSchema(result.candidates.map(x=>x.code))}},max_output_tokens:2000});
+   const priorAudit=await readCheckpoint<{response?:{usage?:Record<string,unknown>}}>(c,`ai:${job.id}:positive-audit-v1`);
+   if(priorAudit?.response?.usage)await rpc(c.db,'cloud_provider_usage',{...lease(c),p_key:`usage:${job.id}:positive-audit-v1`,p_usage:priorAudit.response.usage});
+   const audit=await providerRequest(c,`ai:${job.id}:${POSITIVE_AUDIT_VERSION}`,{model,instructions:POSITIVE_AUDIT_INSTRUCTIONS,input:positiveAuditInput(result,catalog.all,catalog.version.general_context,chunks),text:{format:{type:'json_schema',name:'positive_audit',strict:true,schema:positiveAuditSchema(result.candidates.map(x=>x.code),chunks)}},max_output_tokens:2000});
    await rpc(c.db,'cloud_provider_usage',{...lease(c),p_key:`usage:${job.id}:${POSITIVE_AUDIT_VERSION}`,p_usage:audit.usage??{}});
    try {result=validateAnalysis(applyPositiveAudit(result,JSON.parse(extractOutputText(audit)),catalog.all,chunks),catalog.all,chunks.length);}catch {throw new CloudFailure('validation');}
   }

@@ -52,5 +52,8 @@ do $$ declare sid uuid;rid uuid;tid uuid;jid uuid;o uuid:=gen_random_uuid();g bi
  perform cloud_provider_usage(tid,o,g,'usage:'||jid||':analysis','{"input_tokens":100,"output_tokens":10}');
  perform cloud_provider_usage(tid,o,g,'usage:'||jid||':analysis','{"input_tokens":100,"output_tokens":10}');
  if (select actual_input_tokens from pipeline_runs where id=rid)<>100 then raise exception 'duplicated usage';end if;
+ perform cloud_provider_usage(tid,o,g,'usage:'||jid||':positive-audit-v2','{"input_tokens":40,"output_tokens":4}');
+ perform cloud_provider_usage(tid,o,g,'usage:'||jid||':positive-audit-v2','{"input_tokens":40,"output_tokens":4}');
+ if (select actual_input_tokens from pipeline_runs where id=rid)<>140 then raise exception 'duplicated audit usage';end if;
 end $$;
 rollback;
