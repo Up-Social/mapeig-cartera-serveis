@@ -95,15 +95,4 @@ function mapBatch(row: Record<string, unknown>): BatchSummary {
   return { pauseReason:row.pause_reason == null ? null : String(row.pause_reason), id: String(row.id), batchNumber: String(row.batch_number).padStart(8, "0"), status: String(row.status), stage, selectedCount: jobs.length, preparedCount: Number(row.prepared_count), readyCount: Number(row.ready_count), processedCount: Number(row.processed_count), analyzedCount, reviewCount: jobs.filter((job) => job.status === "needs_review").length, reviewedCount, approvedCount: jobs.filter((job) => ["approved", "corrected"].includes(job.status) && job.hasProvision).length, rejectedCount, insufficientCount, errorCount: jobs.filter((job) => job.status === "error").length, exportableCount: provisionCount, incidences, estimatedInputTokens: Number(row.estimated_input_tokens), actualInputTokens: Number(row.actual_input_tokens), actualOutputTokens: Number(row.actual_output_tokens), createdAt: String(row.created_at), canExport: provisionCount > 0, provisionCount, isActive: ["queued", "preparing", "enriching", "matching"].includes(String(row.status)), progress, jobs };
 }
 
-async function enrichCandidateServices(batches: BatchSummary[]) {
-  const codes = [...new Set(batches.flatMap((batch) => batch.jobs.flatMap((job) => job.matchingCandidates.map((candidate) => candidate.targetCode))))];
-  if (!codes.length) return batches;
-  const { data, error } = await createServerSupabase().from("master_services").select("service_code,sector_scope,portfolio_status").in("service_code", codes);
-  if (error) throw error;
-  const byCode = new Map((data ?? []).map((service) => [service.service_code, service]));
-  for (const batch of batches) for (const job of batch.jobs) for (const candidate of job.matchingCandidates) {
-    const service = byCode.get(candidate.targetCode);
-    candidate.serviceDetail = service ? { sectorScope: service.sector_scope, portfolioStatus: service.portfolio_status } : null;
-  }
-  return batches;
-}
+async function enrichCandidateServices(batches: BatchSummary[]) {return batches;}

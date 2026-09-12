@@ -1,0 +1,3 @@
+import {test} from 'node:test';import assert from 'node:assert/strict';import {latestAnalysis} from '../lib/latest-analysis';
+test('new analysis without candidates supersedes an older proposal',()=>{const jobs=[{created_at:'2026-09-01',analysis_results:[{classification:'in_portfolio'}]},{created_at:'2026-09-12',analysis_results:[{classification:'discarded'}]}];assert.equal(latestAnalysis(jobs)?.classification,'discarded');});
+test('a new unfinished job does not resurrect previous analysis',()=>assert.equal(latestAnalysis([{created_at:'2026-09-01',analysis_results:[{classification:'in_portfolio'}]},{created_at:'2026-09-12',analysis_results:[]}]),null));

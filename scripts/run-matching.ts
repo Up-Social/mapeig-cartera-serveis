@@ -99,9 +99,9 @@ async function processJob(job: { id: string; run_id: string; source_record_id: s
     console.log(`${record.source_record_id}: ${candidates.length} candidats · revisió necessària`);
   } catch (error) {
     const message = formatError(error);
-    await supabase.from("pipeline_jobs").update({ status: "error", error_message: message, completed_at: new Date().toISOString() }).eq("id", job.id);
-    await supabase.from("source_records").update({ processing_status: "error", updated_at: new Date().toISOString() }).eq("id", job.source_record_id);
     const failure=classifyFailure(message);
+    await supabase.from("pipeline_jobs").update({ status: "error", error_kind: failure.kind, error_message: message, completed_at: new Date().toISOString() }).eq("id", job.id);
+    await supabase.from("source_records").update({ processing_status: "error", updated_at: new Date().toISOString() }).eq("id", job.source_record_id);
     if(failure.blocked)await supabase.from('pipeline_runs').update({status:'paused',pause_reason:failure.message,pause_kind:failure.kind}).eq('id',job.run_id);
     console.error(message);
   }
@@ -119,14 +119,14 @@ async function assertNotPreviouslySelected(sourceRecordId: string, currentJobId:
   const ids = (equivalents ?? []).map((item) => item.id);
   const { data: otherJobs, error } = await supabase
     .from("pipeline_jobs")
-    .select("run_id,status,matching_candidates(id)")
+    .select("run_id,status,analysis_results(id),matching_candidates(id)")
     .in("source_record_id", ids)
     .neq("id", currentJobId);
   if (error) throw error;
   const blockingJobs = (otherJobs ?? []).filter(
     (item) =>
       item.status !== "error" &&
-      (item.status === "ready" ||
+      ((Array.isArray(item.analysis_results) && item.analysis_results.length>0) || item.status === "ready" ||
         item.status === "matching" ||
         (Array.isArray(item.matching_candidates) &&
           item.matching_candidates.length > 0)),

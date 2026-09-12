@@ -21,7 +21,6 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { AnalysisResult } from "@/components/analysis-result";
-import { MatchingCandidateAnalysis } from "@/components/matching-candidate-analysis";
 import {
   isRecordOperationTerminal,
   type RecordOperation,
@@ -385,7 +384,7 @@ function DetailPanel({
       {record.externalEnrichment && (
         <ExternalEnrichmentDetail enrichment={record.externalEnrichment} />
       )}
-      {record.matchingCandidates.length > 0 ? (
+      {(record.analysis || record.matchingCandidates.length > 0) ? (
         <div className="mt-5">
           <div className="flex items-center justify-between gap-3">
             <p className="text-xs font-semibold uppercase tracking-wide text-neutral-500">
@@ -726,22 +725,22 @@ function RecordStages({
                 ? "Error de correspondència"
                 : "No executat"
           }
-          complete={record.matchingCandidates.length > 0}
+          complete={Boolean(record.analysis) || record.matchingCandidates.length > 0}
         />
         <StageRow
           number="4"
           title="Validar resultat"
-          status={record.reviewDecision ? reviewDecisionLabel(record.reviewDecision) : record.matchingCandidates.length ? "Pendent de validació humana" : "Encara no disponible"}
+          status={record.reviewDecision ? reviewDecisionLabel(record.reviewDecision) : (record.analysis || record.matchingCandidates.length) ? "Pendent de validació humana" : "Encara no disponible"}
           complete={record.reviewDecision === "approved" || record.reviewDecision === "corrected"}
         >
-          {record.pipelineRunId && record.matchingCandidates.length > 0 ? (
+          {record.pipelineRunId && (record.analysis || record.matchingCandidates.length > 0) ? (
             <Link href={`/review?record=${record.id}${record.reviewDecision ? "&state=all" : ""}`} className={buttonVariants({ variant: "outline", size: "sm" })}>
               {record.reviewDecision ? "Revisar decisió" : "Validar"}
             </Link>
           ) : <Button variant="outline" size="sm" disabled>Validar</Button>}
         </StageRow>
       </div>
-      {!record.matchingCandidates.length && (
+      {!record.analysis && !record.matchingCandidates.length && (
         <Button
           type="button"
           className="mt-4 w-full sm:w-auto"

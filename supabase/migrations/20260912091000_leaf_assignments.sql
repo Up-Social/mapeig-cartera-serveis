@@ -9,7 +9,7 @@ begin
  if tg_table_name='matching_candidates' then code:=new.target_code; else code:=new.service_code; end if;
  version:=new.catalog_version_id;
  if not exists(select 1 from eligible_official_services where service_code=code and version_id=version) then raise exception 'Cal un servei oficial validat sense fills: %',code; end if;
- if tg_table_name='matching_candidates' and new.target_catalog<>'official' then raise exception 'Cal el catàleg oficial'; end if;
+ if tg_table_name='matching_candidates' then if new.target_catalog<>'official' then raise exception 'Cal el catàleg oficial'; end if; end if;
  return new;
 end $$;
 create trigger candidate_leaf before insert or update of target_code,catalog_version_id on public.matching_candidates for each row execute function public.guard_leaf_assignment();

@@ -34,7 +34,7 @@ export async function getEntityPage(filters: EntityFilters): Promise<EntityPage>
   const [aliases, services, relations, links, provisions] = ids.length ? await Promise.all([
     db.from("entity_aliases").select("entity_id,alias,source").in("entity_id", ids),
     db.from("reses_services").select("entity_id,registry_number,service_name,service_type,capacity,address,municipality,postal_code,county,active").in("entity_id", ids).order("service_name"),
-    db.from("entity_catalog_relations").select("entity_id,service_code,relation_type,source_type,master_services(service_name)").in("entity_id", ids),
+    db.from("entity_catalog_relations").select("entity_id,service_code,relation_type,source_type,master_services(service_name),official_services(service_name)").in("entity_id", ids),
     db.from("source_record_entities").select("entity_id").in("entity_id", ids),
     db.from("service_provisions").select("entity_id").in("entity_id", ids),
   ]) : [{ data: [] }, { data: [] }, { data: [] }, { data: [] }, { data: [] }];
@@ -42,7 +42,7 @@ export async function getEntityPage(filters: EntityFilters): Promise<EntityPage>
     id: row.id, legalName: row.legal_name, nif: row.nif, qualification: row.qualification, validationStatus: row.validation_status, active: row.active,
     aliases: (aliases.data ?? []).filter((x) => x.entity_id === row.id).map((x) => ({ alias: x.alias, source: x.source })),
     services: (services.data ?? []).filter((x) => x.entity_id === row.id).map((x) => ({ registryNumber: x.registry_number, serviceName: x.service_name, serviceType: x.service_type, capacity: x.capacity, address: x.address, municipality: x.municipality, postalCode: x.postal_code, county: x.county, active: x.active })),
-    catalogRelations: (relations.data ?? []).filter((x) => x.entity_id === row.id).map((x) => ({ serviceCode: x.service_code, relationType: x.relation_type as "confirmed" | "auxiliary", sourceType: x.source_type as "provision" | "reses", serviceName: Array.isArray(x.master_services) ? x.master_services[0]?.service_name ?? null : (x.master_services as { service_name?: string } | null)?.service_name ?? null })),
+    catalogRelations: (relations.data ?? []).filter((x) => x.entity_id === row.id).map((x) => ({ serviceCode: x.service_code, relationType: x.relation_type as "confirmed" | "auxiliary", sourceType: x.source_type as "provision" | "reses", serviceName: Array.isArray(x.official_services ?? x.master_services) ? (x.official_services ?? x.master_services as Array<{service_name?:string}>)[0]?.service_name ?? null : ((x.official_services ?? x.master_services) as { service_name?: string } | null)?.service_name ?? null })),
     linkedRecords: (links.data ?? []).filter((x) => x.entity_id === row.id).length,
     provisions: (provisions.data ?? []).filter((x) => x.entity_id === row.id).length,
   }));

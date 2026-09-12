@@ -28,7 +28,9 @@
     "concerts:discover": "tsx --env-file=.env.local scripts/discover-concerts.ts",
     "concerts:import": "tsx --env-file=.env.local scripts/discover-concerts.ts --import",
     "reses:discover": "tsx --env-file=.env.local scripts/sync-reses.ts",
-    "reses:import": "tsx --env-file=.env.local scripts/sync-reses.ts --import"
+    "reses:import": "tsx --env-file=.env.local scripts/sync-reses.ts --import",
+    "catalog:import": "tsx --env-file=.env.local scripts/import-official-catalog.ts",
+    "catalog:prepare": "tsx scripts/prepare-official-catalog.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",

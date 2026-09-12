@@ -24,7 +24,7 @@ async function main() {
     { label: "OpenAI API key", ready: Boolean(process.env.OPENAI_API_KEY), detail: process.env.OPENAI_API_KEY ? "configurada" : "falta OPENAI_API_KEY" },
     { label: "Model", ready: Boolean(process.env.OPENAI_MATCHING_MODEL), detail: process.env.OPENAI_MATCHING_MODEL ? "configurat" : "falta OPENAI_MATCHING_MODEL" },
     { label: "Evidència", ready: documents > 0 && chunks > 0, detail: `${documents} documents · ${chunks} fragments` },
-    { label: "Catàleg", ready: catalogSource === "official" && officialReady, detail: catalogDetail(catalogSource, masterAuthorized, catalogEntries) },
+    { label: "Catàleg", ready: catalogSource === "official" && officialReady, detail: officialReady ? "catàleg oficial complet i validat" : catalogDetail(catalogSource, masterAuthorized, catalogEntries) },
     { label: "Treballs en cua", ready: queuedJobs > 0, detail: `${queuedJobs} treballs` },
   ];
   console.log("Preparació del matching\n");
@@ -35,7 +35,7 @@ async function main() {
 
 async function count(table: string, column?: string, expected?: string) {
   let query = supabase.from(table).select("*", { count: "exact", head: true });
-  if (column && expected) query = query.eq(column, expected);
+  if (column && expected) query = table === "pipeline_jobs" ? query.in(column,["queued","ready"]) : query.eq(column, expected);
   const { count: value, error } = await query;
   if (error) throw error;
   return value ?? 0;

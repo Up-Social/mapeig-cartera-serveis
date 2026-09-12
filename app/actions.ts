@@ -51,12 +51,12 @@ export async function processRecordAutomatically(sourceRecordId: string) {
   const supabase = createServerSupabase();
   const { data: record, error: recordError } = await supabase
     .from("source_records")
-    .select("id,processing_status,pipeline_jobs(status,matching_candidates(id),pipeline_runs(parameters))")
+    .select("id,processing_status,pipeline_jobs(status,analysis_results(id),matching_candidates(id),pipeline_runs(parameters))")
     .eq("id", id)
     .single();
   if (recordError) throw recordError;
   const jobs = Array.isArray(record.pipeline_jobs) ? record.pipeline_jobs : [];
-  if (jobs.some((job) => Array.isArray(job.matching_candidates) && job.matching_candidates.length > 0))
+  if (jobs.some((job) => (Array.isArray(job.analysis_results) && job.analysis_results.length > 0) || (Array.isArray(job.matching_candidates) && job.matching_candidates.length > 0)))
     throw new Error("Aquest registre ja té un matching disponible.");
   if (["preparant", "processant"].includes(record.processing_status))
     throw new Error("Aquest registre ja s'està processant.");
@@ -104,14 +104,14 @@ export async function recoverRecordWithOcr(sourceRecordId: string) {
   const supabase = createServerSupabase();
   const { data: record, error: recordError } = await supabase
     .from("source_records")
-    .select("id,processing_status,source_documents(id,url,mime_type,status,error_message),pipeline_jobs(matching_candidates(id))")
+    .select("id,processing_status,source_documents(id,url,mime_type,status,error_message),pipeline_jobs(analysis_results(id),matching_candidates(id))")
     .eq("id", id)
     .single();
   if (recordError) throw recordError;
   if (["preparant", "processant"].includes(record.processing_status))
     throw new Error("Aquest registre ja s'està processant.");
   const jobs = Array.isArray(record.pipeline_jobs) ? record.pipeline_jobs : [];
-  if (jobs.some((job) => Array.isArray(job.matching_candidates) && job.matching_candidates.length > 0))
+  if (jobs.some((job) => (Array.isArray(job.analysis_results) && job.analysis_results.length > 0) || (Array.isArray(job.matching_candidates) && job.matching_candidates.length > 0)))
     throw new Error("Aquest registre ja té una proposta disponible per revisar.");
   const documents = Array.isArray(record.source_documents) ? record.source_documents : [];
   const ocrDocuments = documents.filter((document) => {
@@ -293,7 +293,7 @@ export async function matchPreparedRecord(sourceRecordId: string) {
   const { data: record, error } = await supabase
     .from("source_records")
     .select(
-      "evidence_status,enrichment_status,pipeline_jobs(id,run_id,status,created_at,matching_candidates(id))",
+      "evidence_status,enrichment_status,pipeline_jobs(id,run_id,status,created_at,analysis_results(id),matching_candidates(id))",
     )
     .eq("id", id)
     .single();
@@ -311,8 +311,8 @@ export async function matchPreparedRecord(sourceRecordId: string) {
   if (
     jobs.some(
       (job) =>
-        Array.isArray(job.matching_candidates) &&
-        job.matching_candidates.length > 0,
+        (Array.isArray(job.analysis_results) && job.analysis_results.length>0) || (Array.isArray(job.matching_candidates) &&
+        job.matching_candidates.length > 0),
     )
   )
     throw new Error(
@@ -340,7 +340,7 @@ export async function matchPreparedRecord(sourceRecordId: string) {
         status: "ready",
         preparation_status: "ready",
       })
-      .select("id,run_id,status,created_at,matching_candidates(id)")
+      .select("id,run_id,status,created_at,analysis_results(id),matching_candidates(id)")
       .single();
     if (jobError) throw jobError;
     job = created;
@@ -397,15 +397,6 @@ export async function reviewMatching(input: {
   revalidatePath("/approved");
   revalidatePath("/catalog");
   return { ok: true };
-}
-
-
-function firstText(payload: Record<string, unknown>, keys: string[]) {
-  for (const key of keys) {
-    const value = payload[key];
-    if (typeof value === "string" && value.trim()) return value.trim();
-  }
-  return null;
 }
 
 

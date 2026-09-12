@@ -1,5 +1,7 @@
 # Context del projecte
 
+> Actualización 2026-09-12: el nuevo flujo normativo usa exclusivamente servicios hoja del catálogo oficial versionado, un servicio principal y cuatro categorías de análisis. Véase [NORMATIVE_MATCHING.md](NORMATIVE_MATCHING.md) para el contrato vigente y la instalación local. Las referencias al Master como destino del matching en el texto histórico siguiente ya no aplican al nuevo flujo.
+
 ## Producte
 
 **Nom:** Mapeig cartera de serveis.

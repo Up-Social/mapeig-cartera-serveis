@@ -12,12 +12,12 @@ if (!runId || !url || !key) throw new Error("Falta --run-id o la configuració d
 const db = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false }, realtime: { transport: WebSocket as never } });
 
 async function main() {
-  const { data: run, error } = await db.from("pipeline_runs").select("id,parameters").eq("id", runId).single();
+  const { data: run, error } = await db.from("pipeline_runs").select("id,parameters,stage").eq("id", runId).single();
   if (error) throw error;
   if (run.parameters?.auto_process !== true) throw new Error("El lot no està configurat per al procés automàtic");
 
   const initial=await loadJobs();
-  if(initial.some(j=>j.preparation_status!=='ready' && !j.analysis_results?.length)) {
+  if(!['enrichment','matching','review'].includes(run.stage) && initial.some(j=>j.preparation_status!=='ready' && !j.analysis_results?.length)) {
     await setRun("preparing", "preparation"); await runCommand("pipeline:prepare", ["--run-id", runId!]);
   }
 
@@ -37,7 +37,7 @@ async function main() {
         } catch (failure) {
           lastError = messageOf(failure);
           const info=classifyFailure(lastError);
-          if(info.blocked){await db.from('pipeline_jobs').update({status:'error',error_message:lastError}).eq('id',job.id);await db.from('pipeline_runs').update({status:'paused',pause_reason:info.message,pause_kind:info.kind}).eq('id',runId);return;}
+          if(info.blocked){await db.from('pipeline_jobs').update({status:'error',error_kind:info.kind,error_message:lastError}).eq('id',job.id);await db.from('pipeline_runs').update({status:'paused',pause_reason:info.message,pause_kind:info.kind}).eq('id',runId);return;}
           if(!info.retryable)break;
           if(attempt<3)await new Promise(resolve=>setTimeout(resolve,retryDelay(attempt)));
         }

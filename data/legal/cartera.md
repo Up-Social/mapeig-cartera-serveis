@@ -4,7 +4,7 @@ Text consolidat de consulta del Portal Jurídic, sense caràcter oficial. Les pu
 
 Font: https://portaljuridic.gencat.cat/eli/es-ct/d/2010/10/11/142
 Versió: 2026-07-14 (pjc-557820-2164168)
-Consulta: 2026-09-12T19:37:22.627Z
+Consulta: 2026-09-12T19:45:35.700Z
 SHA256 resposta: c713d9ff3d7d3c49097b01bb7a37c0f61030a0b327e72dbca8235970331a1400
 
 ## Preàmbul

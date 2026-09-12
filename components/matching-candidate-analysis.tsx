@@ -8,9 +8,10 @@ export function MatchingCandidateAnalysis({ candidate }: { candidate: MatchingCa
 
   return <article className={`rounded-xl border p-4 ${candidate.rank === 1 ? "border-neutral-900 bg-neutral-50" : "border-neutral-200"}`}>
     <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-      <div className="min-w-0"><p className="text-xs font-semibold text-muted-foreground">Candidat {candidate.rank} · {candidate.targetCode}</p><p className="mt-1 text-sm font-semibold leading-5">{candidate.targetName}</p></div>
+      <div className="min-w-0"><p className="text-xs font-semibold text-muted-foreground">{candidate.rank===1?"Servei principal":"Alternativa"} · {candidate.targetCode}</p><p className="mt-1 text-sm font-semibold leading-5">{candidate.targetName}</p></div>
       <div className="shrink-0 sm:text-right"><p className="text-[13.2px] font-medium text-muted-foreground">Confiança estimada per la IA</p><p className="mt-0.5 text-lg font-semibold">{Math.round(candidate.score * 100)}%</p></div>
     </div>
+    {candidate.legalReference&&<a className="mt-2 block text-xs underline" href={candidate.legalReference} target="_blank" rel="noreferrer">Definició normativa · Annex 1, {candidate.targetCode}</a>}
     <section className="mt-4">
       <h5 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Per què encaixa amb aquest servei</h5>
       {rationaleParts.length ? (

@@ -1,4 +1,4 @@
-import { getReviewQueue } from "@/lib/records-page";
+import { getReviewQueue, getSourceRecord } from "@/lib/records-page";
 import { createServerSupabase } from "@/lib/records-page";
 import { ReviewWorkbench } from "./review-workbench";
 import { prioritizeById } from "@/lib/latest-job-state";
@@ -24,6 +24,8 @@ export default async function ReviewPage({ searchParams }: Props) {
       .order("service_code"),
   ]);
   if (services.error) throw services.error;
+  const focused=focusedRecordId?await getSourceRecord(focusedRecordId):null;
+  if(focused&&!queue.records.some(r=>r.id===focused.id))queue.records.unshift(focused);
   const focusedQueue = {
     ...queue,
     records: prioritizeById(queue.records, focusedRecordId),

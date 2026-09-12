@@ -246,7 +246,7 @@ function ReviewDetail({
         {record.externalEnrichment ? (
           <EnrichmentPanel enrichment={record.externalEnrichment} />
         ) : (
-          <p className="mt-2 rounded-xl bg-amber-50 p-3 text-sm text-amber-900">
+          <p className="mt-2 rounded-xl bg-neutral-100 p-3 text-sm text-neutral-700">
             Aquesta correspondència anterior va utilitzar evidència documental, però
             encara no té camps externs estructurats. Els nous matchings els
             desaran automàticament.
@@ -319,7 +319,6 @@ function ReviewDetail({
               ))}
             </optgroup>
           </select>
-          <Button variant="outline" disabled={pending || !record.analysis} onClick={()=>submit("outside")}>Fora de cartera</Button>
           <Textarea
             value={notes}
             onChange={(event) => setNotes(event.target.value)}
@@ -327,7 +326,8 @@ function ReviewDetail({
             className="mt-3"
             placeholder="Motiu del rebuig o evidència que falta (obligatori en decisions negatives)"
           />
-          <div className="mt-3 grid gap-2 sm:grid-cols-3">
+          <div className="mt-3 grid gap-2 sm:grid-cols-2">
+            <Button variant="outline" disabled={pending || !record.analysis} onClick={()=>submit("outside")}>Fora de cartera</Button>
             <Button
               disabled={pending || !selection}
               onClick={() => submit("select")}

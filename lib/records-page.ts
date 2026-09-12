@@ -1,3 +1,6 @@
+import officialSnapshot from '../data/legal/cartera.json';
+import {eligibleServices,type OfficialService} from './official-catalog';
+const officialByCode=new Map(eligibleServices(officialSnapshot.services as OfficialService[]).map(s=>[s.service_code,s]));
 import {latestAnalysis} from './latest-analysis';
 import "server-only";
 import { createClient } from "@supabase/supabase-js";
@@ -96,7 +99,7 @@ export function mapRecord(row: Record<string, unknown>): SourceRecord {
     analysis:latestAnalysis(row.pipeline_jobs),
     matchingCandidates: mapLatestCandidates(row.pipeline_jobs),
     matchingError: mapLatestMatchingError(row.pipeline_jobs),
-    reviewDecision: mapReviewDecision(row.review_decisions),
+    reviewDecision: latestAnalysis(row.pipeline_jobs) && !latestAnalysis(row.pipeline_jobs)?.reviewed_classification ? null : mapReviewDecision(row.review_decisions),
     reviewReason: mapLatestReview(row.review_decisions)?.reason ?? null,
     reviewedAt: mapLatestReview(row.review_decisions)?.createdAt ?? null,
     updatedAt: row.updated_at == null ? null : String(row.updated_at),
@@ -111,13 +114,14 @@ export function mapLatestCandidates(value: unknown): SourceRecord["matchingCandi
   const jobs = [...value].map((job) => job as Record<string, unknown>).sort((a, b) => String(b.created_at).localeCompare(String(a.created_at)));
   const latest = jobs[0];
   if (!latest || !Array.isArray(latest.matching_candidates)) return [];
-  return latest.matching_candidates.map((candidate) => {
+  return latest.matching_candidates.filter(candidate => officialByCode.has(String((candidate as Record<string,unknown>).target_code))).map((candidate) => {
     const item = candidate as Record<string, unknown>;
     const links = Array.isArray(item.matching_candidate_evidence) ? item.matching_candidate_evidence : [];
     return {
       id: String(item.id), pipelineJobId: String(item.pipeline_job_id), rank: Number(item.rank), targetCode: String(item.target_code), targetName: String(item.target_name),
       score: Number(item.score), rationale: String(item.rationale), model: String(item.engine_version),
-      serviceDetail: null,
+      serviceDetail: {sectorScope:officialByCode.get(String(item.target_code))?.target_population??null,portfolioStatus:"Dentro"},
+      legalReference:officialByCode.get(String(item.target_code))?.legal_reference,
       evidence: links.flatMap((link) => {
         const relation = link as Record<string, unknown>;
         const chunk = relation.evidence_chunks;
@@ -160,13 +164,6 @@ export async function getReviewQueue(input: { batchId?: string; type?: string; s
     .map((row) => mapRecord(row as Record<string, unknown>))
     .filter((record) => input.state !== "pending" || record.reviewDecision === null)
     .sort((a, b) => (position.get(a.id) ?? Number.MAX_SAFE_INTEGER) - (position.get(b.id) ?? Number.MAX_SAFE_INTEGER));
-  const codes = [...new Set(records.flatMap((record) => record.matchingCandidates.map((candidate) => candidate.targetCode)))];
-  if (codes.length) {
-    const { data: services, error: servicesError } = await supabase.from("master_services").select("service_code,sector_scope,portfolio_status").in("service_code", codes);
-    if (servicesError) throw servicesError;
-    const byCode = new Map((services ?? []).map((service) => [service.service_code, service]));
-    records.forEach((record) => record.matchingCandidates.forEach((candidate) => { const service = byCode.get(candidate.targetCode); candidate.serviceDetail = service ? { sectorScope: service.sector_scope, portfolioStatus: service.portfolio_status } : null; }));
-  }
   return { records, total: records.length, reviewed: records.filter((record) => record.reviewDecision !== null).length };
 }
 
