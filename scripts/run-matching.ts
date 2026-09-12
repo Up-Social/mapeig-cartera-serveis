@@ -1,3 +1,4 @@
+import {loadOfficialCatalog,assertEligible} from '../lib/official-catalog';
 import { createClient } from "@supabase/supabase-js";
 import WebSocket from "ws";
 
@@ -6,7 +7,7 @@ const key = process.env.SUPABASE_SECRET_KEY ?? process.env.SUPABASE_SERVICE_ROLE
 const openaiKey = process.env.OPENAI_API_KEY;
 const model = process.env.OPENAI_MATCHING_MODEL;
 if (!url || !key || !openaiKey || !model) throw new Error("Falten variables de Supabase o OpenAI");
-if (process.env.MATCHING_CATALOG_SOURCE !== "master" || process.env.ALLOW_MASTER_MATCHING !== "true") throw new Error("El catàleg Master no està autoritzat per al matching");
+if (process.env.MATCHING_CATALOG_SOURCE !== "official") throw new Error("Cal seleccionar el catàleg oficial");
 
 const supabase = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false }, realtime: { transport: WebSocket as never } });
 const runIdArg = process.argv.indexOf("--run-id");
@@ -38,12 +39,12 @@ async function processJob(job: { id: string; run_id: string; source_record_id: s
 
   try {
     await assertNotPreviouslySelected(job.source_record_id, job.id, allowPreviousSelection);
-    const [{ data: record, error: recordError }, { data: catalog, error: catalogError }] = await Promise.all([
+    const [{ data: record, error: recordError }, official] = await Promise.all([
       supabase.from("source_records").select("id,source_dataset,source_record_id,mechanism,title,provider_name,amount,source_payload,record_enrichments(id,summary,provider_name,provider_nif,mechanism,award_date,amount,contracting_body,target_population),source_documents!inner(id,status)").eq("id", job.source_record_id).eq("source_documents.status", "fetched").single(),
-      supabase.from("master_services").select("service_code,service_name,sector_scope").eq("portfolio_status", "Dentro").order("service_code"),
+      loadOfficialCatalog(supabase),
     ]);
     if (recordError) throw recordError;
-    if (catalogError) throw catalogError;
+    const catalog = official.eligible;
     const documentIds = record.source_documents.map((document: { id: string }) => document.id);
     const { data: chunks, error: chunksError } = await supabase.from("evidence_chunks").select("id,ordinal,content,source_document_id").in("source_document_id", documentIds).order("ordinal").limit(12);
     if (chunksError) throw chunksError;
@@ -65,7 +66,8 @@ async function processJob(job: { id: string; run_id: string; source_record_id: s
     if (!response.ok) throw new Error(`OpenAI ${response.status}: ${JSON.stringify(raw)}`);
     const parsed = JSON.parse(extractOutputText(raw)) as { enrichment?: EnrichmentOutput; candidates: CandidateOutput[] };
     const catalogByCode = new Map((catalog ?? []).map((item) => [item.service_code, item]));
-    const candidates = parsed.candidates.filter((candidate) => catalogByCode.has(candidate.code)).slice(0, 3);
+    for (const candidate of parsed.candidates) assertEligible(candidate.code,official.all);
+    const candidates = parsed.candidates.slice(0, 3);
     if (!candidates.length) throw new Error("La resposta no conté cap candidat vàlid del catàleg");
 
     const candidatesWithEvidence = candidates.map((candidate) => ({
@@ -86,7 +88,7 @@ async function processJob(job: { id: string; run_id: string; source_record_id: s
     await supabase.from("matching_candidates").delete().eq("pipeline_job_id", job.id);
     for (const [index, { candidate, evidence }] of candidatesWithEvidence.entries()) {
       const target = catalogByCode.get(candidate.code)!;
-      const { data: inserted, error: candidateError } = await supabase.from("matching_candidates").insert({ pipeline_job_id: job.id, target_catalog: "master", target_code: candidate.code, target_name: target.service_name, rank: index + 1, score: candidate.score, rationale: candidate.rationale, engine: "openai-responses", engine_version: model, raw_response: { response_id: raw.id, usage: raw.usage } }).select("id").single();
+      const { data: inserted, error: candidateError } = await supabase.from("matching_candidates").insert({ pipeline_job_id: job.id, target_catalog: "official", catalog_version_id: official.version.id, target_code: candidate.code, target_name: target.service_name, rank: index + 1, score: candidate.score, rationale: candidate.rationale, engine: "openai-responses", engine_version: model, raw_response: { response_id: raw.id, usage: raw.usage } }).select("id").single();
       if (candidateError) throw candidateError;
       const { error: evidenceError } = await supabase.from("matching_candidate_evidence").insert(evidence.map((chunk) => ({ candidate_id: inserted.id, evidence_chunk_id: chunk.id, explanation: candidate.evidence_explanation })));
       if (evidenceError) throw evidenceError;

@@ -19,9 +19,8 @@ export default async function ReviewPage({ searchParams }: Props) {
   const [queue, services] = await Promise.all([
     getReviewQueue(filters),
     createServerSupabase()
-      .from("master_services")
-      .select("service_code,service_name,sector_scope")
-      .eq("portfolio_status", "Dentro")
+      .from("eligible_official_services")
+      .select("service_code,service_name,target_population")
       .order("service_code"),
   ]);
   if (services.error) throw services.error;
@@ -38,7 +37,7 @@ export default async function ReviewPage({ searchParams }: Props) {
       services={(services.data ?? []).map((service) => ({
         code: service.service_code,
         name: service.service_name,
-        scope: service.sector_scope,
+        scope: service.target_population,
       }))}
     />
   );

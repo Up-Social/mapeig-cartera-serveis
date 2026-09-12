@@ -429,8 +429,8 @@ export async function reviewMatching(input: {
     if (candidateError) throw candidateError;
     const targetCode = input.serviceCode?.trim() || candidate?.target_code;
     const { data: service, error: serviceError } = await supabase
-      .from("master_services")
-      .select("service_code,service_name")
+      .from("eligible_official_services")
+      .select("service_code,service_name,version_id")
       .eq("service_code", targetCode)
       .single();
     if (serviceError) throw serviceError;
@@ -536,6 +536,7 @@ export async function reviewMatching(input: {
             ]),
           source_reference: `${record.source_dataset}/${record.source_record_id}`,
           service_code: service.service_code,
+          catalog_version_id: service.version_id,
           matching_candidate_id: candidate?.id ?? null,
           review_decision_id: review.id,
           approved_at: review.created_at,
@@ -544,7 +545,7 @@ export async function reviewMatching(input: {
         { onConflict: "source_record_id" },
       ).select("id").single();
     if (provisionError) throw provisionError;
-    if (entityResult.data?.id && provision) {
+    if (false && entityResult.data?.id && provision) {
       const relation = await supabase.from("entity_catalog_relations").upsert({ entity_id: entityResult.data.id, service_code: service.service_code, relation_type: "confirmed", source_type: "provision", source_reference: provision.id, evidence: `Provisió aprovada; NIF exacte ${normalizedNif}` }, { onConflict: "entity_id,service_code,relation_type,source_type,source_reference" });
       if (relation.error) throw relation.error;
     }
