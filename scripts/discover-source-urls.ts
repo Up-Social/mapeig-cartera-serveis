@@ -1,14 +1,8 @@
-import { createHash } from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
 import WebSocket from "ws";
-import { classifySourceDocumentField } from "../lib/provision-links";
+import {discoverRecordDocuments} from "../lib/pipeline/discovery";
 
 type SourceRow = { id: string; source_payload: Record<string, unknown> };
-type DocumentRow = {
-  source_record_id: string; url: string; url_hash: string; document_type: string;
-  source_fields: string[]; status: "discovered"; updated_at: string;
-};
-
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const key = process.env.SUPABASE_SECRET_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY;
 const runId = option("--run-id");
@@ -53,46 +47,6 @@ async function main() {
     if (records.length < 1000) break;
   }
   console.log(`Descobriment completat: ${discovered} documents vinculats`);
-}
-
-function discoverRecordDocuments(record: SourceRow): DocumentRow[] {
-  const byUrl = new Map<string, { fields: string[]; type: string }>();
-  for (const [field, value] of Object.entries(record.source_payload ?? {})) {
-    if (typeof value !== "string") continue;
-    for (const candidate of value.match(/https?:\/\/[^\s|]+/gi) ?? []) {
-      const normalized = normalizeUrl(candidate);
-      if (!normalized) continue;
-      const existing = byUrl.get(normalized);
-      if (existing) {
-        if (!existing.fields.includes(field)) existing.fields.push(field);
-      } else {
-        byUrl.set(normalized, {
-          fields: [field],
-          type: classifySourceDocumentField(field),
-        });
-      }
-    }
-  }
-  const now = new Date().toISOString();
-  return [...byUrl.entries()].map(([documentUrl, metadata]) => ({
-    source_record_id: record.id,
-    url: documentUrl,
-    url_hash: createHash("sha256").update(documentUrl).digest("hex"),
-    document_type: metadata.type,
-    source_fields: metadata.fields.sort(),
-    status: "discovered",
-    updated_at: now,
-  }));
-}
-
-function normalizeUrl(candidate: string) {
-  const cleaned = candidate.replace(/[),.;]+$/g, "");
-  try {
-    const parsed = new URL(cleaned);
-    if (!['http:', 'https:'].includes(parsed.protocol)) return null;
-    parsed.hash = "";
-    return parsed.toString();
-  } catch { return null; }
 }
 
 function option(name: string) { const index = process.argv.indexOf(name); return index >= 0 ? process.argv[index + 1] : undefined; }

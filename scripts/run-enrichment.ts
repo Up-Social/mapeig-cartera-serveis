@@ -1,4 +1,5 @@
-import {scopeFactsSchema,validateScopeFacts,type ScopeFacts} from '../lib/normative-matching';
+import {validateScopeFacts} from '../lib/normative-matching';
+import {enrichmentSchema,sanitize,extractOutputText,type Enrichment} from '../lib/pipeline/enrichment-contract';
 import { createClient } from "@supabase/supabase-js";
 import WebSocket from "ws";
 
@@ -9,7 +10,7 @@ const openaiKey = process.env.OPENAI_API_KEY;
 const model = process.env.OPENAI_MATCHING_MODEL;
 if (!recordId || !url || !key || !openaiKey || !model) throw new Error("Falta el registre o la configuració de Supabase/OpenAI");
 const supabase = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false }, realtime: { transport: WebSocket as never } });
-type Enrichment = { scope_facts:ScopeFacts; title: string | null; provider_name: string | null; provider_nif: string | null; mechanism: string | null; award_date: string | null; amount: number | null; contracting_body: string | null; target_population: string | null; summary: string; confidence: number; evidence_ordinals: number[] };
+
 
 async function main() {
   try {
@@ -44,10 +45,6 @@ async function main() {
   }
 }
 
-function enrichmentSchema() { return { type: "object", additionalProperties: false, required: ["scope_facts","title","provider_name","provider_nif","mechanism","award_date","amount","contracting_body","target_population","summary","confidence","evidence_ordinals"], properties: { scope_facts:scopeFactsSchema, title: nullableString(), provider_name: nullableString(), provider_nif: nullableString(), mechanism: nullableString(), award_date: nullableString(), amount: { anyOf: [{ type: "number" }, { type: "null" }] }, contracting_body: nullableString(), target_population: nullableString(), summary: { type: "string" }, confidence: { type: "number", minimum: 0, maximum: 1 }, evidence_ordinals: { type: "array", items: { type: "integer", minimum: 1 } } } }; }
-function nullableString() { return { anyOf: [{ type: "string" }, { type: "null" }] }; }
-function sanitize(value: unknown) { if (!value || typeof value !== "object" || Array.isArray(value)) return {}; return Object.fromEntries(Object.entries(value as Record<string, unknown>).filter(([name, field]) => !name.startsWith("Fórmula ·") && !(typeof field === "string" && field.trim().startsWith("=")))); }
-function extractOutputText(response: Record<string, unknown>) { if (typeof response.output_text === "string") return response.output_text; const output = Array.isArray(response.output) ? response.output : []; for (const item of output) if (item && typeof item === "object" && Array.isArray((item as { content?: unknown[] }).content)) for (const content of (item as { content: Array<Record<string, unknown>> }).content) if (content.type === "output_text" && typeof content.text === "string") return content.text; throw new Error("OpenAI no ha retornat text estructurat"); }
 function formatError(error: unknown) { if (error instanceof Error) return error.message; if (error && typeof error === "object") { const value = error as Record<string, unknown>; return [value.message,value.details,value.hint,value.code].filter(Boolean).join(" · ") || JSON.stringify(value); } return String(error); }
 function option(name: string) { const index = process.argv.indexOf(name); return index >= 0 ? process.argv[index + 1] : undefined; }
 void main().catch((error: unknown) => { console.error("Contrast fallit:", formatError(error)); process.exitCode = 1; });
