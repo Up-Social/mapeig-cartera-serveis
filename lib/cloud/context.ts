@@ -20,3 +20,13 @@ export async function readCheckpoint<T>(c:Context,key:string):Promise<T|null>{
  if(r.error)throw new Error('CLOUD_DATABASE');return r.data?.value as T??null;
 }
 export async function commit(c:Context,job:string,operation:string,data:unknown){await rpc(c.db,'cloud_commit',{...lease(c),p_job:job,p_operation:operation,p_data:data});}
+
+export async function acquireResource(c:Context,name:'ai'|'sandbox'){
+ const {CloudFailure,CloudYield}=await import('./errors');
+ const acquired=await rpc<boolean>(c.db,'cloud_resource',{p_name:name,p_owner:c.owner});
+ if(acquired)return;
+ const r=await c.db.from('cloud_resources').select('blocked_kind').eq('name',name).single();
+ if(r.error)throw new CloudFailure('internal');
+ if(r.data.blocked_kind)throw new CloudFailure(name==='ai'?(r.data.blocked_kind==='credentials'?'credentials':'openai_quota'):'vercel_quota');
+ throw new CloudYield(30);
+}

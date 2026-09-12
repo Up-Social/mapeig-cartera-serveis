@@ -1,4 +1,4 @@
-export class CloudYield extends Error {}
+export class CloudYield extends Error {constructor(public wait=1){super("yield");}}
 export type FailureKind='transient'|'vercel_quota'|'openai_quota'|'credentials'|'document'|'validation'|'provider_unknown'|'internal';
 export class CloudFailure extends Error {
  constructor(public kind:FailureKind,public retryAfter=5){super(kind);}

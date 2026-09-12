@@ -46,9 +46,10 @@ export async function advance(task:string,workflow:string):Promise<{done:boolean
    else if(t.data.task_type!=='enrich_record')await analyzeRecord(c,job,'matching');
    if(t.data.task_type==='enrich_record'){await rpc(db,'cloud_finish',{...lease(c),p_state:'completed'});return {done:true,wait:0};}
   }
+  await checkpoint(c,`retry:${currentJob??'task'}`,0);
   await rpc(db,'cloud_finish',{...lease(c),p_state:'pending'});return {done:false,wait:1};
  }catch(error){
-  if(error instanceof CloudYield){await rpc(db,'cloud_finish',{...lease(c),p_state:'pending'});return {done:false,wait:1};}
+  if(error instanceof CloudYield){await rpc(db,'cloud_finish',{...lease(c),p_state:'pending'});return {done:false,wait:error.wait};}
   const failure=publicFailure(error);
   if(failure.kind==='transient'){
    const key=`retry:${currentJob??'task'}`;const attempts=(await readCheckpoint<number>(c,key)??0)+1;

@@ -1,5 +1,5 @@
 import {Sandbox} from '@vercel/sandbox';
-import {checkpoint,readCheckpoint,rpc,type Context} from './context';
+import {checkpoint,readCheckpoint,rpc,acquireResource,type Context} from './context';
 import {CloudFailure,CloudYield} from './errors';
 import {fetchWithLimits,htmlToText,cleanText} from '../pipeline/document-input';
 import {hash} from '../pipeline/chunks';
@@ -25,7 +25,7 @@ export async function extractDocument(c:Context,id:string,url:string,ocr:boolean
   if(result.text.length<50)throw new CloudFailure('document');await checkpoint(c,`document:${id}`,result);return result;
  }
  if(!process.env.CLOUD_SANDBOX_SNAPSHOT)throw new CloudFailure('credentials');
- if(!await rpc<boolean>(c.db,'cloud_resource',{p_name:'sandbox',p_owner:c.owner}))throw new CloudFailure('transient',30);
+ await acquireResource(c,'sandbox');
  let sb:Sandbox|undefined;let blocked:string|null=null;
  try {
   sb=await Sandbox.create({source:{type:'snapshot',snapshotId:process.env.CLOUD_SANDBOX_SNAPSHOT},timeout:600_000,resources:{vcpus:1},networkPolicy:'deny-all'});
@@ -64,7 +64,8 @@ export async function extractDocument(c:Context,id:string,url:string,ocr:boolean
  }catch(error){
   if(error instanceof CloudFailure||error instanceof CloudYield)throw error;
   const status=(error as {status?:number;statusCode?:number}).status??(error as {statusCode?:number}).statusCode;
-  if(status===402||status===429){blocked='vercel_quota';throw new CloudFailure('vercel_quota');}
+  if(status===429)throw new CloudFailure('transient',30);
+  if(status===402){blocked='vercel_quota';throw new CloudFailure('vercel_quota');}
   if(status===401||status===403)throw new CloudFailure('credentials');
   throw new CloudFailure('document');
  }finally{
