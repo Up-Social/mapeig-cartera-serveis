@@ -1,7 +1,7 @@
 "use server";
 import {executionMode} from "@/lib/pipeline/execution-mode";
 import {cloudDb,rpc} from "@/lib/cloud/context";
-import {launchRun} from "@/lib/cloud/enqueue";
+import {launchRun,startCloudPhase} from "@/lib/cloud/enqueue";
 
 import { revalidatePath } from "next/cache";
 import { getAvailableFinancingTypes, getBalancedSample } from "@/lib/batches";
@@ -133,6 +133,7 @@ export async function createGuidedBatch(recordIds: string[]) {
     ) > Math.ceil(4 / Math.max(1, requiredTypes.length))
   )
     throw new Error("La mostra no està equilibrada per tipologia.");
+  if(executionMode()==='vercel_workflow'){const id=await rpc<string>(cloudDb(),'cloud_create_draft',{p_records:ids,p_parameters:{mode:'balanced_by_financing_type',batch_size:4,types:selectedTypes}});revalidatePath('/batches');return {id};}
   const { data: run, error: runError } = await supabase
     .from("pipeline_runs")
     .insert({
@@ -164,6 +165,7 @@ export async function createGuidedBatch(recordIds: string[]) {
 export async function startBatchPreparation(runId: string) {
   if(executionMode()==='disabled')throw new Error('Execució desactivada en aquest entorn.');
   const id = validateId(runId);
+  if(executionMode()==='vercel_workflow'){await startCloudPhase(id,'prepare_run');revalidatePath('/batches');return {ok:true};}
   const supabase = createServerSupabase();
   const { data, error } = await supabase
     .from("pipeline_runs")
@@ -191,6 +193,7 @@ export async function startBatchPreparation(runId: string) {
 export async function startBatchMatching(runId: string) {
   if(executionMode()==='disabled')throw new Error('Execució desactivada en aquest entorn.');
   const id = validateId(runId);
+  if(executionMode()==='vercel_workflow'){await startCloudPhase(id,'match_run');revalidatePath('/batches');return {ok:true};}
   const supabase = createServerSupabase();
   const { count, error: countError } = await supabase
     .from("pipeline_jobs")

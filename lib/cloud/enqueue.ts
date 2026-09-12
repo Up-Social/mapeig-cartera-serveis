@@ -8,3 +8,10 @@ export async function launchRun(runId:string){
 export async function createCloudRun(records:string[],ocr=false){
  const id=await rpc<string>(cloudDb(),'cloud_create_run',{p_records:records,p_ocr:ocr});await launchRun(id);return id;
 }
+
+export async function startCloudPhase(run:string,type:'prepare_run'|'match_run'){
+ const task=await rpc<string>(cloudDb(),'cloud_start_phase',{p_run:run,p_type:type});await launchCloudTask(task);
+}
+export async function startCloudRecord(record:string,type:'prepare_run'|'enrich_record'|'match_run'){
+ const task=await rpc<string>(cloudDb(),'cloud_record_phase',{p_record:record,p_type:type});await launchCloudTask(task);
+}

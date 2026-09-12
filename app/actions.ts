@@ -1,6 +1,6 @@
 "use server";
 import {executionMode} from "@/lib/pipeline/execution-mode";
-import {createCloudRun} from "@/lib/cloud/enqueue";
+import {createCloudRun,startCloudRecord} from "@/lib/cloud/enqueue";
 import { revalidatePath } from "next/cache";
 import { createServerSupabase } from "@/lib/records-page";
 import { dispatchWorkerTask } from "@/lib/worker-dispatch";
@@ -11,6 +11,7 @@ export async function createProcessingBatch(recordIds: string[]) {
   const ids = [...new Set(recordIds)];
   if (ids.length < 1 || ids.length > 50)
     throw new Error("Selecciona entre 1 i 50 registres.");
+  if(executionMode()==='vercel_workflow')return {runId:await createCloudRun(ids.map(requireUuid)),count:ids.length};
   const supabase = createServerSupabase();
   const { data: existing, error: readError } = await supabase
     .from("source_records")
@@ -170,6 +171,7 @@ export async function recoverRecordWithOcr(sourceRecordId: string) {
 export async function prepareRecordSources(sourceRecordId: string) {
   if(executionMode()==='disabled')throw new Error('Execució desactivada en aquest entorn.');
   const id = requireUuid(sourceRecordId);
+  if(executionMode()==='vercel_workflow'){await startCloudRecord(id,'prepare_run');return {ready:false};}
   const supabase = createServerSupabase();
   const { data: record, error } = await supabase
     .from("source_records")
@@ -252,6 +254,7 @@ export async function prepareRecordSources(sourceRecordId: string) {
 export async function enrichRecordFromSources(sourceRecordId: string) {
   if(executionMode()==='disabled')throw new Error('Execució desactivada en aquest entorn.');
   const id = requireUuid(sourceRecordId);
+  if(executionMode()==='vercel_workflow'){await startCloudRecord(id,'enrich_record');return {ok:true};}
   const supabase = createServerSupabase();
   const { data: record, error } = await supabase
     .from("source_records")
@@ -299,6 +302,7 @@ export async function enrichRecordFromSources(sourceRecordId: string) {
 export async function matchPreparedRecord(sourceRecordId: string) {
   if(executionMode()==='disabled')throw new Error('Execució desactivada en aquest entorn.');
   const id = requireUuid(sourceRecordId);
+  if(executionMode()==='vercel_workflow'){await startCloudRecord(id,'match_run');return {ok:true};}
   const supabase = createServerSupabase();
   const { data: record, error } = await supabase
     .from("source_records")

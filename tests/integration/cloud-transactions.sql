@@ -21,3 +21,26 @@ do $$ declare ids uuid[];rid uuid;tid uuid;owner uuid:=gen_random_uuid();gen big
  if exists(select 1 from claim_worker_task('legacy') where id=tid) then raise exception 'legacy claimed cloud';end if;
 end $$;
 rollback;
+begin;
+insert into source_records(source_dataset,source_record_id,mechanism,title,suggested_code,suggested_name,suggested_confidence,suggested_evidence,amount,evidence_status)
+values('contractacions','CLOUD-PHASE-TEST','contracte','Fictici','','',0,'',0,'ready');
+do $$ declare sid uuid;tid uuid;rid uuid;begin
+ select id into sid from source_records where source_record_id='CLOUD-PHASE-TEST';
+ tid:=cloud_record_phase(sid,'enrich_record');
+ if tid<>cloud_record_phase(sid,'enrich_record') then raise exception 'duplicate phase';end if;
+ select run_id into rid from worker_tasks where id=tid;
+ if rid is null or (select count(*) from pipeline_jobs where run_id=rid)<>1 then raise exception 'missing atomic job';end if;
+end $$;
+rollback;
+begin;
+insert into source_records(source_dataset,source_record_id,mechanism,title,suggested_code,suggested_name,suggested_confidence,suggested_evidence,amount)
+values('contractacions','CLOUD-DRAFT-TEST','contracte','Fictici','','',0,'',0);
+set local role service_role;
+do $$ declare sid uuid;rid uuid;tid uuid;begin
+ select id into sid from source_records where source_record_id='CLOUD-DRAFT-TEST';
+ rid:=cloud_create_draft(array[sid],'{}');
+ if exists(select 1 from worker_tasks where run_id=rid) then raise exception 'draft started';end if;
+ tid:=cloud_start_phase(rid,'prepare_run');
+ if tid<>cloud_start_phase(rid,'prepare_run') then raise exception 'duplicate launch';end if;
+end $$;
+rollback;
