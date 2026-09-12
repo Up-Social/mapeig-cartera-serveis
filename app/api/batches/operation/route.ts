@@ -1,3 +1,6 @@
+import {executionMode} from '@/lib/pipeline/execution-mode';
+import {cloudDb,rpc} from '@/lib/cloud/context';
+import {launchCloudTask} from '@/lib/cloud/launch';
 import {createServerSupabase} from '@/lib/records-page';
 import {isUuid} from '@/lib/uuid';
 import {
@@ -18,6 +21,7 @@ export async function POST(request: Request) {
     switch (body.operation) {
       case "resume": {
         if(typeof body.batchId!=='string'||!isUuid(body.batchId))throw Error('Identificador no vàlid');
+        if(executionMode()==='vercel_workflow'){const task=await rpc<string>(cloudDb(),'cloud_resume',{p_run:body.batchId});await launchCloudTask(task);result={id:body.batchId};break;}
         const resumed=await createServerSupabase().rpc('resume_analysis_run',{p_run:body.batchId});if(resumed.error)throw resumed.error;result={id:body.batchId};break;
       }
       case "create_and_process":

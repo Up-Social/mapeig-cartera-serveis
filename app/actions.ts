@@ -1,4 +1,6 @@
 "use server";
+import {executionMode} from "@/lib/pipeline/execution-mode";
+import {createCloudRun} from "@/lib/cloud/enqueue";
 import { revalidatePath } from "next/cache";
 import { createServerSupabase } from "@/lib/records-page";
 import { dispatchWorkerTask } from "@/lib/worker-dispatch";
@@ -48,6 +50,7 @@ export async function createProcessingBatch(recordIds: string[]) {
 
 export async function processRecordAutomatically(sourceRecordId: string) {
   const id = requireUuid(sourceRecordId);
+  if(executionMode()==='vercel_workflow')return {runId:await createCloudRun([id])};
   const supabase = createServerSupabase();
   const { data: record, error: recordError } = await supabase
     .from("source_records")
@@ -101,6 +104,7 @@ export async function processRecordAutomatically(sourceRecordId: string) {
 
 export async function recoverRecordWithOcr(sourceRecordId: string) {
   const id = requireUuid(sourceRecordId);
+  if(executionMode()==='vercel_workflow')return {runId:await createCloudRun([id],true),documents:0};
   const supabase = createServerSupabase();
   const { data: record, error: recordError } = await supabase
     .from("source_records")

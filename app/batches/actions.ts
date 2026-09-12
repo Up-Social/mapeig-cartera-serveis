@@ -1,4 +1,7 @@
 "use server";
+import {executionMode} from "@/lib/pipeline/execution-mode";
+import {cloudDb,rpc} from "@/lib/cloud/context";
+import {launchRun} from "@/lib/cloud/enqueue";
 
 import { revalidatePath } from "next/cache";
 import { getAvailableFinancingTypes, getBalancedSample } from "@/lib/batches";
@@ -14,6 +17,7 @@ export async function generateBalancedSample(excludedIds: string[] = []) {
 export async function createAutomatedBatch(size: number) {
   if (!Number.isInteger(size) || size < 1 || size > 50)
     throw new Error("La mida del lot ha de ser un enter entre 1 i 50.");
+  if(executionMode()==='vercel_workflow'){const id=await rpc<string>(cloudDb(),'cloud_create_automated',{p_size:size});await launchRun(id);return {id};}
   const supabase = createServerSupabase();
   const { data, error } = await supabase.rpc("create_automated_batch", {
     p_batch_size: size,
