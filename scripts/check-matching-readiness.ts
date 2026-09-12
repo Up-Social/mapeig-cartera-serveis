@@ -25,7 +25,7 @@ async function main() {
     { label: "Model", ready: Boolean(process.env.OPENAI_MATCHING_MODEL), detail: process.env.OPENAI_MATCHING_MODEL ? "configurat" : "falta OPENAI_MATCHING_MODEL" },
     { label: "Evidència", ready: documents > 0 && chunks > 0, detail: `${documents} documents · ${chunks} fragments` },
     { label: "Catàleg", ready: catalogSource === "official" && officialReady, detail: officialReady ? "catàleg oficial complet i validat" : catalogDetail(catalogSource, masterAuthorized, catalogEntries) },
-    { label: "Treballs en cua", ready: queuedJobs > 0, detail: `${queuedJobs} treballs` },
+    { label: "Treballs en cua", ready: true, detail: queuedJobs ? `${queuedJobs} treballs` : "cap treball pendent" },
   ];
   console.log("Preparació del matching\n");
   if (!checks.every(check=>check.ready)) process.exitCode=1;

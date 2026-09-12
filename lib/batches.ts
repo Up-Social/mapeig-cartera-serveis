@@ -1,3 +1,5 @@
+import {executionMode} from './pipeline/execution-mode';
+import {executionStatus} from './cloud/execution-status';
 import {latestAnalysis} from './latest-analysis';
 import "server-only";
 import { createServerSupabase, mapLatestCandidates } from "./records-page";
@@ -95,4 +97,9 @@ function mapBatch(row: Record<string, unknown>): BatchSummary {
   return { pauseReason:row.pause_reason == null ? null : String(row.pause_reason), id: String(row.id), batchNumber: String(row.batch_number).padStart(8, "0"), status: String(row.status), stage, selectedCount: jobs.length, preparedCount: Number(row.prepared_count), readyCount: Number(row.ready_count), processedCount: Number(row.processed_count), analyzedCount, reviewCount: jobs.filter((job) => job.status === "needs_review").length, reviewedCount, approvedCount: jobs.filter((job) => ["approved", "corrected"].includes(job.status) && job.hasProvision).length, rejectedCount, insufficientCount, errorCount: jobs.filter((job) => job.status === "error").length, exportableCount: provisionCount, incidences, estimatedInputTokens: Number(row.estimated_input_tokens), actualInputTokens: Number(row.actual_input_tokens), actualOutputTokens: Number(row.actual_output_tokens), createdAt: String(row.created_at), canExport: provisionCount > 0, provisionCount, isActive: ["queued", "preparing", "enriching", "matching"].includes(String(row.status)), progress, jobs };
 }
 
-async function enrichCandidateServices(batches: BatchSummary[]) {return batches;}
+async function enrichCandidateServices(batches: BatchSummary[]) {
+ if(executionMode()!=='vercel_workflow'||!batches.length)return batches;
+ const r=await createServerSupabase().from('worker_tasks').select('run_id,execution_state,lease_until,last_progress_at,failure_kind').eq('executor','vercel_workflow').in('run_id',batches.map(b=>b.id)).order('created_at',{ascending:false});
+ if(r.error)throw new Error('No s’ha pogut consultar l’execució remota.');
+ return batches.map(batch=>{const task=r.data.find(t=>t.run_id===batch.id);if(!task)return batch;const execution=executionStatus(task);return {...batch,execution,isActive:['pending','running'].includes(execution.state)};});
+}
