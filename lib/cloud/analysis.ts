@@ -1,7 +1,8 @@
+import {positiveAuditSchema,positiveAuditInput,applyPositiveAudit,POSITIVE_AUDIT_INSTRUCTIONS,POSITIVE_AUDIT_VERSION} from './positive-audit';
 import {normalizeMissingScope} from './normalize-analysis';
-import {commit,checkpoint,rpc,lease,type Context} from './context';
+import {commit,checkpoint,readCheckpoint,rpc,lease,type Context} from './context';
 import {providerRequest} from './provider';
-import {CloudFailure} from './errors';
+import {CloudFailure,CloudYield} from './errors';
 import {enrichmentSchema,extractOutputText,sanitize,type Enrichment} from '../pipeline/enrichment-contract';
 import {validateScopeFacts,buildNormativeInput,MATCHING_INSTRUCTIONS} from '../normative-matching';
 import {validateAnalysis,type AnalysisOutput} from '../analysis-contract';
@@ -29,7 +30,13 @@ export async function analyzeRecord(c:Context,job:{id:string;source_record_id:st
   await rpc(c.db,'cloud_provider_usage',{...lease(c),p_key:`usage:${job.id}:analysis`,p_usage:raw.usage??{}});
   let result:AnalysisOutput;
   try {result=validateAnalysis(normalizeMissingScope(JSON.parse(extractOutputText(raw))),catalog.all,chunks.length);}catch {throw new CloudFailure('validation');}
-  await commit(c,job.id,'analysis',{version:catalog.version.id,result,usage:raw.usage,candidates:result.candidates.map(candidate=>({...candidate,model,metadata:{response_id:raw.id,usage:raw.usage},evidence:candidate.evidence_ordinals.map(n=>chunks[n-1])})),evidence:result.evidence_ordinals.map(n=>chunks[n-1])});
+  if(result.classification==='in_portfolio'){
+   if(!await readCheckpoint(c,`${job.id}:audit-ready`)){await checkpoint(c,`${job.id}:audit-ready`,true);throw new CloudYield(1);}
+   const audit=await providerRequest(c,`ai:${job.id}:${POSITIVE_AUDIT_VERSION}`,{model,instructions:POSITIVE_AUDIT_INSTRUCTIONS,input:positiveAuditInput(result,catalog.all,catalog.version.general_context,chunks),text:{format:{type:'json_schema',name:'positive_audit',strict:true,schema:positiveAuditSchema(result.candidates.map(x=>x.code))}},max_output_tokens:2000});
+   await rpc(c.db,'cloud_provider_usage',{...lease(c),p_key:`usage:${job.id}:${POSITIVE_AUDIT_VERSION}`,p_usage:audit.usage??{}});
+   try {result=validateAnalysis(applyPositiveAudit(result,JSON.parse(extractOutputText(audit)),catalog.all,chunks),catalog.all,chunks.length);}catch {throw new CloudFailure('validation');}
+  }
+  await commit(c,job.id,'analysis',{version:catalog.version.id,result,usage:raw.usage,candidates:result.candidates.map(candidate=>({...candidate,model,metadata:{response_id:raw.id,usage:raw.usage,positive_audit_version:POSITIVE_AUDIT_VERSION},evidence:candidate.evidence_ordinals.map(n=>chunks[n-1])})),evidence:result.evidence_ordinals.map(n=>chunks[n-1])});
  }
  await checkpoint(c,`${job.id}:${phase}`,{complete:true});
 }
