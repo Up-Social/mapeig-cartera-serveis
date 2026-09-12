@@ -1,3 +1,4 @@
+import {classifyFailure,retryDelay} from '../lib/provider-failure';
 import { execFile } from "node:child_process";
 import { hostname } from "node:os";
 import { promisify } from "node:util";
@@ -83,7 +84,8 @@ async function executeTask(task: Task) {
   } catch (error) {
     const message = formatError(error).slice(0, 2000);
     await markDomainFailure(task, message);
-    const willRetry = task.task_type === "process_run" && task.attempts < 3;
+    const willRetry = task.task_type === "process_run" && task.attempts < 3 && classifyFailure(message).retryable;
+    if(willRetry)await delay(retryDelay(task.attempts));
     if (willRetry && task.run_id) {
       await db.from("pipeline_runs").update({ status: "queued" }).eq("id", task.run_id);
     }

@@ -1,0 +1,4 @@
+import {test} from 'node:test';import assert from 'node:assert/strict';import {classifyFailure,retryTransient} from '../lib/provider-failure';
+test('quota and invalid credentials block without retries',async()=>{for(const message of ['OpenAI 429 insufficient_quota','OpenAI 401 invalid_api_key']){let calls=0;await assert.rejects(retryTransient(async()=>{calls++;throw Error(message);},async()=>{throw Error('Unexpected retry');}));assert.equal(calls,1);assert.equal(classifyFailure(message).blocked,true);}});
+test('transient failure uses three attempts and progressive delay',async()=>{let calls=0;const waits:number[]=[];await assert.rejects(retryTransient(async()=>{calls++;throw Error('OpenAI 429 rate_limit');},async ms=>{waits.push(ms);}));assert.equal(calls,3);assert.deepEqual(waits,[1000,2000]);});
+test('invalid evidence is not retried',()=>assert.equal(classifyFailure('Candidat sense evidència').retryable,false));

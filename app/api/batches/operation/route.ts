@@ -1,3 +1,5 @@
+import {createServerSupabase} from '@/lib/records-page';
+import {isUuid} from '@/lib/uuid';
 import {
   createGuidedBatch,
   createAutomatedBatch,
@@ -14,6 +16,10 @@ export async function POST(request: Request) {
     const body = (await request.json()) as Record<string, unknown>;
     let result: unknown;
     switch (body.operation) {
+      case "resume": {
+        if(typeof body.batchId!=='string'||!isUuid(body.batchId))throw Error('Identificador no vàlid');
+        const resumed=await createServerSupabase().rpc('resume_analysis_run',{p_run:body.batchId});if(resumed.error)throw resumed.error;result={id:body.batchId};break;
+      }
       case "create_and_process":
         result = await createAutomatedBatch(Number(body.size));
         break;

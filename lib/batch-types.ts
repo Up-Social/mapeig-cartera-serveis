@@ -18,6 +18,7 @@ export type BatchJob = {
   hasProvision: boolean;
 };
 export type BatchSummary = {
+  pauseReason?:string|null;
   id: string; batchNumber: string; status: string; stage: string; selectedCount: number; preparedCount: number; readyCount: number;
   processedCount: number; analyzedCount: number; reviewCount: number; reviewedCount: number; approvedCount: number; rejectedCount: number; insufficientCount: number; errorCount: number; exportableCount: number; incidences: string[];
   estimatedInputTokens: number; actualInputTokens: number; actualOutputTokens: number; createdAt: string;

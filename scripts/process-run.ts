@@ -1,3 +1,4 @@
+import {classifyFailure,retryDelay} from '../lib/provider-failure';
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { createClient } from "@supabase/supabase-js";
@@ -15,13 +16,15 @@ async function main() {
   if (error) throw error;
   if (run.parameters?.auto_process !== true) throw new Error("El lot no està configurat per al procés automàtic");
 
-  await setRun("preparing", "preparation");
-  await runCommand("pipeline:prepare", ["--run-id", runId!]);
+  const initial=await loadJobs();
+  if(initial.some(j=>j.preparation_status!=='ready' && !j.analysis_results?.length)) {
+    await setRun("preparing", "preparation"); await runCommand("pipeline:prepare", ["--run-id", runId!]);
+  }
 
   await setRun("enriching", "enrichment");
   const jobs = await loadJobs();
   for (const job of jobs) {
-    if (job.preparation_status !== "ready" || job.status === "error") continue;
+    if (job.analysis_results?.length || job.preparation_status !== "ready" || job.status === "error") continue;
     const source = sourceOf(job);
     if (source.enrichment_status !== "completed") {
       let completed = false;
@@ -33,6 +36,10 @@ async function main() {
           completed = true;
         } catch (failure) {
           lastError = messageOf(failure);
+          const info=classifyFailure(lastError);
+          if(info.blocked){await db.from('pipeline_jobs').update({status:'error',error_message:lastError}).eq('id',job.id);await db.from('pipeline_runs').update({status:'paused',pause_reason:info.message,pause_kind:info.kind}).eq('id',runId);return;}
+          if(!info.retryable)break;
+          if(attempt<3)await new Promise(resolve=>setTimeout(resolve,retryDelay(attempt)));
         }
       }
       if (!completed) {
@@ -45,7 +52,7 @@ async function main() {
 
   const afterEnrichment = await loadJobs();
   for (const job of afterEnrichment) {
-    if (job.status === "error") continue;
+    if (job.analysis_results?.length || job.status === "error") continue;
     const source = sourceOf(job);
     const completed = source.enrichment_status === "completed";
     await db.from("pipeline_jobs").update(completed ? { status: "ready", error_message: null } : { status: "error", error_message: source.enrichment_error ?? "Contrast incomplet", completed_at: new Date().toISOString() }).eq("id", job.id);
@@ -53,16 +60,10 @@ async function main() {
   }
 
   await setRun("matching", "matching");
-  for (let attempt = 1; attempt <= 3; attempt += 1) {
-    const { count } = await db.from("pipeline_jobs").select("id", { count: "exact", head: true }).eq("run_id", runId).eq("status", "ready");
-    if (!count) break;
-    await runCommand("matching:run", ["--run-id", runId!]);
-    if (attempt < 3) {
-      const failed = await loadJobs();
-      const retryable = failed.filter((job) => job.status === "error" && !String(job.error_message ?? "").startsWith("Cas omès:"));
-      for (const job of retryable) await db.from("pipeline_jobs").update({ status: "ready", error_message: null, completed_at: null }).eq("id", job.id);
-    }
-  }
+  const remaining=await db.from('pipeline_jobs').select('id',{count:'exact',head:true}).eq('run_id',runId).eq('status','ready');
+  if(remaining.count)await runCommand("matching:run", ["--run-id", runId!]);
+  const state=await db.from('pipeline_runs').select('status').eq('id',runId).single();
+  if(state.data?.status==='paused')return;
 
   await refresh();
   const finalJobs = await loadJobs();
@@ -74,7 +75,7 @@ async function main() {
 }
 
 async function loadJobs() {
-  const { data, error } = await db.from("pipeline_jobs").select("id,source_record_id,status,error_message,preparation_status,source_records(enrichment_status,enrichment_error)").eq("run_id", runId).order("created_at");
+  const { data, error } = await db.from("pipeline_jobs").select("id,source_record_id,status,error_message,preparation_status,analysis_results(id),source_records(enrichment_status,enrichment_error)").eq("run_id", runId).order("created_at");
   if (error) throw error;
   return data ?? [];
 }

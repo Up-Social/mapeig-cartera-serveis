@@ -22,10 +22,11 @@ async function main() {
     await supabase.from("pipeline_jobs").update({ preparation_status: "chunking" }).eq("run_id", runId).eq("status", "preparing");
     await run("sources:chunk", ["--run-id", runId!, "--limit", "200"]);
 
-    const { data: jobs, error } = await supabase.from("pipeline_jobs").select("id,source_record_id,source_documents:source_records(source_documents(status,chunk_count,error_message))").eq("run_id", runId);
+    const { data: jobs, error } = await supabase.from("pipeline_jobs").select("id,source_record_id,status,analysis_results(id),source_documents:source_records(source_documents(status,chunk_count,error_message))").eq("run_id", runId);
     if (error) throw error;
     let ready = 0; let errors = 0;
     for (const job of jobs ?? []) {
+      if(job.analysis_results?.length || ["needs_review","approved","corrected","rejected","insufficient_evidence"].includes(job.status))continue;
       const source = job.source_documents as unknown as { source_documents: Array<{ status: string; chunk_count: number; error_message: string | null }> };
       const documents = source?.source_documents ?? [];
       const usable = documents.some((document) => document.status === "fetched" && document.chunk_count > 0);

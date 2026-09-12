@@ -1,3 +1,4 @@
+import {classifyFailure,retryTransient} from '../lib/provider-failure';
 import {buildNormativeInput,MATCHING_INSTRUCTIONS,scopeFactsSchema,validateScopeFacts,type ScopeFacts} from '../lib/normative-matching';
 import {analysisSchema,validateAnalysis,type AnalysisOutput} from '../lib/analysis-contract';
 import {loadOfficialCatalog,assertEligible} from '../lib/official-catalog';
@@ -27,7 +28,7 @@ async function main() {
   const { data: jobs, error } = await request;
   if (error) throw error;
   if (!jobs?.length) throw new Error("No hi ha treballs en cua");
-  for (const job of jobs) await processJob(job);
+  for (const job of jobs) {await processJob(job); const state=await supabase.from('pipeline_runs').select('status').eq('id',job.run_id).single(); if(state.data?.status==='paused')return;}
   if (runId && jobs.length) await finishRunIfDone(runId);
 }
 
@@ -39,6 +40,9 @@ async function processJob(job: { id: string; run_id: string; source_record_id: s
   await supabase.from("source_records").update({ processing_status: "processant", updated_at: claimedAt }).eq("id", job.source_record_id);
 
   try {
+    const previous=await supabase.from('analysis_results').select('id').eq('pipeline_job_id',job.id).maybeSingle();
+    if(previous.error)throw previous.error;
+    if(previous.data){await supabase.from('pipeline_jobs').update({status:'needs_review'}).eq('id',job.id);return;}
     await assertNotPreviouslySelected(job.source_record_id, job.id, allowPreviousSelection);
     const [{ data: record, error: recordError }, official] = await Promise.all([
       supabase.from("source_records").select("id,source_dataset,source_record_id,mechanism,title,provider_name,amount,source_payload,record_enrichments(id,summary,provider_name,provider_nif,mechanism,award_date,amount,contracting_body,target_population,scope_facts),source_documents!inner(id,status)").eq("id", job.source_record_id).eq("source_documents.status", "fetched").single(),
@@ -52,7 +56,7 @@ async function processJob(job: { id: string; run_id: string; source_record_id: s
     if (!chunks?.length) throw new Error("El registre no té fragments d'evidència");
 
     const existingEnrichment = Array.isArray(record.record_enrichments) ? record.record_enrichments[0] : record.record_enrichments;
-    const response = await fetch("https://api.openai.com/v1/responses", {
+    const response = await retryTransient(async()=> { const result=await fetch("https://api.openai.com/v1/responses", {
       method: "POST",
       headers: { Authorization: `Bearer ${openaiKey}`, "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -63,6 +67,7 @@ async function processJob(job: { id: string; run_id: string; source_record_id: s
         max_output_tokens: 4000,
       }),
     });
+    if(!result.ok)throw new Error('OpenAI '+result.status+': '+JSON.stringify(await result.json())); return result; });
     const raw = await response.json() as Record<string, unknown>;
     if (!response.ok) throw new Error(`OpenAI ${response.status}: ${JSON.stringify(raw)}`);
     const parsed = JSON.parse(extractOutputText(raw)) as AnalysisOutput & { enrichment?: EnrichmentOutput };
@@ -96,7 +101,9 @@ async function processJob(job: { id: string; run_id: string; source_record_id: s
     const message = formatError(error);
     await supabase.from("pipeline_jobs").update({ status: "error", error_message: message, completed_at: new Date().toISOString() }).eq("id", job.id);
     await supabase.from("source_records").update({ processing_status: "error", updated_at: new Date().toISOString() }).eq("id", job.source_record_id);
-    console.error(`${job.source_record_id}: ${message}`);
+    const failure=classifyFailure(message);
+    if(failure.blocked)await supabase.from('pipeline_runs').update({status:'paused',pause_reason:failure.message,pause_kind:failure.kind}).eq('id',job.run_id);
+    console.error(message);
   }
 }
 
