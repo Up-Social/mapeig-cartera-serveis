@@ -28,3 +28,9 @@ test('budget pause happens before any billable call or sending checkpoint',async
  global.fetch=async()=>{calls++;return Response.json({});};
  try {await assert.rejects(providerRequest(c,'key',{}),/budget/);assert.equal(calls,0);assert.equal(journal.has('key'),false);}finally{global.fetch=original;}
 });
+
+test('confirmed rejection is journaled separately from unknown external outcome',async()=>{
+ const {c,journal}=fakeContext();const original=global.fetch;let calls=0;
+ global.fetch=async()=>{calls++;return Response.json({error:{code:'invalid_json_schema',message:'PRIVATE_ERROR'}},{status:400});};
+ try {await assert.rejects(providerRequest(c,'key',{}),/validation/);assert.equal((journal.get('key') as {state:string}).state,'rejected');await assert.rejects(providerRequest(c,'key',{}),/validation/);assert.equal(calls,1);}finally{global.fetch=original;}
+});

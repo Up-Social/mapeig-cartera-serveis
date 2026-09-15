@@ -6,10 +6,17 @@ type Check={code:string;service_name:string;compatible:boolean;explanation:strin
 export function positiveAuditSchema(codes:string[],chunks:Array<{content:string}>=[]){return {type:'object',additionalProperties:false,required:['checks'],properties:{checks:{type:'array',minItems:codes.length,maxItems:codes.length,items:{type:'object',additionalProperties:false,required:['code','service_name','compatible','explanation','evidence_ordinal','quote'],properties:{code:{type:'string',enum:codes},service_name:{type:'string'},compatible:{type:'boolean'},explanation:{type:'string'},evidence_ordinal:{type:'integer',minimum:1},quote:{type:'string',...(chunks.length?{enum:['',...new Set(chunks.flatMap(c=>c.content.split(/\n|(?<=[.!?])\s+/).map(s=>s.trim()).filter(s=>s.length>=12&&s.length<=500)).slice(0,200))]}:{})}}}}}};}
 export function positiveAuditInput(result:AnalysisOutput,all:OfficialService[],general:string,chunks:Array<{content:string}>){return JSON.stringify({normative_general_context:general,services:result.candidates.map(c=>{const s=assertEligible(c.code,all);return {code:c.code,service_name:s.service_name,description:s.description,target_population:s.target_population,conditions:s.conditions,ancestors:normativeContext(s,all)};}),expedient_evidence:chunks.map((c,i)=>({ordinal:i+1,content:c.content}))});}
 export function applyPositiveAudit(result:AnalysisOutput,value:{checks:Check[]},all:OfficialService[],chunks:Array<{content:string}>):AnalysisOutput {
- const checks=value?.checks;
+ const checks=value?.checks?.map(c=>({...c}));
  if(!Array.isArray(checks)||checks.length!==result.candidates.length||new Set(checks.map(c=>c.code)).size!==checks.length)throw Error('POSITIVE_AUDIT_INVALID');
  for(const c of checks){const s=assertEligible(c.code,all);if(!result.candidates.some(x=>x.code===c.code)||c.service_name!==s.service_name||typeof c.compatible!=='boolean'||typeof c.explanation!=='string'||c.explanation.trim().length<20)throw Error('POSITIVE_AUDIT_INVALID');
-  if(c.compatible&&(!Number.isInteger(c.evidence_ordinal)||typeof c.quote!=='string'||c.quote.trim().length<12||!chunks[c.evidence_ordinal-1]?.content.includes(c.quote)))throw Error('POSITIVE_AUDIT_EVIDENCE');
+  if(c.compatible){
+   if(!Number.isInteger(c.evidence_ordinal)||!chunks[c.evidence_ordinal-1]||typeof c.quote!=='string'||c.quote.trim().length<12)throw Error('POSITIVE_AUDIT_EVIDENCE');
+   if(!chunks[c.evidence_ordinal-1].content.includes(c.quote)){
+    const exact=chunks.flatMap((chunk,i)=>chunk.content.includes(c.quote)?[i+1]:[]);
+    if(exact.length!==1)throw Error('POSITIVE_AUDIT_EVIDENCE');
+    c.evidence_ordinal=exact[0];
+   }
+  }
  }
  const candidates=result.candidates.filter(c=>checks.find(x=>x.code===c.code)!.compatible).map(c=>{const check=checks.find(x=>x.code===c.code)!;return {...c,rationale:check.explanation,evidence_ordinals:[check.evidence_ordinal],evidence_explanation:check.quote};});
  if(!candidates.length)return {...result,classification:'insufficient_evidence',candidates:[],reasons:[],explanation:'La comprovació específica no acredita cap dels serveis proposats. Cal revisar el servei i les condicions determinants. '+checks.map(c=>c.explanation).join(' ')};

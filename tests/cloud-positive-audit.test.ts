@@ -14,3 +14,12 @@ test('Audit rejects missing, repeated, invented, misnamed and unsupported eviden
 test('Audit preserves score ordering and only permits proposed codes',()=>{const v=applyPositiveAudit(result,{checks:checks.map(c=>({...c,compatible:true,quote:checks[1].quote}))},all,chunks);assert.deepEqual(v.candidates.map(c=>c.score),[.9,.8]);assert.deepEqual(positiveAuditSchema(['1.1']).properties.checks.items.properties.code.enum,['1.1']);});
 
 test('Audit quote choices come exclusively from document text',()=>{const choices=positiveAuditSchema(['1.2'],chunks).properties.checks.items.properties.quote.enum;assert.deepEqual(choices,['',chunks[0].content]);});
+
+test('literal quotation can resolve one misplaced in-range ordinal without changing the text',()=>{
+ const evidence=[{content:'Other synthetic source, unrelated.'},...chunks];
+ const result2=applyPositiveAudit(result,{checks},all,evidence);assert.deepEqual(result2.candidates[0].evidence_ordinals,[2]);assert.equal(checks[1].evidence_ordinal,1);
+});
+test('missing or ambiguous quotation never resolves to an arbitrary source',()=>{
+ const evidence=[{content:'Other synthetic source, unrelated.'},...chunks,...chunks];
+ assert.throws(()=>applyPositiveAudit(result,{checks},all,evidence),/POSITIVE_AUDIT_EVIDENCE/);
+});
