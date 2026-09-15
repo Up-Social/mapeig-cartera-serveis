@@ -19,9 +19,9 @@ test('literal quotation can resolve one misplaced in-range ordinal without chang
  const evidence=[{content:'Other synthetic source, unrelated.'},...chunks];
  const result2=applyPositiveAudit(result,{checks},all,evidence);assert.deepEqual(result2.candidates[0].evidence_ordinals,[2]);assert.equal(checks[1].evidence_ordinal,1);
 });
-test('missing or ambiguous quotation never resolves to an arbitrary source',()=>{
+test('repeated literal quotation retains all matching sources rather than choosing arbitrarily',()=>{
  const evidence=[{content:'Other synthetic source, unrelated.'},...chunks,...chunks];
- assert.throws(()=>applyPositiveAudit(result,{checks},all,evidence),/POSITIVE_AUDIT_EVIDENCE/);
+ const resolved=applyPositiveAudit(result,{checks},all,evidence);assert.deepEqual(resolved.candidates[0].evidence_ordinals,[2,3]);assert.deepEqual(resolved.evidence_ordinals,[2,3]);
 });
 
 test('strict audit schema uses literal spans without unsupported quoted/control characters',()=>{

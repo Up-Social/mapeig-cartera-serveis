@@ -7,18 +7,17 @@ export function positiveAuditSchema(codes:string[],chunks:Array<{content:string}
 export function positiveAuditInput(result:AnalysisOutput,all:OfficialService[],general:string,chunks:Array<{content:string}>){return JSON.stringify({normative_general_context:general,services:result.candidates.map(c=>{const s=assertEligible(c.code,all);return {code:c.code,service_name:s.service_name,description:s.description,target_population:s.target_population,conditions:s.conditions,ancestors:normativeContext(s,all)};}),expedient_evidence:chunks.map((c,i)=>({ordinal:i+1,content:c.content}))});}
 export function applyPositiveAudit(result:AnalysisOutput,value:{checks:Check[]},all:OfficialService[],chunks:Array<{content:string}>):AnalysisOutput {
  const checks=value?.checks?.map(c=>({...c}));
+ const evidenceByCode=new Map<string,number[]>();
  if(!Array.isArray(checks)||checks.length!==result.candidates.length||new Set(checks.map(c=>c.code)).size!==checks.length)throw Error('POSITIVE_AUDIT_INVALID');
  for(const c of checks){const s=assertEligible(c.code,all);if(!result.candidates.some(x=>x.code===c.code)||c.service_name!==s.service_name||typeof c.compatible!=='boolean'||typeof c.explanation!=='string'||c.explanation.trim().length<20)throw Error('POSITIVE_AUDIT_INVALID');
   if(c.compatible){
    if(!Number.isInteger(c.evidence_ordinal)||!chunks[c.evidence_ordinal-1]||typeof c.quote!=='string'||c.quote.trim().length<12)throw Error('POSITIVE_AUDIT_EVIDENCE');
-   if(!chunks[c.evidence_ordinal-1].content.includes(c.quote)){
-    const exact=chunks.flatMap((chunk,i)=>chunk.content.includes(c.quote)?[i+1]:[]);
-    if(exact.length!==1)throw Error('POSITIVE_AUDIT_EVIDENCE');
-    c.evidence_ordinal=exact[0];
-   }
+   const exact=chunks[c.evidence_ordinal-1].content.includes(c.quote)?[c.evidence_ordinal]:chunks.flatMap((chunk,i)=>chunk.content.includes(c.quote)?[i+1]:[]);
+   if(!exact.length)throw Error('POSITIVE_AUDIT_EVIDENCE');
+   evidenceByCode.set(c.code,exact);
   }
  }
- const candidates=result.candidates.filter(c=>checks.find(x=>x.code===c.code)!.compatible).map(c=>{const check=checks.find(x=>x.code===c.code)!;return {...c,rationale:check.explanation,evidence_ordinals:[check.evidence_ordinal],evidence_explanation:check.quote};});
+ const candidates=result.candidates.filter(c=>checks.find(x=>x.code===c.code)!.compatible).map(c=>{const check=checks.find(x=>x.code===c.code)!;return {...c,rationale:check.explanation,evidence_ordinals:evidenceByCode.get(c.code)!,evidence_explanation:check.quote};});
  if(!candidates.length)return {...result,classification:'insufficient_evidence',candidates:[],reasons:[],explanation:'La comprovació específica no acredita cap dels serveis proposats. Cal revisar el servei i les condicions determinants. '+checks.map(c=>c.explanation).join(' ')};
  return {...result,candidates,explanation:'Correspondència contrastada amb la fitxa normativa específica. '+candidates.map(c=>c.rationale).join(' '),evidence_ordinals:[...new Set(candidates.flatMap(c=>c.evidence_ordinals))]};
 }

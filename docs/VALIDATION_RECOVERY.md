@@ -2,7 +2,7 @@
 
 Les referències normatives es vinculen al codi fulla validat al servidor. La IA no ha de reproduir literalment una referència per poder continuar: el contrast independent contra la fitxa concreta continua sent obligatori abans de persistir una correspondència positiva. Cap normalització admet pares, prestacions excloses o codis desconeguts.
 
-Els candidats declarats incompatibles s’exclouen; si no en queda cap o no s’acredita l’abast, el resultat és evidència insuficient. Les puntuacions originals es conserven i la validació final ordena el principal. Una cita literal amb ordinal equivocat només es reubica si correspon inequívocament a un altre fragment del mateix expedient; les cites inexistents o amb atribució ambigua es rebutgen.
+Els candidats declarats incompatibles s’exclouen; si no en queda cap o no s’acredita l’abast, el resultat és evidència insuficient. Les puntuacions originals es conserven i la validació final ordena el principal. Una cita literal amb ordinal equivocat es vincula als fragments del mateix expedient que la contenen exactament. Si es repeteix, es conserven totes les referències coincidents; no se’n tria una arbitràriament. Les cites inexistents es rebutgen. Les opcions del esquema estricte utilitzen fragments literals sense cometes, barres inverses ni caràcters de control; el text font no es modifica.
 
 Una resposta negativa sense motiu o evidència rep una única reparació documentada (`contract-repair-v1`). Aquesta reparació no pot crear candidats ni afirmar fora de cartera. Es registra, es valida i es comptabilitza dins del pressupost existent. Els errors del proveïdor confirmats es desen com a `rejected` en el diari privat; els resultats incerts continuen requerint resolució explícita.
 
