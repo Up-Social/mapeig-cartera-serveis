@@ -9,6 +9,8 @@ import {
   FINANCING_TYPE_LABELS,
   SOURCE_LABELS,
 } from "@/lib/financing-types";
+import { HistoryUpdate } from "./history-update";
+import { reviewClassificationLabel } from "@/lib/review-classification";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -23,11 +25,15 @@ type Filters = { batchId?: string; type: string; state: string; query: string };
 type ServiceOption = { code: string; name: string; scope: string | null };
 export function ReviewWorkbench({
   queue,
+  historyEnabled,
+  historyRunId,
   filters,
   focusedRecordId,
   services,
 }: {
   queue: ReviewQueue;
+  historyEnabled:boolean;
+  historyRunId:string|null;
   filters: Filters;
   focusedRecordId?: string;
   services: ServiceOption[];
@@ -75,6 +81,7 @@ export function ReviewWorkbench({
             {refreshing ? "Actualitzant…" : "Actualitzar"}
           </Button>
         </div>
+        {historyEnabled&&<HistoryUpdate runId={historyRunId}/>}
         <form ref={formRef} className="surface mt-5 grid gap-3 p-4 md:grid-cols-[minmax(220px,1fr)_220px]">
           <input type="hidden" name="batch" value={filters.batchId ?? ""} />
           <input type="hidden" name="record" value={focusedRecordId ?? ""} />
@@ -102,16 +109,19 @@ export function ReviewWorkbench({
               {records.map((record) => (
                 <AccordionItem key={record.id} value={record.id} className="px-4">
                 <AccordionTrigger className="gap-4 py-4 hover:no-underline"><div className="min-w-0 flex-1 text-left">
-                  <div className="flex items-start justify-between gap-2">
+                  <div className="flex flex-wrap items-start justify-between gap-2">
                     <p className="text-xs font-semibold text-neutral-500">
                       {FINANCING_TYPE_LABELS[record.financingType]} ·{" "}
                       {displaySourceIdentifier(record.sourceRecordId)}
                     </p>
-                    <Badge variant="secondary">
+                    <span className="flex flex-wrap gap-2">
+                    <Badge variant="outline" className="whitespace-normal text-left" title="Classificació normativa">{reviewClassificationLabel(record)}</Badge>
+                    <Badge variant="secondary" className="whitespace-normal text-left">
                       {record.reviewDecision
                         ? decisionLabel(record.reviewDecision)
-                        : "Pendent"}
+                        : "Pendent de revisió"}
                     </Badge>
+                    </span>
                   </div>
                   <p className="mt-1 text-[13.2px] text-neutral-500">
                     {SOURCE_LABELS[record.sourceDataset] ??

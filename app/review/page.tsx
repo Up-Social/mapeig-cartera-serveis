@@ -1,3 +1,4 @@
+import {executionMode} from '@/lib/pipeline/execution-mode';
 import { getReviewQueue, getSourceRecord } from "@/lib/records-page";
 import { createServerSupabase } from "@/lib/records-page";
 import { ReviewWorkbench } from "./review-workbench";
@@ -24,6 +25,9 @@ export default async function ReviewPage({ searchParams }: Props) {
       .order("service_code"),
   ]);
   if (services.error) throw services.error;
+  const historyEnabled=executionMode()==='vercel_workflow';
+  const history=historyEnabled?await createServerSupabase().from('pipeline_runs').select('id').eq('parameters->>history_campaign','normative-history-v1').maybeSingle():null;
+  if(history?.error)throw history.error;
   const focused=focusedRecordId?await getSourceRecord(focusedRecordId):null;
   if(focused&&!queue.records.some(r=>r.id===focused.id))queue.records.unshift(focused);
   const focusedQueue = {
@@ -32,7 +36,9 @@ export default async function ReviewPage({ searchParams }: Props) {
   };
   return (
     <ReviewWorkbench
-      key={`${focusedRecordId ?? "queue"}:${focusedQueue.records.map((record) => `${record.id}:${record.reviewDecision ?? "pending"}`).join("|")}`}
+      key={`${focusedRecordId ?? "queue"}:${focusedQueue.records.map((record) => `${record.id}:${record.analysis?.id ?? "legacy"}:${record.analysis?.reviewed_classification ?? "auto"}:${record.status}:${record.reviewDecision ?? "pending"}`).join("|")}`}
+      historyEnabled={historyEnabled}
+      historyRunId={history?.data?.id??null}
       queue={focusedQueue}
       filters={filters}
       focusedRecordId={focusedRecordId}

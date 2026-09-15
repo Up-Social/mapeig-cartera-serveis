@@ -1,5 +1,6 @@
 "use client";
 
+import {failureLabels,type FailureKind} from '@/lib/cloud/errors';
 import Link from "next/link";
 import { useEffect, useState, useTransition } from "react";
 import type { BatchSummary } from "@/lib/batch-types";
@@ -66,7 +67,7 @@ export function BatchesWorkbench({ batches, activeBatch }: { batches: BatchSumma
 
 function BatchDetail({ batch,onUpdate }: { batch: BatchSummary;onUpdate:(batch:BatchSummary)=>void }) {
   return <div className="space-y-5"><div className="flex flex-wrap items-start justify-between gap-3"><div><p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Progrés del lot</p><h3 className="mt-1 text-xl font-semibold">{outcomeLabel(batch)}</h3></div>{batch.reviewCount > 0 && <Link href={`/review?batch=${batch.id}`} className={buttonVariants()}>Obrir revisió</Link>}</div>
-    {batch.execution && <div className="rounded-lg border p-3 text-sm"><p>{batch.execution.label}</p>{batch.execution.lastProgress&&<p className="mt-1 text-xs text-muted-foreground">Darrer avanç: {new Intl.DateTimeFormat('ca-ES',{dateStyle:'short',timeStyle:'short',timeZone:'Europe/Madrid'}).format(new Date(batch.execution.lastProgress))}</p>}<p className="mt-1 text-xs text-muted-foreground">El procés continua al núvol encara que tanquis aquesta pàgina. Les quotes poden aturar-lo.</p></div>}
+    {batch.execution && <div className="rounded-lg border p-3 text-sm"><p>{batch.execution.label}</p>{batch.execution.reason&&<p className="mt-1">{failureLabels[batch.execution.reason as FailureKind]??'Cal revisar la configuració de l’execució.'}</p>}{batch.execution.lastProgress&&<p className="mt-1 text-xs text-muted-foreground">Darrer avanç: {new Intl.DateTimeFormat('ca-ES',{dateStyle:'short',timeStyle:'short',timeZone:'Europe/Madrid'}).format(new Date(batch.execution.lastProgress))}</p>}<p className="mt-1 text-xs text-muted-foreground">El procés continua al núvol encara que tanquis aquesta pàgina. Les quotes poden aturar-lo.</p></div>}
     {(batch.execution?.recoverable || (!batch.execution && batch.status === "paused")) && <ResumeBatch batch={batch} onUpdate={onUpdate}/>}
     <div className="grid gap-3 md:grid-cols-3"><PhaseCard number="1" title="Preparació de fonts" phase={batch.progress.preparation} /><PhaseCard number="2" title="Contrast de dades" phase={batch.progress.enrichment} /><PhaseCard number="3" title="Correspondència" phase={batch.progress.matching} /></div>
     {batch.errorCount > 0 && !batch.isActive && <p className="rounded-lg border border-neutral-300 bg-neutral-100 p-3 text-sm">Finalitzat amb incidències: {batch.errorCount} registre(s) no han completat el procés.</p>}
