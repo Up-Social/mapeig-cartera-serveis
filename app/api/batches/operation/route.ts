@@ -26,7 +26,7 @@ export async function POST(request: Request) {
       }
       case "retry_validation": {
         if(executionMode()!=='vercel_workflow'||typeof body.batchId!=='string'||!isUuid(body.batchId))throw Error('Operació no vàlida.');
-        const task=await rpc<string>(cloudDb(),'cloud_retry_validation',{p_run:body.batchId,p_revision:'validation-v1'});
+        const task=await rpc<string>(cloudDb(),'cloud_retry_validation',{p_run:body.batchId,p_revision:'validation-v2'});
         const current=await cloudDb().from('worker_tasks').select('dispatch_at').eq('id',task).single();
         if(current.error)throw Error('No s’ha pogut consultar la recuperació.');
         if(!current.data.dispatch_at)await launchCloudTask(task);result={id:body.batchId};break;

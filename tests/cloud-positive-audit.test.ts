@@ -23,3 +23,10 @@ test('missing or ambiguous quotation never resolves to an arbitrary source',()=>
  const evidence=[{content:'Other synthetic source, unrelated.'},...chunks,...chunks];
  assert.throws(()=>applyPositiveAudit(result,{checks},all,evidence),/POSITIVE_AUDIT_EVIDENCE/);
 });
+
+test('strict audit schema uses literal spans without unsupported quoted/control characters',()=>{
+ const content='El servei residencial "Centre de suport a persones grans" ofereix atenció.\u0000Altres condicions documentades.';
+ const choices=positiveAuditSchema(['1.2'],[{content}]).properties.checks.items.properties.quote.enum!;
+ assert.ok(choices.includes('Centre de suport a persones grans'));
+ assert.ok(choices.filter(Boolean).every(text=>content.includes(text)&&!/["\\\p{Cc}\p{Cs}]/u.test(text)));
+});
