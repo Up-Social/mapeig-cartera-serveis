@@ -1,3 +1,4 @@
+import {reclassifyHistory} from '@/lib/cloud/enqueue';
 import {executionMode} from '@/lib/pipeline/execution-mode';
 import {cloudDb,rpc} from '@/lib/cloud/context';
 import {launchCloudTask} from '@/lib/cloud/launch';
@@ -19,6 +20,10 @@ export async function POST(request: Request) {
     const body = (await request.json()) as Record<string, unknown>;
     let result: unknown;
     switch (body.operation) {
+      case "reclassify_history": {
+        if(executionMode()!=='vercel_workflow')throw Error('Disponible només amb execució remota de producció.');
+        result=await reclassifyHistory();break;
+      }
       case "resume": {
         if(typeof body.batchId!=='string'||!isUuid(body.batchId))throw Error('Identificador no vàlid');
         if(executionMode()==='vercel_workflow'){const task=await rpc<string>(cloudDb(),'cloud_resume',{p_run:body.batchId});await launchCloudTask(task);result={id:body.batchId};break;}

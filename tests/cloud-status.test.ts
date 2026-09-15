@@ -5,4 +5,5 @@ test('queued, stale, quota and uncertain responses remain distinguishable',()=>{
  assert.equal(executionStatus({...task,execution_state:'running',lease_until:'2000-01-01'}).state,'interrupted');
  assert.equal(executionStatus({...task,execution_state:'paused',failure_kind:'vercel_quota'}).label,'Pausat per quota');
  assert.equal(executionStatus({...task,execution_state:'paused',failure_kind:'provider_unknown'}).recoverable,false);
+ assert.equal(executionStatus({...task,execution_state:'paused',failure_kind:'budget'}).recoverable,false);
 });

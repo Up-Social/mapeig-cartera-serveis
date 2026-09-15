@@ -15,3 +15,13 @@ export async function startCloudPhase(run:string,type:'prepare_run'|'match_run')
 export async function startCloudRecord(record:string,type:'prepare_run'|'enrich_record'|'match_run'){
  const task=await rpc<string>(cloudDb(),'cloud_record_phase',{p_record:record,p_type:type});await launchCloudTask(task);
 }
+
+export async function reclassifyHistory(){
+ const id=await rpc<string|null>(cloudDb(),'cloud_reclassify_history',{});
+ if(id){
+  const task=await cloudDb().from('worker_tasks').select('id,dispatch_at').eq('run_id',id).eq('executor','vercel_workflow').single();
+  if(task.error)throw Error('No s’ha pogut consultar l’execució.');
+  if(!task.data.dispatch_at)await launchCloudTask(task.data.id);
+ }
+ return {id};
+}
