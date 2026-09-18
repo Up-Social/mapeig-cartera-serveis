@@ -7,7 +7,7 @@ import { createClient } from "@supabase/supabase-js";
 import {assertTestEnvironment} from './test-environment';
 import type { ProcessingStatus, ReviewQueue, SourcePage, SourceRecord } from "./workbench-types";
 import { mapLatestMatchingError } from "./matching-state";
-import { latestJobsByRecord, newestProcessedFirst, summarizeLatestJobs } from "./latest-job-state";
+import { latestJobsByRecord, newestProcessedFirst } from "./latest-job-state";
 
 export const PAGE_SIZE = 25;
 
@@ -60,11 +60,10 @@ async function countRows(status?: ProcessingStatus) {
 }
 
 async function getLatestJobMetrics() {
-  const { data, error } = await createServerSupabase()
-    .from("pipeline_jobs")
-    .select("source_record_id,status,created_at");
-  if (error) throw error;
-  return summarizeLatestJobs(data ?? []);
+  const db=createServerSupabase();
+  const count=async(destination:string)=>{const r=await db.from('current_record_results').select('id',{count:'exact',head:true}).eq('destination',destination);if(r.error)throw r.error;return r.count??0;};
+  const [queued,completed,review]=await Promise.all([count('processing'),count('approved'),count('review')]);
+  return {queued,completed,review};
 }
 
 export function mapRecord(row: Record<string, unknown>): SourceRecord {
@@ -72,6 +71,7 @@ export function mapRecord(row: Record<string, unknown>): SourceRecord {
   const reviews=Array.isArray(row.review_decisions)?row.review_decisions.filter(r=>r.pipeline_job_id===jobs[0]?.id):[];
   return {
     currentJobId: jobs[0]?.id ?? null,
+    currentJobStatus: jobs[0]?.status ?? null,
     reviewHistory: Array.isArray(row.review_decisions)?row.review_decisions.map(r=>({id:String(r.id),jobId:r.pipeline_job_id??null,classification:r.classification??null,decision:r.decision,reason:r.reason??null,reasons:r.reasons??[],createdAt:String(r.created_at)})).sort((a,b)=>b.createdAt.localeCompare(a.createdAt)||b.id.localeCompare(a.id)):[],
     id: String(row.id), sourceDataset: String(row.source_dataset), financingType: row.financing_type as SourceRecord["financingType"], sourceRecordId: String(row.source_record_id),
     mechanism: String(row.mechanism), title: String(row.title),
@@ -117,7 +117,7 @@ export function mapRecord(row: Record<string, unknown>): SourceRecord {
 
 export function mapLatestCandidates(value: unknown): SourceRecord["matchingCandidates"] {
   if (!Array.isArray(value)) return [];
-  const jobs = [...value].map((job) => job as Record<string, unknown>).sort((a, b) => String(b.created_at).localeCompare(String(a.created_at)));
+  const jobs = [...value].map((job) => job as Record<string, unknown>).sort((a, b) => String(b.created_at).localeCompare(String(a.created_at))||String(b.id).localeCompare(String(a.id)));
   const latest = jobs[0];
   if (!latest || !Array.isArray(latest.matching_candidates)) return [];
   return latest.matching_candidates.filter(candidate => officialByCode.has(String((candidate as Record<string,unknown>).target_code))).map((candidate) => {
@@ -143,7 +143,7 @@ export const RECORD_SELECT = "*,source_documents(id,url,document_type,source_fie
 
 function mapLatestRun(value: unknown) {
   if (!Array.isArray(value) || !value.length) return null;
-  const job = [...value].map((item) => item as Record<string, unknown>).sort((a, b) => String(b.created_at).localeCompare(String(a.created_at)))[0];
+  const job = [...value].map((item) => item as Record<string, unknown>).sort((a, b) => String(b.created_at).localeCompare(String(a.created_at))||String(b.id).localeCompare(String(a.id)))[0];
   const rawRun = Array.isArray(job.pipeline_runs) ? job.pipeline_runs[0] : job.pipeline_runs;
   const run = rawRun as Record<string, unknown> | null;
   return { id: String(job.run_id), number: run?.batch_number == null ? null : String(run.batch_number).padStart(8, "0") };
@@ -151,6 +151,22 @@ function mapLatestRun(value: unknown) {
 
 export async function getReviewQueue(input: { batchId?: string; type?: string; state?: string; query?: string }): Promise<ReviewQueue> {
   const supabase = createServerSupabase();
+  if(!input.batchId){
+    const ids:string[]=[];
+    for(let offset=0;;offset+=500){
+      let q=supabase.from('current_record_results').select('id').not('job_id','is',null);
+      if(input.state!=='all')q=q.eq('destination','review');
+      if(input.type&&input.type!=='totes')q=q.eq('financing_type',input.type);
+      if(input.query){const safe=input.query.replaceAll(/[,%()]/g,' ').trim();q=q.or(`title.ilike.%${safe}%,source_record_id.ilike.%${safe}%,provider_name.ilike.%${safe}%`);}
+      const r=await q.order('job_created_at',{ascending:false}).order('id').range(offset,offset+499);
+      if(r.error)throw r.error;ids.push(...(r.data??[]).map(x=>x.id));
+      if((r.data?.length??0)<500)break;
+    }
+    const records:SourceRecord[]=[];
+    for(let offset=0;offset<ids.length;offset+=100){const r=await supabase.from('source_records').select(RECORD_SELECT).in('id',ids.slice(offset,offset+100));if(r.error)throw r.error;records.push(...(r.data??[]).map(mapRecord));}
+    const position=new Map(ids.map((id,i)=>[id,i]));records.sort((a,b)=>position.get(a.id)!-position.get(b.id)!);
+    return {records,total:records.length,reviewed:records.filter(r=>!!r.reviewDecision).length};
+  }
   let jobsRequest = supabase.from("pipeline_jobs").select("source_record_id,status,created_at,completed_at,source_records!inner(source_dataset,financing_type)").in("status", ["needs_review", "approved", "corrected", "rejected", "insufficient_evidence"]);
   if (input.batchId) jobsRequest = jobsRequest.eq("run_id", input.batchId);
   if (input.type && input.type !== "totes") jobsRequest = jobsRequest.eq("source_records.financing_type", input.type);
@@ -186,7 +202,7 @@ function mapReviewDecision(value: unknown): SourceRecord["reviewDecision"] {
 
 function mapLatestReview(value: unknown) {
   if (!Array.isArray(value) || !value.length) return null;
-  const latest = [...value].map((item) => item as Record<string, unknown>).sort((a, b) => String(b.created_at).localeCompare(String(a.created_at)))[0];
+  const latest = [...value].map((item) => item as Record<string, unknown>).sort((a, b) => String(b.created_at).localeCompare(String(a.created_at))||String(b.id).localeCompare(String(a.id)))[0];
   return {
     decision: latest.decision as SourceRecord["reviewDecision"],
     reason: latest.reason == null ? null : String(latest.reason),

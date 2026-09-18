@@ -14,7 +14,7 @@ export default async function ReviewPage({ searchParams }: Props) {
   const filters = {
     batchId: typeof params.batch === "string" ? params.batch : undefined,
     type: typeof params.type === "string" ? params.type : "totes",
-    state: "pending",
+    state: params.state === 'all' ? 'all' : 'pending',
     query: typeof params.q === "string" ? params.q.slice(0, 120) : "",
   };
   const [queue, services] = await Promise.all([

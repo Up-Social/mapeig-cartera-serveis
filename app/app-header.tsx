@@ -8,13 +8,14 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetClose, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 
-type NavigationCounts = { review: number; issues: number; approved: number };
+type NavigationCounts = { review: number; issues: number; approved: number; discarded: number };
 
 const links = [
   { href: "/", label: "Registres", icon: Database },
   { href: "/batches", label: "Lots", icon: Layers3 },
   { href: "/review", label: "Revisió", icon: CheckSquare, count: "review" },
   { href: "/issues", label: "Incidències", icon: TriangleAlert, count: "issues" },
+  { href: "/discarded", label: "Descartats", icon: TriangleAlert, count: "discarded" },
   { href: "/approved", label: "Aprovats", icon: FileCheck2, count: "approved" },
   { href: "/analysis", label: "Classificacions", icon: CheckSquare },
   { href: "/catalog", label: "Catàleg", icon: BookOpen },

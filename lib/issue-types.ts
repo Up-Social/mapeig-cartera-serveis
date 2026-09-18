@@ -55,6 +55,10 @@ export type IssuePage = {
 };
 
 export function classifyIssue(record: SourceRecord): IssueRecord | null {
+  if(record.currentJobStatus==='error')return issue(record,'matching_error','matching',record.matchingError??'Error tècnic del treball vigent.','process');
+  const classification=record.analysis?.reviewed_classification??record.analysis?.classification;
+  if(classification==='discarded'||classification==='out_of_portfolio')return null;
+  if(classification==='insufficient_evidence')return issue(record,'insufficient_evidence','review',record.analysis?.review_notes??record.analysis?.explanation??'Falta evidència acreditada.','process');
   if (record.analysis?.reviewed_classification === 'out_of_portfolio') return null;
 
   if (record.reviewDecision === "rejected") {
