@@ -91,6 +91,7 @@ export function mapRecord(row: Record<string, unknown>): SourceRecord {
       const item = document as Record<string, unknown>;
       return {
         id: String(item.id), url: String(item.url), documentType: String(item.document_type),
+        resolution: item.resolution as SourceRecord['sourceDocuments'][number]['resolution'],
         sourceFields: Array.isArray(item.source_fields) ? item.source_fields.map(String) : [],
         status: item.status as SourceRecord["sourceDocuments"][number]["status"],
         mimeType: item.mime_type == null ? null : String(item.mime_type),
@@ -101,7 +102,7 @@ export function mapRecord(row: Record<string, unknown>): SourceRecord {
         qualityFlags: Array.isArray(item.quality_flags) ? item.quality_flags.map(String) : [],
         chunkCount: Number(item.chunk_count ?? 0),
       };
-    }) : [],
+    }).sort((a,b)=>Number(b.documentType==='technical_specifications')-Number(a.documentType==='technical_specifications')) : [],
     analysis:latestAnalysis(row.pipeline_jobs),
     matchingCandidates: mapLatestCandidates(row.pipeline_jobs),
     matchingError: mapLatestMatchingError(row.pipeline_jobs),
@@ -139,7 +140,7 @@ export function mapLatestCandidates(value: unknown): SourceRecord["matchingCandi
   }).sort((a, b) => a.rank - b.rank);
 }
 
-export const RECORD_SELECT = "*,source_documents(id,url,document_type,source_fields,status,mime_type,text_preview,text_length,extraction_method,quality_score,quality_flags,chunk_count),record_enrichments(extracted_title,provider_name,provider_nif,mechanism,award_date,amount,contracting_body,target_population,summary,confidence,engine_version,record_enrichment_evidence(evidence_chunks(ordinal,content))),review_decisions(id,pipeline_job_id,classification,reasons,decision,reason,created_at),pipeline_jobs(id,run_id,status,error_message,created_at,analysis_results(*),pipeline_runs(batch_number),matching_candidates(id,pipeline_job_id,rank,target_code,target_name,score,rationale,engine_version,matching_candidate_evidence(explanation,evidence_chunks(ordinal,content))))";
+export const RECORD_SELECT = "*,source_documents(id,url,resolution,document_type,source_fields,status,mime_type,text_preview,text_length,extraction_method,quality_score,quality_flags,chunk_count),record_enrichments(extracted_title,provider_name,provider_nif,mechanism,award_date,amount,contracting_body,target_population,summary,confidence,engine_version,record_enrichment_evidence(evidence_chunks(ordinal,content))),review_decisions(id,pipeline_job_id,classification,reasons,decision,reason,created_at),pipeline_jobs(id,run_id,status,error_message,created_at,analysis_results(*),pipeline_runs(batch_number),matching_candidates(id,pipeline_job_id,rank,target_code,target_name,score,rationale,engine_version,matching_candidate_evidence(explanation,evidence_chunks(ordinal,content))))";
 
 function mapLatestRun(value: unknown) {
   if (!Array.isArray(value) || !value.length) return null;

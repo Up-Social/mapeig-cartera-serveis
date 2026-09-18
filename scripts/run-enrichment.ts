@@ -18,7 +18,7 @@ async function main() {
     const { data: record, error: recordError } = await supabase.from("source_records").select("id,source_dataset,source_record_id,mechanism,title,provider_name,amount,source_payload,source_documents!inner(id,status)").eq("id", recordId).eq("source_documents.status", "fetched").single();
     if (recordError) throw recordError;
     const documentIds = record.source_documents.map((document: { id: string }) => document.id);
-    const { data: chunks, error: chunksError } = await supabase.from("evidence_chunks").select("id,ordinal,content").in("source_document_id", documentIds).order("ordinal").limit(12);
+    const { data: chunks, error: chunksError } = await supabase.from("current_evidence_chunks").select("id,ordinal,content").in("source_document_id", documentIds).order("ordinal").limit(12);
     if (chunksError) throw chunksError;
     if (!chunks?.length) throw new Error("No hi ha fragments oficials preparats");
     const response = await fetch("https://api.openai.com/v1/responses", { method: "POST", headers: { Authorization: `Bearer ${openaiKey}`, "Content-Type": "application/json" }, body: JSON.stringify({

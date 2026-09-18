@@ -14,6 +14,7 @@ import { reviewClassificationLabel } from "@/lib/review-classification";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ReviewActions } from "@/components/review-actions";
+import {DocumentProvenance} from "@/components/document-provenance";
 import { ReviewHistory } from "@/components/review-history";
 import { Input } from "@/components/ui/input";
 import { StableAccordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -280,13 +281,14 @@ function ReviewDetail({
                   </span>
                 </div>
                 <a
-                  href={document.url}
+                  href={`/api/documents/${document.id}/open`}
                   target="_blank"
                   rel="noreferrer"
                   className="mt-2 block break-all text-xs underline"
                 >
                   {document.url}
                 </a>
+                <DocumentProvenance document={document}/>
                 {document.textPreview && (
                   <p className="mt-2 line-clamp-4 text-xs leading-5 text-neutral-600">
                     {document.textPreview}

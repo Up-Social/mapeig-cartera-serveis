@@ -52,7 +52,7 @@ async function processJob(job: { id: string; run_id: string; source_record_id: s
     if (recordError) throw recordError;
     const catalog = official.eligible;
     const documentIds = record.source_documents.map((document: { id: string }) => document.id);
-    const { data: chunks, error: chunksError } = await supabase.from("evidence_chunks").select("id,ordinal,content,source_document_id").in("source_document_id", documentIds).order("ordinal").limit(12);
+    const { data: chunks, error: chunksError } = await supabase.from("current_evidence_chunks").select("id,ordinal,content,source_document_id").in("source_document_id", documentIds).order("ordinal").limit(12);
     if (chunksError) throw chunksError;
     if (!chunks?.length) throw new Error("El registre no té fragments d'evidència");
 

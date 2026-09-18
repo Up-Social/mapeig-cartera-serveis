@@ -57,7 +57,7 @@ async function estimateTokens(id: string) {
   if (!recordIds.length) return 0;
   const { data: documents } = await supabase.from("source_documents").select("id").in("source_record_id", recordIds).eq("status", "fetched");
   const documentIds = (documents ?? []).map((document) => document.id);
-  const { data: chunks } = documentIds.length ? await supabase.from("evidence_chunks").select("character_count").in("source_document_id", documentIds) : { data: [] };
+  const { data: chunks } = documentIds.length ? await supabase.from("current_evidence_chunks").select("character_count").in("source_document_id", documentIds) : { data: [] };
   const evidenceChars = (chunks ?? []).reduce((sum, chunk) => sum + chunk.character_count, 0);
   return Math.ceil((evidenceChars + recordIds.length * 20_000) / 4);
 }

@@ -38,6 +38,7 @@ export type MatchingCandidate = {
   serviceDetail: { sectorScope: string | null; portfolioStatus: string | null } | null;
 };
 export type SourceDocument = {
+  resolution?: import('./pipeline/official-resolution').Resolution;
   id: string; url: string; documentType: string; sourceFields: string[];
   status: "discovered" | "fetching" | "fetched" | "unsupported" | "error";
   mimeType: string | null; textPreview: string | null; textLength: number | null;

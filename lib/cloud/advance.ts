@@ -1,7 +1,7 @@
 import {randomUUID} from 'node:crypto';
 import {cloudDb,CLOUD_VERSION,rpc,lease,checkpoint,readCheckpoint,commit,type Context} from './context';
 import {publicFailure,failureLabels,CloudYield,CloudFailure} from './errors';
-import {discoverRecordDocuments} from '../pipeline/discovery';
+import {discoverResolvedDocuments} from '../pipeline/discovery';
 import {extractDocument} from './documents';
 import {splitText,hash} from '../pipeline/chunks';
 import {analyzeRecord} from './analysis';
@@ -27,7 +27,7 @@ export async function advance(task:string,workflow:string):Promise<{done:boolean
   if(complete||job.analysis_results?.length){await commit(c,job.id,'ready',{});throw Error('INVALID_PENDING_RESULT');}
   if(!await readCheckpoint(c,`${job.id}:discovered`)){
    const r=await db.from('source_records').select('id,source_payload').eq('id',job.source_record_id).single();if(r.error)throw Error();
-   await commit(c,job.id,'discover',discoverRecordDocuments(r.data));await checkpoint(c,`${job.id}:discovered`,true);
+   await commit(c,job.id,'discover',await discoverResolvedDocuments(r.data));await checkpoint(c,`${job.id}:discovered`,true);
   }else if(job.preparation_status!=='ready'){
    const docs:{data:Array<{id:string;url:string;status:string;chunk_count:number}>}={data:[]};
    for(let offset=0;;offset+=200){

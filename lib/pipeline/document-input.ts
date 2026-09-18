@@ -1,9 +1,10 @@
 import {lookup} from "node:dns/promises";
 import {isIP} from "node:net";
 const MAX_BYTES=10*1024*1024,MAX_TEXT=200_000,TIMEOUT_MS=20_000;
-export async function fetchWithLimits(initialUrl: string) {
+export async function fetchWithLimits(initialUrl: string,options?:{allowedHosts:string[]}) {
   let current = new URL(initialUrl);
   for (let redirect = 0; redirect <= 5; redirect += 1) {
+    if(options&&!options.allowedHosts.includes(current.hostname))throw Error('Domini de redirecció no permès');
     await assertPublicUrl(current);
     const response = await fetch(current, { redirect: "manual", signal: AbortSignal.timeout(TIMEOUT_MS), headers: { "user-agent": "Mapeig-cartera-serveis-PoC/0.1" } });
     if (response.status >= 300 && response.status < 400) {
@@ -45,15 +46,16 @@ async function assertPublicUrl(url: URL) {
   if (!addresses.length || addresses.some(({ address }) => isPrivateAddress(address))) throw new Error("Destinació de xarxa privada no permesa");
 }
 
-function isPrivateAddress(address: string) {
+export function isPrivateAddress(address: string) {
   if (!isIP(address)) return true;
   const normalized = address.toLowerCase();
-  if (normalized === "::1" || normalized.startsWith("fe80:") || normalized.startsWith("fc") || normalized.startsWith("fd")) return true;
+  if (normalized === '::' || normalized === "::1" || /^fe[89ab]/.test(normalized) || normalized.startsWith("fc") || normalized.startsWith("fd") || normalized.startsWith('ff') || normalized.startsWith('2001:db8:')) return true;
   const ipv4 = normalized.startsWith("::ffff:") ? normalized.slice(7) : normalized;
   const parts = ipv4.split(".").map(Number);
   if (parts.length !== 4) return false;
   return parts[0] === 10 || parts[0] === 127 || parts[0] === 0 || (parts[0] === 169 && parts[1] === 254)
-    || (parts[0] === 172 && parts[1] >= 16 && parts[1] <= 31) || (parts[0] === 192 && parts[1] === 168);
+    || (parts[0] === 172 && parts[1] >= 16 && parts[1] <= 31) || (parts[0] === 192 && parts[1] === 168)
+    || (parts[0]===100&&parts[1]>=64&&parts[1]<=127)||parts[0]>=224||(parts[0]===198&&[18,19].includes(parts[1]));
 }
 
 export function htmlToText(html: string) {

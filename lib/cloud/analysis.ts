@@ -18,7 +18,7 @@ export async function analyzeRecord(c:Context,job:{id:string;source_record_id:st
  if(r.error)throw new CloudFailure('internal');
  const docs=await c.db.from('source_documents').select('id').eq('source_record_id',job.source_record_id).eq('status','fetched');
  if(docs.error)throw new CloudFailure('internal');
- const evidence=await c.db.from('evidence_chunks').select('id,content,ordinal,source_document_id').in('source_document_id',(docs.data??[]).map(d=>d.id)).order('source_document_id').order('ordinal').limit(12);
+ const evidence=await c.db.from('current_evidence_chunks').select('id,content,ordinal,source_document_id').in('source_document_id',(docs.data??[]).map(d=>d.id)).order('source_document_id').order('ordinal').limit(12);
  if(evidence.error||!evidence.data?.length)throw new CloudFailure('document');
  const chunks=evidence.data;
  if(phase==='enrichment'){

@@ -1,6 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import WebSocket from "ws";
-import {discoverRecordDocuments} from "../lib/pipeline/discovery";
+import {discoverResolvedDocuments} from "../lib/pipeline/discovery";
 
 type SourceRow = { id: string; source_payload: Record<string, unknown> };
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -17,7 +17,7 @@ async function main() {
     const { data, error } = await supabase.from("pipeline_jobs").select("source_records(id,source_payload)").eq("run_id", runId);
     if (error) throw error;
     const records = (data ?? []).flatMap((job) => Array.isArray(job.source_records) ? job.source_records as SourceRow[] : job.source_records ? [job.source_records as unknown as SourceRow] : []);
-    const documents = records.flatMap(discoverRecordDocuments);
+    const documents = (await Promise.all(records.map(discoverResolvedDocuments))).flat();
     for (let start = 0; start < documents.length; start += 250) {
       const { error: writeError } = await supabase.from("source_documents").upsert(documents.slice(start, start + 250), { onConflict: "source_record_id,url_hash", ignoreDuplicates: true });
       if (writeError) throw writeError;
@@ -33,7 +33,7 @@ async function main() {
     if (error) throw error;
     const records = (data ?? []) as SourceRow[];
     if (!records.length) break;
-    const documents = records.flatMap(discoverRecordDocuments);
+    const documents = (await Promise.all(records.map(discoverResolvedDocuments))).flat();
     for (let start = 0; start < documents.length; start += 250) {
       const batch = documents.slice(start, start + 250);
       const { error: writeError } = await supabase.from("source_documents").upsert(batch, {

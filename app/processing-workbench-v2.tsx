@@ -19,6 +19,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { ReviewActions } from "@/components/review-actions";
+import {DocumentProvenance} from "@/components/document-provenance";
 import { ReviewHistory } from "@/components/review-history";
 import { cn } from "@/lib/utils";
 import { AnalysisResult } from "@/components/analysis-result";
@@ -444,7 +445,7 @@ function DetailPanel({
                   </span>
                 </div>
                 <a
-                  href={document.url}
+                  href={`/api/documents/${document.id}/open`}
                   target="_blank"
                   rel="noreferrer"
                   className="mt-2 block break-all text-xs leading-5 text-neutral-700 underline decoration-neutral-300 underline-offset-2 hover:text-black"
@@ -468,7 +469,8 @@ function DetailPanel({
                         </>
                       )}
                     </div>
-                    {document.textPreview && (
+                    <DocumentProvenance document={document}/>
+                {document.textPreview && (
                       <p className="mt-2 line-clamp-5 whitespace-pre-line text-xs leading-5 text-neutral-700">
                         {document.textPreview}
                       </p>
