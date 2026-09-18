@@ -1,10 +1,20 @@
-export type ProgressState = "pending" | "running" | "completed" | "error";
+export type ProgressState = "pending" | "running" | "completed" | "error" | "blocked";
 export type PhaseProgress = {
   state: ProgressState;
   completed: number;
   errors: number;
   total: number;
+  blocked?: number;
+  pending?: number;
+  running?: number;
 };
+
+export function summarizePhases(states:ProgressState[]):PhaseProgress{
+ const count=(state:ProgressState)=>states.filter(s=>s===state).length;
+ const completed=count('completed'),errors=count('error'),blocked=count('blocked'),pending=count('pending'),running=count('running');
+ const state:ProgressState=running?'running':pending?'pending':errors?'error':blocked?'blocked':'completed';
+ return {state,completed,errors,blocked,pending,running,total:states.length};
+}
 
 export function phaseState(
   currentStage: string,

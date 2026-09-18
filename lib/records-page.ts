@@ -7,7 +7,6 @@ import { createClient } from "@supabase/supabase-js";
 import {assertTestEnvironment} from './test-environment';
 import type { ProcessingStatus, ReviewQueue, SourcePage, SourceRecord } from "./workbench-types";
 import { mapLatestMatchingError } from "./matching-state";
-import { latestJobsByRecord, newestProcessedFirst } from "./latest-job-state";
 
 export const PAGE_SIZE = 25;
 
@@ -168,26 +167,20 @@ export async function getReviewQueue(input: { batchId?: string; type?: string; s
     const position=new Map(ids.map((id,i)=>[id,i]));records.sort((a,b)=>position.get(a.id)!-position.get(b.id)!);
     return {records,total:records.length,reviewed:records.filter(r=>!!r.reviewDecision).length};
   }
-  let jobsRequest = supabase.from("pipeline_jobs").select("source_record_id,status,created_at,completed_at,source_records!inner(source_dataset,financing_type)").in("status", ["needs_review", "approved", "corrected", "rejected", "insufficient_evidence"]);
-  if (input.batchId) jobsRequest = jobsRequest.eq("run_id", input.batchId);
-  if (input.type && input.type !== "totes") jobsRequest = jobsRequest.eq("source_records.financing_type", input.type);
-  const { data: jobs, error: jobsError } = await jobsRequest.order("created_at", { ascending: false });
-  if (jobsError) throw jobsError;
-  const latestJobs = newestProcessedFirst(latestJobsByRecord(jobs ?? []));
-  const ids = latestJobs
-    .filter((job) => input.state !== "pending" || job.status === "needs_review")
-    .map((job) => job.source_record_id);
-  if (!ids.length) return { records: [], total: 0, reviewed: 0 };
-  let recordsRequest = supabase.from("source_records").select(RECORD_SELECT).in("id", ids);
-  if (input.query) { const safe = input.query.replaceAll(/[,%()]/g, " ").trim(); recordsRequest = recordsRequest.or(`title.ilike.%${safe}%,source_record_id.ilike.%${safe}%,provider_name.ilike.%${safe}%`); }
-  const { data, error } = await recordsRequest;
-  if (error) throw error;
-  const position = new Map(ids.map((id, index) => [id, index]));
-  const records = (data ?? [])
-    .map((row) => mapRecord(row as Record<string, unknown>))
-    .filter((record) => input.state !== "pending" || record.reviewDecision === null)
-    .sort((a, b) => (position.get(a.id) ?? Number.MAX_SAFE_INTEGER) - (position.get(b.id) ?? Number.MAX_SAFE_INTEGER));
-  return { records, total: records.length, reviewed: records.filter((record) => record.reviewDecision !== null).length };
+  const {getJobRecord}=await import('./job-record');
+  const records:SourceRecord[]=[];
+  for(let offset=0;;offset+=100){
+    let q=supabase.from('pipeline_jobs').select('id,status').eq('run_id',input.batchId).order('created_at').order('id');
+    if(input.state!=='all')q=q.eq('status','needs_review');
+    const r=await q.range(offset,offset+99);if(r.error)throw r.error;
+    for(const job of r.data??[]){const record=await getJobRecord(job.id);if(!record)continue;
+      if(input.type&&input.type!=='totes'&&record.financingType!==input.type)continue;
+      if(input.query&&![record.title,record.sourceRecordId,record.providerName].join(' ').toLowerCase().includes(input.query.toLowerCase()))continue;
+      records.push(record);
+    }
+    if((r.data?.length??0)<100)break;
+  }
+  return {records,total:records.length,reviewed:records.filter(r=>!!r.reviewDecision).length};
 }
 
 function mapEnrichment(value: unknown): SourceRecord["externalEnrichment"] {

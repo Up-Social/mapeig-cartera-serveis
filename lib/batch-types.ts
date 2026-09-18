@@ -11,6 +11,7 @@ export type SampleRecord = {
   providerName: string | null; amount: number | null; mechanism: string; financingType: FinancingType; deduplicationKey: string;
 };
 export type BatchJob = {
+  phases?:Record<'preparation'|'enrichment'|'matching',import('./pipeline-progress').ProgressState>;
   id: string; sourceRecordId: string; sourceDataset: SourceDataset; financingType: FinancingType; externalId: string; title: string;
   status: string; preparationStatus: EvidencePreparationStatus; preparationMessage: string | null;
   errorMessage: string | null; enrichmentStatus: string; enrichmentError: string | null; processingStatus: string;
