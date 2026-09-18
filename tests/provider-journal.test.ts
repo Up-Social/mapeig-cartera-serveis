@@ -1,0 +1,7 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {executeJournaledCall,type ProviderJournal} from '../lib/provider-journal';
+function fixture(){let state='new';let response:Record<string,unknown>|undefined;const journal:ProviderJournal={async claim(){if(state==='sending')throw Error('PROVIDER_UNKNOWN');if(state==='received')return {id:'1',send:false,response};state='sending';return {id:'1',send:true};},async save(_id,next,body){state=next;response=body;}};return journal;}
+test('received response survives restart without a duplicate provider call',async()=>{const journal=fixture();let calls=0;const send=async()=>{calls++;return {status:200,body:{id:'response-1'}};};assert.deepEqual(await executeJournaledCall(journal,send),{id:'response-1'});assert.deepEqual(await executeJournaledCall(journal,send),{id:'response-1'});assert.equal(calls,1);});
+test('unknown outcome stops resubmission',async()=>{const journal=fixture();let calls=0;const send=async()=>{calls++;throw Error('timeout');};await assert.rejects(executeJournaledCall(journal,send),/PROVIDER_UNKNOWN/);await assert.rejects(executeJournaledCall(journal,send),/PROVIDER_UNKNOWN/);assert.equal(calls,1);});
+test('explicit rate limit permits a bounded journal retry',async()=>{const journal=fixture();await assert.rejects(executeJournaledCall(journal,async()=>({status:429,body:{error:'limited'}})),/429/);assert.deepEqual(await executeJournaledCall(journal,async()=>({status:200,body:{id:'ok'}})),{id:'ok'});});

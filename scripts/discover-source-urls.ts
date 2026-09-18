@@ -14,7 +14,7 @@ const supabase = createClient(url, key, {
 
 async function main() {
   if (runId) {
-    const { data, error } = await supabase.from("pipeline_jobs").select("source_records(id,source_payload)").eq("run_id", runId);
+    const { data, error } = await supabase.from("pipeline_jobs").select("source_records(id,source_payload)").eq("run_id", runId).match(process.env.WORKFLOW_JOB_ID?{id:process.env.WORKFLOW_JOB_ID}:{});
     if (error) throw error;
     const records = (data ?? []).flatMap((job) => Array.isArray(job.source_records) ? job.source_records as SourceRow[] : job.source_records ? [job.source_records as unknown as SourceRow] : []);
     const documents = (await Promise.all(records.map(discoverResolvedDocuments))).flat();

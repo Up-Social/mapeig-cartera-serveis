@@ -6,6 +6,7 @@ export function isRecordOperationTerminal(
   operation: RecordOperation,
   record: SourceRecord,
 ) {
+  if((operation==='match'||operation==='process'||operation==='ocr')&&record.analysis)return true;
   if (operation === "prepare") {
     return ["ready", "no_source", "unsupported", "error"].includes(
       record.evidenceStatus,

@@ -1,5 +1,6 @@
 export function classifyFailure(error:unknown){
  const message=error instanceof Error?error.message:String(error); const lower=message.toLowerCase();
+ if(lower.includes('provider_unknown'))return {kind:'provider_unknown',retryable:false,blocked:true,message:'Resposta de proveïdor desconeguda. No es repetirà la petició automàticament.'};
  if(/insufficient_quota|billing_hard_limit|quota_exceeded|quota exhausted/.test(lower))return {kind:'quota',retryable:false,blocked:true,message:'Quota de la IA esgotada. Reprèn el lot després de resoldre la facturació.'};
  if(/invalid_api_key|incorrect api key|openai 40[13]|authentication_error/.test(lower))return {kind:'credentials',retryable:false,blocked:true,message:'Credencials de la IA no vàlides. Revisa la configuració abans de reprendre.'};
  if(/openai (429|5\d\d)|rate_limit|econnreset|etimedout|fetch failed|timeout/.test(lower))return {kind:'transient',retryable:true,blocked:false,message:'Error temporal de connexió o límit de peticions.'};

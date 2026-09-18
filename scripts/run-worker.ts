@@ -27,6 +27,7 @@ type Task = {
   task_type: "prepare_run" | "enrich_record" | "match_run" | "process_run";
   run_id: string | null;
   source_record_id: string | null;
+  pipeline_job_id: string | null;
   attempts: number;
 };
 
@@ -69,7 +70,7 @@ async function executeTask(task: Task) {
   try {
     const { stdout, stderr } = await execFileAsync("npm", command, {
       cwd: process.cwd(),
-      env: process.env,
+      env: {...process.env,WORKFLOW_JOB_ID:task.pipeline_job_id??''},
       maxBuffer: 20 * 1024 * 1024,
     });
     if (stdout.trim()) process.stdout.write(stdout);

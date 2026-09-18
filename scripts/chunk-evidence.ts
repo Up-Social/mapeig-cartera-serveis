@@ -17,7 +17,7 @@ async function main() {
   if (!Number.isInteger(limit) || limit < 1 || limit > 1000) throw new Error("--limit ha de ser entre 1 i 1000");
   let request = supabase.from("source_documents").select("id,extracted_text,extraction_method,source_record_id").eq("status", "fetched").not("extracted_text", "is", null).order("fetched_at").limit(limit);
   if (runId) {
-    const { data: jobs, error: jobsError } = await supabase.from("pipeline_jobs").select("source_record_id").eq("run_id", runId);
+    const { data: jobs, error: jobsError } = await supabase.from("pipeline_jobs").select("source_record_id").eq("run_id", runId).match(process.env.WORKFLOW_JOB_ID?{id:process.env.WORKFLOW_JOB_ID}:{});
     if (jobsError) throw jobsError;
     request = request.in("source_record_id", (jobs ?? []).map((job) => job.source_record_id));
   }
