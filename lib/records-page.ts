@@ -4,6 +4,7 @@ const officialByCode=new Map(eligibleServices(officialSnapshot.services as Offic
 import {latestAnalysis} from './latest-analysis';
 import "server-only";
 import { createClient } from "@supabase/supabase-js";
+import {assertTestEnvironment} from './test-environment';
 import type { ProcessingStatus, ReviewQueue, SourcePage, SourceRecord } from "./workbench-types";
 import { mapLatestMatchingError } from "./matching-state";
 import { latestJobsByRecord, newestProcessedFirst, summarizeLatestJobs } from "./latest-job-state";
@@ -11,6 +12,7 @@ import { latestJobsByRecord, newestProcessedFirst, summarizeLatestJobs } from ".
 export const PAGE_SIZE = 25;
 
 export function createServerSupabase() {
+  if (process.env.WORKFLOW_TEST_PROJECT) assertTestEnvironment(process.env);
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.SUPABASE_SECRET_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!url || !key) throw new Error("Falten les variables de Supabase a .env.local");

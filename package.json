@@ -12,6 +12,8 @@
     "lint": "eslint",
     "typecheck": "next typegen && tsc --noEmit",
     "test": "tsx --test tests/*.test.ts",
+    "test:db": "tsx scripts/workflow-test-db.ts",
+    "test:app": "tsx scripts/workflow-test-app.ts",
     "verify": "npm run lint && npm run typecheck && npm test && npm run build",
     "data:import": "tsx --env-file=.env.local scripts/import-excels.ts",
     "sources:discover": "tsx --env-file=.env.local scripts/discover-source-urls.ts",

@@ -48,3 +48,5 @@ next-env.d.ts
 /AGENTS.md
 /CLAUDE.md
 /docs/local/
+/tests/runtime/supabase/.temp/
+/tests/runtime/supabase/.branches/
