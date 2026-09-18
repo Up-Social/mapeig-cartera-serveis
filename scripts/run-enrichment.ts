@@ -1,3 +1,4 @@
+import {ROLE_INSTRUCTIONS} from '../lib/scope-rules';
 import {validateScopeFacts} from '../lib/normative-matching';
 import {enrichmentSchema,sanitize,extractOutputText,type Enrichment} from '../lib/pipeline/enrichment-contract';
 import { createClient } from "@supabase/supabase-js";
@@ -22,7 +23,7 @@ async function main() {
     if (!chunks?.length) throw new Error("No hi ha fragments oficials preparats");
     const response = await fetch("https://api.openai.com/v1/responses", { method: "POST", headers: { Authorization: `Bearer ${openaiKey}`, "Content-Type": "application/json" }, body: JSON.stringify({
       model,
-      instructions: "Extreu camps estructurats exclusivament dels fragments dels documents oficials. Usa null quan un camp no hi consti, no completis dades per intuïció i cita els ordinals que sustenten l'extracció. Separa scope_facts: financed_object (objecte finançat), funding_recipient (receptor dels diners), final_recipient (destinatari final) i administrative_role (funció de l’acte); cada valor ha de citar els seus fragments, o ser null. No facis cap matching ni proposis serveis de la Cartera. Respon en català.",
+      instructions: ROLE_INSTRUCTIONS+" Extreu camps estructurats exclusivament dels fragments dels documents oficials. Usa null quan un camp no hi consti, no completis dades per intuïció i cita els ordinals que sustenten l'extracció. Separa scope_facts: financed_object (objecte finançat), funding_recipient (receptor dels diners), final_recipient (destinatari final) i administrative_role (funció de l’acte); cada valor ha de citar els seus fragments, o ser null. No facis cap matching ni proposis serveis de la Cartera. Respon en català.",
       input: `REGISTRE ORIGINAL (només context)\n${JSON.stringify({ dataset: record.source_dataset, id: record.source_record_id, mechanism: record.mechanism, title: record.title, provider: record.provider_name, amount: record.amount, original: sanitize(record.source_payload) })}\n\nFRAGMENTS OFICIALS\n${chunks.map((chunk, index) => `[${index + 1}] ${chunk.content}`).join("\n\n")}`,
       text: { format: { type: "json_schema", name: "official_enrichment", strict: true, schema: enrichmentSchema() } }, max_output_tokens: 2400,
     }) });

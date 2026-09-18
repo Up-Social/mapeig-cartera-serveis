@@ -1,6 +1,7 @@
 import {classifyFailure,retryTransient} from '../lib/provider-failure';
 import {buildNormativeInput,MATCHING_INSTRUCTIONS,scopeFactsSchema,validateScopeFacts,type ScopeFacts} from '../lib/normative-matching';
 import {analysisSchema,validateAnalysis,type AnalysisOutput} from '../lib/analysis-contract';
+import {applyScopeRules,ROLE_INSTRUCTIONS} from '../lib/scope-rules';
 import {loadOfficialCatalog,assertEligible} from '../lib/official-catalog';
 import { createClient } from "@supabase/supabase-js";
 import WebSocket from "ws";
@@ -61,7 +62,7 @@ async function processJob(job: { id: string; run_id: string; source_record_id: s
       headers: { Authorization: `Bearer ${openaiKey}`, "Content-Type": "application/json" },
       body: JSON.stringify({
         model,
-        instructions: existingEnrichment ? matchingInstructions() : `Primer extreu camps estructurats exclusivament dels fragments oficials; usa null si no hi consten. ${matchingInstructions()}`,
+        instructions: existingEnrichment ? matchingInstructions() : `${ROLE_INSTRUCTIONS} Primer extreu camps estructurats exclusivament dels fragments oficials; usa null si no hi consten. ${matchingInstructions()}`,
         input: buildNormativeInput({ ...record, verified_enrichment: existingEnrichment }, catalog, official.all, official.version.general_context, chunks),
         text: { format: { type: "json_schema", name: "matching_candidates", strict: true, schema: existingEnrichment ? candidatesOnlySchema() : combinedSchema() } },
         max_output_tokens: 4000,
@@ -73,7 +74,8 @@ async function processJob(job: { id: string; run_id: string; source_record_id: s
     const parsed = JSON.parse(extractOutputText(raw)) as AnalysisOutput & { enrichment?: EnrichmentOutput };
     
     for (const candidate of parsed.candidates) assertEligible(candidate.code,official.all);
-    const analysis=validateAnalysis(parsed,official.all,chunks.length);
+    const analysis=applyScopeRules(validateAnalysis(parsed,official.all,chunks.length),(parsed.enrichment??existingEnrichment)?.scope_facts?.roles,chunks);
+    validateAnalysis(analysis,official.all,chunks.length);
     const candidates = analysis.candidates;
 
 
