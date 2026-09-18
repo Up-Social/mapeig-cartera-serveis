@@ -1,6 +1,8 @@
 import type { SourceRecord } from "./workbench-types";
 
 type ReviewInput = {
+  expectedJobId: string;
+  reasons: string[];
   candidateId?: string;
   serviceCode?: string;
   outcome: "select" | "reject" | "insufficient" | "outside";

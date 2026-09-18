@@ -13,7 +13,8 @@ import { HistoryUpdate } from "./history-update";
 import { reviewClassificationLabel } from "@/lib/review-classification";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
+import { ReviewActions } from "@/components/review-actions";
+import { ReviewHistory } from "@/components/review-history";
 import { Input } from "@/components/ui/input";
 import { StableAccordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { AnalysisResult } from "@/components/analysis-result";
@@ -169,6 +170,7 @@ function ReviewDetail({
       : "",
   );
   const [notes, setNotes] = useState("");
+  const [reasons, setReasons] = useState<string[]>([]);
   const [editing, setEditing] = useState(!record.reviewDecision);
   const [message, setMessage] = useState("");
   const [pending, startTransition] = useTransition();
@@ -190,6 +192,8 @@ function ReviewDetail({
       try {
         const [kind, id] = selection.split(":");
         const nextRecord = await submitRecordReview(record.id, {
+          expectedJobId: record.currentJobId ?? "",
+          reasons: outcome === "reject" ? reasons : [],
           outcome,
           candidateId:
             outcome === "select" && kind === "candidate" ? id : undefined,
@@ -329,41 +333,13 @@ function ReviewDetail({
               ))}
             </optgroup>
           </select>
-          <Textarea
-            value={notes}
-            onChange={(event) => setNotes(event.target.value)}
-            rows={3}
-            className="mt-3"
-            placeholder="Motiu del rebuig o evidència que falta (obligatori en decisions negatives)"
-          />
-          <div className="mt-3 grid gap-2 sm:grid-cols-2">
-            <Button variant="outline" disabled={pending || !record.analysis} onClick={()=>submit("outside")}>Fora de cartera</Button>
-            <Button
-              disabled={pending || !selection}
-              onClick={() => submit("select")}
-            >
-              Aprovar selecció
-            </Button>
-            <Button
-              variant="outline"
-              disabled={pending}
-              onClick={() => submit("reject")}
-            >
-              Rebutjar
-            </Button>
-            <Button
-              variant="outline"
-              disabled={pending}
-              onClick={() => submit("insufficient")}
-            >
-              Evidència insuficient
-            </Button>
-          </div>
+      <ReviewActions notes={notes} onNotesChange={setNotes} reasons={reasons} onReasonsChange={setReasons} pending={pending} canSelect={!!selection && !!record.currentJobId} canOutside={!!record.analysis} rectification={!!record.reviewDecision} onSubmit={submit}/>
           {message && (
             <p className="mt-3 text-sm text-neutral-600">{message}</p>
           )}
         </section>
       )}
+      <ReviewHistory record={record}/>
     </article>
   );
 }

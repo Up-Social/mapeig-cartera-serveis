@@ -68,7 +68,11 @@ async function getLatestJobMetrics() {
 }
 
 export function mapRecord(row: Record<string, unknown>): SourceRecord {
+  const jobs=Array.isArray(row.pipeline_jobs)?[...row.pipeline_jobs].sort((a,b)=>String(b.created_at).localeCompare(String(a.created_at))||String(b.id).localeCompare(String(a.id))):[];
+  const reviews=Array.isArray(row.review_decisions)?row.review_decisions.filter(r=>r.pipeline_job_id===jobs[0]?.id):[];
   return {
+    currentJobId: jobs[0]?.id ?? null,
+    reviewHistory: Array.isArray(row.review_decisions)?row.review_decisions.map(r=>({id:String(r.id),jobId:r.pipeline_job_id??null,classification:r.classification??null,decision:r.decision,reason:r.reason??null,reasons:r.reasons??[],createdAt:String(r.created_at)})).sort((a,b)=>b.createdAt.localeCompare(a.createdAt)||b.id.localeCompare(a.id)):[],
     id: String(row.id), sourceDataset: String(row.source_dataset), financingType: row.financing_type as SourceRecord["financingType"], sourceRecordId: String(row.source_record_id),
     mechanism: String(row.mechanism), title: String(row.title),
     providerName: row.provider_name == null ? null : String(row.provider_name),
@@ -101,9 +105,9 @@ export function mapRecord(row: Record<string, unknown>): SourceRecord {
     analysis:latestAnalysis(row.pipeline_jobs),
     matchingCandidates: mapLatestCandidates(row.pipeline_jobs),
     matchingError: mapLatestMatchingError(row.pipeline_jobs),
-    reviewDecision: latestAnalysis(row.pipeline_jobs) && !latestAnalysis(row.pipeline_jobs)?.reviewed_classification ? null : mapReviewDecision(row.review_decisions),
-    reviewReason: mapLatestReview(row.review_decisions)?.reason ?? null,
-    reviewedAt: mapLatestReview(row.review_decisions)?.createdAt ?? null,
+    reviewDecision: mapReviewDecision(reviews),
+    reviewReason: mapLatestReview(reviews)?.reason ?? null,
+    reviewedAt: mapLatestReview(reviews)?.createdAt ?? null,
     updatedAt: row.updated_at == null ? null : String(row.updated_at),
     pipelineRunId: mapLatestRun(row.pipeline_jobs)?.id ?? null,
     batchNumber: mapLatestRun(row.pipeline_jobs)?.number ?? null,
@@ -135,7 +139,7 @@ export function mapLatestCandidates(value: unknown): SourceRecord["matchingCandi
   }).sort((a, b) => a.rank - b.rank);
 }
 
-export const RECORD_SELECT = "*,source_documents(id,url,document_type,source_fields,status,mime_type,text_preview,text_length,extraction_method,quality_score,quality_flags,chunk_count),record_enrichments(extracted_title,provider_name,provider_nif,mechanism,award_date,amount,contracting_body,target_population,summary,confidence,engine_version,record_enrichment_evidence(evidence_chunks(ordinal,content))),review_decisions(decision,reason,created_at),pipeline_jobs(id,run_id,status,error_message,created_at,analysis_results(*),pipeline_runs(batch_number),matching_candidates(id,pipeline_job_id,rank,target_code,target_name,score,rationale,engine_version,matching_candidate_evidence(explanation,evidence_chunks(ordinal,content))))";
+export const RECORD_SELECT = "*,source_documents(id,url,document_type,source_fields,status,mime_type,text_preview,text_length,extraction_method,quality_score,quality_flags,chunk_count),record_enrichments(extracted_title,provider_name,provider_nif,mechanism,award_date,amount,contracting_body,target_population,summary,confidence,engine_version,record_enrichment_evidence(evidence_chunks(ordinal,content))),review_decisions(id,pipeline_job_id,classification,reasons,decision,reason,created_at),pipeline_jobs(id,run_id,status,error_message,created_at,analysis_results(*),pipeline_runs(batch_number),matching_candidates(id,pipeline_job_id,rank,target_code,target_name,score,rationale,engine_version,matching_candidate_evidence(explanation,evidence_chunks(ordinal,content))))";
 
 function mapLatestRun(value: unknown) {
   if (!Array.isArray(value) || !value.length) return null;

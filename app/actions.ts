@@ -396,13 +396,15 @@ export async function matchPreparedRecord(sourceRecordId: string) {
 }
 
 export async function reviewMatching(input: {
+  expectedJobId: string;
+  reasons: string[];
   sourceRecordId: string;
   candidateId?: string;
   serviceCode?: string;
   outcome: "select" | "reject" | "insufficient" | "outside";
   notes?: string;
 }) {
-  const {error}=await createServerSupabase().rpc('review_analysis',{p_record:input.sourceRecordId,p_outcome:input.outcome,p_candidate:input.candidateId??null,p_code:input.serviceCode??null,p_notes:input.notes?.trim().slice(0,1000)??null});
+  const {error}=await createServerSupabase().rpc('review_analysis',{p_record:input.sourceRecordId,p_outcome:input.outcome,p_expected_job:input.expectedJobId,p_reasons:input.reasons,p_candidate:input.candidateId??null,p_code:input.serviceCode??null,p_notes:input.notes?.trim().slice(0,1000)??null});
   if(error)throw error;
 
   revalidatePath("/");
@@ -410,6 +412,9 @@ export async function reviewMatching(input: {
   revalidatePath("/issues");
   revalidatePath("/approved");
   revalidatePath("/catalog");
+  revalidatePath("/discarded");
+  revalidatePath("/analysis");
+  revalidatePath("/batches");
   return { ok: true };
 }
 

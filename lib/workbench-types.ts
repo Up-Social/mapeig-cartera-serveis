@@ -3,6 +3,8 @@ export type ProcessingStatus = "pendent" | "preparant" | "preparat" | "processan
 import type { FinancingType } from "./financing-types";
 
 export type SourceRecord = {
+  currentJobId?: string | null;
+  reviewHistory?: {id:string;jobId:string|null;classification:string|null;decision:string;reason:string|null;reasons:string[];createdAt:string}[];
   id: string; sourceDataset: string; financingType: FinancingType; sourceRecordId: string; mechanism: string; title: string;
   providerName: string | null; amount: number | null; status: ProcessingStatus;
   carteraCode: string | null; carteraName: string | null; confidence: number | null; evidence: string | null;
