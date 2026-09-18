@@ -43,3 +43,8 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 /.swc
+
+# Local agent instructions and generated working documentation
+/AGENTS.md
+/CLAUDE.md
+/docs/local/
