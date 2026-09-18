@@ -10,6 +10,7 @@ export async function getJobRecord(jobId:string):Promise<SourceRecord|null>{
  const payload=snapshot.data?.payload as Record<string,unknown>|undefined;
  const source=payload?.source as Record<string,unknown>|undefined;
  const documents=(snapshot.data?.job_document_versions??[]).flatMap(v=>{const versions=Array.isArray(v.document_versions)?v.document_versions:[v.document_versions];return versions.filter(Boolean).map(item=>item.payload.document);});
- const record=mapRecord({...raw,...source,title:source?.title??'Dades originals històriques no recuperables',pipeline_jobs:[selected],source_documents:documents,record_enrichments:payload?.enrichment??null});
+ // Never fill missing historical input with the mutable current source row.
+ const record=mapRecord({...source,id:job.data.source_record_id,source_record_id:source?.source_record_id??'No recuperable',source_dataset:source?.source_dataset??'No recuperable',mechanism:source?.mechanism??'No recuperable',title:source?.title??'Dades originals històriques no recuperables',review_decisions:raw.review_decisions,pipeline_jobs:[selected],source_documents:documents,record_enrichments:payload?.enrichment??null});
  return {...record,isHistorical:true,historicalDataUnavailable:!source};
 }

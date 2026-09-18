@@ -535,9 +535,9 @@ function ExternalEnrichmentDetail({
     ["Col·lectiu", enrichment.targetPopulation],
   ];
   return (
-    <section className="mt-5 rounded-xl border border-emerald-200 bg-emerald-50 p-4">
+    <section className="mt-5 rounded-xl border border-neutral-200 bg-neutral-50 p-4">
       <div className="flex items-center justify-between gap-3">
-        <p className="text-xs font-semibold uppercase tracking-wide text-emerald-900">
+        <p className="text-xs font-semibold uppercase tracking-wide text-neutral-900">
           Dades contrastades amb fonts oficials
         </p>
         <span className="text-xs font-semibold">
@@ -567,7 +567,7 @@ function ExternalEnrichmentDetail({
             {enrichment.evidence.map((item) => (
               <blockquote
                 key={item.ordinal}
-                className="border-l-2 border-emerald-300 pl-3 text-xs leading-5"
+                className="border-l-2 border-neutral-300 pl-3 text-xs leading-5"
               >
                 {item.content}
               </blockquote>
@@ -721,7 +721,9 @@ function RecordStages({
           number="3"
           title="Fer correspondència"
           status={
-            record.matchingCandidates.length
+            record.analysis
+              ? "Anàlisi completada"
+              : record.matchingCandidates.length
               ? "Matching disponible"
               : record.matchingError
                 ? "Error de correspondència"

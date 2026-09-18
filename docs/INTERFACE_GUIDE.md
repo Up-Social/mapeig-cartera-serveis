@@ -11,7 +11,9 @@ En pantalles d'escriptori, la navegació principal es manté visible en una barr
 - **Registres**: consulta de tots els registres importats, amb filtres per tipologia i estat. La font concreta es mostra dins de cada registre.
 - **Lots**: creació automàtica d'1 a 50 registres, progrés persistent i execució completa fins a revisió.
 - **Revisió**: validació humana consecutiva dels candidats generats.
-- **Incidències**: seguiment dels casos rebutjats, amb evidència insuficient o amb errors tècnics, amb el motiu i l'acció de resolució.
+- **Incidències**: evidència insuficient i errors tècnics del treball vigent, amb diagnòstic i recuperació.
+- **Descartats**: descart automàtic o humà, amb motius, evidència i validació humana separada. Permet rectificar i eliminar físicament una selecció confirmada.
+- **Classificacions**: resultats normatius, inclosos els serveis socials fora de la cartera.
 - **Aprovats**: consulta i exportació de les provisions vigents després d'una decisió positiva.
 - **Catàleg**: consulta dels serveis importats i de les provisions aprovades que hi estan vinculades.
 - **Entitats**: consulta d'entitats normalitzades, serveis RESES, mencions i relacions amb el catàleg.
@@ -19,7 +21,19 @@ En pantalles d'escriptori, la navegació principal es manté visible en una barr
 
 ## Resum del procés
 
-El pipeline segueix sis passos: captació, preparació documental, contrast de dades, proposta de correspondència, revisió humana i resultat. **Registres** permet el procés individual i **Lots** l'execució conjunta; tots dos envien els resultats correctes a **Revisió** i els errors a **Incidències**. A **Revisió**, aprovar o corregir crea una provisió a **Aprovats**; rebutjar o declarar evidència insuficient exigeix un motiu i envia el cas a **Incidències**.
+El pipeline segueix sis passos: captació, preparació documental, contrast de dades, classificació, revisió humana i resultat. Classificació, revisió i execució són eixos diferents. Un descart automàtic apareix a **Descartats**, però continua pendent de validació humana. Els serveis fora de cartera són a **Classificacions**; l’evidència insuficient i els errors són a **Incidències**. Aprovar o corregir crea una provisió a **Aprovats**.
+
+Les dues superfícies de revisió ofereixen les mateixes quatre accions: **Aprovar selecció**, **Descartar**, **Servei social fora de la cartera** i **Evidència insuficient**. Les decisions negatives exigeixen explicació, el descart també motius estructurats, i les rectificacions exigeixen justificació. Una revisió obsoleta es rebutja si ja existeix un treball més recent.
+
+## Lots, historial i reanàlisi
+
+**Revisar pendents** obre els treballs pendents d’aquell lot. **Veure resultats del lot** inclou també errors i decisions acabades. Les tres targetes obren el detall reconciliat de completats, errors propis, bloquejats, pendents i en curs; un error de preparació no es compta de nou en fases posteriors. Els treballs històrics són de només lectura. Els lots buits es conserven com a **Lot buit**.
+
+El preflight de reanàlisi és de només lectura: mostra el lot origen, membres exactes, proveïdor/model i documents reutilitzables o pendents. Cost o durada desconeguts es mostren com a no disponibles. Confirmar crea un lot nou idempotent amb la mateixa composició i una base històrica congelada; no aprova provisions. L’informe compara propostes automàtiques i decisions humanes per separat. El rerun remot està bloquejat per defecte i requereix autorització independent.
+
+## Eliminació i fitxers
+
+La selecció es neteja en canviar pàgina o filtres. La confirmació mostra quantitat, identificadors i UUID. Només es poden eliminar registres que continuïn descartats i sense execucions o respostes de proveïdor pendents. La transacció és tot o res; catàlegs, entitats, exportacions compartides i lots es conserven. Si Storage falla, la interfície mostra **Registres eliminats; neteja de fitxers pendent** i permet reintentar una purga verificable. No es poden retirar Excel ja descarregats fora de l’aplicació.
 
 La pantalla **Procés** manté aquest flux visible juntament amb les fonts PSCP, Registre de Convenis, RAISC i e-Tauler. RESES es documenta com a font auxiliar i BDNS com a connexió pendent.
 

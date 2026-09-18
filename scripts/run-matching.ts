@@ -1,5 +1,6 @@
 import {classifyFailure,retryTransient} from '../lib/provider-failure';
 import {journaledProviderRequest} from '../lib/provider-journal';
+import {applyPositiveAudit,positiveAuditSchema,positiveAuditInput,POSITIVE_AUDIT_INSTRUCTIONS,POSITIVE_AUDIT_VERSION} from '../lib/cloud/positive-audit';
 import {buildNormativeInput,MATCHING_INSTRUCTIONS,scopeFactsSchema,validateScopeFacts,type ScopeFacts} from '../lib/normative-matching';
 import {analysisSchema,validateAnalysis,type AnalysisOutput} from '../lib/analysis-contract';
 import {applyScopeRules,ROLE_INSTRUCTIONS} from '../lib/scope-rules';
@@ -71,7 +72,12 @@ async function processJob(job: { id: string; run_id: string; source_record_id: s
     const parsed = JSON.parse(extractOutputText(raw)) as AnalysisOutput & { enrichment?: EnrichmentOutput };
     
     for (const candidate of parsed.candidates) assertEligible(candidate.code,official.all);
-    const analysis=applyScopeRules(validateAnalysis(parsed,official.all,chunks.length),(parsed.enrichment??existingEnrichment)?.scope_facts?.roles,chunks);
+    let validated=validateAnalysis(parsed,official.all,chunks.length);
+    if(validated.classification==='in_portfolio'){
+      const audit=await retryTransient(()=>journaledProviderRequest(supabase,job.id,POSITIVE_AUDIT_VERSION,{model,instructions:POSITIVE_AUDIT_INSTRUCTIONS,input:positiveAuditInput(validated,official.all,official.version.general_context,chunks),text:{format:{type:'json_schema',name:'positive_audit',strict:true,schema:positiveAuditSchema(validated.candidates.map(c=>c.code),chunks)}},max_output_tokens:2000}));
+      validated=validateAnalysis(applyPositiveAudit(validated,JSON.parse(extractOutputText(audit)),official.all,chunks),official.all,chunks.length);
+    }
+    const analysis={...applyScopeRules(validated,(parsed.enrichment??existingEnrichment)?.scope_facts?.roles,chunks),model_conclusion:parsed};
     validateAnalysis(analysis,official.all,chunks.length);
     const candidates = analysis.candidates;
 

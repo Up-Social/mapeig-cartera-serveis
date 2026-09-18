@@ -39,7 +39,10 @@ begin
  if not exists(select 1 from pipeline_runs where id=r and selected_count=0 and status='completed') then raise exception 'Empty batch lost';end if;
 end $$;
 
+reset role;
 create table public.workflow_test_unexpected_reference(id uuid references public.source_records(id));
+grant select,insert on public.workflow_test_unexpected_reference to service_role;
+set local role service_role;
 do $$declare a jsonb;begin
  a:=pg_temp.discard_fixture();insert into workflow_test_unexpected_reference values((a->>'id')::uuid);
  begin perform delete_discarded_records(jsonb_build_array(a),1);raise exception 'Unexpected dependency accepted';exception when foreign_key_violation then null;end;

@@ -93,8 +93,11 @@ async function enrichCandidateServices(batches: BatchSummary[]) {
   const phases:Array<{id:string;preparation:ProgressState;enrichment:ProgressState;matching:ProgressState}>=[];
   for(let offset=0;;offset+=500){const r=await db.from('job_phase_states').select('id,preparation,enrichment,matching').in('run_id',batches.map(b=>b.id)).order('id').range(offset,offset+499);if(r.error)throw r.error;phases.push(...(r.data??[]));if((r.data?.length??0)<500)break;}
   const byId=new Map(phases.map(p=>[p.id,p]));
+  const labels=new Map<string,{title:string;external_id:string|null;is_current:boolean}>();
+  const jobIds=batches.flatMap(b=>b.jobs.map(j=>j.id));
+  for(let offset=0;offset<jobIds.length;offset+=100){const r=await db.from('job_result_labels').select('*').in('id',jobIds.slice(offset,offset+100));if(r.error)throw r.error;for(const label of r.data)labels.set(label.id,label);}
   batches=batches.map(batch=>{
-   const jobs=batch.jobs.map(job=>({...job,phases:byId.get(job.id)}));
+   const jobs=batch.jobs.map(job=>({...job,title:labels.get(job.id)?.title??job.title,externalId:labels.get(job.id)?.external_id??job.externalId,isCurrent:labels.get(job.id)?.is_current??false,phases:byId.get(job.id)}));
    for(const job of jobs)if(!job.phases)throw Error('Falta la projecció SQL de fases');
    return {...batch,jobs,approvedCount:jobs.filter(j=>['approved','corrected'].includes(j.status)).length,rejectedCount:jobs.filter(j=>(j.analysis?.reviewed_classification??j.analysis?.classification)==='discarded').length,insufficientCount:jobs.filter(j=>(j.analysis?.reviewed_classification??j.analysis?.classification)==='insufficient_evidence').length,
     progress:{preparation:summarizePhases(jobs.map(j=>j.phases!.preparation)),enrichment:summarizePhases(jobs.map(j=>j.phases!.enrichment)),matching:summarizePhases(jobs.map(j=>j.phases!.matching))}};

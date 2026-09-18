@@ -92,6 +92,7 @@ export function ReviewWorkbench({
           <input type="hidden" name="record" value={focusedRecordId ?? ""} />
           <Input name="q" defaultValue={filters.query} placeholder="Cercar títol, registre o entitat..." aria-label="Cercar registres analitzats" onChange={() => { if (searchTimer.current) clearTimeout(searchTimer.current); searchTimer.current = setTimeout(() => formRef.current?.requestSubmit(), 350); }} />
           <select
+            aria-label="Tipologia"
             name="type"
             defaultValue={filters.type}
             className="form-control"
@@ -320,9 +321,11 @@ function ReviewDetail({
           <h4 className="font-semibold">Decisió</h4>
           <select
             value={selection}
+            aria-label="Servei proposat o correcció manual"
             onChange={(event) => setSelection(event.target.value)}
             className="form-control mt-3"
           >
+            <option value="">Selecciona un servei per aprovar o corregir</option>
             <optgroup label="Servei proposat i alternatives">
               {record.matchingCandidates.map((candidate) => (
                 <option key={candidate.id} value={`candidate:${candidate.id}`}>
@@ -339,7 +342,7 @@ function ReviewDetail({
               ))}
             </optgroup>
           </select>
-      <ReviewActions notes={notes} onNotesChange={setNotes} reasons={reasons} onReasonsChange={setReasons} pending={pending} canSelect={!!selection && !!record.currentJobId} canOutside={!!record.analysis} rectification={!!record.reviewDecision} onSubmit={submit}/>
+      <ReviewActions notes={notes} onNotesChange={setNotes} reasons={reasons} onReasonsChange={setReasons} pending={pending} canSelect={!!selection && !!record.currentJobId} canOutside={!!record.analysis} rectification={!!record.reviewDecision||selection.startsWith('service:')} onSubmit={submit}/>
           {message && (
             <p className="mt-3 text-sm text-neutral-600">{message}</p>
           )}
@@ -373,7 +376,7 @@ function EnrichmentPanel({
     ["Població objectiu", enrichment.targetPopulation],
   ];
   return (
-    <div className="mt-3 rounded-xl border border-emerald-200 bg-emerald-50 p-4">
+    <div className="mt-3 rounded-xl border border-neutral-200 bg-neutral-50 p-4">
       <div className="flex justify-between gap-3">
         <strong className="text-sm">Extracció de la font oficial</strong>
         <span className="text-xs font-semibold">
