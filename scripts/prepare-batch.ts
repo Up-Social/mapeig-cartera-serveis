@@ -33,7 +33,22 @@ async function main() {
       const preparationStatus = usable ? "ready" : documents.length === 0 ? "no_source" : documents.every((document) => document.status === "unsupported") ? "unsupported" : "error";
       const status = usable ? "ready" : "error";
       const message = usable ? null : documents.length === 0 ? "No s'ha trobat cap URL al registre" : documents.map((document) => document.error_message).filter(Boolean).join(" · ").slice(0, 1000) || "No s'ha pogut preparar evidència";
-      await supabase.from("pipeline_jobs").update({ status, preparation_status: preparationStatus, preparation_message: message }).eq("id", job.id);
+      await supabase.from("pipeline_jobs").update(usable
+        ? {
+            status,
+            preparation_status: preparationStatus,
+            preparation_message: null,
+            error_message: null,
+            error_kind: null,
+            completed_at: null,
+          }
+        : {
+            status,
+            preparation_status: preparationStatus,
+            preparation_message: message,
+            error_message: message,
+            completed_at: new Date().toISOString(),
+          }).eq("id", job.id);
       await supabase.from("source_records").update({ evidence_status: preparationStatus, evidence_error: message, processing_status: usable ? "preparat" : preparationStatus === "no_source" ? "sense_evidencia" : "error", updated_at: new Date().toISOString() }).eq("id", job.source_record_id);
       if (usable) ready += 1; else errors += 1;
     }
