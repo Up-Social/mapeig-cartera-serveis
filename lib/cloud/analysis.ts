@@ -11,6 +11,7 @@ import {validateAnalysis,type AnalysisOutput} from '../analysis-contract';
 import {candidatesOnlySchema} from '../pipeline/matching-schema';
 import {loadOfficialCatalog} from '../official-catalog';
 import {applyScopeRules,ROLE_INSTRUCTIONS} from '../scope-rules';
+import {addNamedCandidates} from '../named-candidate';
 export async function analyzeRecord(c:Context,job:{id:string;source_record_id:string},phase:'enrichment'|'matching'){
  const model=process.env.OPENAI_MATCHING_MODEL;
  if(!model||!process.env.OPENAI_API_KEY)throw new CloudFailure('credentials');
@@ -32,7 +33,7 @@ export async function analyzeRecord(c:Context,job:{id:string;source_record_id:st
   const raw=await providerRequest(c,`ai:${job.id}:matching`,{model,instructions:MATCHING_INSTRUCTIONS,input:buildNormativeInput({...r.data,verified_enrichment:Array.isArray(r.data.record_enrichments)?r.data.record_enrichments[0]:r.data.record_enrichments},catalog.eligible,catalog.all,catalog.version.general_context,chunks),text:{format:{type:'json_schema',name:'analysis',strict:true,schema:candidatesOnlySchema(catalog.eligible.map(service=>service.service_code))}},max_output_tokens:4000});
   await rpc(c.db,'cloud_provider_usage',{...lease(c),p_key:`usage:${job.id}:analysis`,p_usage:raw.usage??{}});
   let result:AnalysisOutput;
-  try {result=normalizeMissingScope(normalizeCandidates(JSON.parse(extractOutputText(raw)),catalog.all,chunks.length));}catch {throw new CloudFailure('validation');}
+  try {result=addNamedCandidates(normalizeMissingScope(normalizeCandidates(JSON.parse(extractOutputText(raw)),catalog.all,chunks.length)),catalog.eligible,chunks);}catch {throw new CloudFailure('validation');}
   if(needsContractRepair(result)){
    const repaired=await providerRequest(c,`ai:${job.id}:${CONTRACT_REPAIR_VERSION}`,{model,instructions:CONTRACT_REPAIR_INSTRUCTIONS,input:JSON.stringify({previous_analysis:result,expedient_evidence:chunks.map((x,i)=>({ordinal:i+1,content:x.content}))}),text:{format:{type:'json_schema',name:'contract_repair',strict:true,schema:contractRepairSchema(chunks.length)}},max_output_tokens:1800});
    await rpc(c.db,'cloud_provider_usage',{...lease(c),p_key:`usage:${job.id}:${CONTRACT_REPAIR_VERSION}`,p_usage:repaired.usage??{}});

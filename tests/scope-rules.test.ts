@@ -21,3 +21,8 @@ test('missing, contradictory or unsupported determinant facts are insufficient, 
  for(const state of ['unknown','contradictory'] as const){const f=roles();f.economic_recipient.state=state;assert.equal(applyScopeRules(original,f,chunks).classification,'insufficient_evidence');}
  const f=roles();f.financier.value='Ajuntament de Prova';f.financier.quotes=['Invented quote'];assert.equal(applyScopeRules(original,f,chunks).classification,'insufficient_evidence');
 });
+test('peripheral ellipses do not invalidate an otherwise literal role quote',()=>{
+ const f=roles();
+ for(const fact of Object.values(f))fact.quotes=[`... ${text} ...`];
+ assert.equal(applyScopeRules(original,f,chunks).classification,'out_of_portfolio');
+});
