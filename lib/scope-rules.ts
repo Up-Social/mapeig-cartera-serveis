@@ -13,8 +13,13 @@ export function applyScopeRules(original:AnalysisOutput,roles:Partial<RoleFacts>
  let rule='retain_model';let reason:string|undefined;
  if(kind('financier')==='administration'&&kind('economic_recipient')==='administration'&&kind('final_service')==='no'&&kind('financial_instrument')==='interadministrative_transfer'){rule='interadministrative_transfer';reason=rule;}
  else if(kind('economic_recipient')==='person'&&kind('direct_beneficiary')==='person'&&kind('financial_instrument')==='direct_grant'){rule='individual_grant';reason=rule;}
- else if(ROLE_NAMES.some(n=>!known(n)))rule='unknown_determinant_role';
- const used=reason==='interadministrative_transfer'?['financier','economic_recipient','final_service','financial_instrument'] as RoleName[]:reason==='individual_grant'?['economic_recipient','direct_beneficiary','financial_instrument'] as RoleName[]:ROLE_NAMES;
+ const determinant:RoleName[]=original.classification==='discarded'
+  ? original.reasons.includes('interadministrative_transfer')?['financier','economic_recipient','final_service','financial_instrument']
+   :original.reasons.includes('individual_grant')?['economic_recipient','direct_beneficiary','financial_instrument']
+   :['financed_object','direct_beneficiary','final_service']
+  :original.classification==='insufficient_evidence'?[]:['financed_object','final_population','final_service'];
+ if(!reason&&determinant.some(n=>!known(n)))rule='unknown_determinant_role';
+ const used=reason==='interadministrative_transfer'?['financier','economic_recipient','final_service','financial_instrument'] as RoleName[]:reason==='individual_grant'?['economic_recipient','direct_beneficiary','financial_instrument'] as RoleName[]:determinant;
  const evidence=[...new Set(used.flatMap(n=>known(n)?roles![n]!.evidence_ordinals:[]))];
  const result:AnalysisOutput=reason?{...original,classification:'discarded',reasons:[reason],candidates:[],evidence_ordinals:evidence,explanation:reason==='individual_grant'?'Ajuda directa acreditada a una persona física. Exclusió del projecte sustentada en els rols i fragments citats.':'Transferència acreditada entre administracions sense prestació final. Exclusió sustentada en els rols i fragments citats.'}:rule==='unknown_determinant_role'?{...original,classification:'insufficient_evidence',reasons:[],candidates:[],explanation:'No s’han pogut acreditar tots els rols determinants o hi ha contradiccions. Cal completar la documentació abans de classificar.'}:original;
  return {...result,rule_audit:{version:SCOPE_RULES_VERSION,rule,roles:roles??null,evidence_ordinals:evidence},model_conclusion:original};

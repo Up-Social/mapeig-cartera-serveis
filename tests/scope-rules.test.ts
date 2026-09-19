@@ -18,8 +18,12 @@ test('direct individual grants are distinct from funding a provider',()=>{
 });
 test('missing, contradictory or unsupported determinant facts are insufficient, never guessed from names',()=>{
  assert.equal(applyScopeRules(original,undefined,chunks).classification,'insufficient_evidence');
- for(const state of ['unknown','contradictory'] as const){const f=roles();f.economic_recipient.state=state;assert.equal(applyScopeRules(original,f,chunks).classification,'insufficient_evidence');}
- const f=roles();f.financier.value='Ajuntament de Prova';f.financier.quotes=['Invented quote'];assert.equal(applyScopeRules(original,f,chunks).classification,'insufficient_evidence');
+ for(const state of ['unknown','contradictory'] as const){const f=roles();f.final_service.state=state;assert.equal(applyScopeRules(original,f,chunks).classification,'insufficient_evidence');}
+ const f=roles();f.final_population.value='Persones';f.final_population.quotes=['Invented quote'];assert.equal(applyScopeRules(original,f,chunks).classification,'insufficient_evidence');
+});
+test('an irrelevant unknown actor does not erase an accredited final service',()=>{
+ const f=roles();f.financier.state='unknown';f.financier.kind='unknown';f.financier.value=null;f.financier.quotes=[];f.financier.evidence_ordinals=[];
+ assert.equal(applyScopeRules({...original,classification:'in_portfolio'},f,chunks).classification,'in_portfolio');
 });
 test('peripheral ellipses do not invalidate an otherwise literal role quote',()=>{
  const f=roles();
