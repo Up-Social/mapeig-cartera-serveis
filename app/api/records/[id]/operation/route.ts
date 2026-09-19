@@ -7,6 +7,7 @@ import {
 } from "@/app/actions";
 import type { RecordOperation } from "@/lib/record-operation";
 import { isUuid } from "@/lib/uuid";
+import {startRecordOperation} from '@/lib/start-record-operation';
 
 const OPERATIONS = new Set<RecordOperation>(["prepare", "enrich", "match", "process", "ocr"]);
 
@@ -23,8 +24,10 @@ export async function POST(
   }
 
   let operation: RecordOperation;
+  let expectedJobId:string|undefined;
   try {
-    const body = (await request.json()) as { operation?: unknown };
+    const body = (await request.json()) as { operation?: unknown;expectedJobId?:unknown };
+    if(body.expectedJobId!==undefined){if(typeof body.expectedJobId!=='string'||!isUuid(body.expectedJobId))throw Error('Invalid job');expectedJobId=body.expectedJobId;}
     if (
       typeof body.operation !== "string" ||
       !OPERATIONS.has(body.operation as RecordOperation)
@@ -38,7 +41,8 @@ export async function POST(
 
   try {
     const result = operation === "ocr"
-      ? await recoverRecordWithOcr(id)
+      ? await (expectedJobId?startRecordOperation(id,operation,expectedJobId):recoverRecordWithOcr(id))
+      : expectedJobId ? await startRecordOperation(id,operation,expectedJobId)
       : operation === "process"
       ? await processRecordAutomatically(id)
       : operation === "prepare"

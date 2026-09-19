@@ -1,6 +1,9 @@
 import {classifyFailure,retryTransient} from '../lib/provider-failure';
+import {journaledProviderRequest} from '../lib/provider-journal';
+import {applyPositiveAudit,positiveAuditSchema,positiveAuditInput,POSITIVE_AUDIT_INSTRUCTIONS,POSITIVE_AUDIT_VERSION} from '../lib/cloud/positive-audit';
 import {buildNormativeInput,MATCHING_INSTRUCTIONS,scopeFactsSchema,validateScopeFacts,type ScopeFacts} from '../lib/normative-matching';
 import {analysisSchema,validateAnalysis,type AnalysisOutput} from '../lib/analysis-contract';
+import {applyScopeRules,ROLE_INSTRUCTIONS} from '../lib/scope-rules';
 import {loadOfficialCatalog,assertEligible} from '../lib/official-catalog';
 import { createClient } from "@supabase/supabase-js";
 import WebSocket from "ws";
@@ -25,6 +28,7 @@ type EnrichmentOutput = { scope_facts:ScopeFacts; title: string | null; provider
 async function main() {
   let request = supabase.from("pipeline_jobs").select("id,run_id,source_record_id").eq("status", runId ? "ready" : "queued").order("created_at").limit(limit);
   if (runId) request = request.eq("run_id", runId);
+  if (process.env.WORKFLOW_JOB_ID) request=request.eq('id',process.env.WORKFLOW_JOB_ID);
   const { data: jobs, error } = await request;
   if (error) throw error;
   if (!jobs?.length) throw new Error("No hi ha treballs en cua");
@@ -43,7 +47,9 @@ async function processJob(job: { id: string; run_id: string; source_record_id: s
     const previous=await supabase.from('analysis_results').select('id').eq('pipeline_job_id',job.id).maybeSingle();
     if(previous.error)throw previous.error;
     if(previous.data){await supabase.from('pipeline_jobs').update({status:'needs_review'}).eq('id',job.id);return;}
-    await assertNotPreviouslySelected(job.source_record_id, job.id, allowPreviousSelection);
+    const lineage=await supabase.from('pipeline_jobs').select('previous_job_id').eq('id',job.id).single();
+    if(lineage.error)throw lineage.error;
+    await assertNotPreviouslySelected(job.source_record_id, job.id, allowPreviousSelection||Boolean(lineage.data.previous_job_id));
     const [{ data: record, error: recordError }, official] = await Promise.all([
       supabase.from("source_records").select("id,source_dataset,source_record_id,mechanism,title,provider_name,amount,source_payload,record_enrichments(id,summary,provider_name,provider_nif,mechanism,award_date,amount,contracting_body,target_population,scope_facts),source_documents!inner(id,status)").eq("id", job.source_record_id).eq("source_documents.status", "fetched").single(),
       loadOfficialCatalog(supabase),
@@ -51,29 +57,28 @@ async function processJob(job: { id: string; run_id: string; source_record_id: s
     if (recordError) throw recordError;
     const catalog = official.eligible;
     const documentIds = record.source_documents.map((document: { id: string }) => document.id);
-    const { data: chunks, error: chunksError } = await supabase.from("evidence_chunks").select("id,ordinal,content,source_document_id").in("source_document_id", documentIds).order("ordinal").limit(12);
+    const { data: chunks, error: chunksError } = await supabase.from("current_evidence_chunks").select("id,ordinal,content,source_document_id").in("source_document_id", documentIds).order("ordinal").limit(12);
     if (chunksError) throw chunksError;
     if (!chunks?.length) throw new Error("El registre no té fragments d'evidència");
 
     const existingEnrichment = Array.isArray(record.record_enrichments) ? record.record_enrichments[0] : record.record_enrichments;
-    const response = await retryTransient(async()=> { const result=await fetch("https://api.openai.com/v1/responses", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${openaiKey}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
+    const raw = await retryTransient(()=>journaledProviderRequest(supabase,job.id,'matching',{
         model,
-        instructions: existingEnrichment ? matchingInstructions() : `Primer extreu camps estructurats exclusivament dels fragments oficials; usa null si no hi consten. ${matchingInstructions()}`,
+        instructions: existingEnrichment ? matchingInstructions() : `${ROLE_INSTRUCTIONS} Primer extreu camps estructurats exclusivament dels fragments oficials; usa null si no hi consten. ${matchingInstructions()}`,
         input: buildNormativeInput({ ...record, verified_enrichment: existingEnrichment }, catalog, official.all, official.version.general_context, chunks),
         text: { format: { type: "json_schema", name: "matching_candidates", strict: true, schema: existingEnrichment ? candidatesOnlySchema() : combinedSchema() } },
         max_output_tokens: 4000,
-      }),
-    });
-    if(!result.ok)throw new Error('OpenAI '+result.status+': '+JSON.stringify(await result.json())); return result; });
-    const raw = await response.json() as Record<string, unknown>;
-    if (!response.ok) throw new Error(`OpenAI ${response.status}: ${JSON.stringify(raw)}`);
+      }));
     const parsed = JSON.parse(extractOutputText(raw)) as AnalysisOutput & { enrichment?: EnrichmentOutput };
     
     for (const candidate of parsed.candidates) assertEligible(candidate.code,official.all);
-    const analysis=validateAnalysis(parsed,official.all,chunks.length);
+    let validated=validateAnalysis(parsed,official.all,chunks.length);
+    if(validated.classification==='in_portfolio'){
+      const audit=await retryTransient(()=>journaledProviderRequest(supabase,job.id,POSITIVE_AUDIT_VERSION,{model,instructions:POSITIVE_AUDIT_INSTRUCTIONS,input:positiveAuditInput(validated,official.all,official.version.general_context,chunks),text:{format:{type:'json_schema',name:'positive_audit',strict:true,schema:positiveAuditSchema(validated.candidates.map(c=>c.code),chunks)}},max_output_tokens:2000}));
+      validated=validateAnalysis(applyPositiveAudit(validated,JSON.parse(extractOutputText(audit)),official.all,chunks),official.all,chunks.length);
+    }
+    const analysis={...applyScopeRules(validated,(parsed.enrichment??existingEnrichment)?.scope_facts?.roles,chunks),model_conclusion:parsed};
+    validateAnalysis(analysis,official.all,chunks.length);
     const candidates = analysis.candidates;
 
 

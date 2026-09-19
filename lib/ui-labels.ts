@@ -1,6 +1,7 @@
 export function sourceDocumentTypeLabel(type: string) {
   return labelFrom({
     regulatory_basis: "Bases reguladores",
+    technical_specifications: "Plec tècnic",
     annex: "Annex",
     agreement: "Conveni",
     publication: "Publicació",

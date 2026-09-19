@@ -1,7 +1,7 @@
 import {randomUUID} from 'node:crypto';
 import {cloudDb,CLOUD_VERSION,rpc,lease,checkpoint,readCheckpoint,commit,type Context} from './context';
 import {publicFailure,failureLabels,CloudYield,CloudFailure} from './errors';
-import {discoverRecordDocuments} from '../pipeline/discovery';
+import {discoverResolvedDocuments} from '../pipeline/discovery';
 import {extractDocument} from './documents';
 import {splitText,hash} from '../pipeline/chunks';
 import {analyzeRecord} from './analysis';
@@ -16,6 +16,7 @@ export async function advance(task:string,workflow:string):Promise<{done:boolean
   await checkpoint(c,'workflow',{id:workflow});
   let q=db.from('pipeline_jobs').select('id,source_record_id,status,preparation_status,analysis_results(id)').order('created_at').order('id');
   q=t.data.run_id?q.eq('run_id',t.data.run_id):q.eq('source_record_id',t.data.source_record_id);
+  if(t.data.pipeline_job_id)q=q.eq('id',t.data.pipeline_job_id);
   // Cursor pagination isn't needed here: completed records are excluded server-side.
   if(t.data.task_type==='prepare_run')q=q.neq('preparation_status','ready');
   const jobs=await q.not('status','in','(needs_review,approved,corrected,rejected,insufficient_evidence,error)').limit(1);
@@ -24,10 +25,11 @@ export async function advance(task:string,workflow:string):Promise<{done:boolean
   if(!job){await rpc(db,'cloud_finish',{...lease(c),p_state:'completed'});if(t.data.run_id)await rpc(db,'refresh_pipeline_run',{p_run_id:t.data.run_id});return {done:true,wait:0};}
   currentJob=job.id;
   const complete=await readCheckpoint(c,`${job.id}:complete`);
-  if(complete||job.analysis_results?.length){await commit(c,job.id,'ready',{});throw Error('INVALID_PENDING_RESULT');}
+  if(job.analysis_results?.length){await db.from('pipeline_jobs').update({status:'needs_review'}).eq('id',job.id);await rpc(db,'cloud_finish',{...lease(c),p_state:'pending'});return {done:false,wait:1};}
+  if(complete)throw new CloudFailure('validation');
   if(!await readCheckpoint(c,`${job.id}:discovered`)){
    const r=await db.from('source_records').select('id,source_payload').eq('id',job.source_record_id).single();if(r.error)throw Error();
-   await commit(c,job.id,'discover',discoverRecordDocuments(r.data));await checkpoint(c,`${job.id}:discovered`,true);
+   await commit(c,job.id,'discover',await discoverResolvedDocuments(r.data));await checkpoint(c,`${job.id}:discovered`,true);
   }else if(job.preparation_status!=='ready'){
    const docs:{data:Array<{id:string;url:string;status:string;chunk_count:number}>}={data:[]};
    for(let offset=0;;offset+=200){

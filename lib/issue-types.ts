@@ -55,6 +55,16 @@ export type IssuePage = {
 };
 
 export function classifyIssue(record: SourceRecord): IssueRecord | null {
+  if(record.currentJobStatus==='error'){
+    if(record.evidenceStatus==='no_source')return issue(record,'no_source','evidence',record.evidenceError??'Sense font documental.','prepare');
+    if(record.evidenceStatus==='unsupported')return issue(record,'unsupported','evidence',record.evidenceError??'Format no compatible.',isOcrEligible(record)?'ocr':'prepare');
+    if(record.evidenceStatus==='error')return issue(record,'document_error','evidence',record.evidenceError??'Error documental.','prepare');
+    if(record.enrichmentStatus==='error')return issue(record,'enrichment_error','enrichment',record.enrichmentError??'Error de contrast.','enrich');
+    return issue(record,'matching_error','matching',record.matchingError??'Error tècnic del treball vigent.','process');
+  }
+  const classification=record.analysis?.reviewed_classification??record.analysis?.classification;
+  if(classification==='discarded'||classification==='out_of_portfolio')return null;
+  if(classification==='insufficient_evidence')return issue(record,'insufficient_evidence','review',record.analysis?.review_notes??record.analysis?.explanation??'Falta evidència acreditada.','process');
   if (record.analysis?.reviewed_classification === 'out_of_portfolio') return null;
 
   if (record.reviewDecision === "rejected") {

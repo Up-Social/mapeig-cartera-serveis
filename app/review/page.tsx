@@ -4,6 +4,7 @@ import { createServerSupabase } from "@/lib/records-page";
 import { ReviewWorkbench } from "./review-workbench";
 import { prioritizeById } from "@/lib/latest-job-state";
 import { isUuid } from "@/lib/uuid";
+import {getJobRecord} from '@/lib/job-record';
 
 type Props = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -14,7 +15,7 @@ export default async function ReviewPage({ searchParams }: Props) {
   const filters = {
     batchId: typeof params.batch === "string" ? params.batch : undefined,
     type: typeof params.type === "string" ? params.type : "totes",
-    state: "pending",
+    state: params.state === 'all' ? 'all' : 'pending',
     query: typeof params.q === "string" ? params.q.slice(0, 120) : "",
   };
   const [queue, services] = await Promise.all([
@@ -28,7 +29,7 @@ export default async function ReviewPage({ searchParams }: Props) {
   const historyEnabled=executionMode()==='vercel_workflow';
   const history=historyEnabled?await createServerSupabase().from('pipeline_runs').select('id').eq('parameters->>history_campaign','normative-history-v1').maybeSingle():null;
   if(history?.error)throw history.error;
-  const focused=focusedRecordId?await getSourceRecord(focusedRecordId):null;
+  const focused=typeof params.job==='string'&&isUuid(params.job)?await getJobRecord(params.job):focusedRecordId?await getSourceRecord(focusedRecordId):null;
   if(focused&&!queue.records.some(r=>r.id===focused.id))queue.records.unshift(focused);
   const focusedQueue = {
     ...queue,

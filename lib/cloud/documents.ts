@@ -1,8 +1,9 @@
 import {Sandbox} from '@vercel/sandbox';
 import {checkpoint,readCheckpoint,rpc,acquireResource,type Context} from './context';
 import {CloudFailure,CloudYield} from './errors';
-import {fetchWithLimits,htmlToText,cleanText} from '../pipeline/document-input';
+import {htmlToText,cleanText} from '../pipeline/document-input';
 import {hash} from '../pipeline/chunks';
+import {fetchOfficialDocument} from '../pipeline/official-resolution';
 type Extraction={text:string;method:string;hash:string;mime:string;partial:boolean};
 export async function extractDocument(c:Context,id:string,url:string,ocr:boolean):Promise<Extraction>{
  const cached=await readCheckpoint<Extraction>(c,`document:${id}`);if(cached)return cached;
@@ -12,7 +13,7 @@ export async function extractDocument(c:Context,id:string,url:string,ocr:boolean
   const r=await c.db.storage.from('cloud-documents').download(original.path);if(r.error||!r.data)throw new CloudFailure('internal');
   fetched={bytes:Buffer.from(await r.data.arrayBuffer()),mimeType:original.mime};
  }else{
-  try {fetched=await fetchWithLimits(url);}catch {throw new CloudFailure('document');}
+  try {fetched=await fetchOfficialDocument(url);}catch {throw new CloudFailure('document');}
   const digest=hash(fetched.bytes.toString('base64'));const path=`${c.task}/${id}/${digest}`;
   const r=await c.db.storage.from('cloud-documents').upload(path,fetched.bytes,{upsert:true,contentType:fetched.mimeType});if(r.error)throw new CloudFailure('internal');
   await checkpoint(c,`original:${id}`,{path,mime:fetched.mimeType,hash:digest});

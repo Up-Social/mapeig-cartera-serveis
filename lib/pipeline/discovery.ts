@@ -1,9 +1,11 @@
 import {createHash} from "node:crypto";
 import {classifySourceDocumentField} from "../provision-links";
+import {resolveOfficialDocuments,type Resolution} from './official-resolution';
 type SourceRow = { id: string; source_payload: Record<string, unknown> };
 type DocumentRow = {
   source_record_id: string; url: string; url_hash: string; document_type: string;
   source_fields: string[]; status: "discovered"; updated_at: string;
+  resolution?: Resolution;
 };
 
 export function discoverRecordDocuments(record: SourceRow): DocumentRow[] {
@@ -36,6 +38,19 @@ export function discoverRecordDocuments(record: SourceRow): DocumentRow[] {
   }));
 }
 
+export async function discoverResolvedDocuments(record:SourceRow){
+ const documents=discoverRecordDocuments(record);
+ const extra:DocumentRow[]=[];
+ for(const document of documents.slice(0,10)){
+  const resolutions=await resolveOfficialDocuments(document.url);
+  for(const resolution of resolutions){
+   if(resolution.result==='unresolved'){document.resolution=resolution;continue;}
+   extra.push({...document,url:resolution.resolved_url,url_hash:createHash('sha256').update(resolution.resolved_url).digest('hex'),document_type:resolution.document_type,resolution});
+  }
+ }
+ return [...new Map([...extra,...documents].map(d=>[d.url,d])).values()];
+}
+
 function normalizeUrl(candidate: string) {
   const cleaned = candidate.replace(/[),.;]+$/g, "");
   try {
@@ -45,4 +60,3 @@ function normalizeUrl(candidate: string) {
     return parsed.toString();
   } catch { return null; }
 }
-

@@ -1,3 +1,5 @@
+import {ROLE_INSTRUCTIONS} from '../lib/scope-rules';
+import {journaledProviderRequest} from '../lib/provider-journal';
 import {validateScopeFacts} from '../lib/normative-matching';
 import {enrichmentSchema,sanitize,extractOutputText,type Enrichment} from '../lib/pipeline/enrichment-contract';
 import { createClient } from "@supabase/supabase-js";
@@ -17,17 +19,18 @@ async function main() {
     const { data: record, error: recordError } = await supabase.from("source_records").select("id,source_dataset,source_record_id,mechanism,title,provider_name,amount,source_payload,source_documents!inner(id,status)").eq("id", recordId).eq("source_documents.status", "fetched").single();
     if (recordError) throw recordError;
     const documentIds = record.source_documents.map((document: { id: string }) => document.id);
-    const { data: chunks, error: chunksError } = await supabase.from("evidence_chunks").select("id,ordinal,content").in("source_document_id", documentIds).order("ordinal").limit(12);
+    const { data: chunks, error: chunksError } = await supabase.from("current_evidence_chunks").select("id,ordinal,content").in("source_document_id", documentIds).order("ordinal").limit(12);
     if (chunksError) throw chunksError;
     if (!chunks?.length) throw new Error("No hi ha fragments oficials preparats");
-    const response = await fetch("https://api.openai.com/v1/responses", { method: "POST", headers: { Authorization: `Bearer ${openaiKey}`, "Content-Type": "application/json" }, body: JSON.stringify({
+    let jobQuery=supabase.from('pipeline_jobs').select('id').eq('source_record_id',record.id).order('created_at',{ascending:false}).order('id',{ascending:false}).limit(1);
+    if(process.env.WORKFLOW_JOB_ID)jobQuery=jobQuery.eq('id',process.env.WORKFLOW_JOB_ID);
+    const job=await jobQuery.single();if(job.error)throw job.error;
+    const raw=await journaledProviderRequest(supabase,job.data.id,'enrichment',{
       model,
-      instructions: "Extreu camps estructurats exclusivament dels fragments dels documents oficials. Usa null quan un camp no hi consti, no completis dades per intuïció i cita els ordinals que sustenten l'extracció. Separa scope_facts: financed_object (objecte finançat), funding_recipient (receptor dels diners), final_recipient (destinatari final) i administrative_role (funció de l’acte); cada valor ha de citar els seus fragments, o ser null. No facis cap matching ni proposis serveis de la Cartera. Respon en català.",
+      instructions: ROLE_INSTRUCTIONS+" Extreu camps estructurats exclusivament dels fragments dels documents oficials. Usa null quan un camp no hi consti, no completis dades per intuïció i cita els ordinals que sustenten l'extracció. Separa scope_facts: financed_object (objecte finançat), funding_recipient (receptor dels diners), final_recipient (destinatari final) i administrative_role (funció de l’acte); cada valor ha de citar els seus fragments, o ser null. No facis cap matching ni proposis serveis de la Cartera. Respon en català.",
       input: `REGISTRE ORIGINAL (només context)\n${JSON.stringify({ dataset: record.source_dataset, id: record.source_record_id, mechanism: record.mechanism, title: record.title, provider: record.provider_name, amount: record.amount, original: sanitize(record.source_payload) })}\n\nFRAGMENTS OFICIALS\n${chunks.map((chunk, index) => `[${index + 1}] ${chunk.content}`).join("\n\n")}`,
       text: { format: { type: "json_schema", name: "official_enrichment", strict: true, schema: enrichmentSchema() } }, max_output_tokens: 2400,
-    }) });
-    const raw = await response.json() as Record<string, unknown>;
-    if (!response.ok) throw new Error(`OpenAI ${response.status}: ${JSON.stringify(raw)}`);
+    });
     const enrichment = JSON.parse(extractOutputText(raw)) as Enrichment;
     validateScopeFacts(enrichment.scope_facts,chunks.length);
     const awardDate = enrichment.award_date && /^\d{4}-\d{2}-\d{2}$/.test(enrichment.award_date) ? enrichment.award_date : null;

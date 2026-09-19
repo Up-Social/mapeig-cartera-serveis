@@ -18,7 +18,9 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { ReviewActions } from "@/components/review-actions";
+import {DocumentProvenance} from "@/components/document-provenance";
+import { ReviewHistory } from "@/components/review-history";
 import { cn } from "@/lib/utils";
 import { AnalysisResult } from "@/components/analysis-result";
 import {
@@ -399,16 +401,15 @@ function DetailPanel({
           <div className="mt-3 space-y-3">
             <AnalysisResult analysis={record.analysis} candidates={record.matchingCandidates}/>
           </div>
-          {record.reviewDecision ? (
+          {record.reviewDecision && (
             <p className="mt-3 rounded-xl bg-neutral-100 p-3 text-xs font-semibold">
               Decisió registrada: {reviewDecisionLabel(record.reviewDecision)}
             </p>
-          ) : (
+          )}
             <ReviewControls
               record={record}
               onRecordUpdate={onRecordUpdate}
             />
-          )}
         </div>
       ) : (
         <div className="mt-5 rounded-xl bg-neutral-100 p-4 text-sm text-neutral-900">
@@ -444,7 +445,7 @@ function DetailPanel({
                   </span>
                 </div>
                 <a
-                  href={document.url}
+                  href={`/api/documents/${document.id}/open`}
                   target="_blank"
                   rel="noreferrer"
                   className="mt-2 block break-all text-xs leading-5 text-neutral-700 underline decoration-neutral-300 underline-offset-2 hover:text-black"
@@ -468,7 +469,8 @@ function DetailPanel({
                         </>
                       )}
                     </div>
-                    {document.textPreview && (
+                    <DocumentProvenance document={document}/>
+                {document.textPreview && (
                       <p className="mt-2 line-clamp-5 whitespace-pre-line text-xs leading-5 text-neutral-700">
                         {document.textPreview}
                       </p>
@@ -533,9 +535,9 @@ function ExternalEnrichmentDetail({
     ["Col·lectiu", enrichment.targetPopulation],
   ];
   return (
-    <section className="mt-5 rounded-xl border border-emerald-200 bg-emerald-50 p-4">
+    <section className="mt-5 rounded-xl border border-neutral-200 bg-neutral-50 p-4">
       <div className="flex items-center justify-between gap-3">
-        <p className="text-xs font-semibold uppercase tracking-wide text-emerald-900">
+        <p className="text-xs font-semibold uppercase tracking-wide text-neutral-900">
           Dades contrastades amb fonts oficials
         </p>
         <span className="text-xs font-semibold">
@@ -565,7 +567,7 @@ function ExternalEnrichmentDetail({
             {enrichment.evidence.map((item) => (
               <blockquote
                 key={item.ordinal}
-                className="border-l-2 border-emerald-300 pl-3 text-xs leading-5"
+                className="border-l-2 border-neutral-300 pl-3 text-xs leading-5"
               >
                 {item.content}
               </blockquote>
@@ -719,7 +721,9 @@ function RecordStages({
           number="3"
           title="Fer correspondència"
           status={
-            record.matchingCandidates.length
+            record.analysis
+              ? "Anàlisi completada"
+              : record.matchingCandidates.length
               ? "Matching disponible"
               : record.matchingError
                 ? "Error de correspondència"
@@ -963,13 +967,17 @@ function ReviewControls({
     record.matchingCandidates[0]?.id ?? "",
   );
   const [notes, setNotes] = useState("");
+  const [reasons, setReasons] = useState<string[]>([]);
   const [message, setMessage] = useState("");
   const [pending, startTransition] = useTransition();
-  function submit(outcome: "select" | "reject" | "insufficient") {
+  function submit(outcome: "select" | "reject" | "insufficient" | "outside") {
+    if(record.reviewDecision && !window.confirm("Aquesta acció substituirà la decisió vigent. Vols continuar?")) return;
     setMessage("");
     startTransition(async () => {
       try {
         const nextRecord = await submitRecordReview(record.id, {
+          expectedJobId: record.currentJobId ?? "",
+          reasons: outcome === "reject" ? reasons : [],
           candidateId: outcome === "select" ? candidateId : undefined,
           outcome,
           notes,
@@ -1005,47 +1013,9 @@ function ReviewControls({
           ))}
         </select>
       </label>
-      <label className="mt-3 block text-xs font-semibold text-neutral-600">
-        Notes opcionals
-        <Textarea
-          value={notes}
-          onChange={(event) => setNotes(event.target.value)}
-          rows={3}
-          maxLength={1000}
-          className="mt-1.5 font-normal"
-          placeholder="Motiu o observacions de la decisió"
-        />
-      </label>
-      <div className="mt-3 grid gap-2">
-        <Button
-          type="button"
-          disabled={pending || !candidateId}
-          onClick={() => submit("select")}
-        >
-          Aprovar candidat seleccionat
-        </Button>
-        <div className="grid grid-cols-2 gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            type="button"
-            disabled={pending}
-            onClick={() => submit("reject")}
-          >
-            Rebutjar correspondència
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            type="button"
-            disabled={pending}
-            onClick={() => submit("insufficient")}
-          >
-            Evidència insuficient
-          </Button>
-        </div>
-      </div>
+      <ReviewActions notes={notes} onNotesChange={setNotes} reasons={reasons} onReasonsChange={setReasons} pending={pending} canSelect={!!candidateId && !!record.currentJobId} canOutside={!!record.analysis} rectification={!!record.reviewDecision} onSubmit={submit}/>
       {message && <p className="mt-3 text-xs text-neutral-600">{message}</p>}
+      <ReviewHistory record={record}/>
     </div>
   );
 }

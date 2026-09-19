@@ -3,6 +3,11 @@ export type ProcessingStatus = "pendent" | "preparant" | "preparat" | "processan
 import type { FinancingType } from "./financing-types";
 
 export type SourceRecord = {
+  currentJobId?: string | null;
+  currentJobStatus?: string | null;
+  isHistorical?: boolean;
+  historicalDataUnavailable?: boolean;
+  reviewHistory?: {id:string;jobId:string|null;classification:string|null;decision:string;reason:string|null;reasons:string[];createdAt:string}[];
   id: string; sourceDataset: string; financingType: FinancingType; sourceRecordId: string; mechanism: string; title: string;
   providerName: string | null; amount: number | null; status: ProcessingStatus;
   carteraCode: string | null; carteraName: string | null; confidence: number | null; evidence: string | null;
@@ -35,6 +40,7 @@ export type MatchingCandidate = {
   serviceDetail: { sectorScope: string | null; portfolioStatus: string | null } | null;
 };
 export type SourceDocument = {
+  resolution?: import('./pipeline/official-resolution').Resolution;
   id: string; url: string; documentType: string; sourceFields: string[];
   status: "discovered" | "fetching" | "fetched" | "unsupported" | "error";
   mimeType: string | null; textPreview: string | null; textLength: number | null;

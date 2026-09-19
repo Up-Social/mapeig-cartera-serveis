@@ -3,6 +3,7 @@ import {CloudFailure} from './errors';
 type Journal={state:'sending'|'received'|'retry'|'rejected';response?:Record<string,unknown>;attempt:number};
 // The journal is private in Supabase; never return it from a workflow step.
 export async function providerRequest(c:Context,key:string,body:unknown){
+ if(process.env.WORKFLOW_TEST_PROJECT||process.env.PIPELINE_PROVIDER==='mock')throw new CloudFailure('internal');
  const saved=await readCheckpoint<Journal>(c,key);
  if(saved?.state==='received'){await rpc(c.db,'cloud_budget_settle',{...lease(c),p_key:key,p_usage:saved.response?.usage??{}});return saved.response!;}
  if(saved?.state==='rejected')throw new CloudFailure('validation');
@@ -26,7 +27,7 @@ export async function providerRequest(c:Context,key:string,body:unknown){
    if(quota||response.status===401||response.status===403){block=quota?'openai_quota':'credentials';await checkpoint(c,key,{state:'retry',attempt:0});throw new CloudFailure(quota?'openai_quota':'credentials');}
    if(response.status===429){await checkpoint(c,key,{state:'retry',attempt});const h=response.headers.get('retry-after');const wait=h?(Number(h)||Math.max(1,(Date.parse(h)-Date.now())/1000)):5*2**(attempt-1);throw new CloudFailure('transient',Math.min(3600,Math.max(5,wait)));}
    // A 5xx may follow successful provider work; don't silently pay twice.
-   if(response.status>=500)throw new CloudFailure('provider_unknown');
+   if(response.status>=500){await checkpoint(c,key,{state:'sending',attempt,response:raw,unknown:true});throw new CloudFailure('provider_unknown');}
    await checkpoint(c,key,{state:'rejected',attempt,http_status:response.status,error:raw.error??null});
    throw new CloudFailure('validation');
   }

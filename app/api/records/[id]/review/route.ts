@@ -22,6 +22,8 @@ export async function POST(
       return Response.json({ error: "Decisió no vàlida." }, { status: 400 });
     }
     await reviewMatching({
+      expectedJobId: typeof body.expectedJobId === 'string' && isUuid(body.expectedJobId) ? body.expectedJobId : '00000000-0000-4000-8000-000000000000',
+      reasons: Array.isArray(body.reasons) ? body.reasons.filter((r):r is string=>typeof r==='string') : [],
       sourceRecordId: id,
       outcome: body.outcome as "select" | "reject" | "insufficient" | "outside",
       candidateId:

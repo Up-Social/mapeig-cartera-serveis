@@ -1,4 +1,5 @@
 export type JobStateRow = {
+  id?: string;
   source_record_id: string;
   status: string;
   created_at: string;
@@ -7,7 +8,7 @@ export type JobStateRow = {
 
 export function latestJobsByRecord<T extends JobStateRow>(jobs: T[]): T[] {
   const latest = new Map<string, T>();
-  for (const job of [...jobs].sort((a, b) => b.created_at.localeCompare(a.created_at))) {
+  for (const job of [...jobs].sort((a, b) => b.created_at.localeCompare(a.created_at)||String(b.id??'').localeCompare(String(a.id??'')))) {
     if (!latest.has(job.source_record_id)) latest.set(job.source_record_id, job);
   }
   return [...latest.values()];

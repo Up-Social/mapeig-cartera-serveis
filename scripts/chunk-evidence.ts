@@ -17,7 +17,7 @@ async function main() {
   if (!Number.isInteger(limit) || limit < 1 || limit > 1000) throw new Error("--limit ha de ser entre 1 i 1000");
   let request = supabase.from("source_documents").select("id,extracted_text,extraction_method,source_record_id").eq("status", "fetched").not("extracted_text", "is", null).order("fetched_at").limit(limit);
   if (runId) {
-    const { data: jobs, error: jobsError } = await supabase.from("pipeline_jobs").select("source_record_id").eq("run_id", runId);
+    const { data: jobs, error: jobsError } = await supabase.from("pipeline_jobs").select("source_record_id").eq("run_id", runId).match(process.env.WORKFLOW_JOB_ID?{id:process.env.WORKFLOW_JOB_ID}:{});
     if (jobsError) throw jobsError;
     request = request.in("source_record_id", (jobs ?? []).map((job) => job.source_record_id));
   }
@@ -44,14 +44,7 @@ async function main() {
     const rows = chunks.map((content, ordinal) => ({
       source_document_id: document.id, ordinal, content, content_hash: hash(content), character_count: content.length,
     }));
-    if (rows.length) {
-      const { error: chunkError } = await supabase.from("evidence_chunks").upsert(rows, { onConflict: "source_document_id,ordinal" });
-      if (chunkError) throw chunkError;
-    }
-    const { error: updateError } = await supabase.from("source_documents").update({
-      text_preview: normalized.slice(0, 600), extracted_text_hash: textHash,
-      quality_score: quality, quality_flags: flags, chunk_count: chunks.length, updated_at: new Date().toISOString(),
-    }).eq("id", document.id);
+    const {error:updateError}=await supabase.rpc('replace_document_chunks',{p_document:document.id,p_chunks:rows,p_metadata:{text_preview:normalized.slice(0,600),extracted_text_hash:textHash,quality_score:quality,quality_flags:flags}});
     if (updateError) throw updateError;
     totalChunks += chunks.length;
     console.log(`${index + 1}/${documents.length} · ${chunks.length} fragments · qualitat ${quality.toFixed(2)}${flags.length ? ` · ${flags.join(", ")}` : ""}`);

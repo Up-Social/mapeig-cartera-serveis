@@ -1,4 +1,5 @@
 "use client";
+import Link from 'next/link';
 
 import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
@@ -13,7 +14,9 @@ import { HistoryUpdate } from "./history-update";
 import { reviewClassificationLabel } from "@/lib/review-classification";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
+import { ReviewActions } from "@/components/review-actions";
+import {DocumentProvenance} from "@/components/document-provenance";
+import { ReviewHistory } from "@/components/review-history";
 import { Input } from "@/components/ui/input";
 import { StableAccordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { AnalysisResult } from "@/components/analysis-result";
@@ -82,11 +85,14 @@ export function ReviewWorkbench({
           </Button>
         </div>
         {historyEnabled&&<HistoryUpdate runId={historyRunId}/>}
+        {filters.batchId&&<Link className="mt-4 inline-block underline" href={`/batches/${filters.batchId}/results`}>Tornar als resultats del lot</Link>}
         <form ref={formRef} className="surface mt-5 grid gap-3 p-4 md:grid-cols-[minmax(220px,1fr)_220px]">
           <input type="hidden" name="batch" value={filters.batchId ?? ""} />
+          <input type="hidden" name="state" value={filters.state} />
           <input type="hidden" name="record" value={focusedRecordId ?? ""} />
           <Input name="q" defaultValue={filters.query} placeholder="Cercar títol, registre o entitat..." aria-label="Cercar registres analitzats" onChange={() => { if (searchTimer.current) clearTimeout(searchTimer.current); searchTimer.current = setTimeout(() => formRef.current?.requestSubmit(), 350); }} />
           <select
+            aria-label="Tipologia"
             name="type"
             defaultValue={filters.type}
             className="form-control"
@@ -103,7 +109,7 @@ export function ReviewWorkbench({
         <div className="mt-6">
           <section className="surface overflow-hidden">
             <div className="border-b p-4 font-semibold">
-              Registres pendents de validar ({records.length})
+              {filters.state==='all'?'Resultats del lot o selecció':'Registres pendents de validar'} ({records.length})
             </div>
             <StableAccordion stateKey={`review-records:${focusedRecordId ?? "queue"}`} defaultValue={focusedRecordId ? [focusedRecordId] : []} className="divide-y">
               {records.map((record) => (
@@ -169,6 +175,7 @@ function ReviewDetail({
       : "",
   );
   const [notes, setNotes] = useState("");
+  const [reasons, setReasons] = useState<string[]>([]);
   const [editing, setEditing] = useState(!record.reviewDecision);
   const [message, setMessage] = useState("");
   const [pending, startTransition] = useTransition();
@@ -190,6 +197,8 @@ function ReviewDetail({
       try {
         const [kind, id] = selection.split(":");
         const nextRecord = await submitRecordReview(record.id, {
+          expectedJobId: record.currentJobId ?? "",
+          reasons: outcome === "reject" ? reasons : [],
           outcome,
           candidateId:
             outcome === "select" && kind === "candidate" ? id : undefined,
@@ -227,7 +236,7 @@ function ReviewDetail({
             {record.title}
           </h3>
         </div>
-        {record.reviewDecision && (
+        {record.reviewDecision && !record.isHistorical && (
           <Button onClick={() => setEditing(true)} variant="outline" size="sm">
             Modificar decisió
           </Button>
@@ -276,13 +285,14 @@ function ReviewDetail({
                   </span>
                 </div>
                 <a
-                  href={document.url}
+                  href={`/api/documents/${document.id}/open`}
                   target="_blank"
                   rel="noreferrer"
                   className="mt-2 block break-all text-xs underline"
                 >
                   {document.url}
                 </a>
+                <DocumentProvenance document={document}/>
                 {document.textPreview && (
                   <p className="mt-2 line-clamp-4 text-xs leading-5 text-neutral-600">
                     {document.textPreview}
@@ -305,14 +315,17 @@ function ReviewDetail({
           <AnalysisResult analysis={record.analysis} candidates={record.matchingCandidates}/>
         </div>
       </section>
-      {editing && (
+      {record.isHistorical&&<p role="status" className="mt-4 rounded border p-3 text-sm">Resultat històric de només lectura. {record.historicalDataUnavailable?'Hi ha dades originals que no es poden recuperar.':''}</p>}
+      {editing && !record.isHistorical && (
         <section className="mt-5 rounded-xl border border-neutral-300 p-4">
           <h4 className="font-semibold">Decisió</h4>
           <select
             value={selection}
+            aria-label="Servei proposat o correcció manual"
             onChange={(event) => setSelection(event.target.value)}
             className="form-control mt-3"
           >
+            <option value="">Selecciona un servei per aprovar o corregir</option>
             <optgroup label="Servei proposat i alternatives">
               {record.matchingCandidates.map((candidate) => (
                 <option key={candidate.id} value={`candidate:${candidate.id}`}>
@@ -329,41 +342,13 @@ function ReviewDetail({
               ))}
             </optgroup>
           </select>
-          <Textarea
-            value={notes}
-            onChange={(event) => setNotes(event.target.value)}
-            rows={3}
-            className="mt-3"
-            placeholder="Motiu del rebuig o evidència que falta (obligatori en decisions negatives)"
-          />
-          <div className="mt-3 grid gap-2 sm:grid-cols-2">
-            <Button variant="outline" disabled={pending || !record.analysis} onClick={()=>submit("outside")}>Fora de cartera</Button>
-            <Button
-              disabled={pending || !selection}
-              onClick={() => submit("select")}
-            >
-              Aprovar selecció
-            </Button>
-            <Button
-              variant="outline"
-              disabled={pending}
-              onClick={() => submit("reject")}
-            >
-              Rebutjar
-            </Button>
-            <Button
-              variant="outline"
-              disabled={pending}
-              onClick={() => submit("insufficient")}
-            >
-              Evidència insuficient
-            </Button>
-          </div>
+      <ReviewActions notes={notes} onNotesChange={setNotes} reasons={reasons} onReasonsChange={setReasons} pending={pending} canSelect={!!selection && !!record.currentJobId} canOutside={!!record.analysis} rectification={!!record.reviewDecision||selection.startsWith('service:')} onSubmit={submit}/>
           {message && (
             <p className="mt-3 text-sm text-neutral-600">{message}</p>
           )}
         </section>
       )}
+      <ReviewHistory record={record}/>
     </article>
   );
 }
@@ -391,7 +376,7 @@ function EnrichmentPanel({
     ["Població objectiu", enrichment.targetPopulation],
   ];
   return (
-    <div className="mt-3 rounded-xl border border-emerald-200 bg-emerald-50 p-4">
+    <div className="mt-3 rounded-xl border border-neutral-200 bg-neutral-50 p-4">
       <div className="flex justify-between gap-3">
         <strong className="text-sm">Extracció de la font oficial</strong>
         <span className="text-xs font-semibold">

@@ -1,8 +1,7 @@
 import { createHash } from "node:crypto";
-import { lookup } from "node:dns/promises";
+import {fetchOfficialDocument} from "../lib/pipeline/official-resolution";
 import { execFile } from "node:child_process";
 import { mkdtemp, readFile, readdir, rm, writeFile } from "node:fs/promises";
-import { isIP } from "node:net";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { promisify } from "node:util";
@@ -24,10 +23,9 @@ type Document = {
     | Array<{ source_payload?: Record<string, unknown> }>;
 };
 const execFileAsync = promisify(execFile);
-const MAX_BYTES = 10 * 1024 * 1024;
 const MAX_TEXT = 200_000;
 const TIMEOUT_MS = 20_000;
-const DEFAULT_TYPES = ["agreement", "publication", "regulatory_basis", "contracting_profile", "annex"];
+const DEFAULT_TYPES = ["technical_specifications", "agreement", "publication", "regulatory_basis", "contracting_profile", "annex"];
 const requestedTypes = option("--types")?.split(",").map((value) => value.trim()).filter(Boolean);
 const runId = option("--run-id");
 const ocrEnabled = process.argv.includes("--ocr");
@@ -48,7 +46,7 @@ async function main() {
   for (const [index, document] of documents.entries()) {
     await update(document.id, { status: "fetching", error_message: null });
     try {
-      const fetched = await withTimeout(fetchWithLimits(document.url), TIMEOUT_MS + 5_000, "Temps total de descàrrega excedit");
+      const fetched = await withTimeout(fetchOfficialDocument(document.url), TIMEOUT_MS + 5_000, "Temps total de descàrrega excedit");
       let extraction = await extract(fetched.bytes, fetched.mimeType, fetched.finalUrl, ocrEnabled);
       if (isUnusableWebExtraction(extraction.text)) {
         const payloadText = buildSourcePayloadEvidence(documentPayload(document));
@@ -77,7 +75,7 @@ async function main() {
 
 async function selectStratifiedSample(limit: number) {
   if (runId) {
-    const { data: jobs, error: jobsError } = await supabase.from("pipeline_jobs").select("source_record_id").eq("run_id", runId);
+    const { data: jobs, error: jobsError } = await supabase.from("pipeline_jobs").select("source_record_id").eq("run_id", runId).match(process.env.WORKFLOW_JOB_ID?{id:process.env.WORKFLOW_JOB_ID}:{});
     if (jobsError) throw jobsError;
     const recordIds = (jobs ?? []).map((job) => job.source_record_id);
     if (!recordIds.length) return [];
@@ -117,43 +115,6 @@ async function selectStratifiedSample(limit: number) {
     }
   }
   return selected.slice(0, limit);
-}
-
-async function fetchWithLimits(initialUrl: string) {
-  let current = new URL(initialUrl);
-  for (let redirect = 0; redirect <= 5; redirect += 1) {
-    await assertPublicUrl(current);
-    const response = await fetch(current, { redirect: "manual", signal: AbortSignal.timeout(TIMEOUT_MS), headers: { "user-agent": "Mapeig-cartera-serveis-PoC/0.1" } });
-    if (response.status >= 300 && response.status < 400) {
-      const location = response.headers.get("location");
-      if (!location) throw new Error(`Redirecció ${response.status} sense destinació`);
-      current = new URL(location, current);
-      continue;
-    }
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    const declared = Number(response.headers.get("content-length") ?? 0);
-    if (declared > MAX_BYTES) throw new Error(`Document massa gran: ${declared} bytes`);
-    const bytes = await readLimitedBody(response);
-    const headerType = response.headers.get("content-type")?.split(";")[0].trim().toLowerCase();
-    const mimeType = headerType || inferMime(current.pathname, bytes);
-    return { bytes, mimeType, finalUrl: current.toString(), status: response.status };
-  }
-  throw new Error("Massa redireccions");
-}
-
-async function readLimitedBody(response: Response) {
-  if (!response.body) return Buffer.alloc(0);
-  const reader = response.body.getReader();
-  const chunks: Uint8Array[] = [];
-  let size = 0;
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    size += value.length;
-    if (size > MAX_BYTES) { await reader.cancel(); throw new Error(`Document supera ${MAX_BYTES} bytes`); }
-    chunks.push(value);
-  }
-  return Buffer.concat(chunks);
 }
 
 async function extract(bytes: Buffer, mimeType: string, finalUrl: string, allowOcr: boolean) {
@@ -203,24 +164,6 @@ async function extractPdfWithOcr(input: string, directory: string) {
   }
 }
 
-async function assertPublicUrl(url: URL) {
-  if (!['http:', 'https:'].includes(url.protocol)) throw new Error("Protocol no permès");
-  if (url.username || url.password) throw new Error("Credencials a la URL no permeses");
-  const addresses = await lookup(url.hostname, { all: true });
-  if (!addresses.length || addresses.some(({ address }) => isPrivateAddress(address))) throw new Error("Destinació de xarxa privada no permesa");
-}
-
-function isPrivateAddress(address: string) {
-  if (!isIP(address)) return true;
-  const normalized = address.toLowerCase();
-  if (normalized === "::1" || normalized.startsWith("fe80:") || normalized.startsWith("fc") || normalized.startsWith("fd")) return true;
-  const ipv4 = normalized.startsWith("::ffff:") ? normalized.slice(7) : normalized;
-  const parts = ipv4.split(".").map(Number);
-  if (parts.length !== 4) return false;
-  return parts[0] === 10 || parts[0] === 127 || parts[0] === 0 || (parts[0] === 169 && parts[1] === 254)
-    || (parts[0] === 172 && parts[1] >= 16 && parts[1] <= 31) || (parts[0] === 192 && parts[1] === 168);
-}
-
 function htmlToText(html: string) {
   return html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, " ").replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, " ")
     .replace(/<[^>]+>/g, " ").replace(/&nbsp;/gi, " ").replace(/&amp;/gi, "&").replace(/&lt;/gi, "<")
@@ -234,7 +177,6 @@ function documentPayload(document: Document) {
     : document.source_records;
   return source?.source_payload ?? {};
 }
-function inferMime(pathname: string, bytes: Buffer) { return pathname.toLowerCase().endsWith(".pdf") || bytes.subarray(0, 4).toString() === "%PDF" ? "application/pdf" : "application/octet-stream"; }
 async function update(id: string, values: Record<string, unknown>) { const { error } = await supabase.from("source_documents").update({ ...values, updated_at: new Date().toISOString() }).eq("id", id); if (error) throw error; }
 function option(name: string) { const index = process.argv.indexOf(name); return index >= 0 ? process.argv[index + 1] : undefined; }
 function parsePositiveInt(value: string) { const parsed = Number.parseInt(value, 10); if (!Number.isInteger(parsed) || parsed < 1 || parsed > 100) throw new Error("--limit ha de ser entre 1 i 100"); return parsed; }

@@ -60,7 +60,7 @@ async function main() {
   }
 
   await setRun("matching", "matching");
-  const remaining=await db.from('pipeline_jobs').select('id',{count:'exact',head:true}).eq('run_id',runId).eq('status','ready');
+  const remaining=await db.from('pipeline_jobs').select('id',{count:'exact',head:true}).eq('run_id',runId).match(process.env.WORKFLOW_JOB_ID?{id:process.env.WORKFLOW_JOB_ID}:{}).eq('status','ready');
   if(remaining.count)await runCommand("matching:run", ["--run-id", runId!]);
   const state=await db.from('pipeline_runs').select('status').eq('id',runId).single();
   if(state.data?.status==='paused')return;
@@ -69,13 +69,11 @@ async function main() {
   const finalJobs = await loadJobs();
   const review = finalJobs.filter((job) => job.status === "needs_review").length;
   const errors = finalJobs.filter((job) => job.status === "error").length;
-  const finishedAt = new Date().toISOString();
-  await db.from("pipeline_runs").update({ status: review > 0 ? "needs_review" : "completed", stage: review > 0 ? "review" : "completed", review_count: review, error_count: errors, processing_completed_at: finishedAt, completed_at: review > 0 ? null : finishedAt }).eq("id", runId);
   console.log(`Lot ${runId}: ${review} per revisar · ${errors} errors`);
 }
 
 async function loadJobs() {
-  const { data, error } = await db.from("pipeline_jobs").select("id,source_record_id,status,error_message,preparation_status,analysis_results(id),source_records(enrichment_status,enrichment_error)").eq("run_id", runId).order("created_at");
+  const { data, error } = await db.from("pipeline_jobs").select("id,source_record_id,status,error_message,preparation_status,analysis_results(id),source_records(enrichment_status,enrichment_error)").eq("run_id", runId).match(process.env.WORKFLOW_JOB_ID?{id:process.env.WORKFLOW_JOB_ID}:{}).order("created_at");
   if (error) throw error;
   return data ?? [];
 }
