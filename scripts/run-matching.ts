@@ -6,6 +6,8 @@ import {analysisSchema,validateAnalysis,type AnalysisOutput} from '../lib/analys
 import {applyScopeRules,ROLE_INSTRUCTIONS} from '../lib/scope-rules';
 import {loadOfficialCatalog,assertEligible} from '../lib/official-catalog';
 import {addNamedCandidates} from '../lib/named-candidate';
+import {normalizeCandidates} from '../lib/cloud/normalize-candidates';
+import {normalizeMissingScope} from '../lib/cloud/normalize-analysis';
 import { createClient } from "@supabase/supabase-js";
 import WebSocket from "ws";
 
@@ -71,7 +73,8 @@ async function processJob(job: { id: string; run_id: string; source_record_id: s
         text: { format: { type: "json_schema", name: "matching_candidates", strict: true, schema: existingEnrichment ? candidatesOnlySchema(eligibleCodes) : combinedSchema(eligibleCodes) } },
         max_output_tokens: 4000,
       }));
-    const parsed = addNamedCandidates(JSON.parse(extractOutputText(raw)) as AnalysisOutput & { enrichment?: EnrichmentOutput },catalog,chunks);
+    const providerResult=JSON.parse(extractOutputText(raw)) as AnalysisOutput & { enrichment?: EnrichmentOutput };
+    const parsed = addNamedCandidates(normalizeMissingScope(normalizeCandidates(providerResult,official.all,chunks.length)) as AnalysisOutput & { enrichment?: EnrichmentOutput },catalog,chunks);
     
     for (const candidate of parsed.candidates) assertEligible(candidate.code,official.all);
     let validated=validateAnalysis(parsed,official.all,chunks.length);
