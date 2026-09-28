@@ -167,18 +167,23 @@ export async function getReviewQueue(input: { batchId?: string; type?: string; s
     const position=new Map(ids.map((id,i)=>[id,i]));records.sort((a,b)=>position.get(a.id)!-position.get(b.id)!);
     return {records,total:records.length,reviewed:records.filter(r=>!!r.reviewDecision).length};
   }
-  const {getJobRecord}=await import('./job-record');
-  const records:SourceRecord[]=[];
+  const jobs:{id:string;source_record_id:string}[]=[];
   for(let offset=0;;offset+=100){
-    let q=supabase.from('pipeline_jobs').select('id,status').eq('run_id',input.batchId).order('created_at').order('id');
+    let q=supabase.from('pipeline_jobs').select('id,status,source_record_id').eq('run_id',input.batchId).order('created_at').order('id');
     if(input.state!=='all')q=q.eq('status','needs_review');
     const r=await q.range(offset,offset+99);if(r.error)throw r.error;
-    for(const job of r.data??[]){const record=await getJobRecord(job.id);if(!record)continue;
+    jobs.push(...(r.data??[]));
+    if((r.data?.length??0)<100)break;
+  }
+  const rawRecords:Record<string,unknown>[]=[];
+  const sourceIds=[...new Set(jobs.map(job=>job.source_record_id))];
+  for(let offset=0;offset<sourceIds.length;offset+=100){const r=await supabase.from('source_records').select(RECORD_SELECT).in('id',sourceIds.slice(offset,offset+100));if(r.error)throw r.error;rawRecords.push(...((r.data??[]) as Record<string,unknown>[]));}
+  const rawById=new Map(rawRecords.map(raw=>[String(raw.id),raw]));
+  const records:SourceRecord[]=[];
+  for(const job of jobs){const raw=rawById.get(job.source_record_id);if(!raw)continue;const allJobs=Array.isArray(raw.pipeline_jobs)?raw.pipeline_jobs as Record<string,unknown>[]:[];const selected=allJobs.find(item=>item.id===job.id);if(!selected)continue;const record=mapRecord({...raw,pipeline_jobs:[selected]});
       if(input.type&&input.type!=='totes'&&record.financingType!==input.type)continue;
       if(input.query&&![record.title,record.sourceRecordId,record.providerName].join(' ').toLowerCase().includes(input.query.toLowerCase()))continue;
       records.push(record);
-    }
-    if((r.data?.length??0)<100)break;
   }
   return {records,total:records.length,reviewed:records.filter(r=>!!r.reviewDecision).length};
 }

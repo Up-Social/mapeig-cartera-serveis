@@ -26,11 +26,16 @@ export function BatchesWorkbench({ batches, activeBatch, cloudBlock }: { batches
   ));
 
   useEffect(() => {
-    if (!opened?.isActive) return;
+    if (!opened?.isActive || opened.jobs.length === 0) return;
     let cancelled = false;
+    let attempt = 0;
     let timer: number | undefined;
     let controller: AbortController | undefined;
     const poll = async () => {
+      if (document.hidden) {
+        timer = window.setTimeout(poll, 10_000);
+        return;
+      }
       controller = new AbortController();
       try {
         const batch = await fetchBatch(opened.id, controller.signal);
@@ -41,11 +46,31 @@ export function BatchesWorkbench({ batches, activeBatch, cloudBlock }: { batches
       } catch (error) {
         if (!cancelled && !isAbortError(error)) setMessage(error instanceof Error ? error.message : "No s'ha pogut actualitzar el lot.");
       }
-      timer = window.setTimeout(poll, 2000);
+      attempt += 1;
+      timer = window.setTimeout(poll, Math.min(15_000, 2_000 * 2 ** Math.min(attempt, 3)));
     };
+    const resumeWhenVisible = () => {
+      if (!document.hidden && timer) {
+        window.clearTimeout(timer);
+        timer = undefined;
+        void poll();
+      }
+    };
+    document.addEventListener("visibilitychange", resumeWhenVisible);
     void poll();
-    return () => { cancelled = true; controller?.abort(); if (timer) window.clearTimeout(timer); };
-  }, [opened?.id, opened?.isActive]);
+    return () => { cancelled = true; controller?.abort(); if (timer) window.clearTimeout(timer); document.removeEventListener("visibilitychange", resumeWhenVisible); };
+  }, [opened?.id, opened?.isActive, opened?.jobs.length]);
+
+  useEffect(() => {
+    if (!openedId) return;
+    const summary = items.find((item) => item.id === openedId);
+    if (!summary || summary.jobs.length > 0) return;
+    const controller = new AbortController();
+    void fetchBatch(openedId, controller.signal)
+      .then((batch) => setItems((current) => [batch, ...current.filter((item) => item.id !== batch.id)]))
+      .catch((error) => { if (!isAbortError(error)) setMessage(error instanceof Error ? error.message : "No s'ha pogut obrir el lot."); });
+    return () => controller.abort();
+  }, [openedId, items]);
 
   function create() {
     setMessage("");

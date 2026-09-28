@@ -33,9 +33,9 @@ export async function getAvailableFinancingTypes(): Promise<FinancingType[]> {
 }
 
 export async function getBatches(): Promise<BatchSummary[]> {
-  const { data, error } = await createServerSupabase().from("pipeline_runs").select(BATCH_SELECT).order("created_at", { ascending: false }).limit(30);
+  const { data, error } = await createServerSupabase().from("pipeline_run_summaries").select("*").order("created_at", { ascending: false }).limit(30);
   if (error) throw error;
-  return enrichCandidateServices((data ?? []).map((row) => mapBatch(row as Record<string, unknown>)));
+  return enrichExecutions((data ?? []).map((row) => mapBatchSummary(row as Record<string, unknown>)));
 }
 
 export async function getBatch(id: string): Promise<BatchSummary | null> {
@@ -94,6 +94,23 @@ function mapBatch(row: Record<string, unknown>): BatchSummary {
   return { purpose:String(parameters.purpose??'batch'), pauseReason:row.pause_reason == null ? null : String(row.pause_reason), id: String(row.id), batchNumber: String(row.batch_number).padStart(8, "0"), status: String(row.status), stage, selectedCount: jobs.length, preparedCount: Number(row.prepared_count), readyCount: Number(row.ready_count), processedCount: Number(row.processed_count), analyzedCount, reviewCount: jobs.filter((job) => job.status === "needs_review").length, reviewedCount, approvedCount: jobs.filter((job) => ["approved", "corrected"].includes(job.status) && job.hasProvision).length, rejectedCount, insufficientCount, errorCount: jobs.filter((job) => job.status === "error").length, exportableCount: provisionCount, incidences, estimatedInputTokens: Number(row.estimated_input_tokens), actualInputTokens: Number(row.actual_input_tokens), actualOutputTokens: Number(row.actual_output_tokens), createdAt: String(row.created_at), canExport: provisionCount > 0, provisionCount, isActive: ["queued", "preparing", "enriching", "matching"].includes(String(row.status)), progress, jobs };
 }
 
+function mapBatchSummary(row: Record<string, unknown>): BatchSummary {
+  const parameters=(row.parameters&&typeof row.parameters==='object'?row.parameters:{}) as Record<string,unknown>;
+  const selectedCount=Number(row.jobs_total??row.selected_count??0);
+  const provisionCount=Number(row.provision_count??0);
+  return {
+    purpose:String(parameters.purpose??'batch'),pauseReason:row.pause_reason==null?null:String(row.pause_reason),id:String(row.id),
+    batchNumber:String(row.batch_number).padStart(8,'0'),status:String(row.status),stage:String(row.stage),selectedCount,
+    preparedCount:Number(row.prepared_count??0),readyCount:Number(row.ready_count??0),processedCount:Number(row.processed_count??0),
+    analyzedCount:Number(row.processed_count??0),reviewCount:Number(row.review_count??0),reviewedCount:Number(row.derived_reviewed_count??0),
+    approvedCount:Number(row.approved_count??0),rejectedCount:Number(row.derived_rejected_count??0),insufficientCount:Number(row.derived_insufficient_count??0),
+    errorCount:Number(row.error_count??0),exportableCount:provisionCount,incidences:[],estimatedInputTokens:Number(row.estimated_input_tokens??0),
+    actualInputTokens:Number(row.actual_input_tokens??0),actualOutputTokens:Number(row.actual_output_tokens??0),createdAt:String(row.created_at),
+    canExport:provisionCount>0,provisionCount,isActive:['queued','preparing','enriching','matching'].includes(String(row.status)),
+    progress:{preparation:summarizePhases([]),enrichment:summarizePhases([]),matching:summarizePhases([])},jobs:[],
+  };
+}
+
 async function enrichCandidateServices(batches: BatchSummary[]) {
  const db=createServerSupabase();
  if(batches.length){
@@ -110,6 +127,10 @@ async function enrichCandidateServices(batches: BatchSummary[]) {
     progress:{preparation:summarizePhases(jobs.map(j=>j.phases!.preparation)),enrichment:summarizePhases(jobs.map(j=>j.phases!.enrichment)),matching:summarizePhases(jobs.map(j=>j.phases!.matching))}};
   });
  }
+ return enrichExecutions(batches);
+}
+
+async function enrichExecutions(batches: BatchSummary[]) {
  if(!batches.length)return batches;
  const r=await createServerSupabase().from('worker_tasks').select('run_id,execution_state,lease_until,last_progress_at,failure_kind').eq('executor','vercel_workflow').in('run_id',batches.map(b=>b.id)).order('created_at',{ascending:false});
  if(r.error)throw new Error('No s’ha pogut consultar l’execució remota.');

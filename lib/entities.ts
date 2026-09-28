@@ -10,21 +10,24 @@ export async function getEntityPage(filters: EntityFilters): Promise<EntityPage>
   let query = db.from("entities").select("id,legal_name,nif,qualification,validation_status,active");
   if (q) { countQuery = countQuery.or(`legal_name.ilike.%${q}%,nif.ilike.%${q}%`); query = query.or(`legal_name.ilike.%${q}%,nif.ilike.%${q}%`); }
   if (filters.qualification !== "totes") { countQuery = countQuery.eq("qualification", filters.qualification); query = query.eq("qualification", filters.qualification); }
-  const [{ count, error: countError }, refs, resesCount, linkedCount, confirmedCount, pendingCount] = await Promise.all([
+  if (filters.county !== "totes") {
+    const ids = await db.from("reses_services").select("entity_id").eq("county", filters.county);
+    if (ids.error) throw ids.error;
+    const entityIds = [...new Set((ids.data ?? []).map((r) => r.entity_id))];
+    const filteredIds = entityIds.length ? entityIds : ["00000000-0000-0000-0000-000000000000"];
+    countQuery = countQuery.in("id", filteredIds);
+    query = query.in("id", filteredIds);
+  }
+  const [{ count, error: countError }, facets, resesCount, linkedCount, confirmedCount, pendingCount] = await Promise.all([
     countQuery,
-    db.from("reses_services").select("county,entities!inner(qualification)"),
+    db.rpc("entity_directory_facets"),
     db.from("reses_services").select("registry_number", { count: "exact", head: true }),
     db.from("source_record_entities").select("source_record_id", { count: "exact", head: true }),
     db.from("entity_catalog_relations").select("entity_id", { count: "exact", head: true }).eq("relation_type", "confirmed"),
     db.from("entity_mentions").select("id", { count: "exact", head: true }).eq("resolution_status", "unresolved"),
   ]);
   if (countError) throw countError;
-  if (filters.county !== "totes") {
-    const ids = await db.from("reses_services").select("entity_id").eq("county", filters.county);
-    if (ids.error) throw ids.error;
-    const entityIds = [...new Set((ids.data ?? []).map((r) => r.entity_id))];
-    query = query.in("id", entityIds.length ? entityIds : ["00000000-0000-0000-0000-000000000000"]);
-  }
+  if (facets.error) throw facets.error;
   const rawTotal = count ?? 0;
   const pageCount = Math.max(1, Math.ceil(rawTotal / PAGE_SIZE));
   const page = Math.min(filters.page, pageCount);
@@ -46,8 +49,8 @@ export async function getEntityPage(filters: EntityFilters): Promise<EntityPage>
     linkedRecords: (links.data ?? []).filter((x) => x.entity_id === row.id).length,
     provisions: (provisions.data ?? []).filter((x) => x.entity_id === row.id).length,
   }));
-  const referenceRows = refs.data ?? [];
-  const qualifications = [...new Set(referenceRows.map((r) => (r.entities as unknown as { qualification?: string })?.qualification).filter(Boolean) as string[])].sort();
-  const counties = [...new Set(referenceRows.map((r) => r.county).filter(Boolean) as string[])].sort();
+  const facetData = (facets.data ?? {}) as { qualifications?: string[]; counties?: string[] };
+  const qualifications = facetData.qualifications ?? [];
+  const counties = facetData.counties ?? [];
   return { entities, total: rawTotal, page, pageCount, pageSize: PAGE_SIZE, qualifications, counties, metrics: { total: rawTotal, withReses: resesCount.count ?? 0, linkedRecords: linkedCount.count ?? 0, confirmed: confirmedCount.count ?? 0, pendingMentions: pendingCount.count ?? 0 } };
 }

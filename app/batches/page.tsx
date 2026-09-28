@@ -15,7 +15,7 @@ export default async function BatchesPage({ searchParams }: Props) {
   return (
     <BatchesWorkbench
       batches={batches}
-      activeBatch={activeBatch ?? batches[0] ?? null}
+      activeBatch={activeBatch}
       cloudBlock={cloudBlock}
     />
   );
