@@ -14,6 +14,8 @@
     "test": "tsx --test tests/*.test.ts",
     "test:db": "tsx scripts/workflow-test-db.ts",
     "test:app": "tsx scripts/workflow-test-app.ts",
+    "dev:preview": "WORKFLOW_TEST_PORT=3110 tsx scripts/workflow-test-app.ts",
+    "preview:seed": "tsx scripts/seed-ui-preview.ts",
     "test:sql": "tsx scripts/workflow-test-sql.ts",
     "test:replay": "tsx scripts/workflow-test-replay.ts",
     "test:rerun": "tsx scripts/workflow-test-rerun.ts",

@@ -59,5 +59,11 @@ export function hasTrustedOrigin(request: Request): boolean {
   const fetchSite = request.headers.get("sec-fetch-site");
   if (fetchSite === "cross-site") return false;
   if (!origin) return fetchSite !== "cross-site";
-  try { return new URL(origin).origin === new URL(request.url).origin; } catch { return false; }
+  try {
+    const source = new URL(origin);
+    const destination = new URL(request.url);
+    if (source.origin === destination.origin) return true;
+    const loopback = new Set(["127.0.0.1", "localhost", "[::1]"]);
+    return loopback.has(source.hostname) && loopback.has(destination.hostname) && source.protocol === destination.protocol && source.port === destination.port;
+  } catch { return false; }
 }

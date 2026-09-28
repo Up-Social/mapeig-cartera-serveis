@@ -66,6 +66,7 @@ async function login(page:Page){
  await page.goto('/batches');
  await page.getByRole('textbox',{name:'Contrasenya'}).fill('local-workflow-fixture-only');
  await Promise.all([page.waitForURL('**/batches'),page.getByRole('button',{name:'Entrar'}).click()]);
+ await page.locator('[data-app-ready="true"]').waitFor();
 }
 
 test('blocked batch is understandable and actionable',async({page})=>{
@@ -76,6 +77,8 @@ test('blocked batch is understandable and actionable',async({page})=>{
  await page.getByRole('button',{name:'Pausats'}).click();
  const heading=page.getByRole('button',{name:/Lot .*Pausat per quota/}).first();
  await heading.click();
+ await expect(page.getByText(/0 completats · 0 errors · 1 bloquejats/).first()).toBeVisible();
+ await page.getByText('Veure el detall de les tres fases').click();
  await expect(page.getByText(/0 errors propis · 1 bloquejats · 0 pendents/).first()).toBeVisible();
  await expect(page.getByText('Lot pausat fictici')).toBeVisible();
  await page.getByRole('button',{name:/Lot pausat fictici/}).click();

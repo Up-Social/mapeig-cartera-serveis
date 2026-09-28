@@ -12,6 +12,7 @@ import { createServerSupabase } from "@/lib/records-page";
 
 export async function POST(request: NextRequest) {
   if (!hasTrustedOrigin(request)) return NextResponse.json({ error: "Origen de la petició no vàlid." }, { status: 403 });
+  const browserOrigin = request.headers.get("origin") ?? new URL(request.url).origin;
   const configuredPassword = process.env.APP_ACCESS_PASSWORD;
   if (!configuredPassword) {
     return NextResponse.json(
@@ -34,13 +35,13 @@ export async function POST(request: NextRequest) {
 
   if (!validPassword || attempt.data !== true) {
     await new Promise((resolve) => setTimeout(resolve, 400));
-    const loginUrl = new URL("/login", request.url);
+    const loginUrl = new URL("/login", browserOrigin);
     loginUrl.searchParams.set("error", attempt.data === false ? "rate" : "invalid");
     loginUrl.searchParams.set("next", returnPath);
     return NextResponse.redirect(loginUrl, 303);
   }
 
-  const response = NextResponse.redirect(new URL(returnPath, request.url), 303);
+  const response = NextResponse.redirect(new URL(returnPath, browserOrigin), 303);
   response.cookies.set(ACCESS_COOKIE_NAME, await createAccessToken(process.env.APP_ACCESS_SESSION_SECRET ?? configuredPassword), {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",

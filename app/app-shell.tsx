@@ -22,7 +22,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <>
       <AppHeader collapsed={sidebarCollapsed} onToggleCollapsed={() => setSidebarCollapsed((current) => !current)} />
-      <div className={cn("min-h-screen transition-[padding] duration-200", pathname !== "/login" && (sidebarCollapsed ? "lg:pl-20" : "lg:pl-64"))}>
+      <div ref={(node) => { if (node) node.dataset.appReady = "true"; }} className={cn("min-h-screen transition-[padding] duration-200", pathname !== "/login" && (sidebarCollapsed ? "lg:pl-20" : "lg:pl-64"))}>
         {(resultSection || referenceSection) && (
           <div className="mx-auto max-w-6xl px-5 pt-5">
             <SectionNavigation

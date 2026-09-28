@@ -5,6 +5,7 @@ import { displaySourceIdentifier } from "../lib/source-identifiers";
 import {
   ACCESS_COOKIE_MAX_AGE,
   createAccessToken,
+  hasTrustedOrigin,
   verifyAccessToken,
   safeEqual,
   safeReturnPath,
@@ -42,4 +43,9 @@ test("only accepts internal return paths", () => {
 
 test("keeps an authenticated browser session for seven days", () => {
   assert.equal(ACCESS_COOKIE_MAX_AGE, 60 * 60 * 24 * 7);
+});
+
+test("accepts equivalent loopback origins but rejects cross-site writes", () => {
+  assert.equal(hasTrustedOrigin(new Request("http://localhost:3110/api/test", { headers: { origin: "http://127.0.0.1:3110", "sec-fetch-site": "same-site" } })), true);
+  assert.equal(hasTrustedOrigin(new Request("https://mapeig.example/api/test", { headers: { origin: "https://attacker.example", "sec-fetch-site": "cross-site" } })), false);
 });
