@@ -20,6 +20,8 @@ export type BatchJob = {
   hasProvision: boolean;
 };
 export type BatchSummary = {
+  reservedCostUsd: number;
+  actualCostUsd: number | null;
   purpose: string;
   execution?: import("./cloud/execution-status").ExecutionStatus;
   pauseReason?:string|null;

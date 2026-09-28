@@ -5,6 +5,7 @@ import { displaySourceIdentifier } from "../lib/source-identifiers";
 import {
   ACCESS_COOKIE_MAX_AGE,
   createAccessToken,
+  verifyAccessToken,
   safeEqual,
   safeReturnPath,
 } from "../lib/access-auth";
@@ -21,13 +22,16 @@ test("preserves the original value when the prefix is empty", () => {
   assert.equal(displaySourceIdentifier("::internal"), "::internal");
 });
 
-test("creates stable access tokens without exposing the password", async () => {
-  const first = await createAccessToken("contrasenya-segura");
-  const second = await createAccessToken("contrasenya-segura");
+test("creates expiring signed access tokens without exposing the password", async () => {
+  const issuedAt = Date.UTC(2026, 8, 28);
+  const first = await createAccessToken("contrasenya-segura", issuedAt);
+  const second = await createAccessToken("contrasenya-segura", issuedAt);
   assert.equal(first, second);
   assert.equal(first.includes("contrasenya-segura"), false);
   assert.equal(safeEqual(first, second), true);
-  assert.equal(safeEqual(first, await createAccessToken("una-altra")), false);
+  assert.equal(await verifyAccessToken(first, "contrasenya-segura", issuedAt + 1), true);
+  assert.equal(await verifyAccessToken(first, "una-altra", issuedAt + 1), false);
+  assert.equal(await verifyAccessToken(first, "contrasenya-segura", issuedAt + ACCESS_COOKIE_MAX_AGE * 1000), false);
 });
 
 test("only accepts internal return paths", () => {

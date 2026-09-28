@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import {
   ACCESS_COOKIE_NAME,
-  createAccessToken,
-  safeEqual,
+  hasTrustedOrigin,
+  verifyAccessToken,
 } from "@/lib/access-auth";
 
 export async function proxy(request: NextRequest) {
@@ -19,9 +19,12 @@ export async function proxy(request: NextRequest) {
   }
 
   const actualToken = request.cookies.get(ACCESS_COOKIE_NAME)?.value ?? "";
-  const expectedToken = await createAccessToken(password);
-  if (!safeEqual(actualToken, expectedToken)) {
+  if (!await verifyAccessToken(actualToken, process.env.APP_ACCESS_SESSION_SECRET ?? password)) {
     return NextResponse.redirect(loginUrl);
+  }
+
+  if (!["GET", "HEAD", "OPTIONS"].includes(request.method) && !hasTrustedOrigin(request)) {
+    return NextResponse.json({ error: "Origen de la petició no vàlid." }, { status: 403 });
   }
 
   return NextResponse.next();

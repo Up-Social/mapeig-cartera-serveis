@@ -14,6 +14,7 @@ import {
   startBatchPreparation,
 } from "@/app/batches/actions";
 import type { FinancingType } from "@/lib/financing-types";
+import { publicErrorMessage } from "@/lib/public-error";
 
 export async function POST(request: Request) {
   try {
@@ -70,10 +71,7 @@ export async function POST(request: Request) {
   } catch (error) {
     return Response.json(
       {
-        error:
-          error instanceof Error
-            ? error.message
-            : "No s'ha pogut completar l'operació.",
+        error: publicErrorMessage(error),
       },
       { status: 409 },
     );

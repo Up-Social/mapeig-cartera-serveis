@@ -8,6 +8,7 @@ import {
 import type { RecordOperation } from "@/lib/record-operation";
 import { isUuid } from "@/lib/uuid";
 import {startRecordOperation} from '@/lib/start-record-operation';
+import {publicErrorMessage} from '@/lib/public-error';
 
 const OPERATIONS = new Set<RecordOperation>(["prepare", "enrich", "match", "process", "ocr"]);
 
@@ -54,10 +55,7 @@ export async function POST(
   } catch (error) {
     return Response.json(
       {
-        error:
-          error instanceof Error
-            ? error.message
-            : "No s'ha pogut iniciar l'operació.",
+        error: publicErrorMessage(error, "No s'ha pogut iniciar l'operació."),
       },
       { status: 409 },
     );

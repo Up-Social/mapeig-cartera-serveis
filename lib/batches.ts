@@ -91,7 +91,7 @@ function mapBatch(row: Record<string, unknown>): BatchSummary {
   const stage = String(row.stage);
   const progress={preparation:summarizePhases([]),enrichment:summarizePhases([]),matching:summarizePhases([])};
   const parameters=(row.parameters&&typeof row.parameters==='object'?row.parameters:{}) as Record<string,unknown>;
-  return { purpose:String(parameters.purpose??'batch'), pauseReason:row.pause_reason == null ? null : String(row.pause_reason), id: String(row.id), batchNumber: String(row.batch_number).padStart(8, "0"), status: String(row.status), stage, selectedCount: jobs.length, preparedCount: Number(row.prepared_count), readyCount: Number(row.ready_count), processedCount: Number(row.processed_count), analyzedCount, reviewCount: jobs.filter((job) => job.status === "needs_review").length, reviewedCount, approvedCount: jobs.filter((job) => ["approved", "corrected"].includes(job.status) && job.hasProvision).length, rejectedCount, insufficientCount, errorCount: jobs.filter((job) => job.status === "error").length, exportableCount: provisionCount, incidences, estimatedInputTokens: Number(row.estimated_input_tokens), actualInputTokens: Number(row.actual_input_tokens), actualOutputTokens: Number(row.actual_output_tokens), createdAt: String(row.created_at), canExport: provisionCount > 0, provisionCount, isActive: ["queued", "preparing", "enriching", "matching"].includes(String(row.status)), progress, jobs };
+  return { reservedCostUsd:0, actualCostUsd:null, purpose:String(parameters.purpose??'batch'), pauseReason:row.pause_reason == null ? null : String(row.pause_reason), id: String(row.id), batchNumber: String(row.batch_number).padStart(8, "0"), status: String(row.status), stage, selectedCount: jobs.length, preparedCount: Number(row.prepared_count), readyCount: Number(row.ready_count), processedCount: Number(row.processed_count), analyzedCount, reviewCount: jobs.filter((job) => job.status === "needs_review").length, reviewedCount, approvedCount: jobs.filter((job) => ["approved", "corrected"].includes(job.status) && job.hasProvision).length, rejectedCount, insufficientCount, errorCount: jobs.filter((job) => job.status === "error").length, exportableCount: provisionCount, incidences, estimatedInputTokens: Number(row.estimated_input_tokens), actualInputTokens: Number(row.actual_input_tokens), actualOutputTokens: Number(row.actual_output_tokens), createdAt: String(row.created_at), canExport: provisionCount > 0, provisionCount, isActive: ["queued", "preparing", "enriching", "matching"].includes(String(row.status)), progress, jobs };
 }
 
 function mapBatchSummary(row: Record<string, unknown>): BatchSummary {
@@ -99,6 +99,7 @@ function mapBatchSummary(row: Record<string, unknown>): BatchSummary {
   const selectedCount=Number(row.jobs_total??row.selected_count??0);
   const provisionCount=Number(row.provision_count??0);
   return {
+    reservedCostUsd:0,actualCostUsd:null,
     purpose:String(parameters.purpose??'batch'),pauseReason:row.pause_reason==null?null:String(row.pause_reason),id:String(row.id),
     batchNumber:String(row.batch_number).padStart(8,'0'),status:String(row.status),stage:String(row.stage),selectedCount,
     preparedCount:Number(row.prepared_count??0),readyCount:Number(row.ready_count??0),processedCount:Number(row.processed_count??0),
@@ -132,7 +133,7 @@ async function enrichCandidateServices(batches: BatchSummary[]) {
 
 async function enrichExecutions(batches: BatchSummary[]) {
  if(!batches.length)return batches;
- const r=await createServerSupabase().from('worker_tasks').select('run_id,execution_state,lease_until,last_progress_at,failure_kind').eq('executor','vercel_workflow').in('run_id',batches.map(b=>b.id)).order('created_at',{ascending:false});
+ const r=await createServerSupabase().from('worker_tasks').select('run_id,execution_state,lease_until,last_progress_at,failure_kind,cloud_budget_reservations(reserved_usd,actual_usd)').eq('executor','vercel_workflow').in('run_id',batches.map(b=>b.id)).order('created_at',{ascending:false});
  if(r.error)throw new Error('No s’ha pogut consultar l’execució remota.');
- return batches.map(batch=>{const task=r.data.find(t=>t.run_id===batch.id);if(!task)return batch;const execution=executionStatus(task);return {...batch,execution,isActive:['pending','running'].includes(execution.state)};});
+ return batches.map(batch=>{const tasks=r.data.filter(t=>t.run_id===batch.id);const task=tasks[0];const reservations=tasks.flatMap(t=>Array.isArray(t.cloud_budget_reservations)?t.cloud_budget_reservations:[]);const reservedCostUsd=reservations.reduce((total,item)=>total+Number(item.reserved_usd??0),0);const settled=reservations.filter(item=>item.actual_usd!=null);const actualCostUsd=settled.length?settled.reduce((total,item)=>total+Number(item.actual_usd),0):null;if(!task)return {...batch,reservedCostUsd,actualCostUsd};const execution=executionStatus(task);return {...batch,reservedCostUsd,actualCostUsd,execution,isActive:['pending','running'].includes(execution.state)};});
 }
