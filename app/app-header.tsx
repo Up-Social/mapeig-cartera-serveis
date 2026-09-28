@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-import { BookOpen, Building2, CheckSquare, Database, FileCheck2, Layers3, LogOut, Menu, PanelLeftClose, PanelLeftOpen, Route, TriangleAlert, Waypoints } from "lucide-react";
+import { BookOpen, CheckSquare, CircleHelp, Database, FileCheck2, Layers3, LogOut, Menu, PanelLeftClose, PanelLeftOpen, TriangleAlert, Waypoints } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetClose, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
@@ -11,16 +11,12 @@ import { cn } from "@/lib/utils";
 type NavigationCounts = { review: number; issues: number; approved: number; discarded: number };
 
 const links = [
-  { href: "/", label: "Registres", icon: Database },
-  { href: "/batches", label: "Lots", icon: Layers3 },
-  { href: "/review", label: "Revisió", icon: CheckSquare, count: "review" },
-  { href: "/issues", label: "Incidències", icon: TriangleAlert, count: "issues" },
-  { href: "/discarded", label: "Descartats", icon: TriangleAlert, count: "discarded" },
-  { href: "/approved", label: "Aprovats", icon: FileCheck2, count: "approved" },
-  { href: "/analysis", label: "Classificacions", icon: CheckSquare },
-  { href: "/catalog", label: "Catàleg", icon: BookOpen },
-  { href: "/entities", label: "Entitats", icon: Building2 },
-  { href: "/process", label: "Procés", icon: Route },
+  { href: "/", label: "Registres", icon: Database, active: ["/"] },
+  { href: "/batches", label: "Lots", icon: Layers3, active: ["/batches"] },
+  { href: "/review", label: "Revisió", icon: CheckSquare, count: "review", active: ["/review"] },
+  { href: "/issues", label: "Incidències", icon: TriangleAlert, count: "issues", active: ["/issues"] },
+  { href: "/approved", label: "Resultats", icon: FileCheck2, active: ["/approved", "/discarded", "/analysis"] },
+  { href: "/catalog", label: "Referència", icon: BookOpen, active: ["/catalog", "/entities"] },
 ] as const;
 
 export function AppHeader({ collapsed, onToggleCollapsed }: { collapsed: boolean; onToggleCollapsed: () => void }) {
@@ -47,16 +43,17 @@ export function AppHeader({ collapsed, onToggleCollapsed }: { collapsed: boolean
   }, [refreshCounts]);
 
   if (pathname === "/login") return null;
-  const isActive = (href: string) => href === "/" ? pathname === "/" : pathname.startsWith(href);
+  const isActive = (prefixes: readonly string[]) => prefixes.some((href) => href === "/" ? pathname === "/" : pathname.startsWith(href));
 
   const navigation = (mobile = false) => (
     <nav className="grid gap-1" aria-label={mobile ? "Navegació mòbil" : "Navegació principal"}>
-      {links.map(({ href, label, icon: Icon, ...item }) => {
+      {links.map(({ href, label, icon: Icon, active, ...item }) => {
         const count = "count" in item && counts ? counts[item.count] : null;
         const compact = collapsed && !mobile;
-        const content = <><Icon className="size-4 shrink-0" aria-hidden="true" /><span className={cn("min-w-0 flex-1 truncate", compact && "sr-only")}>{label}</span>{count !== null && <NavigationBadge value={count} active={isActive(href)} compact={compact} />}</>;
-        const className = cn("relative flex min-h-10 items-center gap-3 rounded-lg px-3 text-sm font-medium text-sidebar-foreground/70 transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground", compact && "justify-center px-2", isActive(href) && "bg-sidebar-primary text-sidebar-primary-foreground shadow-sm hover:bg-sidebar-primary hover:text-sidebar-primary-foreground");
-        return mobile ? <SheetClose key={href} nativeButton={false} render={<Link href={href} className={className} />}>{content}</SheetClose> : <Link key={href} href={href} title={compact ? label : undefined} aria-label={compact ? label : undefined} aria-current={isActive(href) ? "page" : undefined} className={className}>{content}</Link>;
+        const selected = isActive(active);
+        const content = <><Icon className="size-4 shrink-0" aria-hidden="true" /><span className={cn("min-w-0 flex-1 truncate", compact && "sr-only")}>{label}</span>{count !== null && <NavigationBadge value={count} active={selected} compact={compact} />}</>;
+        const className = cn("relative flex min-h-10 items-center gap-3 rounded-lg px-3 text-sm font-medium text-sidebar-foreground/70 transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground", compact && "justify-center px-2", selected && "bg-sidebar-primary text-sidebar-primary-foreground shadow-sm hover:bg-sidebar-primary hover:text-sidebar-primary-foreground");
+        return mobile ? <SheetClose key={href} nativeButton={false} render={<Link href={href} className={className} />}>{content}</SheetClose> : <Link key={href} href={href} title={compact ? label : undefined} aria-label={compact ? label : undefined} aria-current={selected ? "page" : undefined} className={className}>{content}</Link>;
       })}
     </nav>
   );
@@ -66,6 +63,7 @@ export function AppHeader({ collapsed, onToggleCollapsed }: { collapsed: boolean
       <Brand collapsed={collapsed} />
       <div className="flex-1 overflow-y-auto px-3 py-5">{navigation()}</div>
       <div className="border-t border-sidebar-border p-3">
+        <Link href="/process" title={collapsed ? "Ajuda sobre el procés" : undefined} aria-label={collapsed ? "Ajuda sobre el procés" : undefined} className={cn("mb-1 flex min-h-10 items-center gap-3 rounded-lg px-3 text-sm font-medium text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground", collapsed && "justify-center px-2")}><CircleHelp className="size-4" />{!collapsed && "Ajuda sobre el procés"}</Link>
         <Button type="button" variant="ghost" onClick={onToggleCollapsed} className={cn("w-full gap-3 text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground", collapsed ? "justify-center px-2" : "justify-start")} aria-label={collapsed ? "Desplegar menú lateral" : "Plegar menú lateral"} title={collapsed ? "Desplegar menú lateral" : undefined}>
           {collapsed ? <PanelLeftOpen className="size-4" /> : <PanelLeftClose className="size-4" />}
           {!collapsed && "Plegar menú"}
@@ -79,7 +77,7 @@ export function AppHeader({ collapsed, onToggleCollapsed }: { collapsed: boolean
         <SheetTrigger render={<Button variant="outline" size="icon-lg" aria-label="Obrir navegació" />}><Menu /></SheetTrigger>
         <SheetContent side="left" className="w-[min(88vw,320px)] bg-sidebar p-0 text-sidebar-foreground">
           <SheetHeader className="border-b border-sidebar-border p-5 text-left"><SheetTitle className="flex items-center gap-2"><Waypoints className="size-5" />Mapeig cartera de serveis</SheetTitle><SheetDescription>Navegació principal</SheetDescription></SheetHeader>
-          <div className="p-3">{navigation(true)}</div>
+          <div className="p-3">{navigation(true)}<SheetClose nativeButton={false} render={<Link href="/process" className="mt-3 flex min-h-10 items-center gap-3 rounded-lg border-t px-3 pt-3 text-sm font-medium text-sidebar-foreground/70" />}><CircleHelp className="size-4" />Ajuda sobre el procés</SheetClose></div>
           <Logout />
         </SheetContent>
       </Sheet>

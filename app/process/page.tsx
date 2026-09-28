@@ -7,7 +7,7 @@ const pipeline = [
   ["2", "Preparació", "Localització de documents, extracció de text i creació de fragments auditables."],
   ["3", "Contrast", "Extracció de dades únicament des de les fonts oficials, amb evidències citades."],
   ["4", "Correspondència", "Proposta de fins a tres serveis de la Cartera, amb puntuació i justificació."],
-  ["5", "Revisió", "Decisió humana: aprovar, corregir, rebutjar o declarar evidència insuficient."],
+  ["5", "Revisió", "Decisió humana: aprovar, corregir, descartar, declarar fora de cartera o indicar evidència insuficient."],
   ["6", "Resultat", "Creació de la provisió només després d’una aprovació o correcció."],
 ] as const;
 
@@ -27,13 +27,13 @@ const sections = [
   {
     name: "Revisió",
     state: "Decisió humana obligatòria",
-    body: "Aprovar o corregir crea una provisió. Rebutjar o indicar evidència insuficient exigeix un motiu i trasllada el cas a Incidències.",
-    next: "Aprovats o Incidències",
+    body: "Aprovar o corregir crea una provisió. Les altres decisions exigeixen una explicació i conserven la traçabilitat.",
+    next: "Resultats o Incidències",
   },
   {
     name: "Incidències",
     state: "Resolució i seguiment",
-    body: "Agrupa errors tècnics i decisions negatives. Permet reintentar la fase afectada o tornar a Revisió per rectificar la decisió.",
+    body: "Agrupa errors tècnics i casos amb evidència insuficient. Permet reintentar la fase afectada o tornar a Revisió.",
     next: "Revisió o procés",
   },
   {
@@ -94,7 +94,7 @@ export default function ProcessPage() {
           </div>
           <div className="mt-4 grid gap-3 sm:grid-cols-3">
             <FlowRule icon={CheckCircle2} label="Decisió positiva" text="Aprovat o corregit → provisió vigent." />
-            <FlowRule icon={CircleAlert} label="Decisió negativa" text="Rebutjat o evidència insuficient → Incidències." />
+            <FlowRule icon={CircleAlert} label="Altres decisions" text="Descartat o fora de cartera → Resultats. Evidència insuficient → Incidències." />
             <FlowRule icon={FileSearch} label="Error tècnic" text="Preparació, contrast o matching → Incidències." />
           </div>
         </section>
@@ -135,7 +135,7 @@ export default function ProcessPage() {
 
         <section className="mt-6 grid gap-4 md:grid-cols-2">
           <Card className="gap-0 p-5"><h2 className="font-semibold">Traçabilitat conservada</h2><p className="mt-3 text-sm leading-6 text-muted-foreground">Dataset, identificador original, fitxer o URL, full i fila, payload original, documents, fragments, dades contrastades, candidats, model, decisió, motiu i provisió final.</p></Card>
-          <Card className="gap-0 p-5"><h2 className="font-semibold">Límits actuals</h2><p className="mt-3 text-sm leading-6 text-muted-foreground">Els documents sense text necessiten OCR. El matching utilitza el catàleg Master aïllat i autoritzat; no utilitza les seves fórmules ni provisions manuals com a evidència.</p></Card>
+          <Card className="gap-0 p-5"><h2 className="font-semibold">Límits actuals</h2><p className="mt-3 text-sm leading-6 text-muted-foreground">Els documents sense text necessiten OCR. La correspondència utilitza el catàleg normatiu oficial versionat. El Master és una referència auxiliar i les seves fórmules o provisions manuals no es tracten com a evidència.</p></Card>
         </section>
       </section>
     </main>
