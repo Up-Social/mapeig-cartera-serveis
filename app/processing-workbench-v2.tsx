@@ -29,6 +29,7 @@ import {
 } from "@/lib/record-operation";
 import { submitRecordReview } from "@/lib/review-client";
 import { sourceDocumentStatusLabel, sourceDocumentTypeLabel } from "@/lib/ui-labels";
+import type {CloudResourceBlock} from '@/lib/batch-types';
 
 const statusLabels: Record<ProcessingStatus, string> = {
   pendent: "Pendent",
@@ -56,8 +57,10 @@ const statusStyles: Record<ProcessingStatus, string> = {
 export function ProcessingWorkbench({
   result,
   filters,
+  cloudBlock,
 }: {
   result: SourcePage;
+  cloudBlock: CloudResourceBlock;
   filters: {
     page: number;
     query: string;
@@ -108,6 +111,7 @@ export function ProcessingWorkbench({
   return (
     <main className="page-shell">
       <section className="page-container">
+        {cloudBlock&&<section role="alert" className="mb-5 rounded-xl border-2 border-neutral-900 bg-neutral-100 p-4"><p className="font-semibold">Processament temporalment aturat</p><p className="mt-1 text-sm">{cloudBlock.label}. Pots consultar els registres, però no iniciar un procés nou.</p></section>}
         <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
           <Metric label="Registres totals" value={metrics.total} />
           <Metric label="En cua" value={metrics.queued} accent="amber" />
@@ -216,11 +220,12 @@ export function ProcessingWorkbench({
                           record={record}
                           embedded
                           operation={
-                            operations[record.id] ?? inferOperation(record)
+                            operations[record.id] ?? (cloudBlock ? undefined : inferOperation(record))
                           }
                           onRecordUpdate={updateRecord}
                           onOperationStart={startOperation}
                           onOperationFinish={finishOperation}
+                          cloudBlocked={Boolean(cloudBlock)}
                         />
                       </div>
                     )}
@@ -324,6 +329,7 @@ function DetailPanel({
   onRecordUpdate,
   onOperationStart,
   onOperationFinish,
+  cloudBlocked,
 }: {
   record?: SourceRecord;
   embedded?: boolean;
@@ -331,6 +337,7 @@ function DetailPanel({
   onRecordUpdate: (record: SourceRecord) => void;
   onOperationStart: (recordId: string, operation: RecordOperation) => void;
   onOperationFinish: (recordId: string) => void;
+  cloudBlocked: boolean;
 }) {
   if (!record)
     return (
@@ -382,6 +389,7 @@ function DetailPanel({
         onRecordUpdate={onRecordUpdate}
         onOperationStart={onOperationStart}
         onOperationFinish={onOperationFinish}
+        cloudBlocked={cloudBlocked}
       />
       {record.externalEnrichment && (
         <ExternalEnrichmentDetail enrichment={record.externalEnrichment} />
@@ -585,12 +593,14 @@ function RecordStages({
   onRecordUpdate,
   onOperationStart,
   onOperationFinish,
+  cloudBlocked,
 }: {
   record: SourceRecord;
   operation?: RecordOperation;
   onRecordUpdate: (record: SourceRecord) => void;
   onOperationStart: (recordId: string, operation: RecordOperation) => void;
   onOperationFinish: (recordId: string) => void;
+  cloudBlocked: boolean;
 }) {
   const [pending, startTransition] = useTransition();
   const [message, setMessage] = useState("");
@@ -748,12 +758,13 @@ function RecordStages({
         <Button
           type="button"
           className="mt-4 w-full sm:w-auto"
-          disabled={busy}
+          disabled={busy||cloudBlocked}
           onClick={() => run("process", () => startRecordOperation(record.id, "process"))}
         >
-          {displayedOperation === "process" ? "Processant..." : record.status === "error" ? "Tornar a processar" : "Processar"}
+          {displayedOperation === "process" ? "Processant..." : cloudBlocked ? "Processament no disponible" : record.status === "error" ? "Tornar a processar" : "Processar"}
         </Button>
       )}
+      {cloudBlocked&&!record.analysis&&!record.matchingCandidates.length&&<p className="mt-2 text-xs text-muted-foreground">El registre no està processant-se. Quedarà disponible quan es recuperi l’execució al núvol.</p>}
       {record.matchingCandidates.length > 0 && !record.reviewDecision && (
         <p className="mt-4 rounded-lg bg-neutral-100 p-3 text-sm font-medium">Procés completat · Pendent de revisió</p>
       )}
