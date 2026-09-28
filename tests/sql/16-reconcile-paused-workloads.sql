@@ -1,6 +1,7 @@
 do $$
 declare r uuid;j uuid;s uuid:=gen_random_uuid();first jsonb;second jsonb;
 begin
+ perform reconcile_paused_workloads();
  insert into source_records(id,source_dataset,source_record_id,mechanism,title,source_payload,processing_status)
  values(s,'contractacions','PAUSED-'||s,'Contractació pública','Registre pausat fictici','{}','preparant');
  insert into pipeline_runs(status,stage,pause_kind,pause_reason) values('paused','preparation','vercel_quota','Fixture') returning id into r;

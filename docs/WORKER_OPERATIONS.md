@@ -62,6 +62,19 @@ La nova cua `storage_purge_items` no conté còpies dels expedients: només rute
 2. `npm run test:db`: migracions pendents i fixtures. `npm run test:replay`: instal·lació independent de totes les migracions des de zero i proves SQL amb rol de servidor.
 3. `npm run test:app`: aplicació fictícia al port 3108. Mantenir-la oberta per a `npm run test:integration`, que comprova concurrència, API i Storage amb dades desechables.
 4. `npm run test:sql` i `npm run test:rerun`: regressions transaccionals i reanàlisi mock amb invariants històriques.
-5. `npm run lint`, `npm run typecheck`, `npm test`, `npm run test:build`. L'últim invoca el build de producció amb entorn aïllat i sortida separada; no emprar el comandament general `verify` per a aquesta suite perquè no configura aquests guardes.
+5. `npm run test:e2e`: obre la web fictícia i comprova amb Chromium els lots pausats, els resultats, l'obertura del registre, la separació de les operacions individuals i la vista mòbil. Els fixtures només s'escriuen al Supabase aïllat.
+6. `npm run lint`, `npm run typecheck`, `npm test`, `npm run test:build`. L'últim invoca el build de producció amb entorn aïllat i sortida separada; no emprar el comandament general `verify` per a aquesta suite perquè no configura aquests guardes.
+
+## Bloqueig per quota i recuperació
+
+Quan `cloud_resources.sandbox.blocked_kind` indica `vercel_quota`, la web ha de mostrar el bloqueig i impedir la creació de lots i operacions noves. La protecció també existeix a la base de dades: una inserció directa a `worker_tasks` amb executor `vercel_workflow` es rebutja mentre el bloqueig continuï actiu.
+
+En pausar-se una execució, els intents que encara consten com a actius es tanquen com a interromputs. Les fases posteriors es mostren com a bloquejades, no com a errors nous, i un registre sense resultat torna a un estat recuperable. La migració de reconciliació aplica el mateix criteri als lots ja pausats i es pot tornar a executar de manera idempotent amb el rol de servei:
+
+```sql
+select * from reconcile_paused_workloads();
+```
+
+Abans de reprendre cap lot, cal comprovar que el bloqueig global ja no existeix. No s'ha d'eliminar manualment el bloqueig ni reobrir intents: la represa ha d'utilitzar l'operació de recuperació prevista perquè no es dupliquin crides ni resultats.
 
 El preflight real és una operació diferent: `npx tsx scripts/real-batch-preflight.ts --read-only --summary` carrega la configuració real però bloqueja qualsevol petició que no sigui GET. No crea cap lot ni autoritza migracions, proveïdors o desplegaments. La creació remota comparativa continua bloquejada sense habilitació explícita; no habilitar-la sense autorització de l'usuari.

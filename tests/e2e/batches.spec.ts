@@ -6,13 +6,38 @@ import {createClient,type SupabaseClient} from '@supabase/supabase-js';
 let db:SupabaseClient;
 let pausedRun='';
 let pausedRecord='';
+let operationRun='';
+let operationRecord='';
+
+async function cleanupFixtures(recordIds:string[]){
+ if(!recordIds.length)return;
+ const jobs=await db.from('pipeline_jobs').select('id,run_id').in('source_record_id',recordIds);
+ if(jobs.error)throw jobs.error;
+ const jobIds=(jobs.data??[]).map(row=>row.id);
+ const runIds=[...new Set((jobs.data??[]).map(row=>row.run_id))];
+ if(jobIds.length){
+  const snapshots=await db.from('job_snapshots').select('id').in('pipeline_job_id',jobIds);
+  if(snapshots.error)throw snapshots.error;
+  const snapshotIds=(snapshots.data??[]).map(row=>row.id);
+  if(snapshotIds.length){
+   const links=await db.from('job_document_versions').delete().in('snapshot_id',snapshotIds);if(links.error)throw links.error;
+  }
+  const snapshotDelete=await db.from('job_snapshots').delete().in('pipeline_job_id',jobIds);if(snapshotDelete.error)throw snapshotDelete.error;
+  const attemptDelete=await db.from('job_attempts').delete().in('pipeline_job_id',jobIds);if(attemptDelete.error)throw attemptDelete.error;
+ }
+ if(runIds.length){const runs=await db.from('pipeline_runs').delete().in('id',runIds);if(runs.error)throw runs.error;}
+ const records=await db.from('source_records').delete().in('id',recordIds);if(records.error)throw records.error;
+}
 
 test.beforeAll(async()=>{
  const status=JSON.parse(execFileSync('supabase',['status','--workdir','tests/runtime','-o','json'],{encoding:'utf8'}));
  if(new URL(status.API_URL).hostname!=='127.0.0.1')throw new Error('E2E refused a non-loopback database');
  db=createClient(status.API_URL,status.SERVICE_ROLE_KEY,{auth:{persistSession:false}});
  const check=(error:unknown)=>{if(error)throw error;};
- pausedRun=randomUUID();pausedRecord=randomUUID();const operationRun=randomUUID(),operationRecord=randomUUID();
+ const staleRecords=await db.from('source_records').select('id').like('source_record_id','E2E-%');check(staleRecords.error);
+ const staleIds=(staleRecords.data??[]).map(row=>row.id);
+ await cleanupFixtures(staleIds);
+ pausedRun=randomUUID();pausedRecord=randomUUID();operationRun=randomUUID();operationRecord=randomUUID();
  check((await db.from('cloud_resources').update({blocked_kind:null}).eq('name','sandbox')).error);
  check((await db.from('source_records').insert([
   {id:pausedRecord,source_dataset:'contractacions',source_record_id:`E2E-PAUSED-${pausedRecord}`,mechanism:'Contractació pública',title:'Lot pausat fictici',source_payload:{fixture:true},processing_status:'preparant'},
@@ -31,7 +56,11 @@ test.beforeAll(async()=>{
  check((await db.from('cloud_resources').update({blocked_kind:'vercel_quota'}).eq('name','sandbox')).error);
 });
 
-test.afterAll(async()=>{if(db)await db.from('cloud_resources').update({blocked_kind:null}).eq('name','sandbox');});
+test.afterAll(async()=>{
+ if(!db)return;
+ await db.from('cloud_resources').update({blocked_kind:null}).eq('name','sandbox');
+ await cleanupFixtures([pausedRecord,operationRecord]);
+});
 
 async function login(page:Page){
  await page.goto('/batches');
