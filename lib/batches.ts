@@ -3,7 +3,7 @@ import {executionStatus} from './cloud/execution-status';
 import {latestAnalysis} from './latest-analysis';
 import "server-only";
 import { createServerSupabase, mapLatestCandidates } from "./records-page";
-import type { BatchJob, BatchSummary, ExportSummary, SampleRecord, SourceDataset } from "./batch-types";
+import type { BatchJob, BatchSummary, CloudResourceBlock, ExportSummary, SampleRecord, SourceDataset } from "./batch-types";
 import { FINANCING_TYPES, financingTypeForDataset, type FinancingType } from "./financing-types";
 import { summarizePhases,type ProgressState } from "./pipeline-progress";
 
@@ -46,6 +46,14 @@ export async function getBatch(id: string): Promise<BatchSummary | null> {
   return (await enrichCandidateServices([mapBatch(data as Record<string, unknown>)]))[0];
 }
 
+export async function getCloudResourceBlock(): Promise<CloudResourceBlock> {
+  if (executionMode() !== "vercel_workflow") return null;
+  const { data, error } = await createServerSupabase().from("cloud_resources").select("blocked_kind").eq("name", "sandbox").single();
+  if (error) throw new Error("No s’ha pogut consultar la disponibilitat del procés.");
+  if (!data.blocked_kind) return null;
+  return { kind: String(data.blocked_kind), label: data.blocked_kind === "vercel_quota" ? "Quota de Vercel esgotada" : "Execució al núvol bloquejada" };
+}
+
 const BATCH_SELECT = "*,pipeline_jobs(id,status,error_message,enrichment_status,enrichment_error,analysis_results(*),preparation_status,preparation_message,matching_candidates(id,pipeline_job_id,rank,target_code,target_name,score,rationale,engine_version,matching_candidate_evidence(explanation,evidence_chunks(ordinal,content))),source_records(id,source_dataset,financing_type,source_record_id,title,evidence_status,evidence_error,enrichment_status,enrichment_error,processing_status,service_provisions(id,review_decisions(pipeline_job_id))))";
 
 export async function getExportSummary() {
@@ -84,7 +92,8 @@ function mapBatch(row: Record<string, unknown>): BatchSummary {
   const incidences = jobs.filter((job) => ["approved", "corrected"].includes(job.status) && !job.hasProvision).map((job) => `${job.externalId}: decisió aprovada sense provisió exportable`);
   const stage = String(row.stage);
   const progress={preparation:summarizePhases([]),enrichment:summarizePhases([]),matching:summarizePhases([])};
-  return { pauseReason:row.pause_reason == null ? null : String(row.pause_reason), id: String(row.id), batchNumber: String(row.batch_number).padStart(8, "0"), status: String(row.status), stage, selectedCount: jobs.length, preparedCount: Number(row.prepared_count), readyCount: Number(row.ready_count), processedCount: Number(row.processed_count), analyzedCount, reviewCount: jobs.filter((job) => job.status === "needs_review").length, reviewedCount, approvedCount: jobs.filter((job) => ["approved", "corrected"].includes(job.status) && job.hasProvision).length, rejectedCount, insufficientCount, errorCount: jobs.filter((job) => job.status === "error").length, exportableCount: provisionCount, incidences, estimatedInputTokens: Number(row.estimated_input_tokens), actualInputTokens: Number(row.actual_input_tokens), actualOutputTokens: Number(row.actual_output_tokens), createdAt: String(row.created_at), canExport: provisionCount > 0, provisionCount, isActive: ["queued", "preparing", "enriching", "matching"].includes(String(row.status)), progress, jobs };
+  const parameters=(row.parameters&&typeof row.parameters==='object'?row.parameters:{}) as Record<string,unknown>;
+  return { purpose:String(parameters.purpose??'batch'), pauseReason:row.pause_reason == null ? null : String(row.pause_reason), id: String(row.id), batchNumber: String(row.batch_number).padStart(8, "0"), status: String(row.status), stage, selectedCount: jobs.length, preparedCount: Number(row.prepared_count), readyCount: Number(row.ready_count), processedCount: Number(row.processed_count), analyzedCount, reviewCount: jobs.filter((job) => job.status === "needs_review").length, reviewedCount, approvedCount: jobs.filter((job) => ["approved", "corrected"].includes(job.status) && job.hasProvision).length, rejectedCount, insufficientCount, errorCount: jobs.filter((job) => job.status === "error").length, exportableCount: provisionCount, incidences, estimatedInputTokens: Number(row.estimated_input_tokens), actualInputTokens: Number(row.actual_input_tokens), actualOutputTokens: Number(row.actual_output_tokens), createdAt: String(row.created_at), canExport: provisionCount > 0, provisionCount, isActive: ["queued", "preparing", "enriching", "matching"].includes(String(row.status)), progress, jobs };
 }
 
 async function enrichCandidateServices(batches: BatchSummary[]) {

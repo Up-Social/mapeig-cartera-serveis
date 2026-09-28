@@ -20,6 +20,7 @@ export type BatchJob = {
   hasProvision: boolean;
 };
 export type BatchSummary = {
+  purpose: string;
   execution?: import("./cloud/execution-status").ExecutionStatus;
   pauseReason?:string|null;
   id: string; batchNumber: string; status: string; stage: string; selectedCount: number; preparedCount: number; readyCount: number;
@@ -30,4 +31,5 @@ export type BatchSummary = {
   progress: { preparation: PhaseProgress; enrichment: PhaseProgress; matching: PhaseProgress };
   jobs: BatchJob[];
 };
+export type CloudResourceBlock = { kind: string; label: string } | null;
 export type ExportSummary = { id: string; filename: string; provisionCount: number; createdAt: string };
