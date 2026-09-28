@@ -11,7 +11,13 @@ export function cloudDb() {
 export type CloudDb=ReturnType<typeof cloudDb>;
 export type Context={db:CloudDb;task:string;owner:string;generation:number};
 export async function rpc<T=unknown>(db:CloudDb,name:string,args:Record<string,unknown>):Promise<T>{
- const r=await db.rpc(name,args);if(r.error)throw new Error('CLOUD_DATABASE');return r.data as T;
+ const r=await db.rpc(name,args);
+ if(r.error){
+  if(r.error.message.includes('CLOUD_RESOURCE_BLOCKED:vercel_quota'))throw new Error('La quota de Vercel està esgotada. No es poden iniciar més processos fins que es recuperi el servei.');
+  if(r.error.message.includes('CLOUD_RESOURCE_BLOCKED:'))throw new Error('L’execució al núvol està bloquejada temporalment.');
+  throw new Error('CLOUD_DATABASE');
+ }
+ return r.data as T;
 }
 export function lease(c:Context){return {p_task:c.task,p_owner:c.owner,p_generation:c.generation};}
 export async function checkpoint(c:Context,key:string,value:unknown){await rpc(c.db,'cloud_checkpoint',{...lease(c),p_key:key,p_value:value});}
