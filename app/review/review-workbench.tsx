@@ -10,7 +10,6 @@ import {
   FINANCING_TYPE_LABELS,
   SOURCE_LABELS,
 } from "@/lib/financing-types";
-import { HistoryUpdate } from "./history-update";
 import { reviewClassificationLabel } from "@/lib/review-classification";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -28,15 +27,11 @@ type Filters = { batchId?: string; type: string; state: string; query: string };
 type ServiceOption = { code: string; name: string; scope: string | null };
 export function ReviewWorkbench({
   queue,
-  historyEnabled,
-  historyRunId,
   filters,
   focusedRecordId,
   services,
 }: {
   queue: ReviewQueue;
-  historyEnabled:boolean;
-  historyRunId:string|null;
   filters: Filters;
   focusedRecordId?: string;
   services: ServiceOption[];
@@ -84,7 +79,6 @@ export function ReviewWorkbench({
             {refreshing ? "Actualitzant…" : "Actualitzar"}
           </Button>
         </div>
-        {historyEnabled&&<HistoryUpdate runId={historyRunId}/>}
         {filters.batchId&&<Link className="mt-4 inline-block underline" href={`/batches/${filters.batchId}/results`}>Tornar als resultats del lot</Link>}
         <form ref={formRef} className="surface mt-5 grid gap-3 p-4 md:grid-cols-[minmax(220px,1fr)_220px]">
           <input type="hidden" name="batch" value={filters.batchId ?? ""} />
@@ -175,9 +169,13 @@ function ReviewDetail({
       : "",
   );
   const [notes, setNotes] = useState("");
+  const [serviceQuery, setServiceQuery] = useState("");
   const [reasons, setReasons] = useState<string[]>([]);
   const [editing, setEditing] = useState(!record.reviewDecision);
   const [message, setMessage] = useState("");
+  const serviceMatches = serviceQuery.trim().length < 2 ? [] : services
+    .filter((service) => `${service.code} ${service.name}`.toLocaleLowerCase("ca").includes(serviceQuery.toLocaleLowerCase("ca")))
+    .slice(0, 12);
   const [pending, startTransition] = useTransition();
   function submit(outcome: "select" | "reject" | "insufficient" | "outside") {
     if (outcome !== "select" && !notes.trim()) {
@@ -321,27 +319,23 @@ function ReviewDetail({
           <h4 className="font-semibold">Decisió</h4>
           <select
             value={selection}
-            aria-label="Servei proposat o correcció manual"
+            aria-label="Servei proposat"
             onChange={(event) => setSelection(event.target.value)}
             className="form-control mt-3"
           >
-            <option value="">Selecciona un servei per aprovar o corregir</option>
-            <optgroup label="Servei proposat i alternatives">
-              {record.matchingCandidates.map((candidate) => (
-                <option key={candidate.id} value={`candidate:${candidate.id}`}>
-                  {candidate.targetCode} · {Math.round(candidate.score * 100)}%
-                  · {candidate.targetName}
-                </option>
-              ))}
-            </optgroup>
-            <optgroup label="Tot el catàleg">
-              {services.map((service) => (
-                <option key={service.code} value={`service:${service.code}`}>
-                  {service.code} · {service.name}
-                </option>
-              ))}
-            </optgroup>
+            <option value="">Selecciona una proposta</option>
+            {record.matchingCandidates.map((candidate) => (
+              <option key={candidate.id} value={`candidate:${candidate.id}`}>
+                {candidate.targetCode} · {Math.round(candidate.score * 100)}% · {candidate.targetName}
+              </option>
+            ))}
           </select>
+          <div className="mt-3 rounded-lg border p-3">
+            <label htmlFor={`service-search-${record.id}`} className="text-xs font-semibold">Cercar un altre servei del catàleg</label>
+            <Input id={`service-search-${record.id}`} value={serviceQuery} onChange={(event) => setServiceQuery(event.target.value)} className="mt-2" placeholder="Escriu codi o nom del servei…" />
+            {serviceMatches.length > 0 && <ul className="mt-2 max-h-56 space-y-1 overflow-y-auto" aria-label="Serveis coincidents">{serviceMatches.map((service) => <li key={service.code}><button type="button" className="w-full rounded-md px-2 py-2 text-left text-sm hover:bg-muted" onClick={() => { setSelection(`service:${service.code}`); setServiceQuery(`${service.code} · ${service.name}`); }}>{service.code} · {service.name}</button></li>)}</ul>}
+            {serviceQuery.trim().length >= 2 && serviceMatches.length === 0 && <p className="mt-2 text-xs text-muted-foreground">No s&apos;han trobat serveis.</p>}
+          </div>
       <ReviewActions notes={notes} onNotesChange={setNotes} reasons={reasons} onReasonsChange={setReasons} pending={pending} canSelect={!!selection && !!record.currentJobId} canOutside={!!record.analysis} rectification={!!record.reviewDecision||selection.startsWith('service:')} onSubmit={submit}/>
           {message && (
             <p className="mt-3 text-sm text-neutral-600">{message}</p>
@@ -380,7 +374,7 @@ function EnrichmentPanel({
       <div className="flex justify-between gap-3">
         <strong className="text-sm">Extracció de la font oficial</strong>
         <span className="text-xs font-semibold">
-          {Math.round(enrichment.confidence * 100)}%
+          {enrichment.confidence == null ? "Confiança no disponible" : `${Math.round(enrichment.confidence * 100)}%`}
         </span>
       </div>
       <p className="mt-2 text-sm leading-6">{enrichment.summary}</p>

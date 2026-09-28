@@ -549,7 +549,7 @@ function ExternalEnrichmentDetail({
           Dades contrastades amb fonts oficials
         </p>
         <span className="text-xs font-semibold">
-          {Math.round(enrichment.confidence * 100)}%
+          {enrichment.confidence == null ? "Confiança no disponible" : `${Math.round(enrichment.confidence * 100)}%`}
         </span>
       </div>
       <p className="mt-3 text-sm leading-6">{enrichment.summary}</p>
