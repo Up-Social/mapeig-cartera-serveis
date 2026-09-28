@@ -1,4 +1,3 @@
-import {executionMode} from './pipeline/execution-mode';
 import {executionStatus} from './cloud/execution-status';
 import {latestAnalysis} from './latest-analysis';
 import "server-only";
@@ -47,7 +46,6 @@ export async function getBatch(id: string): Promise<BatchSummary | null> {
 }
 
 export async function getCloudResourceBlock(): Promise<CloudResourceBlock> {
-  if (executionMode() !== "vercel_workflow") return null;
   const { data, error } = await createServerSupabase().from("cloud_resources").select("blocked_kind").eq("name", "sandbox").single();
   if (error) throw new Error("No s’ha pogut consultar la disponibilitat del procés.");
   if (!data.blocked_kind) return null;
@@ -112,7 +110,7 @@ async function enrichCandidateServices(batches: BatchSummary[]) {
     progress:{preparation:summarizePhases(jobs.map(j=>j.phases!.preparation)),enrichment:summarizePhases(jobs.map(j=>j.phases!.enrichment)),matching:summarizePhases(jobs.map(j=>j.phases!.matching))}};
   });
  }
- if(executionMode()!=='vercel_workflow'||!batches.length)return batches;
+ if(!batches.length)return batches;
  const r=await createServerSupabase().from('worker_tasks').select('run_id,execution_state,lease_until,last_progress_at,failure_kind').eq('executor','vercel_workflow').in('run_id',batches.map(b=>b.id)).order('created_at',{ascending:false});
  if(r.error)throw new Error('No s’ha pogut consultar l’execució remota.');
  return batches.map(batch=>{const task=r.data.find(t=>t.run_id===batch.id);if(!task)return batch;const execution=executionStatus(task);return {...batch,execution,isActive:['pending','running'].includes(execution.state)};});

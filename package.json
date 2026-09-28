@@ -18,6 +18,7 @@
     "test:replay": "tsx scripts/workflow-test-replay.ts",
     "test:rerun": "tsx scripts/workflow-test-rerun.ts",
     "test:integration": "tsx scripts/workflow-test-integration.ts",
+    "test:e2e": "playwright test",
     "test:build": "tsx scripts/workflow-test-build.ts",
     "verify": "npm run lint && npm run typecheck && npm test && npm run build",
     "data:import": "tsx --env-file=.env.local scripts/import-excels.ts",
@@ -59,6 +60,7 @@
     "ws": "8.21.3"
   },
   "devDependencies": {
+    "@playwright/test": "^1.63.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
