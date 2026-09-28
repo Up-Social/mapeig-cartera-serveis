@@ -1,8 +1,17 @@
-import Link from 'next/link';
-import {getCurrentResults} from '@/lib/current-results';
-import {CLASSIFICATION_LABELS,CLASSIFICATIONS,type Classification} from '@/lib/analysis-contract';
-export default async function AnalysisPage({searchParams}:{searchParams:Promise<Record<string,string|undefined>>}){
- const params=await searchParams;const classification=CLASSIFICATIONS.includes(params.classification as Classification)?params.classification!:'out_of_portfolio';const page=Math.max(1,parseInt(params.page??'1')||1);
- const {rows,total,pageCount}=await getCurrentResults({classification,page});
- return <main className="mx-auto max-w-5xl space-y-5 p-5"><h1 className="text-2xl font-semibold">Classificacions</h1><form className="flex flex-wrap gap-3"><select aria-label="Classificació" name="classification" defaultValue={classification} className="rounded border p-2">{Object.entries(CLASSIFICATION_LABELS).map(([value,label])=><option key={value} value={value}>{label}</option>)}</select><button className="rounded border px-4">Filtrar</button></form><a className="inline-block underline" href="/api/exports/outside">Exportar casos revisats fora de cartera</a><p>{total} resultats · pàgina {page}</p>{rows.map(row=><article key={row.id} className="space-y-2 rounded-lg border p-4"><h2 className="font-semibold">{row.title}</h2><p>{CLASSIFICATION_LABELS[row.classification as Classification]} · {row.human_reviewed?'Revisat':'Pendent de validació humana'}</p><p>{row.explanation}</p><Link href={`/review?state=all&record=${row.id}`} className="underline">Revisar registre</Link></article>)}<nav className="flex gap-4">{page>1&&<Link href={`?classification=${classification}&page=${page-1}`}>Anterior</Link>}{page<pageCount&&<Link href={`?classification=${classification}&page=${page+1}`}>Següent</Link>}</nav></main>;
+import Link from "next/link";
+import { getCurrentResults } from "@/lib/current-results";
+import { CLASSIFICATION_LABELS, CLASSIFICATIONS, type Classification } from "@/lib/analysis-contract";
+
+export default async function AnalysisPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
+  const params = await searchParams;
+  const classification = CLASSIFICATIONS.includes(params.classification as Classification) ? params.classification! : "out_of_portfolio";
+  const page = Math.max(1, Number.parseInt(params.page ?? "1", 10) || 1);
+  const { rows, total, pageCount } = await getCurrentResults({ classification, page });
+  return <main className="mx-auto max-w-5xl space-y-5 p-5">
+    <div><h1 className="text-2xl font-semibold">Fora de cartera</h1><p className="mt-1 text-sm text-muted-foreground">Consulta els resultats que no corresponen a un servei final de la Cartera.</p></div>
+    <form className="flex flex-wrap gap-3"><select aria-label="Classificació" name="classification" defaultValue={classification} className="rounded border p-2">{Object.entries(CLASSIFICATION_LABELS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select><button className="rounded border px-4">Filtrar</button></form>
+    <a className="inline-block underline" href="/api/exports/outside">Exportar casos revisats fora de cartera</a><p>{total} resultats · pàgina {page}</p>
+    {rows.map((row) => <article key={row.id} className="space-y-2 rounded-lg border p-4"><h2 className="font-semibold">{row.title}</h2><p>{CLASSIFICATION_LABELS[row.classification as Classification]} · {row.human_reviewed ? "Revisat" : "Pendent de validació humana"}</p><p>{row.explanation}</p><Link href={`/review?state=all&record=${row.id}`} className="underline">Revisar registre</Link></article>)}
+    <nav className="flex gap-4">{page > 1 && <Link href={`?classification=${classification}&page=${page - 1}`}>Anterior</Link>}{page < pageCount && <Link href={`?classification=${classification}&page=${page + 1}`}>Següent</Link>}</nav>
+  </main>;
 }

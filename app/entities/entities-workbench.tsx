@@ -21,9 +21,9 @@ export function EntitiesWorkbench({ result, filters }: { result: EntityPage; fil
     </div>
     <section className="surface mt-6 overflow-hidden">
       <form ref={formRef} className="grid gap-3 border-b bg-muted/30 p-4 md:grid-cols-[1fr_220px_220px]">
-        <Input name="q" defaultValue={filters.query} placeholder="Nom legal o NIF..." onChange={() => { if (searchTimer.current) clearTimeout(searchTimer.current); searchTimer.current = setTimeout(() => formRef.current?.requestSubmit(), 350); }} />
-        <select name="qualification" defaultValue={filters.qualification} className="form-control" onChange={() => formRef.current?.requestSubmit()}><option value="totes">Totes les qualificacions</option>{result.qualifications.map((x) => <option key={x}>{x}</option>)}</select>
-        <select name="county" defaultValue={filters.county} className="form-control" onChange={() => formRef.current?.requestSubmit()}><option value="totes">Totes les comarques</option>{result.counties.map((x) => <option key={x}>{x}</option>)}</select>
+        <Input name="q" aria-label="Cercar entitat per nom legal o NIF" defaultValue={filters.query} placeholder="Nom legal o NIF..." onChange={() => { if (searchTimer.current) clearTimeout(searchTimer.current); searchTimer.current = setTimeout(() => formRef.current?.requestSubmit(), 350); }} />
+        <select name="qualification" aria-label="Filtrar per qualificació" defaultValue={filters.qualification} className="form-control" onChange={() => formRef.current?.requestSubmit()}><option value="totes">Totes les qualificacions</option>{result.qualifications.map((x) => <option key={x}>{x}</option>)}</select>
+        <select name="county" aria-label="Filtrar per comarca" defaultValue={filters.county} className="form-control" onChange={() => formRef.current?.requestSubmit()}><option value="totes">Totes les comarques</option>{result.counties.map((x) => <option key={x}>{x}</option>)}</select>
       </form>
       <StableAccordion stateKey="entities-records" className="divide-y" defaultValue={[]}>
         {result.entities.map((entity) => <AccordionItem key={entity.id} value={entity.id} className="px-4">

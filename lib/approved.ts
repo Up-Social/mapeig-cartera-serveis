@@ -8,19 +8,14 @@ const SELECT = "id,source_record_id,source_id,call_url,regulatory_basis_url,prov
 export async function getApprovedPage(filters: ApprovedFilters): Promise<ApprovedPage> {
   const db = createServerSupabase();
   let request = db.from("service_provisions").select(SELECT, { count: "exact" }).eq("source_records.processing_status", "completat");
-  let allIdsRequest = db.from("service_provisions").select("id,source_records!inner(processing_status,financing_type)").eq("source_records.processing_status", "completat");
-  if (filters.type !== "totes") { request = request.eq("source_records.financing_type", filters.type); allIdsRequest = allIdsRequest.eq("source_records.financing_type", filters.type); }
-  if (filters.query) { const q = filters.query.replaceAll(/[,%()]/g, " ").trim(); const expression = `provider_name.ilike.%${q}%,provider_nif.ilike.%${q}%,source_id.ilike.%${q}%,service_code.ilike.%${q}%`; request = request.or(expression); allIdsRequest = allIdsRequest.or(expression); }
+  if (filters.type !== "totes") request = request.eq("source_records.financing_type", filters.type);
+  if (filters.query) { const q = filters.query.replaceAll(/[,%()]/g, " ").trim(); const expression = `provider_name.ilike.%${q}%,provider_nif.ilike.%${q}%,source_id.ilike.%${q}%,service_code.ilike.%${q}%`; request = request.or(expression); }
   const from = (filters.page - 1) * PAGE_SIZE;
-  const [result, allIdsResult] = await Promise.all([
-    request.order("approved_at", { ascending: false }).range(from, from + PAGE_SIZE - 1),
-    allIdsRequest.order("approved_at", { ascending: false }).range(0, 4999),
-  ]);
+  const result = await request.order("approved_at", { ascending: false }).range(from, from + PAGE_SIZE - 1);
   if (result.error) throw result.error;
-  if (allIdsResult.error) throw allIdsResult.error;
   const total = result.count ?? 0;
   const pageCount = Math.max(1, Math.ceil(total / PAGE_SIZE));
-  return { provisions: (result.data ?? []).map(mapApproved), allProvisionIds: (allIdsResult.data ?? []).map((item) => String(item.id)), total, page: Math.min(filters.page, pageCount), pageCount, pageSize: PAGE_SIZE };
+  return { provisions: (result.data ?? []).map(mapApproved), total, page: Math.min(filters.page, pageCount), pageCount, pageSize: PAGE_SIZE };
 }
 
 function mapApproved(row: Record<string, unknown>): ApprovedProvision {
