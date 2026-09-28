@@ -12,12 +12,9 @@ En pantalles d'escriptori, la navegació principal es manté visible en una barr
 - **Lots**: creació automàtica d'1 a 50 registres, progrés persistent i execució completa fins a revisió.
 - **Revisió**: validació humana consecutiva dels candidats generats.
 - **Incidències**: evidència insuficient i errors tècnics del treball vigent, amb diagnòstic i recuperació.
-- **Descartats**: descart automàtic o humà, amb motius, evidència i validació humana separada. Permet rectificar i eliminar físicament una selecció confirmada.
-- **Classificacions**: resultats normatius, inclosos els serveis socials fora de la cartera.
-- **Aprovats**: consulta i exportació de les provisions vigents després d'una decisió positiva.
-- **Catàleg**: consulta dels serveis importats i de les provisions aprovades que hi estan vinculades.
-- **Entitats**: consulta d'entitats normalitzades, serveis RESES, mencions i relacions amb el catàleg.
-- **Procés**: resum documental del pipeline, el flux d'aprovacions entre pantalles i el registre de fonts.
+- **Resultats**: agrupa Aprovats, Descartats i Fora de cartera sense afegir passos al procés.
+- **Referència**: agrupa Catàleg i Entitats com a informació de consulta.
+- **Ajuda sobre el procés**: resum documental del pipeline, les decisions i les fonts.
 
 ## Resum del procés
 
@@ -27,7 +24,7 @@ Les dues superfícies de revisió ofereixen les mateixes quatre accions: **Aprov
 
 ## Lots, historial i reanàlisi
 
-**Revisar pendents** obre els treballs pendents d’aquell lot. **Veure resultats del lot** inclou també errors i decisions acabades. Les tres targetes obren el detall reconciliat de completats, errors propis, bloquejats, pendents i en curs; un error de preparació no es compta de nou en fases posteriors. Els treballs històrics són de només lectura. Els lots buits es conserven com a **Lot buit**.
+**Revisar pendents** obre els treballs pendents d’aquell lot. **Veure resultats del lot** inclou també errors i decisions acabades. Un únic indicador resumeix la fase actual i permet desplegar el detall reconciliat de completats, errors propis, bloquejats, pendents i en curs; un error de preparació no es compta de nou en fases posteriors. Els treballs històrics són de només lectura. Els lots buits es conserven com a **Lot buit**.
 
 El preflight de reanàlisi és de només lectura: mostra el lot origen, membres exactes, proveïdor/model i documents reutilitzables o pendents. Cost o durada desconeguts es mostren com a no disponibles. Confirmar crea un lot nou idempotent amb la mateixa composició i una base històrica congelada; no aprova provisions. L’informe compara propostes automàtiques i decisions humanes per separat. El rerun remot està bloquejat per defecte i requereix autorització independent.
 
@@ -116,7 +113,7 @@ Si el lot encara no té cap provisió positiva, l'exportació no s'activa. El no
 
 ## Exportar provisions aprovades
 
-La pantalla **Aprovats** permet seleccionar les provisions visibles o totes les que compleixen els filtres i exportar entre 1 i 5.000 files. Abans de generar el llibre, el servidor torna a comprovar que totes continuïn vigents, que el registre estigui completat i que l'última decisió sigui una aprovació o correcció.
+La pantalla **Aprovats** permet seleccionar les provisions visibles i exportar únicament les marcades. Abans de generar el llibre, el servidor torna a comprovar que totes continuïn vigents, que el registre estigui completat i que l'última decisió sigui una aprovació o correcció.
 
 També existeix una exportació completa sobre una còpia del Master quan el servidor disposa de `MASTER_EXCEL_PATH`. Cap de les tres modalitats modifica el fitxer original.
 
