@@ -2,10 +2,12 @@ import type { ComponentProps } from "react";
 
 import { Button, buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import styles from "./batch-button.module.css";
 
 type BatchButtonSize = "default" | "xs" | "sm" | "lg";
 
-const contrastClasses = "batch-action";
+const contrastClasses = cn("batch-action", styles.action);
+const selectedClasses = cn("batch-action-selected", styles.selected);
 
 export function batchButtonVariants({
   size = "default",
@@ -19,7 +21,7 @@ export function batchButtonVariants({
   return cn(
     buttonVariants({ variant: "outline", size }),
     contrastClasses,
-    selected && "batch-action-selected",
+    selected && selectedClasses,
     className,
   );
 }
@@ -41,7 +43,7 @@ export function BatchButton({
       aria-pressed={props["aria-pressed"] ?? (selected ? true : undefined)}
       className={cn(
         contrastClasses,
-        selected && "batch-action-selected",
+        selected && selectedClasses,
         className,
       )}
     />

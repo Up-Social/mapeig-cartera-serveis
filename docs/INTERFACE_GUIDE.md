@@ -24,7 +24,9 @@ Les dues superfícies de revisió ofereixen les mateixes quatre accions: **Aprov
 
 ## Lots, historial i reanàlisi
 
-**Revisar pendents** obre els treballs pendents d’aquell lot. **Veure resultats del lot** inclou també errors i decisions acabades. Un únic indicador resumeix la fase actual i permet desplegar el detall reconciliat de completats, errors propis, bloquejats, pendents i en curs; un error de preparació no es compta de nou en fases posteriors. Els treballs històrics són de només lectura. Els lots buits es conserven com a **Lot buit**.
+La llista mostra per a cada lot el mateix resum que el seu interior: nombre total de registres, pendents de revisió i errors tècnics. **Obrir detall del lot** és l’únic accés al llistat complet de registres i als seus diagnòstics; **Revisar pendents** obre directament la validació humana i permet tornar al mateix detall. El progrés no mostra un percentatge quan hi ha registres bloquejats: diferencia explícitament entre processament automàtic acabat i lot resolt. El detall tècnic de les tres fases continua disponible sota demanda i reconcilia completats, errors propis, bloquejats, pendents i en curs. Els treballs històrics són de només lectura. Els lots buits es conserven com a **Lot buit**.
+
+El detall del lot ofereix quatre vistes ràpides: **Tots**, **Per revisar**, **Errors** i **Revisats**. Els filtres per classificació i tipologia queden dins de **Filtres avançats** per no sobrecarregar el recorregut habitual.
 
 El preflight de reanàlisi és de només lectura: mostra el lot origen, membres exactes, proveïdor/model i documents reutilitzables o pendents. Cost o durada desconeguts es mostren com a no disponibles. Confirmar crea un lot nou idempotent amb la mateixa composició i una base històrica congelada; no aprova provisions. L’informe compara propostes automàtiques i decisions humanes per separat. El rerun remot està bloquejat per defecte i requereix autorització independent.
 

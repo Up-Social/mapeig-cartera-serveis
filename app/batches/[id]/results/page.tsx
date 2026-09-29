@@ -9,16 +9,7 @@ import { getBatch } from "@/lib/batches";
 import { FINANCING_TYPE_LABELS } from "@/lib/financing-types";
 import { isUuid } from "@/lib/uuid";
 
-const REVIEW_FILTER_LABELS = {
-  pending: "Pendent de començar",
-  blocked: "Bloquejat",
-  needs_review: "Pendent de revisió",
-  approved: "Aprovat",
-  corrected: "Corregit",
-  rejected: "Descartat o fora de cartera",
-  insufficient_evidence: "Evidència insuficient",
-  error: "Error tècnic",
-};
+type ResultView = "all" | "review" | "errors" | "resolved";
 
 export default async function BatchResults({
   params,
@@ -34,35 +25,43 @@ export default async function BatchResults({
   if (!batch) notFound();
 
   const filter = await searchParams;
+  const view = resultView(filter);
   const jobs = batch.jobs.filter(
     (job) =>
+      matchesView(job, view) &&
       (!filter.classification ||
         (job.analysis?.reviewed_classification ?? job.analysis?.classification) ===
           filter.classification) &&
-      (!filter.review || jobState(job) === filter.review) &&
       (!filter.type || job.financingType === filter.type),
   );
+  const resolvedCount = batch.jobs.filter((job) => matchesView(job, "resolved")).length;
+  const hasAdvancedFilters = Boolean(filter.classification || filter.type);
 
   return (
     <main className="mx-auto max-w-6xl space-y-5 p-5">
-      <Link
-        className={batchButtonVariants({ size: "sm" })}
-        href={`/batches?batch=${id}`}
-      >
-        Tornar al lot {batch.batchNumber}
+      <Link className={batchButtonVariants({ size: "sm" })} href={`/batches?batch=${id}`}>
+        Tornar a la llista de lots
       </Link>
 
       <div>
         <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-          Resultats i diagnòstic
+          Detall del lot
         </p>
         <h1 className="mt-1 text-2xl font-semibold">
-          {batch.selectedCount ? `Resultats del lot ${batch.batchNumber}` : "Lot buit"}
+          {batch.selectedCount ? `Lot ${batch.batchNumber}` : "Lot buit"}
         </h1>
         <p className="mt-2 text-muted-foreground">
-          {batch.jobs.length} treballs · {batch.reviewCount} pendents de revisió humana ·{" "}
-          {batch.errorCount} errors tècnics
+          {batch.jobs.length} {batch.jobs.length === 1 ? "registre" : "registres"} · {batch.reviewCount} per revisar ·{" "}
+          {batch.errorCount} {batch.errorCount === 1 ? "error tècnic" : "errors tècnics"}
         </p>
+        {batch.reviewCount > 0 && (
+          <Link
+            className={batchButtonVariants({ className: "mt-4" })}
+            href={`/review?batch=${id}&state=pending`}
+          >
+            Revisar {batch.reviewCount} {batch.reviewCount === 1 ? "pendent" : "pendents"}
+          </Link>
+        )}
       </div>
 
       {(batch.reviewCount > 0 || batch.errorCount > 0) && (
@@ -104,59 +103,85 @@ export default async function BatchResults({
         </p>
       )}
 
-      <form className="flex flex-wrap items-center gap-3">
-        <select
-          name="classification"
-          aria-label="Classificació"
-          defaultValue={filter.classification ?? ""}
-          className="form-control sm:w-auto"
-        >
-          <option value="">Totes les classificacions</option>
-          {Object.entries(CLASSIFICATION_LABELS).map(([value, label]) => (
-            <option key={value} value={value}>
-              {label}
-            </option>
-          ))}
-        </select>
-        <select
-          name="review"
-          aria-label="Revisió"
-          defaultValue={filter.review ?? ""}
-          className="form-control sm:w-auto"
-        >
-          <option value="">Totes les revisions i estats</option>
-          {Object.entries(REVIEW_FILTER_LABELS).map(([value, label]) => (
-            <option key={value} value={value}>
-              {label}
-            </option>
-          ))}
-        </select>
-        <select
-          name="type"
-          aria-label="Tipologia"
-          defaultValue={filter.type ?? ""}
-          className="form-control sm:w-auto"
-        >
-          <option value="">Totes les tipologies</option>
-          {Object.entries(FINANCING_TYPE_LABELS).map(([value, label]) => (
-            <option key={value} value={value}>
-              {label}
-            </option>
-          ))}
-        </select>
-        <button className={batchButtonVariants()} type="submit">
-          Filtrar
-        </button>
-      </form>
+      <nav className="flex flex-wrap gap-2" aria-label="Filtrar registres del lot">
+        <ResultViewLink id={id} current={view} value="all" label={`Tots (${batch.jobs.length})`} />
+        <ResultViewLink id={id} current={view} value="review" label={`Per revisar (${batch.reviewCount})`} />
+        <ResultViewLink id={id} current={view} value="errors" label={`Errors (${batch.errorCount})`} />
+        <ResultViewLink id={id} current={view} value="resolved" label={`Revisats (${resolvedCount})`} />
+      </nav>
 
-      <p className="text-sm text-muted-foreground">{jobs.length} resultats filtrats</p>
+      <details className="rounded-xl border p-4" open={hasAdvancedFilters}>
+        <summary className="cursor-pointer text-sm font-semibold">Filtres avançats</summary>
+        <form className="mt-4 flex flex-wrap items-center gap-3">
+          <input type="hidden" name="view" value={view} />
+          <select
+            name="classification"
+            aria-label="Classificació"
+            defaultValue={filter.classification ?? ""}
+            className="form-control sm:w-auto"
+          >
+            <option value="">Totes les classificacions</option>
+            {Object.entries(CLASSIFICATION_LABELS).map(([value, label]) => (
+              <option key={value} value={value}>{label}</option>
+            ))}
+          </select>
+          <select
+            name="type"
+            aria-label="Tipologia"
+            defaultValue={filter.type ?? ""}
+            className="form-control sm:w-auto"
+          >
+            <option value="">Totes les tipologies</option>
+            {Object.entries(FINANCING_TYPE_LABELS).map(([value, label]) => (
+              <option key={value} value={value}>{label}</option>
+            ))}
+          </select>
+          <button className={batchButtonVariants()} type="submit">Aplicar</button>
+          {hasAdvancedFilters && (
+            <Link className={batchButtonVariants()} href={`/batches/${id}/results?view=${view}`}>
+              Netejar
+            </Link>
+          )}
+        </form>
+      </details>
+
+      <p className="text-sm text-muted-foreground">
+        Mostrant {jobs.length} de {batch.jobs.length} registres
+      </p>
 
       <section className="space-y-4" aria-label="Resultats del lot">
         {jobs.map((job) => (
           <JobResult key={job.id} job={job} batchId={id} />
         ))}
+        {!jobs.length && (
+          <p className="rounded-xl border border-dashed p-8 text-center text-sm text-muted-foreground">
+            No hi ha registres en aquest grup.
+          </p>
+        )}
       </section>
     </main>
+  );
+}
+
+function ResultViewLink({
+  id,
+  current,
+  value,
+  label,
+}: {
+  id: string;
+  current: ResultView;
+  value: ResultView;
+  label: string;
+}) {
+  return (
+    <Link
+      href={`/batches/${id}/results?view=${value}`}
+      className={batchButtonVariants({ size: "sm", selected: current === value })}
+      aria-current={current === value ? "page" : undefined}
+    >
+      {label}
+    </Link>
   );
 }
 
@@ -283,4 +308,26 @@ function jobStateLabel(job: BatchJob) {
       error: "Error tècnic",
     } as Record<string, string>
   )[jobState(job)] ?? "Pendent";
+}
+
+function resultView(filter: Record<string, string | undefined>): ResultView {
+  if (["all", "review", "errors", "resolved"].includes(filter.view ?? "")) {
+    return filter.view as ResultView;
+  }
+  if (filter.review === "needs_review") return "review";
+  if (filter.review === "error") return "errors";
+  if (["approved", "corrected", "rejected", "insufficient_evidence"].includes(filter.review ?? "")) {
+    return "resolved";
+  }
+  return "all";
+}
+
+function matchesView(job: BatchJob, view: ResultView) {
+  const state = jobState(job);
+  if (view === "review") return state === "needs_review";
+  if (view === "errors") return state === "error";
+  if (view === "resolved") {
+    return ["approved", "corrected", "rejected", "insufficient_evidence"].includes(state);
+  }
+  return true;
 }

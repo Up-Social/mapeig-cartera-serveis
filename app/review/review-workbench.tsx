@@ -22,6 +22,7 @@ import { AnalysisResult } from "@/components/analysis-result";
 import { displaySourceIdentifier } from "@/lib/source-identifiers";
 import { sourcePayloadFieldLabel, sourcePayloadValue } from "@/lib/source-payload-display";
 import { sourceDocumentStatusLabel, sourceDocumentTypeLabel } from "@/lib/ui-labels";
+import { batchButtonVariants } from "@/components/batch-button";
 
 type Filters = { batchId?: string; type: string; state: string; query: string };
 type ServiceOption = { code: string; name: string; scope: string | null };
@@ -79,7 +80,7 @@ export function ReviewWorkbench({
             {refreshing ? "Actualitzant…" : "Actualitzar"}
           </Button>
         </div>
-        {filters.batchId&&<Link className="mt-4 inline-block underline" href={`/batches/${filters.batchId}/results`}>Tornar als resultats del lot</Link>}
+        {filters.batchId&&<Link className={batchButtonVariants({size:"sm",className:"mt-4"})} href={`/batches/${filters.batchId}/results`}>Tornar al detall del lot</Link>}
         <form ref={formRef} className="surface mt-5 grid gap-3 p-4 md:grid-cols-[minmax(220px,1fr)_220px]">
           <input type="hidden" name="batch" value={filters.batchId ?? ""} />
           <input type="hidden" name="state" value={filters.state} />

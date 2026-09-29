@@ -1,0 +1,22 @@
+.action {
+  border-color: #555555 !important;
+  background-color: #ffffff !important;
+  color: #111111 !important;
+}
+
+.action:hover,
+.action[aria-expanded="true"] {
+  border-color: #111111 !important;
+  background-color: #111111 !important;
+  color: #ffffff !important;
+}
+
+.selected {
+  border-color: #111111 !important;
+  background-color: #111111 !important;
+  color: #ffffff !important;
+}
+
+.selected:hover {
+  background-color: #262626 !important;
+}
