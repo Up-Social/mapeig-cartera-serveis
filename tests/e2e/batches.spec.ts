@@ -118,6 +118,9 @@ test('blocked batch is understandable and actionable',async({page})=>{
  await expect(page.getByRole('button',{name:'Processament no disponible'})).toBeDisabled();
  await page.getByRole('button',{name:'Lots'}).click();
  await page.getByRole('button',{name:'Requereixen atenció'}).click();
+ const quickResume=page.getByRole('button',{name:/Reprendre lot /}).first();
+ await expect(quickResume).toBeVisible();
+ await expect(quickResume).toBeDisabled();
  const heading=page.getByRole('button',{name:/Lot .*Pausat per quota/}).first();
  await heading.click();
  await expect(page.getByRole('heading',{name:'Processament aturat'})).toBeVisible();
@@ -138,9 +141,10 @@ test('Vercel can be checked without resuming paused work',async({page})=>{
   await expect(page.getByRole('button',{name:'Crear i processar lot'})).toBeEnabled();
   await page.getByRole('button',{name:'Lots'}).click();
   await page.getByRole('button',{name:'Requereixen atenció'}).click();
+  await expect(page.getByRole('button',{name:/Reprendre lot /}).first()).toBeEnabled();
   await page.getByRole('button',{name:/Lot .*Pausat per quota/}).first().click();
   await expect(page.getByRole('button',{name:'Reprendre només aquest lot'})).toBeVisible();
-  const task=await db.from('worker_tasks').select('execution_state,failure_kind').eq('run_id',pausedRun).single();
+  const task=await db.from('worker_tasks').select('execution_state,failure_kind').eq('run_id',pausedRun).order('created_at',{ascending:false}).order('id',{ascending:false}).limit(1).single();
   if(task.error)throw task.error;
   expect(task.data).toMatchObject({execution_state:'paused',failure_kind:'vercel_quota'});
  }finally{
@@ -248,4 +252,27 @@ test('automatic OCR can be disabled and enabled from administration',async({page
  const enabled=await db.from('app_settings').select('enabled').eq('key','automatic_ocr').single();
  if(enabled.error)throw enabled.error;
  expect(enabled.data.enabled).toBe(true);
+});
+
+test('a paused batch can be resumed directly from the list after Vercel recovers',async({page},testInfo)=>{
+ test.skip(testInfo.project.name!=='desktop','desktop mutation assertion');
+ await login(page);
+ try{
+  await page.getByRole('button',{name:'Comprovar si Vercel torna a estar disponible'}).click();
+  await expect(page.getByRole('alert').filter({hasText:'Processament temporalment aturat'})).toBeHidden();
+  await page.getByRole('button',{name:'Requereixen atenció'}).click();
+  const quickResume=page.getByRole('button',{name:/Reprendre lot /}).first();
+  await expect(quickResume).toBeEnabled();
+  await quickResume.click();
+  await expect(page.getByRole('status')).toContainText('s’ha reprès correctament');
+  const task=await db.from('worker_tasks').select('execution_state,failure_kind').eq('run_id',pausedRun).order('created_at',{ascending:false}).order('id',{ascending:false}).limit(1).single();
+  if(task.error)throw task.error;
+  expect(task.data.execution_state).toBe('pending');
+  expect(task.data.failure_kind).toBeNull();
+ }finally{
+  const task=await db.from('worker_tasks').update({status:'failed',execution_state:'paused',failure_kind:'vercel_quota',dispatch_at:null,workflow_id:null,lease_until:null,lease_owner:null}).eq('run_id',pausedRun);
+  if(task.error)throw task.error;
+  const restored=await db.from('cloud_resources').update({blocked_kind:'vercel_quota',owner:null,lease_until:null}).eq('name','sandbox');
+  if(restored.error)throw restored.error;
+ }
 });
