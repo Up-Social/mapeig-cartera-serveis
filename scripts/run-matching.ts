@@ -3,11 +3,13 @@ import {journaledProviderRequest} from '../lib/provider-journal';
 import {applyPositiveAudit,positiveAuditSchema,positiveAuditInput,POSITIVE_AUDIT_INSTRUCTIONS,POSITIVE_AUDIT_VERSION} from '../lib/cloud/positive-audit';
 import {buildNormativeInput,MATCHING_INSTRUCTIONS,scopeFactsSchema,validateScopeFacts,type ScopeFacts} from '../lib/normative-matching';
 import {analysisSchema,validateAnalysis,type AnalysisOutput} from '../lib/analysis-contract';
-import {applyScopeRules,ROLE_INSTRUCTIONS} from '../lib/scope-rules';
+import {applyScopeRules,ROLE_INSTRUCTIONS,type RoleAccreditations} from '../lib/scope-rules';
 import {loadOfficialCatalog,assertEligible} from '../lib/official-catalog';
-import {addNamedCandidates} from '../lib/named-candidate';
+import {addNamedCandidates,bindExplicitCodeCandidates,findExplicitServiceEvidence} from '../lib/named-candidate';
 import {normalizeCandidates} from '../lib/cloud/normalize-candidates';
 import {normalizeMissingScope} from '../lib/cloud/normalize-analysis';
+import {EVIDENCE_POLICY_VERSION,evidenceRejectionReasons,isEligibleEvidence} from '../lib/evidence-eligibility';
+import {selectEvidenceWindow} from '../lib/cloud/evidence-window';
 import { createClient } from "@supabase/supabase-js";
 import WebSocket from "ws";
 
@@ -54,35 +56,60 @@ async function processJob(job: { id: string; run_id: string; source_record_id: s
     if(lineage.error)throw lineage.error;
     await assertNotPreviouslySelected(job.source_record_id, job.id, allowPreviousSelection||Boolean(lineage.data.previous_job_id));
     const [{ data: record, error: recordError }, official] = await Promise.all([
-      supabase.from("source_records").select("id,source_dataset,source_record_id,mechanism,title,provider_name,amount,source_payload,record_enrichments(id,summary,provider_name,provider_nif,mechanism,award_date,amount,contracting_body,target_population,scope_facts),source_documents!inner(id,status)").eq("id", job.source_record_id).eq("source_documents.status", "fetched").single(),
+      supabase.from("source_records").select("id,source_dataset,source_record_id,mechanism,title,provider_name,amount,source_payload,record_enrichments(id,summary,provider_name,provider_nif,mechanism,award_date,amount,contracting_body,target_population,scope_facts),source_documents!inner(id,status,text_length,extraction_method,quality_flags)").eq("id", job.source_record_id).eq("source_documents.status", "fetched").single(),
       loadOfficialCatalog(supabase),
     ]);
     if (recordError) throw recordError;
     const catalog = official.eligible;
-    const documentIds = record.source_documents.map((document: { id: string }) => document.id);
-    const { data: chunks, error: chunksError } = await supabase.from("current_evidence_chunks").select("id,ordinal,content,source_document_id").in("source_document_id", documentIds).order("ordinal").limit(12);
+    const documents = new Map(record.source_documents.map((document: { id: string; text_length:number|null; extraction_method:string|null; quality_flags:string[]|null }) => [document.id, document]));
+    const { data: evidence, error: chunksError } = await supabase.from("current_evidence_chunks").select("id,ordinal,content,source_document_id").in("source_document_id", [...documents.keys()]).order("source_document_id").order("ordinal").limit(96);
     if (chunksError) throw chunksError;
+    const assessed=(evidence??[]).map(chunk=>{
+      const document=documents.get(chunk.source_document_id);
+      const quality={content:chunk.content,textLength:document?.text_length,extractionMethod:document?.extraction_method,qualityFlags:document?.quality_flags};
+      return {...chunk,eligible:isEligibleEvidence(quality),rejection_reasons:evidenceRejectionReasons(quality)};
+    });
+    const chunks=selectEvidenceWindow(assessed.filter(chunk=>chunk.eligible));
+    const rejectedEvidence=assessed.filter(chunk=>!chunk.eligible).map(chunk=>({source_document_id:chunk.source_document_id,ordinal:chunk.ordinal,reasons:chunk.rejection_reasons}));
     if (!chunks?.length) throw new Error("El registre no té fragments d'evidència");
 
     const existingEnrichment = Array.isArray(record.record_enrichments) ? record.record_enrichments[0] : record.record_enrichments;
-    const eligibleCodes=catalog.map(service=>service.service_code);
+    const explicitlyCited=findExplicitServiceEvidence(catalog,chunks);
+    const promptServices=explicitlyCited.length?explicitlyCited.map(item=>item.service):catalog;
+    const eligibleCodes=promptServices.map(service=>service.service_code);
     const raw = await retryTransient(()=>journaledProviderRequest(supabase,job.id,'matching',{
         model,
         instructions: existingEnrichment ? matchingInstructions() : `${ROLE_INSTRUCTIONS} Primer extreu camps estructurats exclusivament dels fragments oficials; usa null si no hi consten. ${matchingInstructions()}`,
-        input: buildNormativeInput({ ...record, verified_enrichment: existingEnrichment }, catalog, official.all, official.version.general_context, chunks),
+        input: buildNormativeInput({ ...record, verified_enrichment: existingEnrichment }, promptServices, official.all, official.version.general_context, chunks),
         text: { format: { type: "json_schema", name: "matching_candidates", strict: true, schema: existingEnrichment ? candidatesOnlySchema(eligibleCodes) : combinedSchema(eligibleCodes) } },
         max_output_tokens: 4000,
       }));
     const providerResult=JSON.parse(extractOutputText(raw)) as AnalysisOutput & { enrichment?: EnrichmentOutput };
-    const parsed = addNamedCandidates(normalizeMissingScope(normalizeCandidates(providerResult,official.all,chunks.length)) as AnalysisOutput & { enrichment?: EnrichmentOutput },catalog,chunks);
+    const parsed = bindExplicitCodeCandidates(addNamedCandidates(normalizeMissingScope(normalizeCandidates(providerResult,official.all,chunks.length)) as AnalysisOutput & { enrichment?: EnrichmentOutput },catalog,chunks),catalog,chunks);
     
     for (const candidate of parsed.candidates) assertEligible(candidate.code,official.all);
     let validated=validateAnalysis(parsed,official.all,chunks.length);
-    if(validated.classification==='in_portfolio'){
+    const explicitCodes=new Set(explicitlyCited.map(item=>item.service.service_code));
+    const exactOfficialEvidence=validated.classification==='in_portfolio'&&validated.candidates.length>0&&validated.candidates.every(candidate=>explicitCodes.has(candidate.code));
+    let auditVersion=POSITIVE_AUDIT_VERSION;
+    if(validated.classification==='in_portfolio'&&!exactOfficialEvidence){
       const audit=await retryTransient(()=>journaledProviderRequest(supabase,job.id,POSITIVE_AUDIT_VERSION,{model,instructions:POSITIVE_AUDIT_INSTRUCTIONS,input:positiveAuditInput(validated,official.all,official.version.general_context,chunks),text:{format:{type:'json_schema',name:'positive_audit',strict:true,schema:positiveAuditSchema(validated.candidates.map(c=>c.code),chunks)}},max_output_tokens:2000}));
-      validated=validateAnalysis(applyPositiveAudit(validated,JSON.parse(extractOutputText(audit)),official.all,chunks),official.all,chunks.length);
+      validated=validateAnalysis(bindExplicitCodeCandidates(applyPositiveAudit(validated,JSON.parse(extractOutputText(audit)),official.all,chunks),catalog,chunks),official.all,chunks.length);
+    }else if(exactOfficialEvidence){
+      auditVersion='official-code-description-v1';
     }
-    const analysis={...applyScopeRules(validated,(parsed.enrichment??existingEnrichment)?.scope_facts?.roles,chunks),model_conclusion:parsed};
+    const enrichment=parsed.enrichment??existingEnrichment;
+    const exactOrdinals=[...new Set(validated.candidates.flatMap(candidate=>candidate.evidence_ordinals))];
+    const accreditations:RoleAccreditations=exactOfficialEvidence?{
+      final_service:{kind:'yes',evidence_ordinals:exactOrdinals,basis:'official_service_code_and_description'},
+      final_population:{kind:'population',evidence_ordinals:exactOrdinals,basis:'official_service_code_and_description'},
+    }:{};
+    const financedObject=enrichment?.scope_facts?.roles?.financed_object;
+    if(exactOfficialEvidence&&financedObject?.state==='known'&&financedObject.kind==='service_financing'){
+      accreditations.financed_object={kind:'service_financing',evidence_ordinals:exactOrdinals,basis:'official_service_code_and_description'};
+    }
+    const scoped=applyScopeRules(validated,enrichment?.scope_facts?.roles,chunks,accreditations);
+    const analysis={...scoped,rule_audit:{...scoped.rule_audit,evidence_policy:{version:EVIDENCE_POLICY_VERSION,rejected:rejectedEvidence}},model_conclusion:providerResult};
     validateAnalysis(analysis,official.all,chunks.length);
     const candidates = analysis.candidates;
 
@@ -102,7 +129,7 @@ async function processJob(job: { id: string; run_id: string; source_record_id: s
 
     if (parsed.enrichment) await persistEnrichment(record.id, parsed.enrichment, chunks);
 
-    const saved=await supabase.rpc('persist_analysis',{p_job:job.id,p_version:official.version.id,p_result:analysis,p_candidates:candidatesWithEvidence.map(({candidate,evidence})=>({...candidate,evidence,model,metadata:{response_id:raw.id,usage:raw.usage}})),p_evidence:analysis.evidence_ordinals.map(n=>chunks[n-1])});
+    const saved=await supabase.rpc('persist_analysis',{p_job:job.id,p_version:official.version.id,p_result:analysis,p_candidates:candidatesWithEvidence.map(({candidate,evidence})=>({...candidate,evidence,model,metadata:{response_id:raw.id,usage:raw.usage,positive_audit_version:auditVersion,normalization_version:'catalog-binding-v1'}})),p_evidence:analysis.evidence_ordinals.map(n=>chunks[n-1])});
     if(saved.error)throw saved.error;
     await addUsage(job.run_id, raw.usage);
     await finishRunIfDone(job.run_id);
