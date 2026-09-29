@@ -1,4 +1,4 @@
-import {scopeFactsSchema,type ScopeFacts} from "../normative-matching";
+import {FACT_NAMES,scopeFactsSchema,type ScopeFacts} from "../normative-matching";
 import type {RoleFact} from "../scope-rules";
 export type Enrichment = { scope_facts:ScopeFacts; title: string | null; provider_name: string | null; provider_nif: string | null; mechanism: string | null; award_date: string | null; amount: number | null; contracting_body: string | null; target_population: string | null; summary: string; confidence: number; evidence_ordinals: number[] };
 export function enrichmentSchema() { return { type: "object", additionalProperties: false, required: ["scope_facts","title","provider_name","provider_nif","mechanism","award_date","amount","contracting_body","target_population","summary","confidence","evidence_ordinals"], properties: { scope_facts:scopeFactsSchema, title: nullableString(), provider_name: nullableString(), provider_nif: nullableString(), mechanism: nullableString(), award_date: nullableString(), amount: { anyOf: [{ type: "number" }, { type: "null" }] }, contracting_body: nullableString(), target_population: nullableString(), summary: { type: "string" }, confidence: { type: "number", minimum: 0, maximum: 1 }, evidence_ordinals: { type: "array", items: { type: "integer", minimum: 1 } } } }; }
@@ -9,9 +9,16 @@ function supportedRoleValue(role:RoleFact|undefined,chunks:Array<{content:string
  return expected.length&&role.evidence_ordinals.some(ordinal=>{const content=new Set(normalized(chunks[ordinal-1]?.content??'').split(/\s+/));return expected.every(token=>content.has(token));})?role.value.trim():null;
 }
 export function bindEnrichmentRoles(value:Enrichment,chunks:Array<{content:string}>):Enrichment{
- const roles=value.scope_facts?.roles;
+ const scopeFacts={...value.scope_facts};
+ for(const name of FACT_NAMES){
+  const fact=scopeFacts[name];
+  if(fact?.value!==null&&(!fact?.value?.trim()||!fact.evidence_ordinals?.length||fact.evidence_ordinals.some(ordinal=>!Number.isInteger(ordinal)||ordinal<1||ordinal>chunks.length))){
+   scopeFacts[name]={value:null,evidence_ordinals:[]};
+  }
+ }
+ const roles=scopeFacts.roles;
  const provider=supportedRoleValue(roles?.service_provider,chunks)??supportedRoleValue(roles?.economic_recipient,chunks);
- return provider?{...value,provider_name:provider}:value;
+ return {...value,scope_facts:scopeFacts,...(provider?{provider_name:provider}:{})};
 }
 function nullableString() { return { anyOf: [{ type: "string" }, { type: "null" }] }; }
 export function sanitize(value: unknown) { if (!value || typeof value !== "object" || Array.isArray(value)) return {}; return Object.fromEntries(Object.entries(value as Record<string, unknown>).filter(([name, field]) => !name.startsWith("Fórmula ·") && !(typeof field === "string" && field.trim().startsWith("=")))); }

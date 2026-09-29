@@ -18,3 +18,9 @@ test('an unsupported role value cannot replace the extracted provider',()=>{
  const result=bindEnrichmentRoles(enrichment,[{content:'Resolució del Departament.'},{content:'Annex sense identificació de cap entitat.'}]);
  assert.equal(result.provider_name,'GENERALITAT DE CATALUNYA');
 });
+
+test('an ungrounded auxiliary fact becomes unknown instead of aborting the record',()=>{
+ const value={...enrichment,scope_facts:{...enrichment.scope_facts,funding_recipient:{value:'Entitat no citada',evidence_ordinals:[]}}};
+ const result=bindEnrichmentRoles(value,[{content:'Resolució del Departament.'},{content:'Colisée Care, SL.'}]);
+ assert.deepEqual(result.scope_facts.funding_recipient,{value:null,evidence_ordinals:[]});
+});
