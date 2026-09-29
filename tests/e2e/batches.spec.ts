@@ -8,14 +8,18 @@ let pausedRun='';
 let pausedRecord='';
 let operationRun='';
 let operationRecord='';
+let diagnosticRun='';
+let reviewRecord='';
+let technicalRecord='';
 
 async function cleanupFixtures(recordIds:string[]){
  if(!recordIds.length)return;
  const jobs=await db.from('pipeline_jobs').select('id,run_id').in('source_record_id',recordIds);
  if(jobs.error)throw jobs.error;
- const jobIds=(jobs.data??[]).map(row=>row.id);
+  const jobIds=(jobs.data??[]).map(row=>row.id);
  const runIds=[...new Set((jobs.data??[]).map(row=>row.run_id))];
- if(jobIds.length){
+  if(jobIds.length){
+  const analyses=await db.from('analysis_results').delete().in('pipeline_job_id',jobIds);if(analyses.error)throw analyses.error;
   const snapshots=await db.from('job_snapshots').select('id').in('pipeline_job_id',jobIds);
   if(snapshots.error)throw snapshots.error;
   const snapshotIds=(snapshots.data??[]).map(row=>row.id);
@@ -37,21 +41,31 @@ test.beforeAll(async()=>{
  const staleRecords=await db.from('source_records').select('id').like('source_record_id','E2E-%');check(staleRecords.error);
  const staleIds=(staleRecords.data??[]).map(row=>row.id);
  await cleanupFixtures(staleIds);
- pausedRun=randomUUID();pausedRecord=randomUUID();operationRun=randomUUID();operationRecord=randomUUID();
+ pausedRun=randomUUID();pausedRecord=randomUUID();operationRun=randomUUID();operationRecord=randomUUID();diagnosticRun=randomUUID();reviewRecord=randomUUID();technicalRecord=randomUUID();
  check((await db.from('cloud_resources').update({blocked_kind:null}).eq('name','sandbox')).error);
  check((await db.from('source_records').insert([
   {id:pausedRecord,source_dataset:'contractacions',source_record_id:`E2E-PAUSED-${pausedRecord}`,mechanism:'Contractació pública',title:'Lot pausat fictici',source_payload:{fixture:true},processing_status:'preparant'},
   {id:operationRecord,source_dataset:'convenis',source_record_id:`E2E-OPERATION-${operationRecord}`,mechanism:'Conveni',title:'Operació individual pausada fictícia',source_payload:{fixture:true},processing_status:'preparant'},
+  {id:reviewRecord,source_dataset:'convenis',source_record_id:`E2E-REVIEW-${reviewRecord}`,mechanism:'Conveni',title:'Conveni pendent de revisió fictici',source_payload:{fixture:true},processing_status:'revisio'},
+  {id:technicalRecord,source_dataset:'raisc_local',source_record_id:`E2E-ERROR-${technicalRecord}`,mechanism:'Subvenció',title:'Subvenció amb document tècnic fictici',source_payload:{fixture:true},processing_status:'error'},
  ])).error);
  check((await db.from('pipeline_runs').insert([
   {id:pausedRun,status:'paused',stage:'preparation',pause_kind:'vercel_quota',pause_reason:'Execució pausada: vercel_quota',parameters:{purpose:'automated_cloud'}},
   {id:operationRun,status:'paused',stage:'preparation',pause_kind:'vercel_quota',pause_reason:'Execució pausada: vercel_quota',parameters:{purpose:'record_operation',operation:'process'}},
+  {id:diagnosticRun,status:'completed',stage:'review',parameters:{purpose:'automated_cloud'}},
  ])).error);
  const jobs=await db.from('pipeline_jobs').insert([
   {run_id:pausedRun,source_record_id:pausedRecord,status:'selected',preparation_status:'pending',enrichment_status:'pending'},
   {run_id:operationRun,source_record_id:operationRecord,status:'selected',preparation_status:'pending',enrichment_status:'pending'},
- ]).select('id,run_id');check(jobs.error);
- check((await db.from('worker_tasks').insert((jobs.data??[]).map(job=>({task_type:'process_run',run_id:job.run_id,pipeline_job_id:job.id,executor:'vercel_workflow'})))).error);
+  {run_id:diagnosticRun,source_record_id:reviewRecord,status:'needs_review',preparation_status:'ready',enrichment_status:'completed'},
+  {run_id:diagnosticRun,source_record_id:technicalRecord,status:'error',preparation_status:'error',preparation_message:'Document no processable.',enrichment_status:'pending',error_message:'Document no processable.'},
+ ]).select('id,run_id,source_record_id');check(jobs.error);
+ const reviewJob=(jobs.data??[]).find(job=>job.run_id===diagnosticRun&&job.source_record_id===reviewRecord);
+ const catalog=await db.from('catalog_versions').select('id').eq('active',true).eq('validated',true).limit(1).single();
+ if(catalog.error||!catalog.data)throw catalog.error??new Error('Missing active catalog fixture');
+ if(!reviewJob)throw new Error('Missing review fixture job');
+ check((await db.from('analysis_results').insert({pipeline_job_id:reviewJob.id,source_record_id:reviewRecord,catalog_version_id:catalog.data.id,rules_version:'e2e-rules',classification:'insufficient_evidence',reasons:[],explanation:'No consta la població destinatària del servei en la documentació disponible.',service_description:'Servei d’acompanyament social',target_population:'',evidence:[{content:'Fragment oficial fictici'}]})).error);
+ check((await db.from('worker_tasks').insert((jobs.data??[]).filter(job=>[pausedRun,operationRun].includes(job.run_id)).map(job=>({task_type:'process_run',run_id:job.run_id,pipeline_job_id:job.id,executor:'vercel_workflow'})))).error);
  check((await db.from('worker_tasks').update({status:'failed',execution_state:'paused',failure_kind:'vercel_quota'}).in('run_id',[pausedRun,operationRun])).error);
  check((await db.from('cloud_resources').update({blocked_kind:'vercel_quota'}).eq('name','sandbox')).error);
 });
@@ -59,7 +73,7 @@ test.beforeAll(async()=>{
 test.afterAll(async()=>{
  if(!db)return;
  await db.from('cloud_resources').update({blocked_kind:null}).eq('name','sandbox');
- await cleanupFixtures([pausedRecord,operationRecord]);
+ await cleanupFixtures([pausedRecord,operationRecord,reviewRecord,technicalRecord]);
 });
 
 async function login(page:Page){
@@ -67,6 +81,34 @@ async function login(page:Page){
  await page.getByRole('textbox',{name:'Contrasenya'}).fill('local-workflow-fixture-only');
  await Promise.all([page.waitForURL('**/batches'),page.getByRole('button',{name:'Entrar'}).click()]);
  await page.locator('[data-app-ready="true"]').waitFor();
+}
+
+async function expectBatchActionHoverContrast(page:Page){
+ for(const action of await page.locator('main .batch-action').all()){
+  if(!await action.isVisible()||!await action.isEnabled())continue;
+  const label=await action.innerText();
+  await action.hover();
+  const contrast=await action.evaluate((element)=>{
+   const style=getComputedStyle(element);
+   const canvas=new OffscreenCanvas(1,1);
+   const context=canvas.getContext('2d');
+   if(!context)return {ratio:0,color:style.color,background:style.backgroundColor};
+   const parse=(value:string)=>{
+    context.clearRect(0,0,1,1);
+    context.fillStyle=value;
+    context.fillRect(0,0,1,1);
+    return Array.from(context.getImageData(0,0,1,1).data.slice(0,3));
+   };
+   const luminance=(rgb:number[])=>{
+    const values=rgb.map(value=>{const channel=value/255;return channel<=0.03928?channel/12.92:((channel+0.055)/1.055)**2.4;});
+    return values[0]*0.2126+values[1]*0.7152+values[2]*0.0722;
+   };
+   const foreground=luminance(parse(style.color));
+   const background=luminance(parse(style.backgroundColor));
+   return {ratio:(Math.max(foreground,background)+0.05)/(Math.min(foreground,background)+0.05),color:style.color,background:style.backgroundColor};
+  });
+  expect(contrast.ratio,`${label}: ${contrast.color} sobre ${contrast.background}`).toBeGreaterThanOrEqual(4.5);
+ }
 }
 
 test('blocked batch is understandable and actionable',async({page})=>{
@@ -116,6 +158,35 @@ test('results explain blocked work and open the record',async({page})=>{
  await expect(page.getByText('Processament temporalment aturat')).toBeVisible();
  await page.getByRole('button',{name:/Lot pausat fictici/}).click();
  await expect(page.getByRole('button',{name:'Processament no disponible'})).toBeDisabled();
+});
+
+test('results explain human review and technical errors with accessible actions',async({page})=>{
+ await login(page);
+ await page.goto(`/batches/${diagnosticRun}/results`);
+ await expect(page.getByRole('heading',{name:/Resultats del lot/})).toBeVisible();
+ await expect(page.getByRole('heading',{name:'Revisions humanes pendents'})).toBeVisible();
+ await expect(page.getByRole('heading',{name:'Errors tècnics'})).toBeVisible();
+ const reviewCard=page.getByRole('article').filter({hasText:'Conveni pendent de revisió fictici'});
+ await expect(reviewCard).toContainText('Cal revisar la falta d’evidència');
+ await expect(reviewCard).toContainText('No consta la població destinatària');
+ await expect(reviewCard.getByRole('link',{name:'Revisar ara'})).toBeVisible();
+ const technicalCard=page.getByRole('article').filter({hasText:'Subvenció amb document tècnic fictici'});
+ await expect(technicalCard).toContainText('Preparació de fonts');
+ await expect(technicalCard).toContainText('No s’ha pogut llegir cap document útil');
+ await expect(technicalCard.getByRole('link',{name:'Veure incidència'})).toBeVisible();
+ await technicalCard.getByText('Veure detall tècnic').click();
+ await expect(technicalCard).toContainText('Document no processable.');
+
+ await expectBatchActionHoverContrast(page);
+});
+
+test('all visible batch actions keep their text contrast on hover',async({page})=>{
+ await login(page);
+ await expectBatchActionHoverContrast(page);
+ await page.getByRole('button',{name:'Per revisar',exact:true}).click();
+ await page.getByRole('button',{name:/Lot .*Lot preparat per revisar/}).first().click();
+ await expect(page.getByRole('link',{name:/Revisar pendents/})).toBeVisible();
+ await expectBatchActionHoverContrast(page);
 });
 
 test('individual operations are separated from normal batches',async({page})=>{

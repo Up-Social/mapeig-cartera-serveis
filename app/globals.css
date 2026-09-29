@@ -197,3 +197,30 @@ textarea:focus-visible {
     @apply font-sans;
   }
 }
+
+/* Accions del flux de lots: contrast estable per a botons i enllaços. */
+.batch-action {
+  border-color: #555555;
+  background-color: #ffffff;
+  color: #111111;
+}
+
+.batch-action:hover,
+.batch-action[aria-expanded="true"] {
+  border-color: #111111;
+  background-color: #111111;
+  color: #ffffff;
+}
+
+.batch-action.batch-action-selected,
+.batch-action[data-selected="true"] {
+  border-color: #111111;
+  background-color: #111111;
+  color: #ffffff;
+}
+
+.batch-action.batch-action-selected:hover,
+.batch-action[data-selected="true"]:hover {
+  background-color: #262626;
+  color: #ffffff;
+}
