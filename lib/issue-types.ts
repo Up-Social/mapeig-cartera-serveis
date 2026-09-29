@@ -55,6 +55,15 @@ export type IssuePage = {
 };
 
 export function classifyIssue(record: SourceRecord): IssueRecord | null {
+  if (record.analysis?.reliability_status === "invalidated") {
+    return issue(
+      record,
+      "insufficient_evidence",
+      "review",
+      "Aquest resultat automàtic no és fiable perquè no disposa d'una confiança positiva i d'evidència documental substantiva. Cal reanalitzar-lo.",
+      "process",
+    );
+  }
   if(record.currentJobStatus==='error'){
     if(record.evidenceStatus==='no_source')return issue(record,'no_source','evidence',record.evidenceError??'Sense font documental.','prepare');
     if(record.evidenceStatus==='unsupported')return issue(record,'unsupported','evidence',record.evidenceError??'Format no compatible.',isOcrEligible(record)?'ocr':'prepare');

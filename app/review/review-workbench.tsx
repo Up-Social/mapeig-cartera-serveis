@@ -164,6 +164,7 @@ function ReviewDetail({
   services: ServiceOption[];
   onRecordUpdate: (record: SourceRecord) => void;
 }) {
+  const unreliable = record.analysis?.reliability_status === "invalidated";
   const [selection, setSelection] = useState(
     record.matchingCandidates[0]
       ? `candidate:${record.matchingCandidates[0].id}`
@@ -172,7 +173,7 @@ function ReviewDetail({
   const [notes, setNotes] = useState("");
   const [serviceQuery, setServiceQuery] = useState("");
   const [reasons, setReasons] = useState<string[]>([]);
-  const [editing, setEditing] = useState(!record.reviewDecision);
+  const [editing, setEditing] = useState(!record.reviewDecision && !unreliable);
   const [message, setMessage] = useState("");
   const serviceMatches = serviceQuery.trim().length < 2 ? [] : services
     .filter((service) => `${service.code} ${service.name}`.toLocaleLowerCase("ca").includes(serviceQuery.toLocaleLowerCase("ca")))
@@ -235,7 +236,7 @@ function ReviewDetail({
             {record.title}
           </h3>
         </div>
-        {record.reviewDecision && !record.isHistorical && (
+        {record.reviewDecision && !record.isHistorical && !unreliable && (
           <Button onClick={() => setEditing(true)} variant="outline" size="sm">
             Modificar decisió
           </Button>
@@ -315,7 +316,7 @@ function ReviewDetail({
         </div>
       </section>
       {record.isHistorical&&<p role="status" className="mt-4 rounded border p-3 text-sm">Resultat històric de només lectura. {record.historicalDataUnavailable?'Hi ha dades originals que no es poden recuperar.':''}</p>}
-      {editing && !record.isHistorical && (
+      {editing && !record.isHistorical && !unreliable && (
         <section className="mt-5 rounded-xl border border-neutral-300 p-4">
           <h4 className="font-semibold">Decisió</h4>
           <select

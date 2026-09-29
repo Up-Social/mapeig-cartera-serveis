@@ -13,3 +13,6 @@ test('legacy and pending results do not invent normative classifications',()=>{
  assert.equal(reviewClassificationLabel({status:'preparant'}),'Actualitzant classificació');
  assert.equal(reviewClassificationLabel({status:'error'}),'Classificació interrompuda');
 });
+test('invalidated results are never presented as a valid portfolio classification',()=>{
+ assert.equal(reviewClassificationLabel({analysis:{classification:'in_portfolio',reliability_status:'invalidated'} as StoredAnalysis,status:'revisio'}),'Resultat no fiable');
+});

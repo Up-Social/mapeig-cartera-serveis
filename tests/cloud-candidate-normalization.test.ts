@@ -11,6 +11,7 @@ test('references are bound to eligible codes and final scores determine principa
 });
 test('incompatible candidate does not invalidate compatible alternatives',()=>{const result=normalizeCandidates({...base,candidates:[candidate('1.1',.9,false),candidate('1.2',.7)]},all,1);assert.deepEqual(result.candidates.map(c=>c.code),['1.2']);});
 test('missing scope or no compatible candidates yields uncertainty, never outside portfolio',()=>{for(const value of [{...base,population_verified:false},{...base,candidates:[candidate('1.1',.9,false)]}]){const result=validateAnalysis(normalizeCandidates(value,all,1),all,1);assert.equal(result.classification,'insufficient_evidence');assert.deepEqual(result.candidates,[]);}});
+test('zero-score proposals become insufficient evidence instead of a positive match',()=>{const result=normalizeCandidates({...base,candidates:[candidate('1.1',0)]},all,1);assert.equal(result.classification,'insufficient_evidence');assert.deepEqual(result.candidates,[]);});
 test('normalization cannot hide parents, economic leaves, unknown codes or invalid evidence',()=>{for(const c of [candidate('1',.9,false),candidate('2',.9,false),candidate('9',.9,false),{...candidate('1.1',.9,false),evidence_ordinals:[2]}])assert.throws(()=>normalizeCandidates({...base,candidates:[c]},all,1));});
 test('repair is restricted to incomplete nonpositive conclusions',()=>{
  assert.equal(needsContractRepair(base),false);

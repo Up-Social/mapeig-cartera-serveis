@@ -1,10 +1,11 @@
 import {randomUUID} from 'node:crypto';
-import {cloudDb,CLOUD_VERSION,rpc,lease,checkpoint,readCheckpoint,commit,type Context} from './context';
+import {cloudDb,CLOUD_VERSION,rpc,lease,checkpoint,readCheckpoint,commit,progress,type Context} from './context';
 import {publicFailure,failureLabels,CloudYield,CloudFailure} from './errors';
 import {discoverResolvedDocuments} from '../pipeline/discovery';
 import {extractDocument} from './documents';
 import {splitText,hash} from '../pipeline/chunks';
 import {analyzeRecord} from './analysis';
+import {documentQuality} from '../evidence-eligibility';
 export async function advance(task:string,workflow:string):Promise<{done:boolean;wait:number}>{
  const db=cloudDb();const owner=randomUUID();
  const generation=await rpc<number|null>(db,'cloud_claim',{p_task:task,p_owner:owner,p_version:CLOUD_VERSION});
@@ -22,14 +23,17 @@ export async function advance(task:string,workflow:string):Promise<{done:boolean
   const jobs=await q.not('status','in','(needs_review,approved,corrected,rejected,insufficient_evidence,error)').limit(1);
   if(jobs.error)throw Error();
   const job=jobs.data?.[0];
-  if(!job){await rpc(db,'cloud_finish',{...lease(c),p_state:'completed'});if(t.data.run_id)await rpc(db,'refresh_pipeline_run',{p_run_id:t.data.run_id});return {done:true,wait:0};}
+  if(!job){await progress(c,'closing',1,1,'Execució automàtica finalitzada');await rpc(db,'cloud_finish',{...lease(c),p_state:'completed'});if(t.data.run_id)await rpc(db,'refresh_pipeline_run',{p_run_id:t.data.run_id});return {done:true,wait:0};}
   currentJob=job.id;
   const complete=await readCheckpoint(c,`${job.id}:complete`);
   if(job.analysis_results?.length){await db.from('pipeline_jobs').update({status:'needs_review'}).eq('id',job.id);await rpc(db,'cloud_finish',{...lease(c),p_state:'pending'});return {done:false,wait:1};}
   if(complete)throw new CloudFailure('validation');
   if(!await readCheckpoint(c,`${job.id}:discovered`)){
+   await progress(c,'document_discovery',0,null,'Localitzant documents oficials',job.id);
    const r=await db.from('source_records').select('id,source_payload').eq('id',job.source_record_id).single();if(r.error)throw Error();
-   await commit(c,job.id,'discover',await discoverResolvedDocuments(r.data));await checkpoint(c,`${job.id}:discovered`,true);
+   const discovered=await discoverResolvedDocuments(r.data);
+   await commit(c,job.id,'discover',discovered);await checkpoint(c,`${job.id}:discovered`,true);
+   await progress(c,'document_discovery',discovered.length,discovered.length,`${discovered.length} documents localitzats`,job.id);
   }else if(job.preparation_status!=='ready'){
    const docs:{data:Array<{id:string;url:string;status:string;chunk_count:number}>}={data:[]};
    for(let offset=0;;offset+=200){
@@ -38,20 +42,27 @@ export async function advance(task:string,workflow:string):Promise<{done:boolean
    }
    if(!docs.data.length)throw new CloudFailure('document');
    let processed=false;
+   let completedDocuments=docs.data.filter(doc=>doc.status==='fetched'&&doc.chunk_count>0).length;
    for(const doc of docs.data){
     if(doc.status==='fetched'&&doc.chunk_count>0)continue;
     if(await readCheckpoint(c,`document_failed:${doc.id}`))continue;
+    await progress(c,'document_extraction',completedDocuments,docs.data.length,`Preparant el document ${Math.min(completedDocuments+1,docs.data.length)} de ${docs.data.length}`,job.id);
     const run=await db.from('pipeline_runs').select('parameters').eq('id',t.data.run_id).maybeSingle();
     let result:Awaited<ReturnType<typeof extractDocument>>;
-    try {result=await extractDocument(c,doc.id,doc.url,run.data?.parameters?.ocr_recovery===true);if(result.partial)throw new CloudFailure('document');}
+    try {result=await extractDocument(c,job.id,doc.id,doc.url,run.data?.parameters?.ocr_recovery===true);if(result.partial)throw new CloudFailure('document');}
     catch(error){if(error instanceof CloudFailure&&error.kind==='document'){await checkpoint(c,`document_failed:${doc.id}`,{kind:'document'});processed=true;break;}throw error;}
-    await commit(c,job.id,'document',{...result,id:doc.id,text_hash:hash(result.text),chunks:splitText(result.text).map((content,ordinal)=>({ordinal,content,hash:hash(content)}))});processed=true;break;
+    const textHash=hash(result.text);
+    const duplicate=await db.from('source_documents').select('id').eq('source_record_id',job.source_record_id).eq('extracted_text_hash',textHash).neq('id',doc.id).limit(1);
+    if(duplicate.error)throw Error();
+    const quality=documentQuality(result.text,result.method,Boolean(duplicate.data?.length));
+    await commit(c,job.id,'document',{...result,id:doc.id,text_hash:textHash,quality_score:quality.qualityScore,quality_flags:quality.qualityFlags,chunks:splitText(result.text).map((content,ordinal)=>({ordinal,content,hash:hash(content)}))});processed=true;completedDocuments+=1;
+    await progress(c,'document_extraction',completedDocuments,docs.data.length,`${completedDocuments} de ${docs.data.length} documents preparats`,job.id);break;
    }
    if(!processed){if(!docs.data.some(d=>d.status==='fetched'&&d.chunk_count>0))throw new CloudFailure('document');await commit(c,job.id,'ready',{});if(t.data.task_type==='prepare_run')await checkpoint(c,`${job.id}:complete`,true);}
   }else{
    const r=await db.from('source_records').select('enrichment_status').eq('id',job.source_record_id).single();if(r.error)throw Error();
-   if(r.data.enrichment_status!=='completed')await analyzeRecord(c,job,'enrichment');
-   else if(t.data.task_type!=='enrich_record')await analyzeRecord(c,job,'matching');
+   if(r.data.enrichment_status!=='completed'){await progress(c,'enrichment',0,1,'Contrastant les dades amb la font oficial',job.id);await analyzeRecord(c,job,'enrichment');await progress(c,'enrichment',1,1,'Dades oficials contrastades',job.id);}
+   else if(t.data.task_type!=='enrich_record'){await progress(c,'matching',0,1,'Comprovant la correspondència amb la Cartera',job.id);await analyzeRecord(c,job,'matching');await progress(c,'closing',1,1,'Resultat guardat i pendent de revisió',job.id);}
    if(t.data.task_type==='enrich_record'){await rpc(db,'cloud_finish',{...lease(c),p_state:'completed'});return {done:true,wait:0};}
   }
   await checkpoint(c,`retry:${currentJob??'task'}`,0);

@@ -7,6 +7,7 @@ import { createClient } from "@supabase/supabase-js";
 import {assertTestEnvironment} from './test-environment';
 import type { ProcessingStatus, ReviewQueue, SourcePage, SourceRecord } from "./workbench-types";
 import { mapLatestMatchingError } from "./matching-state";
+import {recordOperationProgress,type ProgressTask} from './record-progress';
 
 export const PAGE_SIZE = 25;
 
@@ -41,13 +42,23 @@ export async function getSourcePage(input: { page: number; query: string; type: 
 }
 
 export async function getSourceRecord(id: string): Promise<SourceRecord | null> {
-  const { data, error } = await createServerSupabase()
+  const db=createServerSupabase();
+  const { data, error } = await db
     .from("source_records")
     .select(RECORD_SELECT)
     .eq("id", id)
     .maybeSingle();
   if (error) throw error;
-  return data ? mapRecord(data as Record<string, unknown>) : null;
+  if(!data)return null;
+  const record=mapRecord(data as Record<string, unknown>);
+  if(!record.currentJobId&&!record.pipelineRunId)return record;
+  let taskQuery=db.from('worker_tasks').select('status,execution_state,failure_kind,current_step,progress_completed,progress_total,progress_detail,created_at,dispatch_at,claimed_at,last_progress_at,completed_at,attempts').order('created_at',{ascending:false}).order('id',{ascending:false}).limit(1);
+  if(record.currentJobId&&record.pipelineRunId)taskQuery=taskQuery.or(`pipeline_job_id.eq.${record.currentJobId},progress_job_id.eq.${record.currentJobId}`);
+  else if(record.currentJobId)taskQuery=taskQuery.eq('pipeline_job_id',record.currentJobId);
+  else taskQuery=taskQuery.eq('run_id',record.pipelineRunId!);
+  const task=await taskQuery.maybeSingle();
+  if(task.error)throw task.error;
+  return {...record,operationProgress:recordOperationProgress(task.data as ProgressTask|null)};
 }
 
 async function countRows(status?: ProcessingStatus) {
@@ -68,6 +79,10 @@ async function getLatestJobMetrics() {
 export function mapRecord(row: Record<string, unknown>): SourceRecord {
   const jobs=Array.isArray(row.pipeline_jobs)?[...row.pipeline_jobs].sort((a,b)=>String(b.created_at).localeCompare(String(a.created_at))||String(b.id).localeCompare(String(a.id))):[];
   const reviews=Array.isArray(row.review_decisions)?row.review_decisions.filter(r=>r.pipeline_job_id===jobs[0]?.id):[];
+  const analysis=latestAnalysis(row.pipeline_jobs);
+  const rawCandidates=mapLatestCandidates(row.pipeline_jobs);
+  const unreliable=analysis?.reliability_status==='invalidated'||rawCandidates.some(candidate=>candidate.score<=0);
+  const visibleAnalysis=analysis&&unreliable?{...analysis,reliability_status:'invalidated' as const,reliability_reasons:[...new Set([...(analysis.reliability_reasons??[]),'non_positive_confidence'])]}:analysis;
   return {
     currentJobId: jobs[0]?.id ?? null,
     currentJobStatus: jobs[0]?.status ?? null,
@@ -102,8 +117,8 @@ export function mapRecord(row: Record<string, unknown>): SourceRecord {
         chunkCount: Number(item.chunk_count ?? 0),
       };
     }).sort((a,b)=>Number(b.documentType==='technical_specifications')-Number(a.documentType==='technical_specifications')) : [],
-    analysis:latestAnalysis(row.pipeline_jobs),
-    matchingCandidates: mapLatestCandidates(row.pipeline_jobs),
+    analysis:visibleAnalysis,
+    matchingCandidates: unreliable?[]:rawCandidates,
     matchingError: mapLatestMatchingError(row.pipeline_jobs),
     reviewDecision: mapReviewDecision(reviews),
     reviewReason: mapLatestReview(reviews)?.reason ?? null,

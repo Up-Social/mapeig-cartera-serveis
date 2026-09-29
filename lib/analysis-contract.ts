@@ -18,8 +18,8 @@ export function validateAnalysis(value:AnalysisOutput,all:OfficialService[],chun
  }
  if(value.classification!=='in_portfolio'&&value.candidates.length)throw Error('Un resultat sense correspondència no pot tenir candidats');
  if(value.classification==='in_portfolio'&&!value.candidates.length)throw Error('Falta el servei proposat');
- for(const c of value.candidates){const service=assertEligible(c.code,all);if(!Number.isFinite(c.score)||c.score<0||c.score>1||!c.population_compatible||!ordinals(c.evidence_ordinals)||c.legal_reference!==service.legal_reference)throw Error('Candidat incompatible o sense evidència normativa/documental');}
+ for(const c of value.candidates){const service=assertEligible(c.code,all);if(!Number.isFinite(c.score)||c.score<=0||c.score>1||!c.population_compatible||!ordinals(c.evidence_ordinals)||c.legal_reference!==service.legal_reference)throw Error('Candidat incompatible o sense evidència normativa/documental');}
  const sorted=[...value.candidates].sort((a,b)=>b.score-a.score);
  return {...value,candidates:sorted.filter((c,i)=>sorted.findIndex(x=>x.code===c.code)===i)};
 }
-export type StoredAnalysis={id:string;classification:Classification;reasons:string[];explanation:string;service_description:string;target_population:string;catalog_version_id:string;rules_version:string;reviewed_classification:Classification|null;review_notes:string|null;evidence:Array<{content:string;url?:string}>};
+export type StoredAnalysis={id:string;classification:Classification;reasons:string[];explanation:string;service_description:string;target_population:string;catalog_version_id:string;rules_version:string;reviewed_classification:Classification|null;review_notes:string|null;evidence:Array<{content:string;url?:string}>;reliability_status?:'valid'|'invalidated';reliability_reasons?:string[];invalidated_at?:string|null};

@@ -1,11 +1,11 @@
 import {Sandbox} from '@vercel/sandbox';
-import {checkpoint,readCheckpoint,rpc,acquireResource,type Context} from './context';
+import {checkpoint,readCheckpoint,rpc,acquireResource,progress,type Context} from './context';
 import {CloudFailure,CloudYield} from './errors';
 import {htmlToText,cleanText} from '../pipeline/document-input';
 import {hash} from '../pipeline/chunks';
 import {fetchOfficialDocument} from '../pipeline/official-resolution';
 type Extraction={text:string;method:string;hash:string;mime:string;partial:boolean};
-export async function extractDocument(c:Context,id:string,url:string,ocr:boolean):Promise<Extraction>{
+export async function extractDocument(c:Context,job:string,id:string,url:string,ocr:boolean):Promise<Extraction>{
  const cached=await readCheckpoint<Extraction>(c,`document:${id}`);if(cached)return cached;
  let fetched:{bytes:Buffer;mimeType:string};
  const original=await readCheckpoint<{path:string;mime:string;hash:string}>(c,`original:${id}`);
@@ -43,6 +43,7 @@ export async function extractDocument(c:Context,id:string,url:string,ocr:boolean
    if(!pageCount)throw new CloudFailure('document');partial=pageCount>25;
    const pages:string[]=[];
    for(let page=1;page<=Math.min(25,pageCount);page++){
+    await progress(c,'ocr',page-1,Math.min(25,pageCount),`OCR de la pàgina ${page} de ${Math.min(25,pageCount)}`,job);
     const key=`ocr:${digest}:${page}:v1`;
     let result=await readCheckpoint<{text:string}>(c,key);
     if(!result){
@@ -52,6 +53,7 @@ export async function extractDocument(c:Context,id:string,url:string,ocr:boolean
      if(recognize.exitCode!==0)throw new CloudFailure('document');
      result={text:(await sb.readFileToBuffer({path:'/tmp/page.txt'}))?.toString('utf8')??''};
      await checkpoint(c,key,result);
+     await progress(c,'ocr',page,Math.min(25,pageCount),`${page} de ${Math.min(25,pageCount)} pàgines reconegudes`,job);
      throw new CloudYield();
     }
     pages.push(result.text);

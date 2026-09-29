@@ -2,9 +2,23 @@ import type {StoredAnalysis} from './analysis-contract';
 export type ProcessingStatus = "pendent" | "preparant" | "preparat" | "processant" | "completat" | "revisio" | "sense_evidencia" | "rebutjat" | "error";
 import type { FinancingType } from "./financing-types";
 
+export type RecordOperationProgress = {
+  state: "idle" | "waiting" | "active" | "stalled" | "incident" | "finished";
+  step: "document_discovery" | "document_extraction" | "ocr" | "enrichment" | "matching" | "closing" | null;
+  completed: number | null;
+  total: number | null;
+  detail: string | null;
+  startedAt: string;
+  lastActivityAt: string;
+  finishedAt: string | null;
+  attempts: number;
+  failureKind: string | null;
+};
+
 export type SourceRecord = {
   currentJobId?: string | null;
   currentJobStatus?: string | null;
+  operationProgress?: RecordOperationProgress | null;
   isHistorical?: boolean;
   historicalDataUnavailable?: boolean;
   reviewHistory?: {id:string;jobId:string|null;classification:string|null;decision:string;reason:string|null;reasons:string[];createdAt:string}[];

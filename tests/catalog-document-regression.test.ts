@@ -13,3 +13,9 @@ test('1.2.7.3 residential care cannot replace 1.2.7.5 pre-employment on a litera
  assert.throws(()=>applyPositiveAudit(result,{checks:checks.map(c=>({...c,quote:c.compatible?'1.2.7.5':''}))},all,[{content:'1.2.7.5'}]));
  const input=JSON.parse(positiveAuditInput(result,all,'General',chunks));assert.ok(input.services.every((s:{description:string;target_population:string})=>s.description&&s.target_population));
 });
+test('generic portal text cannot pass the positive audit even when quoted literally',()=>{
+ const all=catalog.services as OfficialService[];const code='1.2.3.1';const service=all.find(s=>s.service_code===code)!;
+ const chunks=[{content:'e-TAULER - Consorci Administració Oberta de Catalunya'}];
+ const result:AnalysisOutput={classification:'in_portfolio',reasons:[],explanation:'Proposta automàtica fictícia pendent de contrast.',service_description:'Centre de dia',target_population:'Persones grans',population_verified:true,social_service_verified:true,evidence_ordinals:[1],candidates:[{code,score:.8,rationale:'Fixture',evidence_explanation:'Fixture',evidence_ordinals:[1],population_compatible:true,legal_reference:service.legal_reference}]};
+ assert.throws(()=>applyPositiveAudit(result,{checks:[{code,service_name:service.service_name,compatible:true,explanation:'La cita genèrica no acredita realment cap característica del servei.',evidence_ordinal:1,quote:chunks[0].content}]},all,chunks),/POSITIVE_AUDIT_EVIDENCE/);
+});

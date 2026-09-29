@@ -102,3 +102,18 @@ test("classifies both negative review outcomes as incidents with their reason", 
   assert.equal(insufficient?.category, "insufficient_evidence");
   assert.equal(insufficient?.message, "Falta la resolució oficial.");
 });
+
+test("routes an invalidated positive result to incidents and requires reanalysis", () => {
+  const result = classifyIssue({
+    ...record,
+    status: "revisio",
+    matchingError: null,
+    analysis: {
+      classification: "in_portfolio",
+      reliability_status: "invalidated",
+    } as NonNullable<SourceRecord["analysis"]>,
+  });
+  assert.equal(result?.category, "insufficient_evidence");
+  assert.equal(result?.retryOperation, "process");
+  assert.match(result?.message ?? "", /no és fiable/i);
+});

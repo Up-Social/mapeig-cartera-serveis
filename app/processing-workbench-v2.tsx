@@ -414,10 +414,12 @@ function DetailPanel({
               Decisió registrada: {reviewDecisionLabel(record.reviewDecision)}
             </p>
           )}
-            <ReviewControls
-              record={record}
-              onRecordUpdate={onRecordUpdate}
-            />
+            {record.analysis?.reliability_status !== "invalidated" && (
+              <ReviewControls
+                record={record}
+                onRecordUpdate={onRecordUpdate}
+              />
+            )}
         </div>
       ) : (
         <div className="mt-5 rounded-xl bg-neutral-100 p-4 text-sm text-neutral-900">
@@ -607,8 +609,15 @@ function RecordStages({
   const [networkError, setNetworkError] = useState("");
   const [pollingStopped, setPollingStopped] = useState(false);
   const [pollingAttempt, setPollingAttempt] = useState(0);
+  const [clock, setClock] = useState(() => Date.now());
   const [startingOperation, setStartingOperation] =
     useState<RecordOperation>();
+
+  useEffect(() => {
+    if (!record.operationProgress || ["finished", "incident", "idle"].includes(record.operationProgress.state)) return;
+    const timer = window.setInterval(() => setClock(Date.now()), 1_000);
+    return () => window.clearInterval(timer);
+  }, [record.operationProgress]);
 
   useEffect(() => {
     if (operation) return;
@@ -657,10 +666,9 @@ function RecordStages({
         );
         if (consecutiveFailures >= 5) {
           setPollingStopped(true);
-          return;
         }
       }
-      timer = window.setTimeout(poll, 2000);
+      timer = window.setTimeout(poll, consecutiveFailures >= 5 ? 15_000 : 2_000);
     };
 
     void poll();
@@ -731,7 +739,9 @@ function RecordStages({
           number="3"
           title="Fer correspondència"
           status={
-            record.analysis
+            record.analysis?.reliability_status === "invalidated"
+              ? "Resultat no fiable; cal reanalitzar"
+              : record.analysis
               ? "Anàlisi completada"
               : record.matchingCandidates.length
               ? "Matching disponible"
@@ -739,21 +749,24 @@ function RecordStages({
                 ? "Error de correspondència"
                 : "No executat"
           }
-          complete={Boolean(record.analysis) || record.matchingCandidates.length > 0}
+          complete={(Boolean(record.analysis) || record.matchingCandidates.length > 0) && record.analysis?.reliability_status !== "invalidated"}
         />
         <StageRow
           number="4"
           title="Validar resultat"
-          status={record.reviewDecision ? reviewDecisionLabel(record.reviewDecision) : (record.analysis || record.matchingCandidates.length) ? "Pendent de validació humana" : "Encara no disponible"}
+          status={record.analysis?.reliability_status === "invalidated" ? "Bloquejat fins al reanàlisi" : record.reviewDecision ? reviewDecisionLabel(record.reviewDecision) : (record.analysis || record.matchingCandidates.length) ? "Pendent de validació humana" : "Encara no disponible"}
           complete={record.reviewDecision === "approved" || record.reviewDecision === "corrected"}
         >
-          {record.pipelineRunId && (record.analysis || record.matchingCandidates.length > 0) ? (
+          {record.analysis?.reliability_status !== "invalidated" && record.pipelineRunId && (record.analysis || record.matchingCandidates.length > 0) ? (
             <Link href={`/review?record=${record.id}${record.reviewDecision ? "&state=all" : ""}`} className={buttonVariants({ variant: "outline", size: "sm" })}>
               {record.reviewDecision ? "Revisar decisió" : "Validar"}
             </Link>
           ) : <Button variant="outline" size="sm" disabled>Validar</Button>}
         </StageRow>
       </div>
+      {record.operationProgress && (
+        <OperationProgressCard progress={record.operationProgress} now={clock} />
+      )}
       {!record.analysis && !record.matchingCandidates.length && (
         <Button
           type="button"
@@ -862,8 +875,29 @@ function enrichmentStatusLabel(value: SourceRecord["enrichmentStatus"]) {
 }
 
 function inferOperation(record: SourceRecord): RecordOperation | undefined {
-  if (record.evidenceStatus === "preparing" || record.enrichmentStatus === "processing" || ["preparant", "processant"].includes(record.status)) return "process";
+  if (["active", "waiting", "stalled"].includes(record.operationProgress?.state ?? "") || record.evidenceStatus === "preparing" || record.enrichmentStatus === "processing" || ["preparant", "processant"].includes(record.status)) return "process";
   return undefined;
+}
+
+function OperationProgressCard({progress,now}:{progress:NonNullable<SourceRecord["operationProgress"]>;now:number}) {
+  const stateLabel={idle:"Pendent d’inici",waiting:"Esperant el pas següent",active:"Processant amb activitat",stalled:"Possible bloqueig",incident:"Incidència tècnica",finished:"Execució automàtica finalitzada"}[progress.state];
+  const stepLabel=progress.step?({document_discovery:"Localització de documents",document_extraction:"Lectura dels documents",ocr:"Reconeixement OCR",enrichment:"Contrast de dades",matching:"Correspondència amb la Cartera",closing:"Tancament de l’operació"} as const)[progress.step]:null;
+  const elapsed=formatDuration(Math.max(0,(progress.finishedAt?Date.parse(progress.finishedAt):now)-Date.parse(progress.startedAt)));
+  const activityAgo=formatDuration(Math.max(0,now-Date.parse(progress.lastActivityAt)));
+  const determinate=progress.total!=null&&progress.total>0&&progress.completed!=null;
+  const percentage=determinate?Math.min(100,Math.round((progress.completed!/progress.total!)*100)):null;
+  return <div className={cn("mt-4 rounded-lg border p-3",progress.state==="stalled"||progress.state==="incident"?"border-neutral-900 bg-neutral-100":"border-neutral-200 bg-neutral-50")} role={progress.state==="stalled"||progress.state==="incident"?"alert":undefined}>
+    <div className="flex flex-wrap items-center justify-between gap-2"><p className="text-sm font-semibold">{stateLabel}</p><span className="text-xs text-neutral-500">Temps transcorregut: {elapsed}</span></div>
+    {stepLabel&&<p className="mt-1 text-sm text-neutral-700">{stepLabel}{progress.detail?` · ${progress.detail}`:""}</p>}
+    {determinate&&<div className="mt-3" aria-label={`${progress.completed} de ${progress.total}`}><div className="mb-1 flex justify-between text-xs text-neutral-500"><span>{progress.completed} de {progress.total}</span><span>{percentage}%</span></div><div className="h-2 overflow-hidden rounded-full bg-neutral-200"><div className="h-full rounded-full bg-neutral-900 transition-[width]" style={{width:`${percentage}%`}} /></div></div>}
+    <p className="mt-2 text-xs text-neutral-500">Darrera activitat fa {activityAgo}.{progress.state==="stalled"?" No s’ha detectat activitat durant més de 10 minuts.":""}</p>
+  </div>;
+}
+
+function formatDuration(milliseconds:number){
+ const seconds=Math.floor(milliseconds/1000);if(seconds<60)return `${seconds} s`;
+ const minutes=Math.floor(seconds/60);if(minutes<60)return `${minutes} min ${seconds%60} s`;
+ const hours=Math.floor(minutes/60);return `${hours} h ${minutes%60} min`;
 }
 
 async function fetchSourceRecord(id: string, signal?: AbortSignal) {

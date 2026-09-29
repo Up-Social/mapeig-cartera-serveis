@@ -26,6 +26,9 @@ export async function readCheckpoint<T>(c:Context,key:string):Promise<T|null>{
  if(r.error)throw new Error('CLOUD_DATABASE');return r.data?.value as T??null;
 }
 export async function commit(c:Context,job:string,operation:string,data:unknown){await rpc(c.db,'cloud_commit',{...lease(c),p_job:job,p_operation:operation,p_data:data});}
+export async function progress(c:Context,step:'document_discovery'|'document_extraction'|'ocr'|'enrichment'|'matching'|'closing',completed:number|null=null,total:number|null=null,detail:string|null=null,job:string|null=null){
+ await rpc(c.db,'cloud_progress',{...lease(c),p_step:step,p_completed:completed,p_total:total,p_detail:detail,p_job:job});
+}
 
 export async function acquireResource(c:Context,name:'ai'|'sandbox'){
  const {CloudFailure,CloudYield}=await import('./errors');
