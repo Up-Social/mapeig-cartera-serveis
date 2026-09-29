@@ -28,7 +28,7 @@ export function bindExplicitCodeCandidates<T extends AnalysisOutput>(value:T,eli
   const candidate=existing.get(service.service_code);
   return {code:service.service_code,score:candidate?.score??1,population_compatible:true,legal_reference:service.legal_reference,evidence_ordinals:ordinals,rationale:candidate?.rationale??'El document oficial identifica el codi i la descripció del servei. La correspondència resta sotmesa a l’auditoria normativa independent.',evidence_explanation:`El fragment oficial identifica el codi ${service.service_code} i descriu ${service.service_name}.`};
  });
- return {...value,candidates};
+ return {...value,candidates,evidence_ordinals:[...new Set(explicit.flatMap(item=>item.ordinals))],explanation:`El document oficial identifica explícitament ${candidates.map(candidate=>`${candidate.code} · ${eligible.find(service=>service.service_code===candidate.code)!.service_name}`).join('; ')}.`};
 }
 export function addNamedCandidates<T extends AnalysisOutput>(value:T,eligible:OfficialService[],chunks:Array<{content:string}>):T{
  if(value.classification!=='in_portfolio')return value;

@@ -20,6 +20,9 @@ test('explicit official codes with matching descriptions replace unsupported alt
  const result=bindExplicitCodeCandidates(value,services,evidence);
  assert.deepEqual(result.candidates.map(candidate=>candidate.code),['1.2.3.3.2.2','1.2.3.3.2.3']);
  assert.deepEqual(result.candidates.map(candidate=>candidate.evidence_ordinals),[[1],[1]]);
+ assert.deepEqual(result.evidence_ordinals,[1]);
+ assert.match(result.explanation,/1\.2\.3\.3\.2\.2/);
+ assert.match(result.explanation,/1\.2\.3\.3\.2\.3/);
 });
 test('a literal code without a matching service description is not sufficient',()=>{
  const value={...base,candidates:[{code:service.service_code,score:.8,population_compatible:true,legal_reference:'legal',evidence_ordinals:[1],rationale:'Candidat inicial acreditat per altres fets.',evidence_explanation:'Descripció del servei acreditada.'}]};
