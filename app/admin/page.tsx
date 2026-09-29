@@ -1,0 +1,23 @@
+import { getAutomaticOcrSetting } from "@/lib/admin-settings";
+import { OcrSetting } from "./ocr-setting";
+
+export const dynamic = "force-dynamic";
+
+export default async function AdminPage() {
+  const setting = await getAutomaticOcrSetting();
+
+  return (
+    <main className="page-shell">
+      <section className="page-container">
+        <div>
+          <p className="page-eyebrow">Administració</p>
+          <h1 className="page-title">Configuració del processament</h1>
+          <p className="page-description">
+            Activa o desactiva opcions que afecten els lots nous.
+          </p>
+        </div>
+        <OcrSetting initialSetting={setting} />
+      </section>
+    </main>
+  );
+}

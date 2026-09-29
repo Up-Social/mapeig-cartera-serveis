@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-import { BookOpen, CheckSquare, CircleHelp, Database, FileCheck2, Layers3, LogOut, Menu, PanelLeftClose, PanelLeftOpen, TriangleAlert, Waypoints } from "lucide-react";
+import { BookOpen, CheckSquare, CircleHelp, Database, FileCheck2, Layers3, LogOut, Menu, PanelLeftClose, PanelLeftOpen, Settings2, TriangleAlert, Waypoints } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetClose, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
@@ -63,6 +63,7 @@ export function AppHeader({ collapsed, onToggleCollapsed }: { collapsed: boolean
       <Brand collapsed={collapsed} />
       <div className="flex-1 overflow-y-auto px-3 py-5">{navigation()}</div>
       <div className="border-t border-sidebar-border p-3">
+        <Link href="/admin" title={collapsed ? "Administració" : undefined} aria-label={collapsed ? "Administració" : undefined} aria-current={pathname.startsWith("/admin") ? "page" : undefined} className={cn("mb-1 flex min-h-10 items-center gap-3 rounded-lg px-3 text-sm font-medium text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground", collapsed && "justify-center px-2", pathname.startsWith("/admin") && "bg-sidebar-primary text-sidebar-primary-foreground")}><Settings2 className="size-4" />{!collapsed && "Administració"}</Link>
         <Link href="/process" title={collapsed ? "Ajuda sobre el procés" : undefined} aria-label={collapsed ? "Ajuda sobre el procés" : undefined} className={cn("mb-1 flex min-h-10 items-center gap-3 rounded-lg px-3 text-sm font-medium text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground", collapsed && "justify-center px-2")}><CircleHelp className="size-4" />{!collapsed && "Ajuda sobre el procés"}</Link>
         <Button type="button" variant="ghost" onClick={onToggleCollapsed} className={cn("w-full gap-3 text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground", collapsed ? "justify-center px-2" : "justify-start")} aria-label={collapsed ? "Desplegar menú lateral" : "Plegar menú lateral"} title={collapsed ? "Desplegar menú lateral" : undefined}>
           {collapsed ? <PanelLeftOpen className="size-4" /> : <PanelLeftClose className="size-4" />}
@@ -77,7 +78,7 @@ export function AppHeader({ collapsed, onToggleCollapsed }: { collapsed: boolean
         <SheetTrigger render={<Button variant="outline" size="icon-lg" aria-label="Obrir navegació" />}><Menu /></SheetTrigger>
         <SheetContent side="left" className="w-[min(88vw,320px)] bg-sidebar p-0 text-sidebar-foreground">
           <SheetHeader className="border-b border-sidebar-border p-5 text-left"><SheetTitle className="flex items-center gap-2"><Waypoints className="size-5" />Mapeig cartera de serveis</SheetTitle><SheetDescription>Navegació principal</SheetDescription></SheetHeader>
-          <div className="p-3">{navigation(true)}<SheetClose nativeButton={false} render={<Link href="/process" className="mt-3 flex min-h-10 items-center gap-3 rounded-lg border-t px-3 pt-3 text-sm font-medium text-sidebar-foreground/70" />}><CircleHelp className="size-4" />Ajuda sobre el procés</SheetClose></div>
+          <div className="p-3">{navigation(true)}<SheetClose nativeButton={false} render={<Link href="/admin" className="mt-3 flex min-h-10 items-center gap-3 rounded-lg border-t px-3 pt-3 text-sm font-medium text-sidebar-foreground/70" />}><Settings2 className="size-4" />Administració</SheetClose><SheetClose nativeButton={false} render={<Link href="/process" className="mt-1 flex min-h-10 items-center gap-3 rounded-lg px-3 text-sm font-medium text-sidebar-foreground/70" />}><CircleHelp className="size-4" />Ajuda sobre el procés</SheetClose></div>
           <Logout />
         </SheetContent>
       </Sheet>

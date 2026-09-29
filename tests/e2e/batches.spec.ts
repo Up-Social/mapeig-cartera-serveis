@@ -134,3 +134,22 @@ test('batch controls remain usable on a mobile viewport',async({page},testInfo)=
  await page.getByRole('button',{name:'Pausats'}).click();
  await expect(page.getByRole('button',{name:/Lot .*Pausat per quota/}).first()).toBeVisible();
 });
+
+test('automatic OCR can be disabled and enabled from administration',async({page})=>{
+ await login(page);
+ await page.goto('/admin');
+ await expect(page.getByRole('heading',{name:'Configuració del processament'})).toBeVisible();
+ await expect(page.getByTestId('ocr-status')).toHaveText('Activat');
+ await page.getByRole('button',{name:'Desactivar OCR automàtic'}).click();
+ await expect(page.getByRole('status')).toContainText('ha quedat desactivat');
+ await expect(page.getByTestId('ocr-status')).toHaveText('Desactivat');
+ const disabled=await db.from('app_settings').select('enabled').eq('key','automatic_ocr').single();
+ if(disabled.error)throw disabled.error;
+ expect(disabled.data.enabled).toBe(false);
+ await page.getByRole('button',{name:'Activar OCR automàtic'}).click();
+ await expect(page.getByRole('status')).toContainText('ha quedat activat');
+ await expect(page.getByTestId('ocr-status')).toHaveText('Activat');
+ const enabled=await db.from('app_settings').select('enabled').eq('key','automatic_ocr').single();
+ if(enabled.error)throw enabled.error;
+ expect(enabled.data.enabled).toBe(true);
+});

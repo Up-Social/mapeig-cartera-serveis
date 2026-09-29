@@ -1,6 +1,7 @@
 "use server";
 import {executionMode} from "@/lib/pipeline/execution-mode";
 import {createCloudRun} from "@/lib/cloud/enqueue";
+import {getAutomaticOcrEnabled} from "@/lib/admin-settings";
 import { revalidatePath } from "next/cache";
 import { createServerSupabase } from "@/lib/records-page";
 import {startRecordOperation} from "@/lib/start-record-operation";
@@ -13,6 +14,7 @@ export async function createProcessingBatch(recordIds: string[]) {
     throw new Error("Selecciona entre 1 i 50 registres.");
   if(executionMode()==='vercel_workflow')return {runId:await createCloudRun(ids.map(requireUuid)),count:ids.length};
   const supabase = createServerSupabase();
+  const automaticOcr = await getAutomaticOcrEnabled();
   const { data: existing, error: readError } = await supabase
     .from("source_records")
     .select("id")
@@ -25,7 +27,7 @@ export async function createProcessingBatch(recordIds: string[]) {
     .insert({
       status: "queued",
       selected_count: ids.length,
-      parameters: { matching: "pending_configuration" },
+      parameters: { matching: "pending_configuration", ocr_recovery: automaticOcr, ocr_setting: "automatic_ocr" },
     })
     .select("id")
     .single();
