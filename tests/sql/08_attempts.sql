@@ -12,6 +12,8 @@ begin
  perform persist_analysis(j,v,'{"classification":"insufficient_evidence","reasons":[],"explanation":"Fixture sense candidats","service_description":"","target_population":""}','[]','[{"content":"fixture"}]');
  result:=begin_record_operation('aaaaaaaa-0000-4000-8000-000000000001','process');
  if not (result->>'newJob')::boolean or not exists(select 1 from pipeline_jobs where id=(result->>'jobId')::uuid and previous_job_id=j) then raise exception 'Reanalysis overwrote final job';end if;
+ if not exists(select 1 from pipeline_jobs where id=(result->>'jobId')::uuid and preparation_status='pending') then raise exception 'Reanalysis skipped document rediscovery';end if;
+ if (select evidence_status::text from source_records where id='aaaaaaaa-0000-4000-8000-000000000001')<>'pending' then raise exception 'Reanalysis kept stale record preparation';end if;
  if not exists(select 1 from analysis_results where pipeline_job_id=j) then raise exception 'Historical analysis lost';end if;
  claim:=claim_provider_call((result->>'jobId')::uuid,'matching','hash');
  begin
