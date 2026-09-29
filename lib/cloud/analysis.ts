@@ -13,6 +13,7 @@ import {loadOfficialCatalog} from '../official-catalog';
 import {applyScopeRules,ROLE_INSTRUCTIONS} from '../scope-rules';
 import {addNamedCandidates} from '../named-candidate';
 import {EVIDENCE_POLICY_VERSION,evidenceRejectionReasons,isEligibleEvidence} from '../evidence-eligibility';
+import {selectEvidenceWindow} from './evidence-window';
 export async function analyzeRecord(c:Context,job:{id:string;source_record_id:string},phase:'enrichment'|'matching'){
  const model=process.env.OPENAI_MATCHING_MODEL;
  if(!model||!process.env.OPENAI_API_KEY)throw new CloudFailure('credentials');
@@ -20,7 +21,7 @@ export async function analyzeRecord(c:Context,job:{id:string;source_record_id:st
  if(r.error)throw new CloudFailure('internal');
  const docs=await c.db.from('source_documents').select('id,text_length,extraction_method,quality_flags').eq('source_record_id',job.source_record_id).eq('status','fetched');
  if(docs.error)throw new CloudFailure('internal');
- const evidence=await c.db.from('current_evidence_chunks').select('id,content,ordinal,source_document_id').in('source_document_id',(docs.data??[]).map(d=>d.id)).order('source_document_id').order('ordinal').limit(12);
+ const evidence=await c.db.from('current_evidence_chunks').select('id,content,ordinal,source_document_id').in('source_document_id',(docs.data??[]).map(d=>d.id)).order('source_document_id').order('ordinal').limit(96);
  if(evidence.error||!evidence.data?.length)throw new CloudFailure('document');
  const documents=new Map((docs.data??[]).map(document=>[document.id,document]));
  const assessed=evidence.data.map(chunk=>{
@@ -28,7 +29,7 @@ export async function analyzeRecord(c:Context,job:{id:string;source_record_id:st
   const quality={content:chunk.content,textLength:document?.text_length,extractionMethod:document?.extraction_method,qualityFlags:document?.quality_flags};
   return {...chunk,eligible:isEligibleEvidence(quality),rejection_reasons:evidenceRejectionReasons(quality)};
  });
- const chunks=assessed.filter(chunk=>chunk.eligible);
+ const chunks=selectEvidenceWindow(assessed.filter(chunk=>chunk.eligible));
  const rejectedEvidence=assessed.filter(chunk=>!chunk.eligible).map(chunk=>({source_document_id:chunk.source_document_id,ordinal:chunk.ordinal,reasons:chunk.rejection_reasons}));
  if(phase==='enrichment'){
   if(!chunks.length){
