@@ -86,6 +86,26 @@ test('blocked batch is understandable and actionable',async({page})=>{
  await expect(page.getByRole('link',{name:'Obrir resultat i evidència'})).toBeVisible();
 });
 
+test('Vercel can be checked without resuming paused work',async({page})=>{
+ await login(page);
+ try{
+  await page.getByRole('button',{name:'Comprovar si Vercel torna a estar disponible'}).click();
+  await expect(page.getByRole('alert').filter({hasText:'Processament temporalment aturat'})).toBeHidden();
+  await expect(page.getByText('Vercel torna a estar disponible. Cap lot s’ha reprès automàticament.')).toBeVisible();
+  await expect(page.getByRole('button',{name:'Crear i processar lot'})).toBeEnabled();
+  await page.getByRole('button',{name:'Lots'}).click();
+  await page.getByRole('button',{name:'Pausats'}).click();
+  await page.getByRole('button',{name:/Lot .*Pausat per quota/}).first().click();
+  await expect(page.getByRole('button',{name:'Reprendre només aquest lot'})).toBeVisible();
+  const task=await db.from('worker_tasks').select('execution_state,failure_kind').eq('run_id',pausedRun).single();
+  if(task.error)throw task.error;
+  expect(task.data).toMatchObject({execution_state:'paused',failure_kind:'vercel_quota'});
+ }finally{
+  const restored=await db.from('cloud_resources').update({blocked_kind:'vercel_quota',owner:null,lease_until:null}).eq('name','sandbox');
+  if(restored.error)throw restored.error;
+ }
+});
+
 test('results explain blocked work and open the record',async({page})=>{
  await login(page);
  await page.goto(`/batches/${pausedRun}/results`);

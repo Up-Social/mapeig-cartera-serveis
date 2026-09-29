@@ -14,6 +14,7 @@ import { AnalysisResult } from "@/components/analysis-result";
 
 export function BatchesWorkbench({ batches, activeBatch, cloudBlock }: { batches: BatchSummary[]; activeBatch: BatchSummary | null; cloudBlock: CloudResourceBlock }) {
   const [items, setItems] = useState(batches);
+  const [resourceBlock, setResourceBlock] = useState(cloudBlock);
   const [openedId, setOpenedId] = useState(activeBatch?.id ?? null);
   const [size, setSize] = useState(4);
   const [message, setMessage] = useState("");
@@ -89,21 +90,23 @@ export function BatchesWorkbench({ batches, activeBatch, cloudBlock }: { batches
 
   return <main className="page-shell"><section className="page-container">
     <div><p className="page-eyebrow">Flux automatitzat</p><h2 className="page-title">Lots de procés</h2><p className="page-description">Crea un lot i segueix el procés automàtic fins que els resultats quedin pendents de revisió humana.</p></div>
-    {cloudBlock&&<section role="alert" className="mt-6 rounded-xl border-2 border-neutral-900 bg-neutral-100 p-5"><h3 className="font-semibold">Processament temporalment aturat</h3><p className="mt-1 text-sm">{cloudBlock.label}. Els processos pausats no avançaran fins que es torni a provar el servei.</p><p className="mt-2 text-sm">No es poden crear lots ni iniciar operacions individuals mentre el bloqueig continuï actiu.</p></section>}
-    <section className="surface mt-6 p-5"><div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between"><div><h3 className="font-semibold">Crear i processar un lot</h3><p className="mt-1 text-sm text-muted-foreground">Selecció equilibrada i execució completa, sense passos intermedis.</p></div><div className="flex items-end gap-3"><label className="grid gap-1 text-xs font-medium">Nombre de registres<input className="h-9 w-24 rounded-md border bg-background px-3 text-sm" type="number" min={1} max={50} value={size} onChange={(event) => setSize(Math.max(1, Math.min(50, Number(event.target.value) || 1)))} /></label><Button onClick={create} disabled={pending||Boolean(cloudBlock)}>{pending ? "Creant..." : cloudBlock ? "Processament no disponible" : "Crear i processar lot"}</Button></div></div><p className="mt-3 text-xs text-muted-foreground">Entre 1 i 50. El lot pot esperar torn abans de començar.</p></section>
-    {message && <p className="mt-4 rounded-xl border p-3 text-sm">{message}</p>}
+    {resourceBlock&&<VercelRecovery block={resourceBlock} onAvailable={()=>{setResourceBlock(null);setMessage("Vercel torna a estar disponible. Cap lot s’ha reprès automàticament.");}}/>}
+    <section className="surface mt-6 p-5"><div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between"><div><h3 className="font-semibold">Crear i processar un lot</h3><p className="mt-1 text-sm text-muted-foreground">Selecció equilibrada i execució completa, sense passos intermedis.</p></div><div className="flex items-end gap-3"><label className="grid gap-1 text-xs font-medium">Nombre de registres<input className="h-9 w-24 rounded-md border bg-background px-3 text-sm" type="number" min={1} max={50} value={size} onChange={(event) => setSize(Math.max(1, Math.min(50, Number(event.target.value) || 1)))} /></label><Button onClick={create} disabled={pending||Boolean(resourceBlock)}>{pending ? "Creant..." : resourceBlock ? "Processament no disponible" : "Crear i processar lot"}</Button></div></div><p className="mt-3 text-xs text-muted-foreground">Entre 1 i 50. El lot pot esperar torn abans de començar.</p></section>
+    {message && <p role="status" className="mt-4 rounded-xl border p-3 text-sm">{message}</p>}
     <section className="surface mt-6 p-4"><h3 className="font-semibold">Historial i progrés</h3><p className="mt-1 text-xs text-muted-foreground">Els registres correctes continuen encara que algun presenti una incidència.</p>
       <div className="mt-4 flex flex-wrap gap-2" aria-label="Tipus d’historial"><Button size="sm" variant={kind==="batches"?"default":"outline"} onClick={()=>setKind("batches")}>Lots</Button><Button size="sm" variant={kind==="operations"?"default":"outline"} onClick={()=>setKind("operations")}>Operacions individuals</Button></div>
       <div className="mt-3 flex flex-wrap gap-2" aria-label="Filtre d’estat">{([['all','Tots'],['active','Actius'],['paused','Pausats'],['review','Per revisar'],['finished','Finalitzats']] as const).map(([value,label])=><Button key={value} size="sm" variant={statusFilter===value?"secondary":"ghost"} onClick={()=>setStatusFilter(value)}>{label}</Button>)}</div>
-      {visibleItems.length ? <StableAccordion stateKey={`automated-batches-${kind}-${statusFilter}`} defaultValue={openedId ? [openedId] : []} className="mt-3 divide-y">{visibleItems.map((batch) => <AccordionItem key={batch.id} value={batch.id} className="px-3"><AccordionTrigger onClick={() => setOpenedId(batch.id)} className="gap-3 py-3 hover:no-underline"><div className="min-w-0 flex-1 text-left"><div className="flex justify-between gap-2"><strong>{batch.purpose==="record_operation"?"Operació":"Lot"} {batch.batchNumber}</strong><span className="text-xs text-muted-foreground">{outcomeLabel(batch)}</span></div><p className="mt-1 text-xs text-muted-foreground">{new Intl.DateTimeFormat("ca-ES", { dateStyle: "short", timeStyle: "short", timeZone: "Europe/Madrid" }).format(new Date(batch.createdAt))} · {batch.selectedCount} registres</p></div></AccordionTrigger><AccordionContent className="border-t pb-4 pt-4"><BatchDetail batch={batch} onUpdate={(updated)=>setItems(current=>[updated,...current.filter(item=>item.id!==updated.id)])} /></AccordionContent></AccordionItem>)}</StableAccordion> : <p className="mt-4 rounded-xl border border-dashed p-8 text-center text-sm text-muted-foreground">No hi ha elements amb aquests filtres.</p>}
+      {visibleItems.length ? <StableAccordion stateKey={`automated-batches-${kind}-${statusFilter}`} defaultValue={openedId ? [openedId] : []} className="mt-3 divide-y">{visibleItems.map((batch) => <AccordionItem key={batch.id} value={batch.id} className="px-3"><AccordionTrigger onClick={() => setOpenedId(batch.id)} className="gap-3 py-3 hover:no-underline"><div className="min-w-0 flex-1 text-left"><div className="flex justify-between gap-2"><strong>{batch.purpose==="record_operation"?"Operació":"Lot"} {batch.batchNumber}</strong><span className="text-xs text-muted-foreground">{outcomeLabel(batch)}</span></div><p className="mt-1 text-xs text-muted-foreground">{new Intl.DateTimeFormat("ca-ES", { dateStyle: "short", timeStyle: "short", timeZone: "Europe/Madrid" }).format(new Date(batch.createdAt))} · {batch.selectedCount} registres</p></div></AccordionTrigger><AccordionContent className="border-t pb-4 pt-4"><BatchDetail batch={batch} cloudBlock={resourceBlock} onUpdate={(updated)=>setItems(current=>[updated,...current.filter(item=>item.id!==updated.id)])} /></AccordionContent></AccordionItem>)}</StableAccordion> : <p className="mt-4 rounded-xl border border-dashed p-8 text-center text-sm text-muted-foreground">No hi ha elements amb aquests filtres.</p>}
     </section>
   </section></main>;
 }
 
-function BatchDetail({ batch,onUpdate }: { batch: BatchSummary;onUpdate:(batch:BatchSummary)=>void }) {
+function BatchDetail({ batch,cloudBlock,onUpdate }: { batch: BatchSummary;cloudBlock:CloudResourceBlock;onUpdate:(batch:BatchSummary)=>void }) {
+  const reason=batch.execution?.reason??"";
+  const providerStillBlocked=["openai_quota","credentials"].includes(reason)||(reason==="vercel_quota"&&Boolean(cloudBlock));
   return <div className="space-y-5"><div className="flex flex-wrap items-start justify-between gap-3"><div><p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Progrés del lot</p><h3 className="mt-1 text-xl font-semibold">{outcomeLabel(batch)}</h3><p className="mt-1 text-xs text-muted-foreground">Cost reservat: {formatCost(batch.reservedCostUsd)} · Cost confirmat: {batch.actualCostUsd==null?"No disponible":formatCost(batch.actualCostUsd)}</p></div>{batch.reviewCount > 0 && <Link href={`/review?batch=${batch.id}&state=pending`} className={buttonVariants()}>Revisar pendents ({batch.reviewCount})</Link>}</div>
     {batch.execution && <div className="rounded-lg border p-3 text-sm"><p className="font-semibold">{batch.execution.label}</p>{batch.execution.reason&&<p className="mt-1">{failureLabels[batch.execution.reason as FailureKind]??'Cal revisar la configuració de l’execució.'}</p>}{batch.execution.lastProgress&&<p className="mt-1 text-xs text-muted-foreground">Darrer avanç: {new Intl.DateTimeFormat('ca-ES',{dateStyle:'short',timeStyle:'short',timeZone:'Europe/Madrid'}).format(new Date(batch.execution.lastProgress))}</p>}<p className="mt-1 text-xs text-muted-foreground">{batch.execution.state==='running'||batch.execution.state==='pending'?'El procés continua al núvol encara que tanquis aquesta pàgina.':'El procés està aturat i no avançarà fins que es reprengui.'}</p></div>}
-    {(batch.execution?.recoverable || (!batch.execution && batch.status === "paused")) && !["vercel_quota","openai_quota","credentials"].includes(batch.execution?.reason??"") && <ResumeBatch batch={batch} onUpdate={onUpdate}/>}
+    {(batch.execution?.recoverable || (!batch.execution && batch.status === "paused")) && !providerStillBlocked && <ResumeBatch batch={batch} onUpdate={onUpdate}/>}
     <NavigationLink href={`/batches/${batch.id}/results`}>Veure resultats del lot</NavigationLink><BatchProgress batch={batch}/>
     {batch.selectedCount>0&&!batch.isActive&&batch.status!=="paused"&&<details className="rounded-xl border p-4"><summary className="cursor-pointer text-sm font-semibold">Opcions avançades</summary><div className="mt-4"><BatchRerun key={batch.id} id={batch.id}/></div></details>}
     {batch.errorCount > 0 && !batch.isActive && <p className="rounded-lg border border-neutral-300 bg-neutral-100 p-3 text-sm">Finalitzat amb incidències: {batch.errorCount} registre(s) no han completat el procés.</p>}
@@ -132,7 +135,30 @@ function NavigationLink({href,children}:{href:string;children:string}){
  return <Link href={href} aria-busy={navigating} onClick={()=>setNavigating(true)} className={buttonVariants({variant:"outline",size:"sm"})}>{navigating?'Obrint…':children}</Link>;
 }
 
+function VercelRecovery({block,onAvailable}:{block:NonNullable<CloudResourceBlock>;onAvailable:()=>void}) {
+ const [message,setMessage]=useState("");
+ const [pending,startTransition]=useTransition();
+ const canCheck=block.kind==="vercel_quota";
+ return <section role="alert" className="mt-6 rounded-xl border-2 border-neutral-900 bg-neutral-100 p-5">
+  <h3 className="font-semibold">Processament temporalment aturat</h3>
+  <p className="mt-1 text-sm">{block.label}. Els processos pausats no avançaran fins que es comprovi el servei.</p>
+  <p className="mt-2 text-sm">No es poden crear lots ni iniciar operacions individuals mentre el bloqueig continuï actiu.</p>
+  {canCheck&&<div className="mt-4 flex flex-col items-start gap-2"><Button disabled={pending} onClick={()=>startTransition(async()=>{
+    setMessage("");
+    try{
+      const response=await fetch("/api/batches/vercel-check",{method:"POST"});
+      const payload=await response.json() as {result?:{status:"available"|"already_available"};error?:string};
+      if(!response.ok||!payload.result)throw new Error(payload.error||"No s’ha pogut comprovar Vercel.");
+      onAvailable();
+    }catch(error){setMessage(error instanceof Error?error.message:"No s’ha pogut comprovar Vercel.");}
+  })}>{pending?"Comprovant Vercel…":"Comprovar si Vercel torna a estar disponible"}</Button>
+  <p className="text-xs text-muted-foreground">La comprovació crea un entorn mínim, limitat a un minut i sense cridar OpenAI. El cost és mínim i no reprèn cap lot.</p></div>}
+  {message&&<p role="status" className="mt-3 rounded-lg border bg-background p-3 text-sm">{message}</p>}
+ </section>;
+}
+
 function ResumeBatch({batch,onUpdate}:{batch:BatchSummary;onUpdate:(batch:BatchSummary)=>void}) {
  const [message,setMessage]=useState('');const [pending,startTransition]=useTransition();
- return <div className="rounded-lg border p-4"><p>{batch.execution?.reason==='vercel_quota'?'Execució aturada perquè la quota de Vercel està esgotada.':batch.pauseReason??'Lot pausat'}</p><p className="mt-1 text-xs text-muted-foreground">Reprendre tornarà a provar el servei des del primer pas incomplet, sense repetir resultats finalitzats.</p><Button className="mt-3" disabled={pending} onClick={()=>startTransition(async()=>{try{await runBatchOperation({operation:'resume',batchId:batch.id});onUpdate(await fetchBatch(batch.id));}catch(error){setMessage(error instanceof Error?error.message:String(error));}})}>{pending?'Reprenent…':batch.execution?.state==='pending'?'Reintentar inici':'Reprendre lot'}</Button>{message&&<p className="mt-2 text-sm">{message}</p>}</div>;
+ const subject=batch.purpose==="record_operation"?"aquesta operació":"aquest lot";
+ return <div className="rounded-lg border p-4"><p>{batch.execution?.reason==='vercel_quota'?'Vercel ja està disponible, però el procés continua pausat fins que decideixis reprendre’l.':batch.pauseReason??'Lot pausat'}</p><p className="mt-1 text-xs text-muted-foreground">Reprendre tornarà a provar el servei des del primer pas incomplet, sense repetir resultats finalitzats ni activar altres lots.</p><Button className="mt-3" disabled={pending} onClick={()=>startTransition(async()=>{try{await runBatchOperation({operation:'resume',batchId:batch.id});onUpdate(await fetchBatch(batch.id));}catch(error){setMessage(error instanceof Error?error.message:String(error));}})}>{pending?'Reprenent…':batch.execution?.state==='pending'?'Reintentar inici':`Reprendre només ${subject}`}</Button>{message&&<p role="status" className="mt-2 text-sm">{message}</p>}</div>;
 }
