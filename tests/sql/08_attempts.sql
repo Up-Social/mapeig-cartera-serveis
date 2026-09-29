@@ -1,5 +1,5 @@
 do $$
-declare r uuid;j uuid;v text;result jsonb;claim jsonb;before_count int;
+declare r uuid;j uuid;v text;result jsonb;claim jsonb;before_count int;process_task uuid;match_task uuid;
 begin
  insert into pipeline_runs default values returning id into r;
  insert into pipeline_jobs(run_id,source_record_id,status,preparation_status) values(r,'aaaaaaaa-0000-4000-8000-000000000001','error','error') returning id into j;
@@ -15,6 +15,20 @@ begin
  if not exists(select 1 from pipeline_jobs where id=(result->>'jobId')::uuid and preparation_status='pending') then raise exception 'Reanalysis skipped document rediscovery';end if;
  if (select evidence_status::text from source_records where id='aaaaaaaa-0000-4000-8000-000000000001')<>'pending' then raise exception 'Reanalysis kept stale record preparation';end if;
  if not exists(select 1 from analysis_results where pipeline_job_id=j) then raise exception 'Historical analysis lost';end if;
+ process_task:=(result->>'taskId')::uuid;
+ update worker_tasks set status='completed',completed_at=now() where id=process_task;
+ update source_records set evidence_status='ready',enrichment_status='completed' where id='aaaaaaaa-0000-4000-8000-000000000001';
+ insert into cloud_checkpoints(task_id,item_key,value) values
+  (process_task,(result->>'jobId')||':analysis','{"state":"completed"}'),
+  (process_task,(result->>'jobId')||':discovered','{"state":"completed"}'),
+  (process_task,(result->>'jobId')||':complete','{"state":"completed"}');
+ result:=begin_record_operation('aaaaaaaa-0000-4000-8000-000000000001','match');
+ match_task:=(result->>'taskId')::uuid;
+ if (result->>'newJob')::boolean then raise exception 'Matching created an unnecessary job';end if;
+ if not exists(select 1 from cloud_checkpoints where task_id=match_task and item_key=(result->>'jobId')||':analysis') then raise exception 'Reusable checkpoint was not copied';end if;
+ if exists(select 1 from cloud_checkpoints where task_id=match_task and item_key like '%:discovered') then raise exception 'Discovery checkpoint leaked into matching';end if;
+ if exists(select 1 from cloud_checkpoints where task_id=match_task and item_key like '%:complete') then raise exception 'Completion checkpoint leaked into matching';end if;
+ update worker_tasks set status='completed',completed_at=now() where id=match_task;
  claim:=claim_provider_call((result->>'jobId')::uuid,'matching','hash');
  begin
   perform claim_provider_call((result->>'jobId')::uuid,'matching','hash');raise exception 'Unknown request retried';
