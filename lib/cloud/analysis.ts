@@ -10,7 +10,7 @@ import {validateScopeFacts,buildNormativeInput,MATCHING_INSTRUCTIONS} from '../n
 import {validateAnalysis,type AnalysisOutput} from '../analysis-contract';
 import {candidatesOnlySchema} from '../pipeline/matching-schema';
 import {loadOfficialCatalog} from '../official-catalog';
-import {applyScopeRules,ROLE_INSTRUCTIONS} from '../scope-rules';
+import {applyScopeRules,ROLE_INSTRUCTIONS,type RoleAccreditations} from '../scope-rules';
 import {addNamedCandidates,bindExplicitCodeCandidates,findExplicitServiceEvidence} from '../named-candidate';
 import {EVIDENCE_POLICY_VERSION,evidenceRejectionReasons,isEligibleEvidence} from '../evidence-eligibility';
 import {selectEvidenceWindow} from './evidence-window';
@@ -65,10 +65,10 @@ export async function analyzeRecord(c:Context,job:{id:string;source_record_id:st
    try {const repair=JSON.parse(extractOutputText(repaired));result={...result,classification:repair.classification,reasons:repair.reasons,explanation:repair.explanation,evidence_ordinals:repair.evidence_ordinals};}catch {throw new CloudFailure('validation');}
   }
   try {result=validateAnalysis(result,catalog.all,chunks.length);}catch {throw new CloudFailure('validation');}
+  const explicitCodes=new Set(explicitlyCited.map(item=>item.service.service_code));
+  const exactOfficialEvidence=result.classification==='in_portfolio'&&result.candidates.length>0&&result.candidates.every(candidate=>explicitCodes.has(candidate.code));
   let auditVersion=POSITIVE_AUDIT_VERSION;
   if(result.classification==='in_portfolio'){
-   const explicitCodes=new Set(explicitlyCited.map(item=>item.service.service_code));
-   const exactOfficialEvidence=result.candidates.length>0&&result.candidates.every(candidate=>explicitCodes.has(candidate.code));
    if(exactOfficialEvidence){
     auditVersion='official-code-description-v1';
    }else{
@@ -82,7 +82,12 @@ export async function analyzeRecord(c:Context,job:{id:string;source_record_id:st
    }
   }
   const enrichment=Array.isArray(r.data.record_enrichments)?r.data.record_enrichments[0]:r.data.record_enrichments;
-  const scoped=applyScopeRules(result,enrichment?.scope_facts?.roles,chunks);
+  const exactOrdinals=[...new Set(result.candidates.flatMap(candidate=>candidate.evidence_ordinals))];
+  const accreditations:RoleAccreditations=exactOfficialEvidence?{
+   final_service:{kind:'yes',evidence_ordinals:exactOrdinals,basis:'official_service_code_and_description'},
+   final_population:{kind:'population',evidence_ordinals:exactOrdinals,basis:'official_service_code_and_description'},
+  }:{};
+  const scoped=applyScopeRules(result,enrichment?.scope_facts?.roles,chunks,accreditations);
   const ruled={...scoped,rule_audit:{...scoped.rule_audit,evidence_policy:{version:EVIDENCE_POLICY_VERSION,rejected:rejectedEvidence}},model_conclusion:JSON.parse(extractOutputText(raw))};
   validateAnalysis(ruled,catalog.all,chunks.length);
   await commit(c,job.id,'analysis',{version:catalog.version.id,result:ruled,usage:raw.usage,candidates:ruled.candidates.map(candidate=>({...candidate,model,metadata:{response_id:raw.id,usage:raw.usage,positive_audit_version:auditVersion,normalization_version:'catalog-binding-v1'},evidence:candidate.evidence_ordinals.map(n=>chunks[n-1])})),evidence:ruled.evidence_ordinals.map(n=>chunks[n-1])});

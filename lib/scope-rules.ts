@@ -4,13 +4,18 @@ export const ROLE_NAMES=['financed_object','financier','economic_recipient','dir
 export type RoleName=typeof ROLE_NAMES[number];
 export type RoleFact={value:string|null;state:'known'|'unknown'|'contradictory';kind:string;evidence_ordinals:number[];quotes:string[]};
 export type RoleFacts=Record<RoleName,RoleFact>;
+export type RoleAccreditation={kind:string;evidence_ordinals:number[];basis:'official_service_code_and_description'};
+export type RoleAccreditations=Partial<Record<RoleName,RoleAccreditation>>;
 export const ROLE_INSTRUCTIONS='A scope_facts.roles diferencia objecte finançat, finançador, receptor econòmic, beneficiari directe, prestador i població final. Final_service.kind és yes/no/unknown; financial_instrument.kind és direct_grant/interadministrative_transfer/service_financing/other/unknown; els rols d’actors usen administration/entity/person/population/other/unknown. Cada fet known ha de tenir value, ordinals i cites literals dels fragments. Marca unknown o contradictory quan no es pugui acreditar. No dedueixis cap rol només pel nom d’una entitat.';
 export const roleFactsSchema={type:'object',additionalProperties:false,required:[...ROLE_NAMES],properties:Object.fromEntries(ROLE_NAMES.map(name=>[name,{type:'object',additionalProperties:false,required:['value','state','kind','evidence_ordinals','quotes'],properties:{value:{anyOf:[{type:'string'},{type:'null'}]},state:{type:'string',enum:['known','unknown','contradictory']},kind:{type:'string',enum:['administration','entity','person','population','yes','no','direct_grant','interadministrative_transfer','service_financing','other','unknown']},evidence_ordinals:{type:'array',items:{type:'integer',minimum:1}},quotes:{type:'array',items:{type:'string'}}}}]))};
-export function applyScopeRules(original:AnalysisOutput,roles:Partial<RoleFacts>|undefined,chunks:{content:string}[]){
+export function applyScopeRules(original:AnalysisOutput,roles:Partial<RoleFacts>|undefined,chunks:{content:string}[],accreditations:RoleAccreditations={}){
  const normalized=(value:string)=>value.replace(/\s+/g,' ').trim();
  const literal=(quote:string,ordinals:number[])=>{const exact=normalized(quote);const peripheral=exact.replace(/^(?:\.{3}|…)+\s*/,'').replace(/\s*(?:\.{3}|…)+$/,'').trim();const withoutTerminalPunctuation=peripheral.replace(/[.;:!?]+$/,'').trim();return withoutTerminalPunctuation.length>=12&&ordinals.some(n=>{const content=normalized(chunks[n-1]?.content??'');return content.includes(exact)||content.includes(peripheral)||content.includes(withoutTerminalPunctuation);});};
- const known=(name:RoleName)=>{const f=roles?.[name];return !!f&&f.state==='known'&&f.kind!=='unknown'&&!!f.value?.trim()&&Array.isArray(f.evidence_ordinals)&&f.evidence_ordinals.length>0&&f.evidence_ordinals.every(n=>Number.isInteger(n)&&n>0&&n<=chunks.length)&&Array.isArray(f.quotes)&&f.quotes.length>0&&f.quotes.every(q=>q.trim().length>0&&literal(q,f.evidence_ordinals));};
- const kind=(name:RoleName)=>known(name)?roles![name]!.kind:'unknown';
+ const literalKnown=(name:RoleName)=>{const f=roles?.[name];return !!f&&f.state==='known'&&f.kind!=='unknown'&&!!f.value?.trim()&&Array.isArray(f.evidence_ordinals)&&f.evidence_ordinals.length>0&&f.evidence_ordinals.every(n=>Number.isInteger(n)&&n>0&&n<=chunks.length)&&Array.isArray(f.quotes)&&f.quotes.length>0&&f.quotes.every(q=>q.trim().length>0&&literal(q,f.evidence_ordinals));};
+ const accredited=(name:RoleName)=>{const f=roles?.[name],a=accreditations[name];return f?.state!=='contradictory'&&!!a&&a.kind!=='unknown'&&Array.isArray(a.evidence_ordinals)&&a.evidence_ordinals.length>0&&a.evidence_ordinals.every(n=>Number.isInteger(n)&&n>0&&n<=chunks.length);};
+ const known=(name:RoleName)=>literalKnown(name)||accredited(name);
+ const kind=(name:RoleName)=>literalKnown(name)?roles![name]!.kind:accredited(name)?accreditations[name]!.kind:'unknown';
+ const evidenceFor=(name:RoleName)=>literalKnown(name)?roles![name]!.evidence_ordinals:accredited(name)?accreditations[name]!.evidence_ordinals:[];
  let rule='retain_model';let reason:string|undefined;
  if(kind('financier')==='administration'&&kind('economic_recipient')==='administration'&&kind('final_service')==='no'&&kind('financial_instrument')==='interadministrative_transfer'){rule='interadministrative_transfer';reason=rule;}
  else if(kind('economic_recipient')==='person'&&kind('direct_beneficiary')==='person'&&kind('financial_instrument')==='direct_grant'){rule='individual_grant';reason=rule;}
@@ -21,7 +26,7 @@ export function applyScopeRules(original:AnalysisOutput,roles:Partial<RoleFacts>
   :original.classification==='insufficient_evidence'?[]:['financed_object','final_population','final_service'];
  if(!reason&&determinant.some(n=>!known(n)))rule='unknown_determinant_role';
  const used=reason==='interadministrative_transfer'?['financier','economic_recipient','final_service','financial_instrument'] as RoleName[]:reason==='individual_grant'?['economic_recipient','direct_beneficiary','financial_instrument'] as RoleName[]:determinant;
- const evidence=[...new Set(used.flatMap(n=>known(n)?roles![n]!.evidence_ordinals:[]))];
+ const evidence=[...new Set(used.flatMap(evidenceFor))];
  const result:AnalysisOutput=reason?{...original,classification:'discarded',reasons:[reason],candidates:[],evidence_ordinals:evidence,explanation:reason==='individual_grant'?'Ajuda directa acreditada a una persona física. Exclusió del projecte sustentada en els rols i fragments citats.':'Transferència acreditada entre administracions sense prestació final. Exclusió sustentada en els rols i fragments citats.'}:rule==='unknown_determinant_role'?{...original,classification:'insufficient_evidence',reasons:[],candidates:[],explanation:'No s’han pogut acreditar tots els rols determinants o hi ha contradiccions. Cal completar la documentació abans de classificar.'}:original;
- return {...result,rule_audit:{version:SCOPE_RULES_VERSION,rule,roles:roles??null,evidence_ordinals:evidence},model_conclusion:original};
+ return {...result,rule_audit:{version:SCOPE_RULES_VERSION,rule,roles:roles??null,accredited_roles:Object.keys(accreditations).length?accreditations:null,evidence_ordinals:evidence},model_conclusion:original};
 }

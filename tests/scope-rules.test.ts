@@ -41,3 +41,24 @@ test('PDF line breaks and harmless terminal punctuation preserve literal role ev
  }
  assert.equal(applyScopeRules({...original,classification:'in_portfolio'},f,pdfChunks).classification,'in_portfolio');
 });
+test('exact official service codes and descriptions accredit service and population without accepting invented quotes',()=>{
+ const official=`${text} Annex oficial: 1.2.3.3.2.2 Servei de residència assistida per a gent gran de caràcter temporal o permanent. Grau II.`;
+ const f=roles();
+ f.final_service.quotes=['Resum no literal del servei final'];
+ f.final_population.quotes=['per a la gent gran'];
+ const result=applyScopeRules({...original,classification:'in_portfolio'},f,[{content:official}],{
+  final_service:{kind:'yes',evidence_ordinals:[1],basis:'official_service_code_and_description'},
+  final_population:{kind:'population',evidence_ordinals:[1],basis:'official_service_code_and_description'},
+ });
+ assert.equal(result.classification,'in_portfolio');
+ assert.equal(result.rule_audit.rule,'retain_model');
+ assert.deepEqual(result.rule_audit.evidence_ordinals,[1]);
+});
+test('official service evidence never hides a contradictory determinant role',()=>{
+ const f=roles();f.final_population.state='contradictory';
+ const result=applyScopeRules({...original,classification:'in_portfolio'},f,chunks,{
+  final_population:{kind:'population',evidence_ordinals:[1],basis:'official_service_code_and_description'},
+ });
+ assert.equal(result.classification,'insufficient_evidence');
+ assert.equal(result.rule_audit.rule,'unknown_determinant_role');
+});
