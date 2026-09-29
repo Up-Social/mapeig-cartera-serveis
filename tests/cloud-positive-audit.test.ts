@@ -30,3 +30,15 @@ test('strict audit schema uses literal spans without unsupported quoted/control 
  assert.ok(choices.includes('Centre de suport a persones grans'));
  assert.ok(choices.filter(Boolean).every(text=>content.includes(text)&&!/["\\\p{Cc}\p{Cs}]/u.test(text)));
 });
+
+test('audit choices exclude generic headers and prefer the exact official service annex',()=>{
+ const service={...all[1],service_code:'1.2.3.3.2.2',service_name:'Servei de residència assistida per a gent gran de caràcter temporal o permanent. Grau II'} as OfficialService;
+ const evidence=[
+  {content:'R/N: 21728/CS00210\nResolució de l’expedient: 26-000234-AP'},
+  {content:'1.2.3.3.2.2 Servei de residència assistida per a gent gran de caràcter temporal o permanent. Grau II'},
+ ];
+ const choices=positiveAuditSchema([service.service_code],evidence,[service]).properties.checks.items.properties.quote.enum!;
+ assert.ok(!choices.includes('R/N: 21728/CS00210'));
+ assert.ok(choices.some(choice=>choice.includes('1.2.3.3.2.2')));
+ assert.ok(choices.filter(Boolean).every(choice=>evidence[1].content.includes(choice)));
+});

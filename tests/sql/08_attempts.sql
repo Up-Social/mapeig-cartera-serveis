@@ -22,12 +22,15 @@ begin
   (process_task,(result->>'jobId')||':analysis','{"state":"completed"}'),
   (process_task,(result->>'jobId')||':discovered','{"state":"completed"}'),
   (process_task,(result->>'jobId')||':complete','{"state":"completed"}');
+ insert into cloud_budget_reservations(task_id,item_key,reserved_usd,actual_usd)
+ values(process_task,'ai:'||(result->>'jobId')||':analysis',.02,.01);
  result:=begin_record_operation('aaaaaaaa-0000-4000-8000-000000000001','match');
  match_task:=(result->>'taskId')::uuid;
  if (result->>'newJob')::boolean then raise exception 'Matching created an unnecessary job';end if;
  if not exists(select 1 from cloud_checkpoints where task_id=match_task and item_key=(result->>'jobId')||':analysis') then raise exception 'Reusable checkpoint was not copied';end if;
  if exists(select 1 from cloud_checkpoints where task_id=match_task and item_key like '%:discovered') then raise exception 'Discovery checkpoint leaked into matching';end if;
  if exists(select 1 from cloud_checkpoints where task_id=match_task and item_key like '%:complete') then raise exception 'Completion checkpoint leaked into matching';end if;
+ if not exists(select 1 from cloud_budget_reservations where task_id=match_task and reserved_usd=0 and actual_usd=0) then raise exception 'Reused provider cost was counted twice';end if;
  update worker_tasks set status='completed',completed_at=now() where id=match_task;
  claim:=claim_provider_call((result->>'jobId')::uuid,'matching','hash');
  begin

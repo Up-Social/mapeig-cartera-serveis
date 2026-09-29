@@ -1,5 +1,5 @@
 import test from 'node:test';import assert from 'node:assert/strict';
-import {addNamedCandidates,bindExplicitCodeCandidates} from '../lib/named-candidate';import type {AnalysisOutput} from '../lib/analysis-contract';import type {OfficialService} from '../lib/official-catalog';
+import {addNamedCandidates,bindExplicitCodeCandidates,findExplicitServiceEvidence} from '../lib/named-candidate';import type {AnalysisOutput} from '../lib/analysis-contract';import type {OfficialService} from '../lib/official-catalog';
 const service={service_code:'1.2.7.5',service_name:'Servei prelaboral',benefit_type:'service',legal_reference:'legal',description:'Preparació laboral',target_population:'Persones amb malaltia mental',conditions:'Acreditació',normative_fields:{}} as OfficialService;
 const base:AnalysisOutput={classification:'in_portfolio',reasons:[],explanation:'El document acredita un servei social específic.',service_description:'Modificació de places de serveis prelaborals',target_population:'Persones amb malaltia mental',evidence_ordinals:[1],population_verified:true,social_service_verified:true,candidates:[]};
 test('a named service is proposed only when description and official evidence agree',()=>{
@@ -23,6 +23,7 @@ test('explicit official codes with matching descriptions replace unsupported alt
  assert.deepEqual(result.evidence_ordinals,[1]);
  assert.match(result.explanation,/1\.2\.3\.3\.2\.2/);
  assert.match(result.explanation,/1\.2\.3\.3\.2\.3/);
+ assert.deepEqual(findExplicitServiceEvidence(services,evidence).map(item=>item.service.service_code),['1.2.3.3.2.2','1.2.3.3.2.3']);
 });
 test('a literal code without a matching service description is not sufficient',()=>{
  const value={...base,candidates:[{code:service.service_code,score:.8,population_compatible:true,legal_reference:'legal',evidence_ordinals:[1],rationale:'Candidat inicial acreditat per altres fets.',evidence_explanation:'Descripció del servei acreditada.'}]};

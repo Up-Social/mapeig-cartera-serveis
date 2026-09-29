@@ -11,7 +11,7 @@ import {validateAnalysis,type AnalysisOutput} from '../analysis-contract';
 import {candidatesOnlySchema} from '../pipeline/matching-schema';
 import {loadOfficialCatalog} from '../official-catalog';
 import {applyScopeRules,ROLE_INSTRUCTIONS} from '../scope-rules';
-import {addNamedCandidates,bindExplicitCodeCandidates} from '../named-candidate';
+import {addNamedCandidates,bindExplicitCodeCandidates,findExplicitServiceEvidence} from '../named-candidate';
 import {EVIDENCE_POLICY_VERSION,evidenceRejectionReasons,isEligibleEvidence} from '../evidence-eligibility';
 import {selectEvidenceWindow} from './evidence-window';
 export async function analyzeRecord(c:Context,job:{id:string;source_record_id:string},phase:'enrichment'|'matching'){
@@ -53,7 +53,9 @@ export async function analyzeRecord(c:Context,job:{id:string;source_record_id:st
    await checkpoint(c,`${job.id}:${phase}`,{complete:true,evidence_policy:EVIDENCE_POLICY_VERSION,rejected:rejectedEvidence});
    return;
   }
-  const raw=await providerRequest(c,`ai:${job.id}:matching`,{model,instructions:MATCHING_INSTRUCTIONS,input:buildNormativeInput({...r.data,verified_enrichment:Array.isArray(r.data.record_enrichments)?r.data.record_enrichments[0]:r.data.record_enrichments},catalog.eligible,catalog.all,catalog.version.general_context,chunks),text:{format:{type:'json_schema',name:'analysis',strict:true,schema:candidatesOnlySchema(catalog.eligible.map(service=>service.service_code))}},max_output_tokens:4000});
+  const explicitlyCited=findExplicitServiceEvidence(catalog.eligible,chunks);
+  const promptServices=explicitlyCited.length?explicitlyCited.map(item=>item.service):catalog.eligible;
+  const raw=await providerRequest(c,`ai:${job.id}:matching`,{model,instructions:MATCHING_INSTRUCTIONS,input:buildNormativeInput({...r.data,verified_enrichment:Array.isArray(r.data.record_enrichments)?r.data.record_enrichments[0]:r.data.record_enrichments},promptServices,catalog.all,catalog.version.general_context,chunks),text:{format:{type:'json_schema',name:'analysis',strict:true,schema:candidatesOnlySchema(promptServices.map(service=>service.service_code))}},max_output_tokens:4000});
   await rpc(c.db,'cloud_provider_usage',{...lease(c),p_key:`usage:${job.id}:analysis`,p_usage:raw.usage??{}});
   let result:AnalysisOutput;
   try {result=bindExplicitCodeCandidates(addNamedCandidates(normalizeMissingScope(normalizeCandidates(JSON.parse(extractOutputText(raw)),catalog.all,chunks.length)),catalog.eligible,chunks),catalog.eligible,chunks);}catch {throw new CloudFailure('validation');}
@@ -63,19 +65,27 @@ export async function analyzeRecord(c:Context,job:{id:string;source_record_id:st
    try {const repair=JSON.parse(extractOutputText(repaired));result={...result,classification:repair.classification,reasons:repair.reasons,explanation:repair.explanation,evidence_ordinals:repair.evidence_ordinals};}catch {throw new CloudFailure('validation');}
   }
   try {result=validateAnalysis(result,catalog.all,chunks.length);}catch {throw new CloudFailure('validation');}
+  let auditVersion=POSITIVE_AUDIT_VERSION;
   if(result.classification==='in_portfolio'){
-   if(!await readCheckpoint(c,`${job.id}:audit-ready`)){await checkpoint(c,`${job.id}:audit-ready`,true);throw new CloudYield(1);}
-   const priorAudit=await readCheckpoint<{response?:{usage?:Record<string,unknown>}}>(c,`ai:${job.id}:positive-audit-v1`);
-   if(priorAudit?.response?.usage)await rpc(c.db,'cloud_provider_usage',{...lease(c),p_key:`usage:${job.id}:positive-audit-v1`,p_usage:priorAudit.response.usage});
-   const audit=await providerRequest(c,`ai:${job.id}:${POSITIVE_AUDIT_VERSION}`,{model,instructions:POSITIVE_AUDIT_INSTRUCTIONS,input:positiveAuditInput(result,catalog.all,catalog.version.general_context,chunks),text:{format:{type:'json_schema',name:'positive_audit',strict:true,schema:positiveAuditSchema(result.candidates.map(x=>x.code),chunks)}},max_output_tokens:2000});
-   await rpc(c.db,'cloud_provider_usage',{...lease(c),p_key:`usage:${job.id}:${POSITIVE_AUDIT_VERSION}`,p_usage:audit.usage??{}});
-   try {result=validateAnalysis(bindExplicitCodeCandidates(applyPositiveAudit(result,JSON.parse(extractOutputText(audit)),catalog.all,chunks),catalog.eligible,chunks),catalog.all,chunks.length);}catch {throw new CloudFailure('validation');}
+   const explicitCodes=new Set(explicitlyCited.map(item=>item.service.service_code));
+   const exactOfficialEvidence=result.candidates.length>0&&result.candidates.every(candidate=>explicitCodes.has(candidate.code));
+   if(exactOfficialEvidence){
+    auditVersion='official-code-description-v1';
+   }else{
+    if(!await readCheckpoint(c,`${job.id}:audit-ready`)){await checkpoint(c,`${job.id}:audit-ready`,true);throw new CloudYield(1);}
+    const priorAudit=await readCheckpoint<{response?:{usage?:Record<string,unknown>}}>(c,`ai:${job.id}:positive-audit-v1`);
+    if(priorAudit?.response?.usage)await rpc(c.db,'cloud_provider_usage',{...lease(c),p_key:`usage:${job.id}:positive-audit-v1`,p_usage:priorAudit.response.usage});
+    const candidateServices=result.candidates.map(candidate=>catalog.eligible.find(service=>service.service_code===candidate.code)!).filter(Boolean);
+    const audit=await providerRequest(c,`ai:${job.id}:${POSITIVE_AUDIT_VERSION}`,{model,instructions:POSITIVE_AUDIT_INSTRUCTIONS,input:positiveAuditInput(result,catalog.all,catalog.version.general_context,chunks),text:{format:{type:'json_schema',name:'positive_audit',strict:true,schema:positiveAuditSchema(result.candidates.map(x=>x.code),chunks,candidateServices)}},max_output_tokens:2000});
+    await rpc(c.db,'cloud_provider_usage',{...lease(c),p_key:`usage:${job.id}:${POSITIVE_AUDIT_VERSION}`,p_usage:audit.usage??{}});
+    try {result=validateAnalysis(bindExplicitCodeCandidates(applyPositiveAudit(result,JSON.parse(extractOutputText(audit)),catalog.all,chunks),catalog.eligible,chunks),catalog.all,chunks.length);}catch {throw new CloudFailure('validation');}
+   }
   }
   const enrichment=Array.isArray(r.data.record_enrichments)?r.data.record_enrichments[0]:r.data.record_enrichments;
   const scoped=applyScopeRules(result,enrichment?.scope_facts?.roles,chunks);
   const ruled={...scoped,rule_audit:{...scoped.rule_audit,evidence_policy:{version:EVIDENCE_POLICY_VERSION,rejected:rejectedEvidence}},model_conclusion:JSON.parse(extractOutputText(raw))};
   validateAnalysis(ruled,catalog.all,chunks.length);
-  await commit(c,job.id,'analysis',{version:catalog.version.id,result:ruled,usage:raw.usage,candidates:ruled.candidates.map(candidate=>({...candidate,model,metadata:{response_id:raw.id,usage:raw.usage,positive_audit_version:POSITIVE_AUDIT_VERSION,normalization_version:'catalog-binding-v1'},evidence:candidate.evidence_ordinals.map(n=>chunks[n-1])})),evidence:ruled.evidence_ordinals.map(n=>chunks[n-1])});
+  await commit(c,job.id,'analysis',{version:catalog.version.id,result:ruled,usage:raw.usage,candidates:ruled.candidates.map(candidate=>({...candidate,model,metadata:{response_id:raw.id,usage:raw.usage,positive_audit_version:auditVersion,normalization_version:'catalog-binding-v1'},evidence:candidate.evidence_ordinals.map(n=>chunks[n-1])})),evidence:ruled.evidence_ordinals.map(n=>chunks[n-1])});
  }
  await checkpoint(c,`${job.id}:${phase}`,{complete:true});
 }

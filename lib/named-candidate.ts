@@ -16,12 +16,15 @@ function mentioned(name:string,description:string){
  const pattern=tokens.map(token=>`${token.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')}s?`).join('(?:\\s+|.{1,18})');
  return new RegExp(pattern,'i').test(normalized(description));
 }
-export function bindExplicitCodeCandidates<T extends AnalysisOutput>(value:T,eligible:OfficialService[],chunks:Array<{content:string}>):T{
- if(value.classification!=='in_portfolio')return value;
- const explicit=eligible.flatMap(service=>{
+export function findExplicitServiceEvidence(eligible:OfficialService[],chunks:Array<{content:string}>){
+ return eligible.flatMap(service=>{
   const ordinals=chunks.flatMap((chunk,index)=>hasCode(chunk.content,service.service_code)&&describes(service,chunk.content)?[index+1]:[]);
   return ordinals.length?[{service,ordinals}]:[];
- }).sort((a,b)=>a.ordinals[0]-b.ordinals[0]||a.service.service_code.localeCompare(b.service.service_code)).slice(0,3);
+ }).sort((a,b)=>a.ordinals[0]-b.ordinals[0]||a.service.service_code.localeCompare(b.service.service_code));
+}
+export function bindExplicitCodeCandidates<T extends AnalysisOutput>(value:T,eligible:OfficialService[],chunks:Array<{content:string}>):T{
+ if(value.classification!=='in_portfolio')return value;
+ const explicit=findExplicitServiceEvidence(eligible,chunks).slice(0,3);
  if(!explicit.length)return value;
  const existing=new Map(value.candidates.map(candidate=>[candidate.code,candidate]));
  const candidates=explicit.map(({service,ordinals})=>{
