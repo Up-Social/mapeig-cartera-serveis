@@ -209,6 +209,35 @@ test('batch summary, detail and review form one coherent route',async({page})=>{
  await expect(page.getByRole('link',{name:'Tornar al detall del lot'})).toBeVisible();
 });
 
+test('a background batch updates automatically when it finishes',async({page})=>{
+ const available=await db.from('cloud_resources').update({blocked_kind:null,owner:null,lease_until:null}).eq('name','sandbox');
+ if(available.error)throw available.error;
+ const task=await db.from('worker_tasks').insert({
+  task_type:'process_run',run_id:diagnosticRun,executor:'vercel_workflow',status:'running',execution_state:'running',
+  lease_owner:randomUUID(),lease_until:new Date(Date.now()+60_000).toISOString(),last_progress_at:new Date().toISOString(),
+ }).select('id').single();
+ if(task.error){
+  await db.from('cloud_resources').update({blocked_kind:'vercel_quota',owner:null,lease_until:null}).eq('name','sandbox');
+  throw task.error;
+ }
+ try{
+  await login(page);
+  await expect(page.getByRole('button',{name:new RegExp(`Lot .*En execució.*2 registres`)})).toBeVisible();
+  const completed=await db.from('worker_tasks').update({
+   status:'completed',execution_state:'completed',lease_owner:null,lease_until:null,completed_at:new Date().toISOString(),
+  }).eq('id',task.data.id);
+  if(completed.error)throw completed.error;
+  await expect(page.getByRole('button',{name:new RegExp(`Lot .*Finalitzat amb incidències.*2 registres`)})).toBeVisible({timeout:15_000});
+  await expect(page.getByRole('status')).toContainText('ha finalitzat');
+  await expect(page.getByRole('status')).toContainText('actualitzat automàticament');
+ }finally{
+  const removed=await db.from('worker_tasks').delete().eq('id',task.data.id);
+  if(removed.error)throw removed.error;
+  const restored=await db.from('cloud_resources').update({blocked_kind:'vercel_quota',owner:null,lease_until:null}).eq('name','sandbox');
+  if(restored.error)throw restored.error;
+ }
+});
+
 test('all visible batch actions keep their text contrast on hover',async({page})=>{
  await login(page);
  await expectBatchActionHoverContrast(page);

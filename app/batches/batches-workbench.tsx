@@ -2,6 +2,7 @@
 
 import {failureLabels,type FailureKind} from '@/lib/cloud/errors';
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
 import type { BatchSummary, CloudResourceBlock } from "@/lib/batch-types";
 import { BatchButton, batchButtonVariants } from "@/components/batch-button";
@@ -10,6 +11,7 @@ import {BatchPhaseDialog} from "@/components/batch-phase-dialog";
 import {BatchRerun} from '@/components/batch-rerun';
 
 export function BatchesWorkbench({ batches, activeBatch, cloudBlock }: { batches: BatchSummary[]; activeBatch: BatchSummary | null; cloudBlock: CloudResourceBlock }) {
+  const router = useRouter();
   const [items, setItems] = useState(batches);
   const [resourceBlock, setResourceBlock] = useState(cloudBlock);
   const [openedId, setOpenedId] = useState(activeBatch?.id ?? null);
@@ -18,33 +20,47 @@ export function BatchesWorkbench({ batches, activeBatch, cloudBlock }: { batches
   const [pending, startTransition] = useTransition();
   const [kind, setKind] = useState<"batches"|"operations">(activeBatch?.purpose === "record_operation" ? "operations" : "batches");
   const [statusFilter, setStatusFilter] = useState<"all"|"active"|"attention"|"finished">("all");
-  const opened = items.find((item) => item.id === openedId) ?? activeBatch;
+  const activeBatchIds = items.filter((item) => item.isActive).map((item) => item.id).sort().join(",");
   const updateBatch = (updated: BatchSummary) => setItems((current) => [updated, ...current.filter((item) => item.id !== updated.id)]);
   const visibleItems=items.filter(item=>(kind==="operations"?item.purpose==="record_operation":item.purpose!=="record_operation")&&(
     statusFilter==="all"||(statusFilter==="active"&&item.isActive)||(statusFilter==="attention"&&needsAttention(item))||(statusFilter==="finished"&&!item.isActive&&!needsAttention(item))
   ));
 
   useEffect(() => {
-    if (!opened?.isActive || opened.jobs.length === 0) return;
+    const ids = activeBatchIds ? activeBatchIds.split(",") : [];
+    if (ids.length === 0) return;
     let cancelled = false;
     let attempt = 0;
     let timer: number | undefined;
-    let controller: AbortController | undefined;
+    const controllers = new Set<AbortController>();
     const poll = async () => {
-      if (document.hidden) {
-        timer = window.setTimeout(poll, 10_000);
-        return;
-      }
-      controller = new AbortController();
-      try {
-        const batch = await fetchBatch(opened.id, controller.signal);
-        if (cancelled) return;
+      if (document.hidden || cancelled) return;
+      const results = await Promise.allSettled(ids.map(async (id) => {
+        const controller = new AbortController();
+        controllers.add(controller);
+        try {
+          return await fetchBatch(id, controller.signal);
+        } finally {
+          controllers.delete(controller);
+        }
+      }));
+      if (cancelled) return;
+      const refreshed = results.flatMap((result) => result.status === "fulfilled" ? [result.value] : []);
+      const failures = results.filter((result) => result.status === "rejected" && !isAbortError(result.reason));
+      if (refreshed.length > 0) {
         setMessage("");
-        setItems((current) => [batch, ...current.filter((item) => item.id !== batch.id)]);
-        if (!batch.isActive) return;
-      } catch (error) {
-        if (!cancelled && !isAbortError(error)) setMessage(error instanceof Error ? error.message : "No s'ha pogut actualitzar el lot.");
+        const byId = new Map(refreshed.map((batch) => [batch.id, batch]));
+        setItems((current) => current.map((item) => byId.get(item.id) ?? item));
+        const finished = refreshed.filter((batch) => !batch.isActive);
+        if (finished.length > 0) {
+          const labels = finished.map((batch) => `lot ${batch.batchNumber}`).join(", ");
+          const verb = finished.length === 1 ? "ha finalitzat" : "han finalitzat";
+          setMessage(`${labels.charAt(0).toUpperCase()}${labels.slice(1)} ${verb}. La informació de la pàgina s’ha actualitzat automàticament.`);
+          router.refresh();
+        }
       }
+      if (failures.length === results.length) setMessage("No s'ha pogut actualitzar l'estat dels lots en curs. Es tornarà a provar automàticament.");
+      if (refreshed.length === ids.length && refreshed.every((batch) => !batch.isActive)) return;
       attempt += 1;
       timer = window.setTimeout(poll, Math.min(15_000, 2_000 * 2 ** Math.min(attempt, 3)));
     };
@@ -57,8 +73,8 @@ export function BatchesWorkbench({ batches, activeBatch, cloudBlock }: { batches
     };
     document.addEventListener("visibilitychange", resumeWhenVisible);
     void poll();
-    return () => { cancelled = true; controller?.abort(); if (timer) window.clearTimeout(timer); document.removeEventListener("visibilitychange", resumeWhenVisible); };
-  }, [opened?.id, opened?.isActive, opened?.jobs.length]);
+    return () => { cancelled = true; for (const controller of controllers) controller.abort(); if (timer) window.clearTimeout(timer); document.removeEventListener("visibilitychange", resumeWhenVisible); };
+  }, [activeBatchIds, router]);
 
   useEffect(() => {
     if (!openedId) return;
