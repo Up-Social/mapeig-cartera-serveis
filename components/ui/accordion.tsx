@@ -71,7 +71,7 @@ function AccordionTrigger({
         data-slot="accordion-trigger"
         className={cn(
           "group/accordion-trigger relative flex flex-1 items-start justify-between rounded-lg border border-transparent py-2.5 text-left text-sm font-medium transition-all outline-none hover:underline focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:after:border-ring aria-disabled:pointer-events-none aria-disabled:opacity-50 **:data-[slot=accordion-trigger-icon]:ml-auto **:data-[slot=accordion-trigger-icon]:size-4 **:data-[slot=accordion-trigger-icon]:text-muted-foreground",
-          trailingAction && "pr-36",
+          trailingAction && "pr-44 **:data-[slot=accordion-trigger-icon]:absolute **:data-[slot=accordion-trigger-icon]:right-3 **:data-[slot=accordion-trigger-icon]:top-1/2 **:data-[slot=accordion-trigger-icon]:-translate-y-1/2",
           className
         )}
         {...props}
@@ -81,7 +81,7 @@ function AccordionTrigger({
         <ChevronUpIcon data-slot="accordion-trigger-icon" className="pointer-events-none hidden shrink-0 group-aria-expanded/accordion-trigger:inline" />
       </AccordionPrimitive.Trigger>
       {trailingAction && (
-        <div className="absolute right-8 top-2.5 z-10">
+        <div className="absolute right-10 top-2.5 z-10">
           {trailingAction}
         </div>
       )}
