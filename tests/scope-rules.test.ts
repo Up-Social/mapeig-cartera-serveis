@@ -30,3 +30,14 @@ test('peripheral ellipses do not invalidate an otherwise literal role quote',()=
  for(const fact of Object.values(f))fact.quotes=[`... ${text} ...`];
  assert.equal(applyScopeRules(original,f,chunks).classification,'out_of_portfolio');
 });
+test('PDF line breaks and harmless terminal punctuation preserve literal role evidence',()=>{
+ const quote='Resolució per a la provisió directa de 25 places de la Xarxa de Serveis Socials d’Atenció Pública';
+ const pdfChunks=[{content:`Document oficial. Resolució per a la provisió directa de 25 places de la Xarxa de\nServeis Socials d’Atenció Pública, en règim de concert social.`}];
+ const f=roles();
+ for(const role of ['financed_object','final_population','final_service'] as const){
+  f[role].value=quote;
+  f[role].evidence_ordinals=[1];
+  f[role].quotes=[`${quote}.`];
+ }
+ assert.equal(applyScopeRules({...original,classification:'in_portfolio'},f,pdfChunks).classification,'in_portfolio');
+});
