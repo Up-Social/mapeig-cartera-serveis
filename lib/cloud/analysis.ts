@@ -87,6 +87,10 @@ export async function analyzeRecord(c:Context,job:{id:string;source_record_id:st
    final_service:{kind:'yes',evidence_ordinals:exactOrdinals,basis:'official_service_code_and_description'},
    final_population:{kind:'population',evidence_ordinals:exactOrdinals,basis:'official_service_code_and_description'},
   }:{};
+  const financedObject=enrichment?.scope_facts?.roles?.financed_object;
+  if(exactOfficialEvidence&&financedObject?.state==='known'&&financedObject.kind==='service_financing'){
+   accreditations.financed_object={kind:'service_financing',evidence_ordinals:exactOrdinals,basis:'official_service_code_and_description'};
+  }
   const scoped=applyScopeRules(result,enrichment?.scope_facts?.roles,chunks,accreditations);
   const ruled={...scoped,rule_audit:{...scoped.rule_audit,evidence_policy:{version:EVIDENCE_POLICY_VERSION,rejected:rejectedEvidence}},model_conclusion:JSON.parse(extractOutputText(raw))};
   validateAnalysis(ruled,catalog.all,chunks.length);

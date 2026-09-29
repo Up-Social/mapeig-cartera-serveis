@@ -44,9 +44,11 @@ test('PDF line breaks and harmless terminal punctuation preserve literal role ev
 test('exact official service codes and descriptions accredit service and population without accepting invented quotes',()=>{
  const official=`${text} Annex oficial: 1.2.3.3.2.2 Servei de residència assistida per a gent gran de caràcter temporal o permanent. Grau II.`;
  const f=roles();
+ f.financed_object.quotes=['Resolució resumida però no literal'];
  f.final_service.quotes=['Resum no literal del servei final'];
  f.final_population.quotes=['per a la gent gran'];
  const result=applyScopeRules({...original,classification:'in_portfolio'},f,[{content:official}],{
+  financed_object:{kind:'service_financing',evidence_ordinals:[1],basis:'official_service_code_and_description'},
   final_service:{kind:'yes',evidence_ordinals:[1],basis:'official_service_code_and_description'},
   final_population:{kind:'population',evidence_ordinals:[1],basis:'official_service_code_and_description'},
  });
