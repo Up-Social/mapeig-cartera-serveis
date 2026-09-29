@@ -5,8 +5,8 @@ export function enrichmentSchema() { return { type: "object", additionalProperti
 function normalized(value:string){return value.normalize('NFD').replace(/\p{Diacritic}/gu,'').toLocaleLowerCase('ca').replace(/[^a-z0-9]+/g,' ').trim();}
 function supportedRoleValue(role:RoleFact|undefined,chunks:Array<{content:string}>){
  if(!role||role.state!=='known'||!role.value?.trim()||!Array.isArray(role.evidence_ordinals))return null;
- const expected=normalized(role.value);
- return role.evidence_ordinals.some(ordinal=>normalized(chunks[ordinal-1]?.content??'').includes(expected))?role.value.trim():null;
+ const expected=[...new Set(normalized(role.value).split(/\s+/).filter(token=>token.length>=2))];
+ return expected.length&&role.evidence_ordinals.some(ordinal=>{const content=new Set(normalized(chunks[ordinal-1]?.content??'').split(/\s+/));return expected.every(token=>content.has(token));})?role.value.trim():null;
 }
 export function bindEnrichmentRoles(value:Enrichment,chunks:Array<{content:string}>):Enrichment{
  const roles=value.scope_facts?.roles;

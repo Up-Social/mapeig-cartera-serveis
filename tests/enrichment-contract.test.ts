@@ -10,7 +10,7 @@ const enrichment={
 } as Enrichment;
 
 test('the evidenced service provider replaces the financing administration',()=>{
- const result=bindEnrichmentRoles(enrichment,[{content:'Resolució del Departament.'},{content:'Entitat: Colisée Care, SL. Servei de residència assistida.'}]);
+ const result=bindEnrichmentRoles(enrichment,[{content:'Resolució del Departament.'},{content:'Colisée D/2510002 La Saleta B966485 temporal 260034126 Care, SL. Servei de residència assistida.'}]);
  assert.equal(result.provider_name,'Colisée Care, SL');
 });
 
