@@ -29,15 +29,15 @@ export async function getSourcePage(input: { page: number; query: string; type: 
     const safe = input.query.replaceAll(/[,%()]/g, " ").trim();
     request = request.or(`title.ilike.%${safe}%,source_record_id.ilike.%${safe}%,provider_name.ilike.%${safe}%`);
   }
-  const [{ data, error, count }, [all, latestJobMetrics]] = await Promise.all([
-    request.order("updated_at", { ascending: false }).order("id").range(from, from + PAGE_SIZE - 1),
-    Promise.all([countRows(), getLatestJobMetrics()]),
-  ]);
+  const { data, error, count } = await request.order("updated_at", { ascending: false }).order("id").range(from, from + PAGE_SIZE - 1);
   if (error) throw error;
   const total = count ?? 0;
   const projected = data?.length ? await supabase.from('current_record_results').select('id,execution_status').in('id', data.map(row=>row.id)) : {data:[],error:null};
   if (projected.error) throw projected.error;
   const executionStatuses = new Map((projected.data??[]).map(row=>[row.id,row.execution_status]));
+  const [all, latestJobMetrics] = await Promise.all([
+    countRows(), getLatestJobMetrics(),
+  ]);
   return {
     records: (data ?? []).map(row => ({ id: row.id, title: row.title, sourceDataset: row.source_dataset, sourceRecordId: row.source_record_id, providerName: row.provider_name, financingType: row.financing_type, status: executionStatuses.get(row.id)==='error'?'error':row.processing_status, batchNumber: mapLatestRun(row.pipeline_jobs)?.number ?? null })), total, page: input.page,
     pageCount: Math.max(1, Math.ceil(total / PAGE_SIZE)), pageSize: PAGE_SIZE,
@@ -75,13 +75,9 @@ async function countRows(status?: ProcessingStatus) {
 
 async function getLatestJobMetrics() {
   const db=createServerSupabase();
-  const [navigation,processing]=await Promise.all([
-    db.rpc('navigation_counts'),
-    db.from('current_record_results').select('id',{count:'exact',head:true}).eq('destination','processing'),
-  ]);
-  if(navigation.error)throw navigation.error;if(processing.error)throw processing.error;
-  const counts=(navigation.data??{}) as {approved?:number;review?:number};
-  return {queued:processing.count??0,completed:Number(counts.approved??0),review:Number(counts.review??0)};
+  const count=async(destination:string)=>{const r=await db.from('current_record_results').select('id',{count:'exact',head:true}).eq('destination',destination);if(r.error)throw r.error;return r.count??0;};
+  const [queued,completed,review]=await Promise.all([count('processing'),count('approved'),count('review')]);
+  return {queued,completed,review};
 }
 
 export function mapRecord(row: Record<string, unknown>): SourceRecord {

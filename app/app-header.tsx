@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { BookOpen, CheckSquare, CircleHelp, Database, FileCheck2, Layers3, LogOut, Menu, PanelLeftClose, PanelLeftOpen, Settings2, TriangleAlert, Waypoints } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetClose, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
@@ -22,9 +22,7 @@ const links = [
 export function AppHeader({ collapsed, onToggleCollapsed }: { collapsed: boolean; onToggleCollapsed: () => void }) {
   const pathname = usePathname();
   const [counts, setCounts] = useState<NavigationCounts | null>(null);
-  const lastCountRefresh = useRef(0);
   const refreshCounts = useCallback(async () => {
-    lastCountRefresh.current = Date.now();
     try {
       const response = await fetch("/api/navigation-counts", { cache: "no-store" });
       if (response.ok) setCounts((await response.json()) as NavigationCounts);
@@ -34,19 +32,10 @@ export function AppHeader({ collapsed, onToggleCollapsed }: { collapsed: boolean
   }, []);
 
   useEffect(() => {
-    if (window.location.pathname === "/login") return;
+    if (pathname === "/login") return;
     const timer = window.setTimeout(() => void refreshCounts(), 0);
-    const refreshIfStale = () => {
-      if (document.visibilityState === "visible" && Date.now() - lastCountRefresh.current >= 60_000) void refreshCounts();
-    };
-    window.addEventListener("focus", refreshIfStale);
-    document.addEventListener("visibilitychange", refreshIfStale);
-    return () => {
-      window.clearTimeout(timer);
-      window.removeEventListener("focus", refreshIfStale);
-      document.removeEventListener("visibilitychange", refreshIfStale);
-    };
-  }, [refreshCounts]);
+    return () => window.clearTimeout(timer);
+  }, [pathname, refreshCounts]);
 
   useEffect(() => {
     window.addEventListener("navigation-counts:refresh", refreshCounts);
