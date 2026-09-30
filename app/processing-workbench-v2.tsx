@@ -55,7 +55,7 @@ export function ProcessingWorkbench({
 
   return (
     <main className="page-shell">
-      <section className="page-container page-container-fluid">
+      <section className="page-container">
         <div className="mb-5"><p className="page-eyebrow">Font i procés</p><h1 className="page-title">Registres</h1><p className="page-description">Localitza un registre, consulta el resultat i segueix-ne la fase actual.</p></div>
         {cloudBlock&&<section role="alert" className="mb-5 rounded-xl border-2 border-neutral-900 bg-neutral-100 p-4"><p className="font-semibold">Processament temporalment aturat</p><p className="mt-1 text-sm">{cloudBlock.label}. Pots consultar els registres, però no iniciar un procés nou.</p></section>}
         <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
