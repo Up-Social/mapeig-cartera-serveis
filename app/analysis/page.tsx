@@ -2,7 +2,7 @@ import { AutoFilterForm } from "@/components/auto-filter-form";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentResults } from "@/lib/current-results";
-import { WorkPager, WorkTable } from "@/components/work-list";
+import { TableActionLink, WorkPager, WorkTable } from "@/components/work-list";
 
 export default async function AnalysisPage({ searchParams }: PageProps<"/analysis">) {
   const params = await searchParams;
@@ -16,7 +16,7 @@ export default async function AnalysisPage({ searchParams }: PageProps<"/analysi
     <AutoFilterForm className="surface flex flex-wrap gap-3 p-4"><input className="form-text flex-1" name="q" aria-label="Cercar casos" placeholder="Títol, registre o entitat…" defaultValue={query}/><button className="rounded-md bg-primary px-4 text-sm text-primary-foreground">Filtrar</button>{query && <Link className="self-center text-sm underline" href="/analysis">Netejar filtres</Link>}</AutoFilterForm>
     <a className="inline-block text-sm underline" href="/api/exports/outside">Exportar casos revisats fora de cartera</a>
     <WorkTable headings={["Cas", "Servei identificat", "Entitat", "Revisió", "Acció"]} empty={rows.length ? undefined : "No hi ha casos fora de cartera amb aquests filtres."}>
-      {rows.map(row => <tr key={row.id}><td data-label="Cas"><Link className="font-semibold underline underline-offset-2" href={`/records/${row.id}?${new URLSearchParams({ from: origin, ...(row.job_id ? { job: row.job_id } : {}) })}`}>{row.title}</Link><p className="mt-1 text-xs text-muted-foreground">{row.source_record_id}</p></td><td data-label="Servei identificat">{row.service_description ?? "—"}</td><td data-label="Entitat">{row.provider_name ?? "No informada"}</td><td data-label="Revisió"><span className={`rounded-md border px-2 py-1 text-xs ${row.human_reviewed ? "status-neutral" : "status-warning"}`}>{row.human_reviewed ? "Revisat" : "Pendent"}</span></td><td data-label="Acció"><Link className="inline-block rounded-md border px-3 py-2 text-sm" href={`/records/${row.id}?${new URLSearchParams({ from: origin, ...(row.job_id ? { job: row.job_id } : {}) })}`}>Veure cas</Link></td></tr>)}
+      {rows.map(row => { const href = `/records/${row.id}?${new URLSearchParams({ from: origin, ...(row.job_id ? { job: row.job_id } : {}) })}`; return <tr key={row.id}><td data-label="Cas"><Link className="font-semibold underline underline-offset-2" href={href}>{row.title}</Link><p className="mt-1 text-xs text-muted-foreground">{row.source_record_id}</p></td><td data-label="Servei identificat">{row.service_description ?? "—"}</td><td data-label="Entitat">{row.provider_name ?? "No informada"}</td><td data-label="Revisió"><span className={`table-status ${row.human_reviewed ? "status-neutral" : "status-warning"}`}>{row.human_reviewed ? "Revisat" : "Pendent"}</span></td><td data-label="Acció"><TableActionLink href={href} label={`Veure el cas ${row.title}`}/></td></tr>})}
     </WorkTable><WorkPager href={next => `/analysis?${new URLSearchParams({ ...(query ? { q: query } : {}), page: String(next) })}`} page={page} pageCount={pageCount} total={total}/>
   </section></main>;
 }

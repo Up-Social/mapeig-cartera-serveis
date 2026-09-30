@@ -1,11 +1,16 @@
 import Link from "next/link";
+import { Eye } from "lucide-react";
 import type { ReactNode } from "react";
 
-export function WorkTable({ headings, children, empty }: { headings: string[]; children: ReactNode; empty?: string }) {
+export function WorkTable({ headings, children, empty, className = "" }: { headings: string[]; children: ReactNode; empty?: string; className?: string }) {
   return <div className="surface overflow-hidden">
-    <table className="data-table responsive-table"><thead><tr>{headings.map((heading) => <th key={heading} scope="col">{heading}</th>)}</tr></thead><tbody>{children}</tbody></table>
+    <div className="overflow-x-auto"><table className={`data-table responsive-table ${className}`}><thead><tr>{headings.map((heading) => <th key={heading} scope="col">{heading}</th>)}</tr></thead><tbody>{children}</tbody></table></div>
     {empty && <p className="p-8 text-center text-sm text-muted-foreground">{empty}</p>}
   </div>;
+}
+
+export function TableActionLink({ href, label, children = "Veure" }: { href: string; label: string; children?: ReactNode }) {
+  return <Link aria-label={label} title={label} className="table-action" href={href}><Eye aria-hidden="true" className="size-3.5 shrink-0"/><span>{children}</span></Link>;
 }
 
 export function WorkPager({ href, page, pageCount, total, pageSize = 25 }: { href: (page: number) => string; page: number; pageCount: number; total: number; pageSize?: number }) {

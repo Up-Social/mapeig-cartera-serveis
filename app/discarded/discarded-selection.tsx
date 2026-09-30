@@ -5,7 +5,7 @@ import { Dialog } from "@base-ui/react/dialog";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
-import { WorkTable } from "@/components/work-list";
+import { TableActionLink, WorkTable } from "@/components/work-list";
 import { DISCARD_REASON_LABELS } from "@/lib/review-contract";
 import { FINANCING_TYPE_LABELS } from "@/lib/financing-types";
 
@@ -66,9 +66,9 @@ export function DiscardedSelection({ rows, origin }: { rows: SelectableDiscard[]
         <td data-label="Seleccionar"><input type="checkbox" className="size-4 accent-black" aria-label={`Seleccionar ${row.source_record_id}`} disabled={pending} checked={selected.includes(row.id)} onChange={event => toggle(row.id, event.target.checked)}/></td>
         <td data-label="Cas"><Link className="font-semibold underline underline-offset-2" href={`/records/${row.id}?${new URLSearchParams({ from: origin, job: row.job_id })}`}>{row.title}</Link><p className="mt-1 text-xs text-muted-foreground">{row.source_record_id} · {FINANCING_TYPE_LABELS[row.financing_type as keyof typeof FINANCING_TYPE_LABELS] ?? row.financing_type}</p></td>
         <td data-label="Motiu">{row.reasons?.map(reason => DISCARD_REASON_LABELS[reason] ?? reason).join(", ") || "Motiu no registrat"}</td>
-        <td data-label="Revisió"><span className={`rounded-md border px-2 py-1 text-xs ${row.human_reviewed ? "status-neutral" : "status-warning"}`}>{row.human_reviewed ? "Validat" : "Pendent"}</span></td>
+        <td data-label="Revisió"><span className={`table-status ${row.human_reviewed ? "status-neutral" : "status-warning"}`}>{row.human_reviewed ? "Validat" : "Pendent"}</span></td>
         <td data-label="Lot">{row.batch_number ?? "—"}</td>
-        <td data-label="Acció"><Link className="inline-block rounded-md border px-3 py-2 text-sm font-medium" href={`/records/${row.id}?${new URLSearchParams({ from: origin, job: row.job_id })}`}>Veure cas</Link></td>
+        <td data-label="Acció"><TableActionLink href={`/records/${row.id}?${new URLSearchParams({ from: origin, job: row.job_id })}`} label={`Veure el cas ${row.title}`}/></td>
       </tr>)}
     </WorkTable>
   </section>;

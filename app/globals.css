@@ -154,13 +154,13 @@ textarea:focus-visible {
     @apply h-10 w-full min-w-0 rounded-md border border-input bg-background px-3 text-sm outline-none focus:border-ring focus:ring-2 focus:ring-ring/20;
   }
   .data-table {
-    @apply w-full border-collapse text-left text-sm;
+    @apply w-full border-collapse text-left;
   }
   .data-table th {
-    @apply border-b bg-muted/40 px-4 py-3 font-semibold text-muted-foreground;
+    @apply border-b bg-muted/40 px-3 py-2.5 text-xs font-semibold text-muted-foreground;
   }
   .data-table td {
-    @apply border-b px-4 py-4 align-top;
+    @apply border-b px-3 py-3 align-top;
   }
   .data-table tbody tr:hover {
     @apply bg-muted/20;
@@ -169,10 +169,33 @@ textarea:focus-visible {
   .status-warning { @apply border-amber-300 bg-amber-50 text-amber-900; }
   .status-success { @apply border-green-300 bg-green-50 text-green-900; }
   .status-neutral { @apply border-border bg-muted/50 text-foreground; }
+  .table-status {
+    @apply inline-flex max-w-full items-center rounded-md border px-2 py-1 text-xs leading-4;
+    overflow-wrap: anywhere;
+  }
+  .table-action {
+    @apply inline-flex items-center gap-1.5 whitespace-nowrap rounded-md border px-2.5 py-1.5 text-xs font-medium leading-4 transition-colors hover:bg-muted;
+  }
+}
+
+@media (min-width: 768px) {
+  .data-table {
+    min-width: 52rem;
+    font-size: 0.8125rem;
+    line-height: 1.25rem;
+  }
+  .issues-table {
+    min-width: 60rem;
+    table-layout: fixed;
+  }
+  .issues-table th:nth-child(2) { width: 11.5rem; }
+  .issues-table th:nth-child(3) { width: 6.5rem; }
+  .issues-table th:nth-child(4) { width: 8rem; }
+  .issues-table th:nth-child(5) { width: 6.75rem; }
 }
 
 @media (max-width: 767px) {
-  .responsive-table, .responsive-table tbody, .responsive-table tr, .responsive-table td { display: block; width: 100%; }
+  .responsive-table, .responsive-table tbody, .responsive-table tr, .responsive-table td { display: block; width: 100%; min-width: 0; }
   .responsive-table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
   .responsive-table tr { border-bottom: 1px solid var(--border); padding: 0.5rem 0; }
   .responsive-table td { border: 0; padding: 0.3rem 1rem; }

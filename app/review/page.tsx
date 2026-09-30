@@ -5,7 +5,7 @@ import { getReviewList } from "@/lib/review-list";
 import { FINANCING_TYPES, FINANCING_TYPE_LABELS } from "@/lib/financing-types";
 import { CLASSIFICATION_LABELS, type Classification } from "@/lib/analysis-contract";
 import { isUuid } from "@/lib/uuid";
-import { WorkPager, WorkTable } from "@/components/work-list";
+import { TableActionLink, WorkPager, WorkTable } from "@/components/work-list";
 
 export default async function ReviewPage({ searchParams }: PageProps<"/review">) {
   const params = await searchParams;
@@ -40,7 +40,7 @@ export default async function ReviewPage({ searchParams }: PageProps<"/review">)
       {(filters.query || filters.type !== "totes" || filters.state !== "pending") && <Link className="text-sm underline" href={filters.batchId ? `/review?batch=${filters.batchId}` : "/review"}>Netejar filtres</Link>}
     </AutoFilterForm>
     <WorkTable headings={["Cas", "Proposta", "Revisió", "Lot", "Acció"]} empty={result.rows.length ? undefined : "No hi ha casos amb aquests filtres."}>
-      {result.rows.map(row => <tr key={row.id}><td data-label="Cas"><Link className="font-semibold underline underline-offset-2" href={caseHref(row.id, row.jobId)}>{row.title}</Link><p className="mt-1 text-xs text-muted-foreground">{row.sourceId} · {row.provider ?? "Entitat no informada"} · {FINANCING_TYPE_LABELS[row.type as keyof typeof FINANCING_TYPE_LABELS] ?? row.type}</p></td><td data-label="Proposta">{CLASSIFICATION_LABELS[row.classification as Classification] ?? "Sense proposta"}</td><td data-label="Revisió"><span className={`rounded-md border px-2 py-1 text-xs ${row.destination === "review" ? "status-warning" : "status-neutral"}`}>{row.destination === "review" ? "Pendent de revisió" : "Resultat disponible"}</span></td><td data-label="Lot">{row.batchNumber ?? "—"}</td><td data-label="Acció"><Link className="inline-block rounded-md border px-3 py-2 font-medium" href={caseHref(row.id, row.jobId)}>Analitzar</Link></td></tr>)}
+      {result.rows.map(row => { const href = caseHref(row.id, row.jobId); return <tr key={row.id}><td data-label="Cas"><Link className="font-semibold underline underline-offset-2" href={href}>{row.title}</Link><p className="mt-1 text-xs text-muted-foreground">{row.sourceId} · {row.provider ?? "Entitat no informada"} · {FINANCING_TYPE_LABELS[row.type as keyof typeof FINANCING_TYPE_LABELS] ?? row.type}</p></td><td data-label="Proposta">{CLASSIFICATION_LABELS[row.classification as Classification] ?? "Sense proposta"}</td><td data-label="Revisió"><span className={`table-status ${row.destination === "review" ? "status-warning" : "status-neutral"}`}>{row.destination === "review" ? "Pendent de revisió" : "Resultat disponible"}</span></td><td data-label="Lot">{row.batchNumber ?? "—"}</td><td data-label="Acció"><TableActionLink href={href} label={`Analitzar el cas ${row.title}`}>Analitzar</TableActionLink></td></tr>})}
     </WorkTable><WorkPager href={page => `/review?${new URLSearchParams({ ...Object.fromEntries(list), page: String(page) })}`} page={result.page} pageCount={result.pageCount} total={result.total} />
   </section></main>;
 }

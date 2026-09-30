@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState, useTransition } from "react";
-import { WorkTable } from "@/components/work-list";
+import { TableActionLink, WorkTable } from "@/components/work-list";
 import type {
   ProcessingStatus,
   SourceListPage,
@@ -114,8 +114,8 @@ export function ProcessingWorkbench({
               {records.map(record => { const href = `/records/${record.id}?${new URLSearchParams({ from: `/?${new URLSearchParams({ q: filters.query, type: filters.type, page: String(filters.page) })}` })}`; return <tr key={record.id}>
                 <td data-label="Cas i font"><Link href={href} className="font-semibold underline underline-offset-2">{record.title}</Link><p className="mt-1 break-words text-xs text-muted-foreground">{record.sourceRecordId} · {SOURCE_LABELS[record.sourceDataset] ?? record.sourceDataset}</p></td>
                 <td data-label="Entitat">{record.providerName ?? "No informada"}</td><td data-label="Tipologia">{FINANCING_TYPE_LABELS[record.financingType]}</td>
-                <td data-label="Estat"><span className={`rounded-md border px-2 py-1 text-xs ${record.status === "error" ? "status-error" : record.status === "revisio" || record.status === "sense_evidencia" ? "status-warning" : record.status === "completat" ? "status-success" : "status-neutral"}`}>{statusLabels[record.status]}</span></td>
-                <td data-label="Lot">{record.batchNumber ?? "—"}</td><td data-label="Acció"><Link href={href} className="inline-block rounded-md border px-3 py-2 text-sm">Obrir cas</Link></td>
+                <td data-label="Estat"><span className={`table-status ${record.status === "error" ? "status-error" : record.status === "revisio" || record.status === "sense_evidencia" ? "status-warning" : record.status === "completat" ? "status-success" : "status-neutral"}`}>{statusLabels[record.status]}</span></td>
+                <td data-label="Lot">{record.batchNumber ?? "—"}</td><td data-label="Acció"><TableActionLink href={href} label={`Obrir el cas ${record.title}`}/></td>
               </tr>; })}
             </WorkTable>
             <Pagination result={result} filters={filters} />
