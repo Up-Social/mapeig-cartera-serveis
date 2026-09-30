@@ -45,6 +45,16 @@ test("classifies the current matching error", () => {
   assert.equal(issue?.retryOperation, "match");
 });
 
+test('paused workers expose an incident even when the job still says matching', () => {
+  const paused={...record,currentJobStatus:'matching',status:'preparat' as const,matchingError:null,operationProgress:{state:'incident' as const,step:'matching' as const,completed:0,total:1,detail:'private provider response must not be used',startedAt:'2026-09-30',lastActivityAt:'2026-09-30',finishedAt:null,attempts:1,failureKind:'provider_unknown'}};
+  const result=classifyIssue(paused);
+  assert.equal(result?.category,'matching_error');
+  assert.equal(result?.retryOperation,null);
+  assert.match(result?.message??'',/Cal revisió abans de repetir/);
+  assert.doesNotMatch(result?.message??'',/private provider/);
+  assert.equal(classifyIssue({...paused,currentJobStatus:'approved',status:'completat',reviewDecision:'approved'}),null);
+});
+
 test("human decisions take precedence over technical history", () => {
   const issue = classifyIssue({
     ...record,

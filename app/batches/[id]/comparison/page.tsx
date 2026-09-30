@@ -1,11 +1,17 @@
-import Link from 'next/link';
-import {notFound} from 'next/navigation';
-import {getComparisonReport} from '@/lib/comparison-report';
-import {isUuid} from '@/lib/uuid';
-import {CLASSIFICATION_LABELS} from '@/lib/analysis-contract';
-import {batchButtonVariants} from '@/components/batch-button';
-const classificationLabel=(value:unknown,fallback:string)=>typeof value==='string'?(CLASSIFICATION_LABELS[value as keyof typeof CLASSIFICATION_LABELS]??value):fallback;
-export default async function Comparison({params}:{params:Promise<{id:string}>}){
- const {id}=await params;if(!isUuid(id))notFound();const report=await getComparisonReport(id);if(!report)notFound();
- return <main className="mx-auto max-w-6xl space-y-5 p-5"><Link className={batchButtonVariants({size:'sm'})} href={`/batches/${id}/results`}>Resultats del lot</Link><h1 className="text-2xl font-semibold">Comparació del lot {report.run.batch_number}</h1><Link className={batchButtonVariants({size:'sm'})} href={`/batches/${report.run.comparison_of}/results`}>Consultar lot origen</Link><p>{report.total} registres · {report.classificationChanges} canvis de classificació · {report.codeChanges} canvis de codi · {report.pendingHumanReview} revisions pendents</p><p>Les propostes automàtiques no substitueixen les decisions humanes anteriors. Dades no registrades: no disponibles; mai equivalents a zero.</p><a className={batchButtonVariants({size:'sm'})} href={`/api/batches/${id}/comparison`}>Descarregar informe JSON complet</a>{report.records.map(r=><article key={r.recordId} className="space-y-2 rounded border p-4"><h2 className="break-all font-semibold">{r.recordId}</h2><p>Automàtica: {classificationLabel(r.origin.classification,'No disponible')} → {classificationLabel(r.current.classification,'Pendent')}</p><p>Decisió humana anterior: {classificationLabel(r.origin.humanClassification,'Pendent')} · Revisió nova: {r.humanReviewPending?'Pendent':'Revisat'}</p><p>Durada: {r.origin.durationSeconds??'No disponible'} → {r.current.durationSeconds??'No disponible'} · Cost: no disponible</p><Link className={batchButtonVariants({size:'sm',selected:true})} href={`/review?state=all&batch=${id}&record=${r.recordId}&job=${r.jobId}`}>Revisar treball nou</Link><details><summary>Evidència, documents, codis, fases i ús disponible</summary><pre className="overflow-auto whitespace-pre-wrap break-all text-xs">{JSON.stringify({origin:r.origin,current:r.current},null,2)}</pre></details></article>)}</main>;
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { getComparisonReport } from "@/lib/comparison-report";
+import { isUuid } from "@/lib/uuid";
+import { CLASSIFICATION_LABELS } from "@/lib/analysis-contract";
+import { WorkTable } from "@/components/work-list";
+
+const label = (value: unknown, fallback: string) => typeof value === "string" ? CLASSIFICATION_LABELS[value as keyof typeof CLASSIFICATION_LABELS] ?? value : fallback;
+export default async function Comparison({ params }: PageProps<"/batches/[id]/comparison">) {
+  const { id } = await params;
+  if (!isUuid(id)) notFound();
+  const report = await getComparisonReport(id);
+  if (!report) notFound();
+  return <main className="page-shell"><section className="page-container space-y-5"><Link className="text-sm underline" href={`/batches/${id}`}>← Tornar al lot</Link><div><p className="page-eyebrow">Anàlisi comparativa</p><h1 className="page-title">Comparació del lot {report.run.batch_number}</h1><p className="page-description">{report.total} registres · {report.classificationChanges} canvis de classificació · {report.codeChanges} canvis de codi · {report.pendingHumanReview} revisions pendents.</p></div><p className="status-warning rounded-md border p-3 text-sm">Les propostes noves requereixen revisió humana. Les decisions anteriors es conserven.</p><div className="flex flex-wrap gap-4 text-sm"><Link className="underline" href={`/batches/${report.run.comparison_of}/results`}>Consultar lot origen</Link><a className="underline" href={`/api/batches/${id}/comparison`}>Descarregar informe JSON complet</a></div>
+    <WorkTable headings={["Registre", "Classificació anterior", "Classificació nova", "Decisió humana anterior", "Revisió nova", "Acció"]}>{report.records.map(row => <tr key={`${row.recordId}-${row.jobId}`}><td data-label="Registre" className="break-all">{row.recordId}</td><td data-label="Classificació anterior">{label(row.origin.classification, "No disponible")}</td><td data-label="Classificació nova">{label(row.current.classification, "Pendent")}</td><td data-label="Decisió humana anterior">{label(row.origin.humanClassification, "Pendent")}</td><td data-label="Revisió nova"><span className={`rounded-md border px-2 py-1 text-xs ${row.humanReviewPending ? "status-warning" : "status-success"}`}>{row.humanReviewPending ? "Pendent" : "Revisat"}</span></td><td data-label="Acció"><Link className="inline-block rounded-md border px-3 py-2 text-sm" href={`/records/${row.recordId}?${new URLSearchParams({ job: row.jobId, from: `/batches/${id}/results` })}`}>Analitzar</Link></td></tr>)}</WorkTable>
+  </section></main>;
 }

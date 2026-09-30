@@ -1,6 +1,10 @@
-import {execFileSync,spawn} from 'node:child_process';
-import {assertTestEnvironment,TEST_PROJECT} from '../lib/test-environment';
-const status=JSON.parse(execFileSync('supabase',['status','--workdir','tests/runtime','-o','json'],{encoding:'utf8'}));
-const env={...process.env,NEXT_PUBLIC_SUPABASE_URL:status.API_URL,SUPABASE_SERVICE_ROLE_KEY:status.SERVICE_ROLE_KEY,SUPABASE_SECRET_KEY:status.SERVICE_ROLE_KEY,WORKFLOW_TEST_PROJECT:TEST_PROJECT,PIPELINE_PROVIDER:'mock',WORKER_EXECUTION_MODE:'disabled',MATCHING_CATALOG_SOURCE:'official',APP_ACCESS_PASSWORD:'local-workflow-fixture-only',OPENAI_API_KEY:'',VERCEL_TOKEN:'',SUPABASE_ACCESS_TOKEN:'',WORKFLOW_BUILD_ISOLATED:'true'};
+import {execFileSync} from 'node:child_process';
+import {runManagedProcess} from './managed-process';
+import {assertTestEnvironment,TEST_PROJECT,TEST_API} from '../lib/test-environment';
+const offline=process.argv.includes('--offline');
+const status=offline?{API_URL:TEST_API,SERVICE_ROLE_KEY:'local-build-placeholder-not-a-credential'}:JSON.parse(execFileSync('supabase',['status','--workdir','tests/runtime','-o','json'],{encoding:'utf8'}));
+if(offline)console.log('Offline build: no database or provider validation; local placeholder credentials only');
+const env: NodeJS.ProcessEnv={...process.env,NEXT_PUBLIC_SUPABASE_URL:status.API_URL,SUPABASE_SERVICE_ROLE_KEY:status.SERVICE_ROLE_KEY,SUPABASE_SECRET_KEY:status.SERVICE_ROLE_KEY,WORKFLOW_TEST_PROJECT:TEST_PROJECT,PIPELINE_PROVIDER:'mock',WORKER_EXECUTION_MODE:'disabled',MATCHING_CATALOG_SOURCE:'official',OPENAI_API_KEY:'',VERCEL_TOKEN:'',SUPABASE_ACCESS_TOKEN:'',WORKFLOW_BUILD_ISOLATED:'true'};
+env.APP_ACCESS_PASSWORD='local-workflow-fixture-only';env.APP_ACCESS_SESSION_SECRET='local-workflow-fixture-only';
 assertTestEnvironment(env);
-const child=spawn('npm',['run','build','--','--webpack'],{env,stdio:'inherit'});child.on('exit',code=>{process.exitCode=code??1;});
+runManagedProcess(process.execPath,['node_modules/next/dist/bin/next','build','--webpack'],{env,stdio:'inherit'});

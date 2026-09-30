@@ -6,6 +6,10 @@ export function isRecordOperationTerminal(
   operation: RecordOperation,
   record: SourceRecord,
 ) {
+  if (record.operationProgress?.state === 'incident') return true;
+  if (['active', 'waiting', 'stalled'].includes(record.operationProgress?.state ?? '')) return false;
+  if (record.operationProgress?.state === 'finished') return true;
+  if (['error', 'insufficient_evidence', 'needs_review', 'approved', 'corrected', 'rejected'].includes(record.currentJobStatus ?? '')) return true;
   if((operation==='match'||operation==='process'||operation==='ocr')&&record.analysis)return true;
   if (operation === "prepare") {
     return ["ready", "no_source", "unsupported", "error"].includes(

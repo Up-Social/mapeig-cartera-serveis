@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { hasUnitSchema, schemaSelect, type ExportProvision } from "@/lib/runtime-schema";
 import { createServerSupabase } from "@/lib/records-page";
 import { createProvisionExcel, type ProvisionExcelRow } from "@/lib/provision-excel";
 
@@ -8,7 +9,9 @@ export async function POST(request: Request) {
   const ids = Array.isArray(body?.provisionIds) ? [...new Set(body.provisionIds.filter((id): id is string => typeof id === "string" && /^[0-9a-f-]{36}$/i.test(id)))] : [];
   if (!ids.length || ids.length > 5000) return Response.json({ error: "Selecciona entre 1 i 5.000 provisions vàlides." }, { status: 400 });
   const db = createServerSupabase();
-  const result = await db.from("service_provisions").select("id,source_record_id,source_id,call_url,regulatory_basis_url,provider_name,provider_nif,mechanism,award_date,amount,contracting_body,target_population,source_reference,service_code,master_services(service_name),official_services(service_name),source_records!inner(processing_status,review_decisions(decision,created_at),pipeline_jobs(status,created_at,pipeline_runs(batch_number)))").in("id", ids);
+  let query = db.from("service_provisions").select(schemaSelect("id,source_record_id,source_id,unit_id,centre,period,act_type,annex_reference,call_url,regulatory_basis_url,provider_name,provider_nif,mechanism,award_date,amount,contracting_body,target_population,source_reference,service_code,master_services(service_name),official_services(service_name),source_records!inner(processing_status,review_decisions(decision,created_at),pipeline_jobs(status,created_at,pipeline_runs(batch_number)))")).in("id", ids);
+  if (hasUnitSchema()) query = query.is("superseded_at", null);
+  const result = await query.returns<ExportProvision[]>();
   if (result.error) return Response.json({ error: result.error.message }, { status: 500 });
   if ((result.data ?? []).length !== ids.length) return Response.json({ error: "Alguna provisió ja no existeix o no és accessible." }, { status: 409 });
   const valid = (result.data ?? []).filter((item) => { const raw = item.source_records; const source = (Array.isArray(raw) ? raw[0] : raw) as { processing_status?: string; review_decisions?: Array<{ decision: string; created_at: string }> }; const latest = [...(source?.review_decisions ?? [])].sort((a,b) => b.created_at.localeCompare(a.created_at))[0]; return source?.processing_status === "completat" && ["approved","corrected"].includes(latest?.decision); });

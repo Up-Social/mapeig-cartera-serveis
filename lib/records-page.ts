@@ -1,3 +1,4 @@
+import {textDefects} from './pipeline/readable-document';
 import officialSnapshot from '../data/legal/cartera.json';
 import {eligibleServices,type OfficialService} from './official-catalog';
 const officialByCode=new Map(eligibleServices(officialSnapshot.services as OfficialService[]).map(s=>[s.service_code,s]));
@@ -5,7 +6,7 @@ import {latestAnalysis} from './latest-analysis';
 import "server-only";
 import { createClient } from "@supabase/supabase-js";
 import {assertTestEnvironment} from './test-environment';
-import type { ProcessingStatus, ReviewQueue, SourcePage, SourceRecord } from "./workbench-types";
+import type { ProcessingStatus, ReviewQueue, SourceListPage, SourceRecord } from "./workbench-types";
 import { mapLatestMatchingError } from "./matching-state";
 import {recordOperationProgress,type ProgressTask} from './record-progress';
 
@@ -19,23 +20,26 @@ export function createServerSupabase() {
   return createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
 }
 
-export async function getSourcePage(input: { page: number; query: string; type: string }): Promise<SourcePage> {
+export async function getSourcePage(input: { page: number; query: string; type: string }): Promise<SourceListPage> {
   const supabase = createServerSupabase();
   const from = (input.page - 1) * PAGE_SIZE;
-  let request = supabase.from("source_records").select(RECORD_SELECT, { count: "exact" });
+  let request = supabase.from("source_records").select("id,title,source_dataset,source_record_id,provider_name,financing_type,processing_status,pipeline_jobs(id,run_id,created_at,pipeline_runs(batch_number))", { count: "exact" });
   if (input.type !== "totes") request = request.eq("financing_type", input.type);
   if (input.query) {
     const safe = input.query.replaceAll(/[,%()]/g, " ").trim();
     request = request.or(`title.ilike.%${safe}%,source_record_id.ilike.%${safe}%,provider_name.ilike.%${safe}%`);
   }
-  const { data, error, count } = await request.order("created_at", { ascending: true }).range(from, from + PAGE_SIZE - 1);
+  const { data, error, count } = await request.order("updated_at", { ascending: false }).order("id").range(from, from + PAGE_SIZE - 1);
   if (error) throw error;
   const total = count ?? 0;
+  const projected = data?.length ? await supabase.from('current_record_results').select('id,execution_status').in('id', data.map(row=>row.id)) : {data:[],error:null};
+  if (projected.error) throw projected.error;
+  const executionStatuses = new Map((projected.data??[]).map(row=>[row.id,row.execution_status]));
   const [all, latestJobMetrics] = await Promise.all([
     countRows(), getLatestJobMetrics(),
   ]);
   return {
-    records: (data ?? []).map(mapRecord), total, page: input.page,
+    records: (data ?? []).map(row => ({ id: row.id, title: row.title, sourceDataset: row.source_dataset, sourceRecordId: row.source_record_id, providerName: row.provider_name, financingType: row.financing_type, status: executionStatuses.get(row.id)==='error'?'error':row.processing_status, batchNumber: mapLatestRun(row.pipeline_jobs)?.number ?? null })), total, page: input.page,
     pageCount: Math.max(1, Math.ceil(total / PAGE_SIZE)), pageSize: PAGE_SIZE,
     metrics: { total: all, ...latestJobMetrics },
   };
@@ -103,17 +107,19 @@ export function mapRecord(row: Record<string, unknown>): SourceRecord {
     enrichmentStatus: row.enrichment_status as SourceRecord["enrichmentStatus"], enrichmentError: row.enrichment_error == null ? null : String(row.enrichment_error),
     sourceDocuments: Array.isArray(row.source_documents) ? row.source_documents.map((document) => {
       const item = document as Record<string, unknown>;
+      const defects=textDefects(String(item.extracted_text ?? item.text_preview ?? ""));
       return {
         id: String(item.id), url: String(item.url), documentType: String(item.document_type),
         resolution: item.resolution as SourceRecord['sourceDocuments'][number]['resolution'],
         sourceFields: Array.isArray(item.source_fields) ? item.source_fields.map(String) : [],
         status: item.status as SourceRecord["sourceDocuments"][number]["status"],
         mimeType: item.mime_type == null ? null : String(item.mime_type),
+        extractedText: item.extracted_text == null ? null : String(item.extracted_text),
         textPreview: item.text_preview == null ? null : String(item.text_preview),
         textLength: item.text_length == null ? null : Number(item.text_length),
         extractionMethod: item.extraction_method == null ? null : String(item.extraction_method),
-        qualityScore: item.quality_score == null ? null : Number(item.quality_score),
-        qualityFlags: Array.isArray(item.quality_flags) ? item.quality_flags.map(String) : [],
+        qualityScore: defects.includes("corrupt_text") ? 0 : item.quality_score == null ? null : Number(item.quality_score),
+        qualityFlags: [...new Set([...(Array.isArray(item.quality_flags) ? item.quality_flags.map(String) : []),...defects])],
         chunkCount: Number(item.chunk_count ?? 0),
       };
     }).sort((a,b)=>Number(b.documentType==='technical_specifications')-Number(a.documentType==='technical_specifications')) : [],
@@ -142,6 +148,7 @@ export function mapLatestCandidates(value: unknown): SourceRecord["matchingCandi
       id: String(item.id), pipelineJobId: String(item.pipeline_job_id), rank: Number(item.rank), targetCode: String(item.target_code), targetName: String(item.target_name),
       score: Number(item.score), rationale: String(item.rationale), model: String(item.engine_version),
       serviceDetail: {sectorScope:officialByCode.get(String(item.target_code))?.target_population??null,portfolioStatus:"Dentro"},
+      catalogVersionId: String(item.catalog_version_id ?? ""),
       legalReference:officialByCode.get(String(item.target_code))?.legal_reference,
       evidence: links.flatMap((link) => {
         const relation = link as Record<string, unknown>;
@@ -154,7 +161,7 @@ export function mapLatestCandidates(value: unknown): SourceRecord["matchingCandi
   }).sort((a, b) => a.rank - b.rank);
 }
 
-export const RECORD_SELECT = "*,source_documents(id,url,resolution,document_type,source_fields,status,mime_type,text_preview,text_length,extraction_method,quality_score,quality_flags,chunk_count),record_enrichments(extracted_title,provider_name,provider_nif,mechanism,award_date,amount,contracting_body,target_population,summary,confidence,engine_version,record_enrichment_evidence(evidence_chunks(ordinal,content))),review_decisions(id,pipeline_job_id,classification,reasons,decision,reason,created_at),pipeline_jobs(id,run_id,status,error_message,created_at,analysis_results(*),pipeline_runs(batch_number),matching_candidates(id,pipeline_job_id,rank,target_code,target_name,score,rationale,engine_version,matching_candidate_evidence(explanation,evidence_chunks(ordinal,content))))";
+export const RECORD_SELECT = "*,source_documents(id,url,resolution,document_type,source_fields,status,mime_type,extracted_text,text_preview,text_length,extraction_method,quality_score,quality_flags,chunk_count),record_enrichments(extracted_title,provider_name,provider_nif,mechanism,award_date,amount,contracting_body,target_population,summary,confidence,engine_version,record_enrichment_evidence(evidence_chunks(ordinal,content))),review_decisions(id,pipeline_job_id,classification,reasons,decision,reason,created_at),pipeline_jobs(id,run_id,status,error_message,created_at,analysis_results(*),pipeline_runs(batch_number),matching_candidates(id,pipeline_job_id,catalog_version_id,rank,target_code,target_name,score,rationale,engine_version,matching_candidate_evidence(explanation,evidence_chunks(ordinal,content))))";
 
 function mapLatestRun(value: unknown) {
   if (!Array.isArray(value) || !value.length) return null;

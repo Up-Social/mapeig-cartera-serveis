@@ -25,8 +25,10 @@ export function validateCatalog(all: OfficialService[]) {
   }
   for (const s of eligibleServices(all)) if (!s.description || !s.target_population || !s.conditions) throw new Error(`Falten dades normatives: ${s.service_code}`);
 }
-export async function loadOfficialCatalog(db: SupabaseClient) {
-  const {data: version, error} = await db.from('catalog_versions').select('*').eq('active', true).eq('validated', true).single();
+export async function loadOfficialCatalog(db: SupabaseClient, versionId?: string) {
+  let query = db.from('catalog_versions').select('*').eq('validated', true);
+  query = versionId ? query.eq('id',versionId) : query.eq('active',true);
+  const {data: version, error} = await query.single();
   if (error || !version) throw new Error('Catàleg oficial complet i validat no disponible');
   const result = await db.from('official_services').select('*').eq('version_id', version.id).order('service_code').limit(1000);
   if (result.error) throw result.error;

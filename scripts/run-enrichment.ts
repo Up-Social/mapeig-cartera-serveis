@@ -1,3 +1,4 @@
+import {readEvidenceChunks} from '../lib/pipeline/evidence-reader';
 import {ROLE_INSTRUCTIONS} from '../lib/scope-rules';
 import {journaledProviderRequest} from '../lib/provider-journal';
 import {validateScopeFacts} from '../lib/normative-matching';
@@ -21,13 +22,17 @@ async function main() {
     const { data: record, error: recordError } = await supabase.from("source_records").select("id,source_dataset,source_record_id,mechanism,title,provider_name,amount,source_payload,source_documents!inner(id,status,text_length,extraction_method,quality_flags)").eq("id", recordId).eq("source_documents.status", "fetched").single();
     if (recordError) throw recordError;
     const documents = new Map(record.source_documents.map((document: { id: string; text_length:number|null; extraction_method:string|null; quality_flags:string[]|null }) => [document.id, document]));
-    const { data: evidence, error: chunksError } = await supabase.from("current_evidence_chunks").select("id,ordinal,content,source_document_id").in("source_document_id", [...documents.keys()]).order("source_document_id").order("ordinal").limit(96);
-    if (chunksError) throw chunksError;
+    const evidence = await readEvidenceChunks(supabase, [...documents.keys()]);
     const chunks=selectEvidenceWindow((evidence??[]).filter(chunk=>{
       const document=documents.get(chunk.source_document_id);
       return isEligibleEvidence({content:chunk.content,textLength:document?.text_length,extractionMethod:document?.extraction_method,qualityFlags:document?.quality_flags});
     }));
-    if (!chunks?.length) throw new Error("No hi ha fragments oficials preparats");
+    if (!chunks.length) {
+      const saved=await supabase.from('record_enrichments').upsert({source_record_id:record.id,extracted_title:null,provider_name:null,provider_nif:null,mechanism:null,award_date:null,amount:null,contracting_body:null,target_population:null,scope_facts:null,summary:'No hi ha evidència oficial llegible i substantiva.',confidence:0,engine:'deterministic-evidence-policy',engine_version:'substantive-evidence-v2'},{onConflict:'source_record_id'}).select('id').single();
+      if(saved.error)throw saved.error;
+      const cleared=await supabase.from('record_enrichment_evidence').delete().eq('enrichment_id',saved.data.id);if(cleared.error)throw cleared.error;
+      const updated=await supabase.from('source_records').update({enrichment_status:'completed',enrichment_error:null}).eq('id',record.id);if(updated.error)throw updated.error;return;
+    }
     let jobQuery=supabase.from('pipeline_jobs').select('id').eq('source_record_id',record.id).order('created_at',{ascending:false}).order('id',{ascending:false}).limit(1);
     if(process.env.WORKFLOW_JOB_ID)jobQuery=jobQuery.eq('id',process.env.WORKFLOW_JOB_ID);
     const job=await jobQuery.single();if(job.error)throw job.error;

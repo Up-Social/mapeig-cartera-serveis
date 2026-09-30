@@ -13,7 +13,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import { StableAccordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { StableAccordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/visible-sections";
 import { portfolioStatusLabel } from "@/lib/ui-labels";
 
 export function CatalogWorkbench({
@@ -219,10 +219,10 @@ function ServiceDetail({
         <EntityRelations title="Entitats confirmades" items={service.entityRelations.filter((item) => item.relationType === "confirmed")} empty="Cap provisió aprovada vinculada per NIF exacte." />
         <EntityRelations title="Compatibilitats RESES" items={service.entityRelations.filter((item) => item.relationType === "auxiliary")} empty="Cap compatibilitat auxiliar per tipologia exacta." />
       </section>
-      <details className="mt-5 rounded-xl border border-neutral-200 bg-neutral-50 p-4">
-        <summary className="cursor-pointer text-sm font-semibold">
+      <section className="mt-5 rounded-xl border border-neutral-200 bg-neutral-50 p-4">
+        <h3 className="text-sm font-semibold">
           Dades originals d&apos;auditoria
-        </summary>
+        </h3>
         <p className="mt-2 text-xs leading-5 text-neutral-500">
           Metadades importades del catàleg. Les fórmules del llibre no es
           mostren.
@@ -237,7 +237,7 @@ function ServiceDetail({
             </div>
           ))}
         </dl>
-      </details>
+      </section>
     </aside>
   );
 }

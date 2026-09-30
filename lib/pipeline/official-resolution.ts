@@ -16,7 +16,7 @@ export async function resolveOfficialDocuments(original:string,read:ReadJson=off
    const first=await read(endpoint(publication));
    if(first.expedientId!==expedient||String(first.publicacioId)!==publication)throw Error('Publication/case mismatch');
    const phases=Array.isArray(first.navegacioFases)?first.navegacioFases as Json[]:[];
-   const ids=[publication,...phases.filter(p=>p.fase===1000040).map(p=>String(p.publicacioId))].filter((v,i,a)=>a.indexOf(v)===i).slice(0,3);
+   const ids=[publication,...phases.filter(p=>p.fase===1000040).map(p=>String(p.publicacioId))].filter((v,i,a)=>a.indexOf(v)===i);
    const found:Resolution[]=[];
    for(const id of ids){
     const data=id===publication?first:await read(endpoint(id));
@@ -29,7 +29,7 @@ export async function resolveOfficialDocuments(original:string,read:ReadJson=off
      for(const [key,item]of Object.entries(object))walk(item,`${path}.${key}`);
     };walk(data.dades,'dades');
    }
-   return found.length?found.sort((a,b)=>Number(b.document_type==='technical_specifications')-Number(a.document_type==='technical_specifications')).slice(0,15):[{...base,case_id:expedient,publication_id:publication,result:'unresolved',diagnostic:'No official linked documents'}];
+   return found.length?found.sort((a,b)=>Number(b.document_type==='technical_specifications')-Number(a.document_type==='technical_specifications')):[{...base,case_id:expedient,publication_id:publication,result:'unresolved',diagnostic:'No official linked documents'}];
   }
   if(url.hostname==='tauler.seu-e.cat'&&url.pathname==='/detall'){
    const id=url.searchParams.get('idEdicte');const ens=url.searchParams.get('idEns');if(!id||!ens||!/^\d+$/.test(id)||!/^\d+$/.test(ens))return [];
@@ -41,7 +41,7 @@ export async function resolveOfficialDocuments(original:string,read:ReadJson=off
     if(typeof doc.uuid==='string'&&/^[a-f0-9-]{36}$/i.test(doc.uuid))found.push({...base,publication_id:id,case_id:ens,document_type:'annex',resolved_url:`https://tauler.seu-e.cat/api/documents/${doc.uuid}/info?ens=${ens}`,result:'resolved',relation_path:`${endpoint}#adjunts`});
     else if(typeof doc.url==='string'&&new URL(doc.url).protocol==='https:'&&OFFICIAL_DOCUMENT_HOSTS.includes(new URL(doc.url).hostname))found.push({...base,publication_id:id,case_id:ens,document_type:'annex',resolved_url:doc.url,result:'resolved',relation_path:`${endpoint}#adjunts`});
    }
-   return found.length?found.slice(0,15):[{...base,publication_id:id,case_id:ens,result:'unresolved',diagnostic:'No official linked documents'}];
+   return found.length?found:[{...base,publication_id:id,case_id:ens,result:'unresolved',diagnostic:'No official linked documents'}];
   }
   return [];
  }catch{return [{...base,result:'unresolved',diagnostic:'Official relationship could not be verified; retain insufficient evidence'}];}

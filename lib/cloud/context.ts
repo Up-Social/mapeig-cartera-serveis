@@ -1,3 +1,4 @@
+import {CloudFailure} from './errors';
 import {createClient} from '@supabase/supabase-js';
 import {executionMode} from '../pipeline/execution-mode';
 export const CLOUD_VERSION='cloud-v1';
@@ -15,7 +16,7 @@ export async function rpc<T=unknown>(db:CloudDb,name:string,args:Record<string,u
  if(r.error){
   if(r.error.message.includes('CLOUD_RESOURCE_BLOCKED:vercel_quota'))throw new Error('La quota de Vercel està esgotada. No es poden iniciar més processos fins que es recuperi el servei.');
   if(r.error.message.includes('CLOUD_RESOURCE_BLOCKED:'))throw new Error('L’execució al núvol està bloquejada temporalment.');
-  throw new Error('CLOUD_DATABASE');
+  throw new CloudFailure('internal',5,{operation:name,code:r.error.message==='Invalid usage key'?'INVALID_USAGE_KEY':r.error.code??'DATABASE_ERROR'});
  }
  return r.data as T;
 }

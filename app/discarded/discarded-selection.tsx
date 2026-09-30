@@ -4,7 +4,8 @@ import Link from "next/link";
 import { Dialog } from "@base-ui/react/dialog";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
+import { WorkTable } from "@/components/work-list";
 import { DISCARD_REASON_LABELS } from "@/lib/review-contract";
 import { FINANCING_TYPE_LABELS } from "@/lib/financing-types";
 
@@ -24,7 +25,7 @@ export type SelectableDiscard = {
   evidence: Array<{ content: string }> | null;
 };
 
-export function DiscardedSelection({ rows }: { rows: SelectableDiscard[] }) {
+export function DiscardedSelection({ rows, origin }: { rows: SelectableDiscard[]; origin: string }) {
   const [selected, setSelected] = useState<string[]>([]);
   const [open, setOpen] = useState(false);
   const [message, setMessage] = useState("");
@@ -60,7 +61,16 @@ export function DiscardedSelection({ rows }: { rows: SelectableDiscard[] }) {
       <Dialog.Root open={open} onOpenChange={setOpen}><Dialog.Trigger render={<Button variant="outline" disabled={!items.length || pending} />}>Eliminar seleccionats</Dialog.Trigger><Dialog.Portal><Dialog.Backdrop className="fixed inset-0 z-50 bg-black/30"/><Dialog.Popup className="fixed left-1/2 top-1/2 z-50 max-h-[90dvh] w-[min(95vw,45rem)] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-xl border bg-background p-5"><Dialog.Title className="text-lg font-semibold">Eliminar definitivament {items.length} registres?</Dialog.Title><Dialog.Description className="my-3 text-sm">S’eliminaran registres, resultats, evidències i fitxers originals de l’aplicació. No es pot desfer. Els Excel descarregats fora de l’aplicació no s’eliminen.</Dialog.Description><ul className="space-y-2 text-sm">{items.map((row) => <li key={row.id} className="rounded border p-2">{row.source_record_id}<br/><span className="break-all font-mono text-xs">{row.id}</span></li>)}</ul><div className="mt-4 flex flex-wrap gap-3"><Dialog.Close render={<Button variant="outline" disabled={pending}/>}>Cancel·lar</Dialog.Close><Button disabled={pending} onClick={remove}>{pending ? "Verificant i eliminant…" : `Confirmo l’eliminació de ${items.length}`}</Button></div></Dialog.Popup></Dialog.Portal></Dialog.Root>
     </div>
     {message && <p role="status" className="rounded-lg bg-muted p-3 text-sm">{message}</p>}
-    {rows.map((row) => <article key={row.id} className="space-y-3 rounded-xl border p-4"><div className="flex items-start gap-3"><input type="checkbox" className="mt-1 size-4 accent-black" aria-label={`Seleccionar ${row.source_record_id}`} disabled={pending} checked={selected.includes(row.id)} onChange={(event) => toggle(row.id, event.target.checked)}/><div className="min-w-0 flex-1"><h2 className="font-semibold">{row.title}</h2><p className="mt-1 text-sm text-muted-foreground">{row.source_record_id} · {FINANCING_TYPE_LABELS[row.financing_type as keyof typeof FINANCING_TYPE_LABELS] ?? row.financing_type} · Lot {row.batch_number ?? "—"}</p></div></div><p className="text-sm">{row.human_reviewed ? "Validat per una persona" : "Pendent de validació humana"} · {row.job_created_at ? new Date(row.job_created_at).toLocaleString("ca-ES") : "—"}</p><p>{row.reasons?.map((reason) => DISCARD_REASON_LABELS[reason] ?? reason).join(", ") || "Motiu no registrat"}</p><p>{row.explanation}</p>{row.evidence?.length ? <details><summary className="cursor-pointer">Veure evidència</summary>{row.evidence.map((item, index) => <blockquote key={index} className="mt-2 border-l pl-3 text-sm">{item.content}</blockquote>)}</details> : null}<Link href={`/review?state=all&record=${row.id}`} className={buttonVariants({ variant: "outline", size: "sm" })}>Revisar o rectificar</Link></article>)}
+    <WorkTable headings={["", "Cas", "Motiu", "Revisió", "Lot", "Acció"]} empty={rows.length ? undefined : "No hi ha casos descartats amb aquests filtres."}>
+      {rows.map((row) => <tr key={row.id}>
+        <td data-label="Seleccionar"><input type="checkbox" className="size-4 accent-black" aria-label={`Seleccionar ${row.source_record_id}`} disabled={pending} checked={selected.includes(row.id)} onChange={event => toggle(row.id, event.target.checked)}/></td>
+        <td data-label="Cas"><Link className="font-semibold underline underline-offset-2" href={`/records/${row.id}?${new URLSearchParams({ from: origin, job: row.job_id })}`}>{row.title}</Link><p className="mt-1 text-xs text-muted-foreground">{row.source_record_id} · {FINANCING_TYPE_LABELS[row.financing_type as keyof typeof FINANCING_TYPE_LABELS] ?? row.financing_type}</p></td>
+        <td data-label="Motiu">{row.reasons?.map(reason => DISCARD_REASON_LABELS[reason] ?? reason).join(", ") || "Motiu no registrat"}</td>
+        <td data-label="Revisió"><span className={`rounded-md border px-2 py-1 text-xs ${row.human_reviewed ? "status-neutral" : "status-warning"}`}>{row.human_reviewed ? "Validat" : "Pendent"}</span></td>
+        <td data-label="Lot">{row.batch_number ?? "—"}</td>
+        <td data-label="Acció"><Link className="inline-block rounded-md border px-3 py-2 text-sm font-medium" href={`/records/${row.id}?${new URLSearchParams({ from: origin, job: row.job_id })}`}>Veure cas</Link></td>
+      </tr>)}
+    </WorkTable>
   </section>;
 }
 

@@ -1,3 +1,4 @@
+import {EXTRACTION_VERSION} from '../pipeline/readable-document';
 import {randomUUID} from 'node:crypto';
 import {cloudDb,CLOUD_VERSION,rpc,lease,checkpoint,readCheckpoint,commit,progress,type Context} from './context';
 import {publicFailure,failureLabels,CloudYield,CloudFailure} from './errors';
@@ -35,22 +36,22 @@ export async function advance(task:string,workflow:string):Promise<{done:boolean
    await commit(c,job.id,'discover',discovered);await checkpoint(c,`${job.id}:discovered`,true);
    await progress(c,'document_discovery',discovered.length,discovered.length,`${discovered.length} documents localitzats`,job.id);
   }else if(job.preparation_status!=='ready'){
-   const docs:{data:Array<{id:string;url:string;status:string;chunk_count:number}>}={data:[]};
+   const docs:{data:Array<{id:string;url:string;status:string;chunk_count:number;extraction_version:string|null}>}={data:[]};
    for(let offset=0;;offset+=200){
-    const page=await db.from('source_documents').select('id,url,status,chunk_count').eq('source_record_id',job.source_record_id).order('id').range(offset,offset+199);
+    const page=await db.from('source_documents').select('id,url,status,chunk_count,extraction_version').eq('source_record_id',job.source_record_id).order('id').range(offset,offset+199);
     if(page.error)throw Error();docs.data.push(...page.data);if(page.data.length<200)break;
    }
    if(!docs.data.length)throw new CloudFailure('document');
    let processed=false;
-   let completedDocuments=docs.data.filter(doc=>doc.status==='fetched'&&doc.chunk_count>0).length;
+   let completedDocuments=docs.data.filter(doc=>doc.status==='fetched'&&doc.chunk_count>0&&doc.extraction_version===EXTRACTION_VERSION).length;
    for(const doc of docs.data){
-    if(doc.status==='fetched'&&doc.chunk_count>0)continue;
+    if(doc.status==='fetched'&&doc.chunk_count>0&&doc.extraction_version===EXTRACTION_VERSION)continue;
     if(await readCheckpoint(c,`document_failed:${doc.id}`))continue;
     await progress(c,'document_extraction',completedDocuments,docs.data.length,`Preparant el document ${Math.min(completedDocuments+1,docs.data.length)} de ${docs.data.length}`,job.id);
     const run=await db.from('pipeline_runs').select('parameters').eq('id',t.data.run_id).maybeSingle();
     let result:Awaited<ReturnType<typeof extractDocument>>;
-    try {result=await extractDocument(c,job.id,doc.id,doc.url,run.data?.parameters?.ocr_recovery===true);if(result.partial)throw new CloudFailure('document');}
-    catch(error){if(error instanceof CloudFailure&&error.kind==='document'){await checkpoint(c,`document_failed:${doc.id}`,{kind:'document'});processed=true;break;}throw error;}
+    try {result=await extractDocument(c,job.id,doc.id,doc.url,run.data?.parameters?.ocr_recovery===true);if(result.partial){await commit(c,job.id,'document_failure',{id:doc.id,coverage:result.coverage,kind:'incomplete_extraction'});throw new CloudFailure('document');}}
+    catch(error){if(error instanceof CloudFailure&&error.kind==='document'){await commit(c,job.id,'document_failure',{id:doc.id,kind:'document'});await checkpoint(c,`document_failed:${doc.id}`,{kind:'document'});processed=true;break;}throw error;}
     const textHash=hash(result.text);
     const duplicate=await db.from('source_documents').select('id').eq('source_record_id',job.source_record_id).eq('extracted_text_hash',textHash).neq('id',doc.id).limit(1);
     if(duplicate.error)throw Error();
@@ -70,6 +71,7 @@ export async function advance(task:string,workflow:string):Promise<{done:boolean
  }catch(error){
   if(error instanceof CloudYield){await rpc(db,'cloud_finish',{...lease(c),p_state:'pending'});return {done:false,wait:error.wait};}
   const failure=publicFailure(error);
+  try {await checkpoint(c,'last_failure',{kind:failure.kind,job:currentJob??null,diagnostic:failure.diagnostic??null,at:new Date().toISOString()});} catch { /* Do not mask the original failure if the lease has expired. */ }
   if(failure.kind==='transient'){
    const key=`retry:${currentJob??'task'}`;const attempts=(await readCheckpoint<number>(c,key)??0)+1;
    await checkpoint(c,key,attempts);

@@ -1,12 +1,13 @@
+import {EXTRACTION_VERSION,recoverPdfText} from '../pipeline/readable-document';
 import {Sandbox} from '@vercel/sandbox';
 import {checkpoint,readCheckpoint,rpc,acquireResource,progress,type Context} from './context';
 import {CloudFailure,CloudYield} from './errors';
 import {htmlToText,cleanText} from '../pipeline/document-input';
 import {hash} from '../pipeline/chunks';
 import {fetchOfficialDocument} from '../pipeline/official-resolution';
-type Extraction={text:string;method:string;hash:string;mime:string;partial:boolean};
+type Extraction={text:string;method:string;hash:string;mime:string;partial:boolean;extraction_version:string;coverage?:unknown};
 export async function extractDocument(c:Context,job:string,id:string,url:string,ocr:boolean):Promise<Extraction>{
- const cached=await readCheckpoint<Extraction>(c,`document:${id}`);if(cached)return cached;
+ const cached=await readCheckpoint<Extraction>(c,`document:${id}:${EXTRACTION_VERSION}`);if(cached)return cached;
  let fetched:{bytes:Buffer;mimeType:string};
  const original=await readCheckpoint<{path:string;mime:string;hash:string}>(c,`original:${id}`);
  if(original){
@@ -22,8 +23,8 @@ export async function extractDocument(c:Context,job:string,id:string,url:string,
  const pdf=fetched.mimeType.includes('pdf')||fetched.bytes.subarray(0,4).toString()==='%PDF';
  if(!pdf){
   if(!fetched.mimeType.includes('html')&&fetched.mimeType!=='text/plain')throw new CloudFailure('document');
-  const result={text:cleanText(htmlToText(fetched.bytes.toString('utf8'))),method:'html-basic',hash:digest,mime:fetched.mimeType,partial:false};
-  if(result.text.length<50)throw new CloudFailure('document');await checkpoint(c,`document:${id}`,result);return result;
+  const result={text:cleanText(htmlToText(fetched.bytes.toString('utf8'))),method:'html-basic',hash:digest,mime:fetched.mimeType,partial:false,extraction_version:EXTRACTION_VERSION};
+  if(result.text.length<50)throw new CloudFailure('document');await checkpoint(c,`document:${id}:${EXTRACTION_VERSION}`,result);return result;
  }
  if(!process.env.CLOUD_SANDBOX_SNAPSHOT)throw new CloudFailure('credentials');
  await acquireResource(c,'sandbox');
@@ -32,38 +33,27 @@ export async function extractDocument(c:Context,job:string,id:string,url:string,
   sb=await Sandbox.create({source:{type:'snapshot',snapshotId:process.env.CLOUD_SANDBOX_SNAPSHOT},timeout:600_000,resources:{vcpus:1},networkPolicy:'deny-all'});
   await sb.writeFiles([{path:'/tmp/source.pdf',content:fetched.bytes}]);
   const command=await quietCommand(sb,'pdftotext',['-layout','/tmp/source.pdf','/tmp/source.txt'],{timeoutMs:20_000});
-  if(command.exitCode!==0)throw new CloudFailure('document');
-  let text=(await sb.readFileToBuffer({path:'/tmp/source.txt'}))?.toString('utf8')??'';
-  let method='pdftotext';let partial=text.length>200_000;
-  if(text.trim().length<50&&ocr){
-   method='tesseract-ocr';
-   await quietCommand(sb,'sh',['-c','pdfinfo /tmp/source.pdf > /tmp/info.txt 2>/dev/null'],{timeoutMs:20_000});
-   const info=(await sb.readFileToBuffer({path:'/tmp/info.txt'}))?.toString('utf8')??'';
-   const pageCount=Number(info.match(/Pages:\s+(\d+)/)?.[1]);
-   if(!pageCount)throw new CloudFailure('document');partial=pageCount>25;
-   const pages:string[]=[];
-   for(let page=1;page<=Math.min(25,pageCount);page++){
-    await progress(c,'ocr',page-1,Math.min(25,pageCount),`OCR de la pàgina ${page} de ${Math.min(25,pageCount)}`,job);
-    const key=`ocr:${digest}:${page}:v1`;
-    let result=await readCheckpoint<{text:string}>(c,key);
-    if(!result){
-     const render=await quietCommand(sb,'pdftoppm',['-png','-r','200','-f',String(page),'-l',String(page),'-singlefile','/tmp/source.pdf','/tmp/page'],{timeoutMs:60_000});
-     if(render.exitCode!==0)throw new CloudFailure('document');
-     const recognize=await quietCommand(sb,'tesseract',['/tmp/page.png','/tmp/page','-l','cat+spa'],{timeoutMs:120_000});
-     if(recognize.exitCode!==0)throw new CloudFailure('document');
-     result={text:(await sb.readFileToBuffer({path:'/tmp/page.txt'}))?.toString('utf8')??''};
-     await checkpoint(c,key,result);
-     await progress(c,'ocr',page,Math.min(25,pageCount),`${page} de ${Math.min(25,pageCount)} pàgines reconegudes`,job);
-     throw new CloudYield();
-    }
-    pages.push(result.text);
-    await rpc(c.db,'cloud_resource',{p_name:'sandbox',p_owner:c.owner});
-   }
-   text=pages.join('\n\n');
-  }
-  if(text.trim().length<50)throw new CloudFailure('document');
-  const result={text:cleanText(text),method,hash:digest,mime:'application/pdf',partial:partial||text.length>200_000};
-  await checkpoint(c,`document:${id}`,result);return result;
+  if(command.exitCode!==0&&!ocr)throw new CloudFailure('document');
+  const rawText=(await sb.readFileToBuffer({path:'/tmp/source.txt'}))?.toString('utf8')??'';
+  await quietCommand(sb,'sh',['-c','pdfinfo /tmp/source.pdf > /tmp/info.txt 2>/dev/null'],{timeoutMs:20_000});
+  const info=(await sb.readFileToBuffer({path:'/tmp/info.txt'}))?.toString('utf8')??'';
+  const pageCount=Number(info.match(/Pages:\s+(\d+)/)?.[1]);
+  if(!pageCount)throw new CloudFailure('document');
+  const recovered=await recoverPdfText(rawText,ocr,async page=>{
+    await progress(c,'ocr',page-1,pageCount,`OCR de la pàgina ${page} de ${pageCount}`,job);
+    const key=`ocr:${digest}:${page}:${EXTRACTION_VERSION}`;
+    const cached=await readCheckpoint<{text:string}>(c,key);
+    if(cached)return cached.text;
+    const render=await quietCommand(sb!,'pdftoppm',['-png','-r','200','-f',String(page),'-l',String(page),'-singlefile','/tmp/source.pdf','/tmp/page'],{timeoutMs:60_000});
+    if(render.exitCode!==0)throw new CloudFailure('document');
+    const recognize=await quietCommand(sb!,'tesseract',['/tmp/page.png','/tmp/page','-l','cat+spa'],{timeoutMs:120_000});
+    if(recognize.exitCode!==0)throw new CloudFailure('document');
+    const text=(await sb!.readFileToBuffer({path:'/tmp/page.txt'}))?.toString('utf8')??'';
+    await checkpoint(c,key,{text});
+    throw new CloudYield();
+  },pageCount);
+  const result={...recovered,hash:digest,mime:'application/pdf'};
+  await checkpoint(c,`document:${id}:${EXTRACTION_VERSION}`,result);return result;
  }catch(error){
   if(error instanceof CloudFailure||error instanceof CloudYield)throw error;
   const status=(error as {response?:Response}).response?.status;

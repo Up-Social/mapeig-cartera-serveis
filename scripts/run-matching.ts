@@ -1,3 +1,4 @@
+import {readEvidenceChunks} from '../lib/pipeline/evidence-reader';
 import {classifyFailure,retryTransient} from '../lib/provider-failure';
 import {journaledProviderRequest} from '../lib/provider-journal';
 import {applyPositiveAudit,positiveAuditSchema,positiveAuditInput,POSITIVE_AUDIT_INSTRUCTIONS,POSITIVE_AUDIT_VERSION} from '../lib/cloud/positive-audit';
@@ -62,8 +63,7 @@ async function processJob(job: { id: string; run_id: string; source_record_id: s
     if (recordError) throw recordError;
     const catalog = official.eligible;
     const documents = new Map(record.source_documents.map((document: { id: string; text_length:number|null; extraction_method:string|null; quality_flags:string[]|null }) => [document.id, document]));
-    const { data: evidence, error: chunksError } = await supabase.from("current_evidence_chunks").select("id,ordinal,content,source_document_id").in("source_document_id", [...documents.keys()]).order("source_document_id").order("ordinal").limit(96);
-    if (chunksError) throw chunksError;
+    const evidence = await readEvidenceChunks(supabase, [...documents.keys()]);
     const assessed=(evidence??[]).map(chunk=>{
       const document=documents.get(chunk.source_document_id);
       const quality={content:chunk.content,textLength:document?.text_length,extractionMethod:document?.extraction_method,qualityFlags:document?.quality_flags};
@@ -71,7 +71,12 @@ async function processJob(job: { id: string; run_id: string; source_record_id: s
     });
     const chunks=selectEvidenceWindow(assessed.filter(chunk=>chunk.eligible));
     const rejectedEvidence=assessed.filter(chunk=>!chunk.eligible).map(chunk=>({source_document_id:chunk.source_document_id,ordinal:chunk.ordinal,reasons:chunk.rejection_reasons}));
-    if (!chunks?.length) throw new Error("El registre no té fragments d'evidència");
+    if (!chunks.length) {
+      if (!assessed.length) throw new Error("El registre no té fragments d'evidència");
+      const result={classification:'insufficient_evidence',reasons:[],explanation:'La documentació localitzada no conté evidència llegible i substantiva. Cal recuperar la font oficial o l’annex.',service_description:'',target_population:'',rule_audit:{version:EVIDENCE_POLICY_VERSION,rejected:rejectedEvidence}};
+      const stored=await supabase.rpc('persist_analysis',{p_job:job.id,p_version:official.version.id,p_result:result,p_candidates:[],p_evidence:[assessed[0]]});
+      if(stored.error)throw stored.error;return;
+    }
 
     const existingEnrichment = Array.isArray(record.record_enrichments) ? record.record_enrichments[0] : record.record_enrichments;
     const explicitlyCited=findExplicitServiceEvidence(catalog,chunks);

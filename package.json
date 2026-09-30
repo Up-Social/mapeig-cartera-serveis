@@ -6,15 +6,15 @@
     "node": "24.x"
   },
   "scripts": {
-    "dev": "next dev",
+    "dev": "tsx scripts/dev-remote.ts",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
     "typecheck": "next typegen && tsc --noEmit",
-    "test": "tsx --test tests/*.test.ts",
+    "test": "node --import tsx --test --test-concurrency=1 tests/*.test.ts",
     "test:db": "tsx scripts/workflow-test-db.ts",
     "test:app": "tsx scripts/workflow-test-app.ts",
-    "dev:preview": "WORKFLOW_TEST_PORT=3110 tsx scripts/workflow-test-app.ts",
+    "dev:preview": "tsx scripts/dev-remote.ts",
     "preview:seed": "tsx scripts/seed-ui-preview.ts",
     "test:sql": "tsx scripts/workflow-test-sql.ts",
     "test:replay": "tsx scripts/workflow-test-replay.ts",

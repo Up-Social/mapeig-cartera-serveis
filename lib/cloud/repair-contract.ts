@@ -1,5 +1,5 @@
 import {DISCARD_REASONS,type AnalysisOutput} from '../analysis-contract';
-export const CONTRACT_REPAIR_VERSION='contract-repair-v1';
+export {CONTRACT_REPAIR_VERSION} from '../pipeline/versions';
 export function needsContractRepair(value:AnalysisOutput){
  return ['discarded','insufficient_evidence'].includes(value.classification)&&Array.isArray(value.candidates)&&value.candidates.length===0&&Array.isArray(value.reasons)&&Array.isArray(value.evidence_ordinals)&&(value.evidence_ordinals.length===0||(value.classification==='discarded'&&value.reasons.length===0));
 }

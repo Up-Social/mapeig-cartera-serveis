@@ -1,3 +1,4 @@
+import {schemaSelect} from './runtime-schema';
 import "server-only";
 import type { CatalogFilters, MasterService, MasterServicePage } from "./catalog-types";
 import { createServerSupabase } from "./records-page";
@@ -23,7 +24,7 @@ export async function getMasterServicePage(filters: CatalogFilters): Promise<Mas
   const page = Math.min(filters.page, pageCount);
   const from = (page - 1) * MASTER_PAGE_SIZE;
 
-  let request = supabase.from("master_services").select("id,service_code,service_name,sector_scope,portfolio_status,general_confidence,source_file,source_sheet,source_row,source_payload,service_provisions(id,source_id,call_url,regulatory_basis_url,provider_name,provider_nif,mechanism,award_date,amount,contracting_body,target_population,source_reference),entity_catalog_relations(entity_id,relation_type,source_reference,entities(id,legal_name,nif))");
+  let request = supabase.from("master_services").select(schemaSelect("id,service_code,service_name,sector_scope,portfolio_status,general_confidence,source_file,source_sheet,source_row,source_payload,service_provisions(id,superseded_at,source_id,call_url,regulatory_basis_url,provider_name,provider_nif,mechanism,award_date,amount,contracting_body,target_population,source_reference),entity_catalog_relations(entity_id,relation_type,source_reference,entities(id,legal_name,nif))"));
   if (safeQuery) request = request.or(`service_code.ilike.%${safeQuery}%,service_name.ilike.%${safeQuery}%,sector_scope.ilike.%${safeQuery}%`);
 
   const { data, error } = await request
@@ -38,7 +39,7 @@ export async function getMasterServicePage(filters: CatalogFilters): Promise<Mas
   const inside = references.filter((row) => row.portfolio_status === "Dentro").length;
 
   return {
-    services: (data ?? []).map(mapMasterService),
+    services: (data as unknown as Record<string, unknown>[] ?? []).map(mapMasterService),
     total,
     page,
     pageCount,
@@ -71,7 +72,7 @@ function mapMasterService(row: Record<string, unknown>): MasterService {
       const entity = (Array.isArray(rawEntity) ? rawEntity[0] : rawEntity) as Record<string, unknown> | undefined;
       return { entityId: String(item.entity_id), legalName: String(entity?.legal_name ?? "Entitat"), nif: entity?.nif == null ? null : String(entity.nif), relationType: item.relation_type as "confirmed" | "auxiliary", sourceReference: String(item.source_reference) };
     }) : [],
-    provisions: Array.isArray(row.service_provisions) ? row.service_provisions.map((provision) => {
+    provisions: Array.isArray(row.service_provisions) ? row.service_provisions.filter(provision=>!(provision as Record<string,unknown>).superseded_at).map((provision) => {
       const item = provision as Record<string, unknown>;
       return {
         id: String(item.id), sourceId: String(item.source_id),

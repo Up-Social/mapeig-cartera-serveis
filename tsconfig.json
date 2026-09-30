@@ -35,8 +35,10 @@
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts",
     "**/*.mts",
-    ".next-workflow-build/types/**/*.ts",
-    ".next-workflow-build/dev/types/**/*.ts"
+    ".cache/next-workflow-build/types/**/*.ts",
+    ".cache/next-workflow-build/dev/types/**/*.ts",
+    ".cache/next-workflow-e2e/types/**/*.ts",
+    ".cache/next-workflow-e2e/dev/types/**/*.ts"
   ],
   "exclude": [
     "node_modules"

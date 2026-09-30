@@ -29,7 +29,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${roboto.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full">
-        <AppShell>{children}</AppShell>
+        <AppShell>{process.env.LOCAL_REMOTE_PREVIEW==="true"&&<p role="status" className="mx-4 mt-4 rounded border p-3 text-sm">Dades de producció · Aplicació local. Processament automàtic desactivat.{process.env.LOCAL_REMOTE_LEGACY_SCHEMA==="true"?" Desglossament de concerts i selecció anual pendents d’activació.":""}</p>}{children}</AppShell>
       </body>
     </html>
   );

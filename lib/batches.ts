@@ -1,3 +1,5 @@
+import {hasUnitSchema,schemaSelect} from './runtime-schema';
+import {executionMode} from './pipeline/execution-mode';
 import {executionStatus} from './cloud/execution-status';
 import {latestAnalysis} from './latest-analysis';
 import "server-only";
@@ -5,6 +7,7 @@ import { createServerSupabase, mapLatestCandidates } from "./records-page";
 import type { BatchJob, BatchSummary, CloudResourceBlock, ExportSummary, SampleRecord, SourceDataset } from "./batch-types";
 import { FINANCING_TYPES, financingTypeForDataset, type FinancingType } from "./financing-types";
 import { summarizePhases,type ProgressState } from "./pipeline-progress";
+import { paginateBatchSummaries, type BatchListFilters } from "./batch-list";
 
 export async function getBalancedSample(excludedIds: string[] = []): Promise<SampleRecord[]> {
   const { data, error } = await createServerSupabase().rpc("sample_financing_type_candidates", { candidate_limit: 20, excluded_ids: excludedIds });
@@ -32,32 +35,42 @@ export async function getAvailableFinancingTypes(): Promise<FinancingType[]> {
   return FINANCING_TYPES.filter((type) => (data ?? []).some((row: { financing_type: string }) => row.financing_type === type));
 }
 
-export async function getBatches(): Promise<BatchSummary[]> {
-  const { data, error } = await createServerSupabase().from("pipeline_run_summaries").select("*").order("created_at", { ascending: false }).limit(30);
-  if (error) throw error;
-  return enrichExecutions((data ?? []).map((row) => mapBatchSummary(row as Record<string, unknown>)));
+export async function getBatchPage(input: BatchListFilters) {
+  const db = createServerSupabase();
+  const rows: Record<string, unknown>[] = [];
+  for (let start = 0; ; start += 500) {
+    const result = await db.from("pipeline_run_summaries").select("*").order("created_at", { ascending: false }).order("id").range(start, start + 499);
+    if (result.error) throw result.error;
+    rows.push(...(result.data ?? []));
+    if ((result.data?.length ?? 0) < 500) break;
+  }
+  const result = paginateBatchSummaries(rows.map(mapBatchSummary), input);
+  return { ...result, items: await enrichExecutions(result.items) };
 }
 
 export async function getBatch(id: string): Promise<BatchSummary | null> {
-  const { data, error } = await createServerSupabase().from("pipeline_runs").select(BATCH_SELECT).eq("id", id).maybeSingle();
+  const { data, error } = await createServerSupabase().from("pipeline_runs").select(schemaSelect(BATCH_SELECT)).eq("id", id).maybeSingle();
   if (error) throw error;
   if (!data) return null;
-  return (await enrichCandidateServices([mapBatch(data as Record<string, unknown>)]))[0];
+  return (await enrichCandidateServices([mapBatch(data as unknown as Record<string, unknown>)]))[0];
 }
 
 export async function getCloudResourceBlock(): Promise<CloudResourceBlock> {
+  if (process.env.LOCAL_REMOTE_PREVIEW === 'true' && executionMode() === 'disabled') return {kind:'execution_disabled',label:'Execució desactivada en aquest entorn'};
   const { data, error } = await createServerSupabase().from("cloud_resources").select("blocked_kind").eq("name", "sandbox").single();
   if (error) throw new Error("No s’ha pogut consultar la disponibilitat del procés.");
   if (!data.blocked_kind) return null;
   return { kind: String(data.blocked_kind), label: data.blocked_kind === "vercel_quota" ? "Quota de Vercel esgotada" : "Execució al núvol bloquejada" };
 }
 
-const BATCH_SELECT = "*,pipeline_jobs(id,status,error_message,enrichment_status,enrichment_error,analysis_results(*),preparation_status,preparation_message,matching_candidates(id,pipeline_job_id,rank,target_code,target_name,score,rationale,engine_version,matching_candidate_evidence(explanation,evidence_chunks(ordinal,content))),source_records(id,source_dataset,financing_type,source_record_id,title,evidence_status,evidence_error,enrichment_status,enrichment_error,processing_status,service_provisions(id,review_decisions(pipeline_job_id))))";
+const BATCH_SELECT = "*,pipeline_jobs(id,status,error_message,enrichment_status,enrichment_error,analysis_results(*),preparation_status,preparation_message,matching_candidates(id,pipeline_job_id,rank,target_code,target_name,score,rationale,engine_version,matching_candidate_evidence(explanation,evidence_chunks(ordinal,content))),source_records(id,source_dataset,financing_type,source_record_id,title,evidence_status,evidence_error,enrichment_status,enrichment_error,processing_status,service_provisions(id,superseded_at,review_decisions(pipeline_job_id))))";
 
 export async function getExportSummary() {
   const supabase = createServerSupabase();
+  let provisions=supabase.from("service_provisions").select("id",{count:"exact",head:true});
+  if(hasUnitSchema())provisions=provisions.is("superseded_at",null);
   const [{ count, error: countError }, { data, error }] = await Promise.all([
-    supabase.from("service_provisions").select("id", { count: "exact", head: true }),
+    provisions,
     supabase.from("excel_exports").select("id,filename,provision_count,created_at").order("created_at", { ascending: false }).limit(5),
   ]);
   if (countError) throw countError;
@@ -77,9 +90,9 @@ function mapBatch(row: Record<string, unknown>): BatchSummary {
     const item = value as Record<string, unknown>;
     const source = item.source_records as Record<string, unknown>;
     const rawProvision = source.service_provisions;
-    const provisions=Array.isArray(rawProvision)?rawProvision:[];
+    const provisions=Array.isArray(rawProvision)?rawProvision.filter(p=>!(p as Record<string,unknown>).superseded_at):[];
     const hasProvision=provisions.some(p=>{const v=p as Record<string,unknown>;const reviews=Array.isArray(v.review_decisions)?v.review_decisions:[v.review_decisions];return reviews.some(r=>(r as Record<string,unknown>|null)?.pipeline_job_id===item.id);});
-    if (hasProvision) provisionCount += 1;
+    provisionCount += provisions.filter(p=>{const v=p as Record<string,unknown>;const reviews=Array.isArray(v.review_decisions)?v.review_decisions:[v.review_decisions];return reviews.some(r=>(r as Record<string,unknown>|null)?.pipeline_job_id===item.id);}).length;
     const sourceDataset = source.source_dataset as SourceDataset;
     const analysis = latestAnalysis([item]);
     const rawCandidates=mapLatestCandidates([{ created_at: "", matching_candidates: item.matching_candidates }]);

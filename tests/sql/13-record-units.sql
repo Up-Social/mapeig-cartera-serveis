@@ -1,0 +1,26 @@
+do $$ declare sid uuid:=gen_random_uuid();rid uuid;j uuid;v text;code text;d uuid;legacy uuid;u uuid;u2 uuid;pid uuid;quote text;payload jsonb;begin
+ insert into source_records(id,source_dataset,source_record_id,mechanism,title,financing_type,amount) values(sid,'concerts','UNITS-'||sid,'Concert','Unit fixture','concert',10000);
+ insert into pipeline_runs default values returning id into rid;
+ insert into pipeline_jobs(run_id,source_record_id,status) values(rid,sid,'needs_review') returning id into j;
+ select id into v from catalog_versions where active and validated;
+ select service_code into code from eligible_official_services limit 1;
+ insert into analysis_results(pipeline_job_id,source_record_id,catalog_version_id,rules_version,classification,reasons,explanation,service_description,target_population,evidence)
+ values(j,sid,v,'test','insufficient_evidence','[]','Fixture','Servei','Població','[{"content":"fixture"}]');
+ perform review_analysis(sid,'select',j,'{}',null,code,'Aprovació de l’expedient de prova');
+ select id into legacy from service_provisions where source_record_id=sid;
+ quote:='Entitat de prova A. Centre A. Servei '||code||'. Període 2026. Import 3000 euros.';
+ insert into source_documents(source_record_id,url,url_hash,document_type,status,extracted_text,text_length,extraction_partial) values(sid,'https://tauler.seu-e.cat/fixture','units-test','annex','fetched',quote||' Entitat de prova B. Servei '||code||'. Període 2026, import no acreditat.',500,false) returning id into d;
+ payload:=jsonb_build_object('provider_name','Entitat de prova A','centre','Centre A','period','2026','service_code',code,'amount',3000,'document_id',d,'page',1,'evidence_quote',quote);
+ u:=save_record_unit(sid,j,payload);
+ if save_record_unit(sid,j,payload)<>u then raise exception 'Unit duplicated';end if;
+ begin perform save_record_unit(sid,gen_random_uuid(),payload);raise exception 'Stale unit accepted';exception when others then if sqlerrm='Stale unit accepted' then raise;end if;end;
+ begin perform save_record_unit(sid,j,payload||'{"evidence_quote":"Una cita inventada que no consta en el document"}');raise exception 'Invented evidence accepted';exception when others then if sqlerrm='Invented evidence accepted' then raise;end if;end;
+ pid:=review_record_unit(u,j,true,'Validació individual amb annex acreditat');
+ if review_record_unit(u,j,true,'Segona petició idempotent')<>pid then raise exception 'Approval duplicated';end if;
+ if not exists(select 1 from service_provisions where id=legacy and superseded_at is not null) then raise exception 'Legacy ID lost';end if;
+ payload:=payload||jsonb_build_object('provider_name','Entitat de prova B','centre','Centre B','amount',null,'evidence_quote','Entitat de prova B. Servei '||code||'. Període 2026, import no acreditat.');
+ u2:=save_record_unit(sid,j,payload);perform review_record_unit(u2,j,true,'Segona entitat sense import individual acreditat');
+ if (select count(*) from service_provisions where source_record_id=sid and superseded_at is null)<>2 then raise exception 'Expected 2 Excel lines';end if;
+ if (select sum(amount) from service_provisions where source_record_id=sid and superseded_at is null)<>3000 then raise exception 'Global amount duplicated';end if;
+ begin perform review_analysis(sid,'reject',j,array['not_social_service'],null,null,'No ha de sobreescriure les unitats');raise exception 'Split decisions overwritten';exception when others then if sqlerrm='Split decisions overwritten' then raise;end if;end;
+end $$;

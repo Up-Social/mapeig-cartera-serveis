@@ -17,7 +17,7 @@ import { ReviewActions } from "@/components/review-actions";
 import {DocumentProvenance} from "@/components/document-provenance";
 import { ReviewHistory } from "@/components/review-history";
 import { Input } from "@/components/ui/input";
-import { StableAccordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { StableAccordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/visible-sections";
 import { AnalysisResult } from "@/components/analysis-result";
 import { displaySourceIdentifier } from "@/lib/source-identifiers";
 import { sourcePayloadFieldLabel, sourcePayloadValue } from "@/lib/source-payload-display";
@@ -155,7 +155,7 @@ export function ReviewWorkbench({
   );
 }
 
-function ReviewDetail({
+export function ReviewDetail({
   record,
   services,
   onRecordUpdate,
@@ -242,21 +242,9 @@ function ReviewDetail({
           </Button>
         )}
       </div>
-      <section className="mt-5 border-t pt-5">
-        <h4 className="text-sm font-semibold">
-          Dades originals de l&apos;Excel
-        </h4>
-        <p className="mt-1 text-xs text-neutral-500">
-          Informació importada, separada de les dades contrastades.
-        </p>
-        <dl className="mt-3 grid gap-x-6 gap-y-3 text-xs md:grid-cols-2">
-          {excelFields.map(([key, value]) => (
-            <div key={key}>
-              <dt className="font-semibold text-neutral-500">{sourcePayloadFieldLabel(key)}</dt>
-              <dd className="mt-1 whitespace-pre-wrap break-words leading-5">{sourcePayloadValue(key, value)}</dd>
-            </div>
-          ))}
-        </dl>
+      <section id="resultat" className="mt-5 border-t pt-5">
+        <h4 className="text-lg font-semibold">Resultat de l’anàlisi</h4>
+        <div className="mt-3 space-y-3"><AnalysisResult analysis={record.analysis} candidates={record.matchingCandidates}/></div>
       </section>
       <section className="mt-5 border-t pt-5">
         <h4 className="text-sm font-semibold">
@@ -307,13 +295,11 @@ function ReviewDetail({
           </p>
         )}
       </section>
-      <section className="mt-5 border-t pt-5">
-        <h4 className="text-sm font-semibold">
-          Resultat de l’anàlisi
-        </h4>
-        <div className="mt-3 space-y-3">
-          <AnalysisResult analysis={record.analysis} candidates={record.matchingCandidates}/>
-        </div>
+      <section id="dades" className="mt-5 border-t pt-5">
+        <section><h3 className="text-sm font-semibold">Dades originals de l&apos;Excel ({excelFields.length} camps)</h3>
+        <p className="mt-1 text-xs text-neutral-500">Informació importada, separada de les dades contrastades.</p>
+        <dl className="mt-3 grid gap-x-6 gap-y-3 text-sm md:grid-cols-2">{excelFields.map(([key, value]) => <div key={key}><dt className="font-semibold text-neutral-500">{sourcePayloadFieldLabel(key)}</dt><dd className="mt-1 whitespace-pre-wrap break-words leading-6">{sourcePayloadValue(key, value)}</dd></div>)}</dl>
+        </section>
       </section>
       {record.isHistorical&&<p role="status" className="mt-4 rounded border p-3 text-sm">Resultat històric de només lectura. {record.historicalDataUnavailable?'Hi ha dades originals que no es poden recuperar.':''}</p>}
       {editing && !record.isHistorical && !unreliable && (
@@ -391,11 +377,11 @@ function EnrichmentPanel({
           ))}
       </dl>
       {enrichment.evidence.length > 0 && (
-        <details className="mt-3">
-          <summary className="cursor-pointer text-xs font-semibold">
+        <section className="mt-3">
+          <h3 className="text-xs font-semibold">
             Fragments que sustenten l&apos;extracció (
             {enrichment.evidence.length})
-          </summary>
+          </h3>
           <div className="mt-2 space-y-2">
             {enrichment.evidence.map((item) => (
               <blockquote
@@ -406,7 +392,7 @@ function EnrichmentPanel({
               </blockquote>
             ))}
           </div>
-        </details>
+        </section>
       )}
       <p className="mt-3 text-[13.2px] text-neutral-500">
         Model: {enrichment.model}

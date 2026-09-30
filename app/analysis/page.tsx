@@ -1,17 +1,22 @@
+import { AutoFilterForm } from "@/components/auto-filter-form";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { getCurrentResults } from "@/lib/current-results";
-import { CLASSIFICATION_LABELS, CLASSIFICATIONS, type Classification } from "@/lib/analysis-contract";
+import { WorkPager, WorkTable } from "@/components/work-list";
 
-export default async function AnalysisPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
+export default async function AnalysisPage({ searchParams }: PageProps<"/analysis">) {
   const params = await searchParams;
-  const classification = CLASSIFICATIONS.includes(params.classification as Classification) ? params.classification! : "out_of_portfolio";
-  const page = Math.max(1, Number.parseInt(params.page ?? "1", 10) || 1);
-  const { rows, total, pageCount } = await getCurrentResults({ classification, page });
-  return <main className="mx-auto max-w-5xl space-y-5 p-5">
-    <div><h1 className="text-2xl font-semibold">Fora de cartera</h1><p className="mt-1 text-sm text-muted-foreground">Consulta els resultats que no corresponen a un servei final de la Cartera.</p></div>
-    <form className="flex flex-wrap gap-3"><select aria-label="Classificació" name="classification" defaultValue={classification} className="rounded border p-2">{Object.entries(CLASSIFICATION_LABELS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select><button className="rounded border px-4">Filtrar</button></form>
-    <a className="inline-block underline" href="/api/exports/outside">Exportar casos revisats fora de cartera</a><p>{total} resultats · pàgina {page}</p>
-    {rows.map((row) => <article key={row.id} className="space-y-2 rounded-lg border p-4"><h2 className="font-semibold">{row.title}</h2><p>{CLASSIFICATION_LABELS[row.classification as Classification]} · {row.human_reviewed ? "Revisat" : "Pendent de validació humana"}</p><p>{row.explanation}</p><Link href={`/review?state=all&record=${row.id}`} className="underline">Revisar registre</Link></article>)}
-    <nav className="flex gap-4">{page > 1 && <Link href={`?classification=${classification}&page=${page - 1}`}>Anterior</Link>}{page < pageCount && <Link href={`?classification=${classification}&page=${page + 1}`}>Següent</Link>}</nav>
-  </main>;
+  if (typeof params.classification === "string" && params.classification !== "out_of_portfolio") redirect(params.classification === "discarded" ? "/discarded" : params.classification === "in_portfolio" ? "/review?state=all" : "/issues");
+  const page = Math.max(1, Number.parseInt(String(params.page ?? "1"), 10) || 1);
+  const query = typeof params.q === "string" ? params.q.slice(0, 120) : "";
+  const { rows, total, pageCount } = await getCurrentResults({ classification: "out_of_portfolio", page, query });
+  const origin = `/analysis?${new URLSearchParams({ ...(query ? { q: query } : {}), page: String(page) })}`;
+  return <main className="page-shell"><section className="page-container space-y-5">
+    <div><p className="page-eyebrow">Resultats · validació humana</p><h1 className="page-title">Fora de cartera</h1><p className="page-description">Resultats que no corresponen a un servei final de la Cartera.</p></div>
+    <AutoFilterForm className="surface flex flex-wrap gap-3 p-4"><input className="form-text flex-1" name="q" aria-label="Cercar casos" placeholder="Títol, registre o entitat…" defaultValue={query}/><button className="rounded-md bg-primary px-4 text-sm text-primary-foreground">Filtrar</button>{query && <Link className="self-center text-sm underline" href="/analysis">Netejar filtres</Link>}</AutoFilterForm>
+    <a className="inline-block text-sm underline" href="/api/exports/outside">Exportar casos revisats fora de cartera</a>
+    <WorkTable headings={["Cas", "Servei identificat", "Entitat", "Revisió", "Acció"]} empty={rows.length ? undefined : "No hi ha casos fora de cartera amb aquests filtres."}>
+      {rows.map(row => <tr key={row.id}><td data-label="Cas"><Link className="font-semibold underline underline-offset-2" href={`/records/${row.id}?${new URLSearchParams({ from: origin, ...(row.job_id ? { job: row.job_id } : {}) })}`}>{row.title}</Link><p className="mt-1 text-xs text-muted-foreground">{row.source_record_id}</p></td><td data-label="Servei identificat">{row.service_description ?? "—"}</td><td data-label="Entitat">{row.provider_name ?? "No informada"}</td><td data-label="Revisió"><span className={`rounded-md border px-2 py-1 text-xs ${row.human_reviewed ? "status-neutral" : "status-warning"}`}>{row.human_reviewed ? "Revisat" : "Pendent"}</span></td><td data-label="Acció"><Link className="inline-block rounded-md border px-3 py-2 text-sm" href={`/records/${row.id}?${new URLSearchParams({ from: origin, ...(row.job_id ? { job: row.job_id } : {}) })}`}>Veure cas</Link></td></tr>)}
+    </WorkTable><WorkPager href={next => `/analysis?${new URLSearchParams({ ...(query ? { q: query } : {}), page: String(next) })}`} page={page} pageCount={pageCount} total={total}/>
+  </section></main>;
 }

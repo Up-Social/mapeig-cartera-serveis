@@ -38,9 +38,9 @@ export default async function BatchResults({
   const hasAdvancedFilters = Boolean(filter.classification || filter.type);
 
   return (
-    <main className="mx-auto max-w-6xl space-y-5 p-5">
-      <Link className={batchButtonVariants({ size: "sm" })} href={`/batches?batch=${id}`}>
-        Tornar a la llista de lots
+    <main className="page-container space-y-5">
+      <Link className={batchButtonVariants({ size: "sm" })} href={`/batches/${id}`}>
+        Tornar al lot
       </Link>
 
       <div>
@@ -110,8 +110,8 @@ export default async function BatchResults({
         <ResultViewLink id={id} current={view} value="resolved" label={`Revisats (${resolvedCount})`} />
       </nav>
 
-      <details className="rounded-xl border p-4" open={hasAdvancedFilters}>
-        <summary className="cursor-pointer text-sm font-semibold">Filtres avançats</summary>
+      <section className="rounded-xl border p-4">
+        <h3 className="text-sm font-semibold">Filtres avançats</h3>
         <form className="mt-4 flex flex-wrap items-center gap-3">
           <input type="hidden" name="view" value={view} />
           <select
@@ -143,7 +143,7 @@ export default async function BatchResults({
             </Link>
           )}
         </form>
-      </details>
+      </section>
 
       <p className="text-sm text-muted-foreground">
         Mostrant {jobs.length} de {batch.jobs.length} registres
@@ -191,11 +191,7 @@ function JobResult({ job, batchId }: { job: BatchJob; batchId: string }) {
   const guidance = batchResultGuidance(job);
   const isTechnical = guidance.kind === "technical";
   const needsReview = guidance.kind === "review";
-  const resultHref = needsReview
-    ? `/review?state=all&batch=${batchId}&record=${job.sourceRecordId}&job=${job.id}`
-    : isTechnical
-      ? `/issues?q=${encodeURIComponent(job.externalId)}`
-      : `/review?state=all&batch=${batchId}&record=${job.sourceRecordId}&job=${job.id}`;
+  const resultHref = `/records/${job.sourceRecordId}?${new URLSearchParams({ job: job.id, from: `/batches/${batchId}/results` })}`;
 
   return (
     <article className="space-y-4 rounded-xl border bg-card p-4">
@@ -226,12 +222,12 @@ function JobResult({ job, batchId }: { job: BatchJob; batchId: string }) {
           <strong>Què cal fer:</strong> {guidance.nextStep}
         </p>
         {guidance.technicalDetail && (
-          <details className="mt-3 text-sm">
-            <summary className="cursor-pointer font-medium">Veure detall tècnic</summary>
+          <section className="mt-3 text-sm">
+            <h3 className="font-medium">Veure detall tècnic</h3>
             <p className="mt-2 break-words rounded bg-background p-3 font-mono text-xs">
               {guidance.technicalDetail}
             </p>
-          </details>
+          </section>
         )}
       </section>
 
@@ -272,7 +268,7 @@ function JobResult({ job, batchId }: { job: BatchJob; batchId: string }) {
               : "Veure resultat i evidència"}
         </Link>
         <Link
-          href={`/?record=${job.sourceRecordId}`}
+          href={`/records/${job.sourceRecordId}?${new URLSearchParams({ from: `/batches/${batchId}/results` })}`}
           className={batchButtonVariants({ size: "sm" })}
         >
           Obrir registre

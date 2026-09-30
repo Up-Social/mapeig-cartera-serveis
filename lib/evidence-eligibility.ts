@@ -1,9 +1,12 @@
+import { textDefects } from "./pipeline/readable-document";
 import { scoreQuality } from "./pipeline/chunks";
 import { isUnusableWebExtraction } from "./source-evidence";
 
-export const EVIDENCE_POLICY_VERSION = "substantive-evidence-v1";
+export const EVIDENCE_POLICY_VERSION = "substantive-evidence-v2";
 
 export const EVIDENCE_REJECTION_REASONS = [
+  "corrupt_text",
+  "incomplete_extraction",
   "generic_portal",
   "short_text",
   "duplicate_text",
@@ -43,6 +46,8 @@ export function evidenceRejectionReasons(
   const flags = input.qualityFlags ?? [];
   const reasons: EvidenceRejectionReason[] = [];
 
+  if (textDefects(input.content).includes("corrupt_text") || flags.includes("corrupt_text")) reasons.push("corrupt_text");
+  if (flags.includes("incomplete_extraction")) reasons.push("incomplete_extraction");
   if (isUnusableWebExtraction(content)) reasons.push("javascript_shell");
   if (isGenericPortalText(content)) reasons.push("generic_portal");
   if (content.length < 120 || textLength < 300) {
@@ -68,6 +73,7 @@ export function isSubstantiveEvidenceQuote(value: string) {
   const normalized = normalizedText(value);
   return (
     normalized.length >= 24 &&
+    textDefects(value).length === 0 &&
     !isGenericPortalText(normalized) &&
     !isUnusableWebExtraction(normalized)
   );
@@ -78,7 +84,7 @@ export function documentQuality(
   extractionMethod: string,
   duplicate = false,
 ) {
-  const flags: string[] = [];
+  const flags: string[] = textDefects(text);
   if (text.trim().length < 1_000) flags.push("short_text");
   if (duplicate) flags.push("duplicate_text");
   if (extractionMethod === "html-basic") flags.push("basic_html_extraction");

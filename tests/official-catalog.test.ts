@@ -7,3 +7,5 @@ test('manual and model codes cannot select parents, unknown or excluded benefits
 import snapshot from '../data/legal/cartera.json';
 import {validateCatalog,normativeContext} from '../lib/official-catalog';
 test('official snapshot has validated complete hierarchy and excludes the documented repeal',()=>{const services=snapshot.services as OfficialService[];validateCatalog(services);assert.equal(snapshot.version.validated,true);assert.equal(services.length,190);assert.equal(services.some(s=>s.service_code==='1.2.4'||s.service_code.startsWith('1.2.4.')),false);const leaf=services.find(s=>s.service_code==='1.1.2.1')!;assert.deepEqual(normativeContext(leaf,services).map(s=>s.code),['1','1.1','1.1.2','1.1.2.1']);});
+
+test('SAD retains every continuation row of its normative functions',()=>{const fields=snapshot.services.find(s=>s.service_code==='1.1.2.1')!.normative_fields;for(const value of ['Atenció personal.','Ajuda a la llar.','Suport social i familiar.','Relació amb l’entorn.'.replace('’',"'")])assert.ok(fields.Funcions?.includes(value),value);assert.equal('' in fields,false);});

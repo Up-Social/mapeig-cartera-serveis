@@ -1,12 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useRef, useState, useTransition } from "react";
-import { ChevronDown } from "lucide-react";
+import { useEffect, useRef, useState, useTransition } from "react";
+import { WorkTable } from "@/components/work-list";
 import type {
   ProcessingStatus,
-  SourcePage,
+  SourceListPage,
   SourceRecord,
 } from "@/lib/workbench-types";
 import {
@@ -15,20 +14,13 @@ import {
   SOURCE_LABELS,
 } from "@/lib/financing-types";
 import { Button, buttonVariants } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { ReviewActions } from "@/components/review-actions";
-import {DocumentProvenance} from "@/components/document-provenance";
-import { ReviewHistory } from "@/components/review-history";
 import { cn } from "@/lib/utils";
-import { AnalysisResult } from "@/components/analysis-result";
 import {
   isRecordOperationTerminal,
   type RecordOperation,
 } from "@/lib/record-operation";
-import { submitRecordReview } from "@/lib/review-client";
-import { sourceDocumentStatusLabel, sourceDocumentTypeLabel } from "@/lib/ui-labels";
 import type {CloudResourceBlock} from '@/lib/batch-types';
 
 const statusLabels: Record<ProcessingStatus, string> = {
@@ -42,24 +34,13 @@ const statusLabels: Record<ProcessingStatus, string> = {
   rebutjat: "Rebutjat",
   error: "Error",
 };
-const statusStyles: Record<ProcessingStatus, string> = {
-  pendent: "bg-neutral-100 text-neutral-700",
-  preparant: "bg-neutral-200 text-neutral-800",
-  processant: "bg-neutral-800 text-white",
-  completat: "bg-neutral-900 text-white",
-  preparat: "bg-neutral-200 text-neutral-900",
-  revisio: "bg-neutral-300 text-neutral-950",
-  sense_evidencia: "bg-neutral-100 text-neutral-700",
-  rebutjat: "bg-neutral-200 text-neutral-700",
-  error: "bg-black text-white",
-};
 
 export function ProcessingWorkbench({
   result,
   filters,
   cloudBlock,
 }: {
-  result: SourcePage;
+  result: SourceListPage;
   cloudBlock: CloudResourceBlock;
   filters: {
     page: number;
@@ -67,50 +48,15 @@ export function ProcessingWorkbench({
     type: string;
   };
 }) {
-  const [records, setRecords] = useState(result.records);
-  const recordsRef = useRef(result.records);
-  const [metrics, setMetrics] = useState(result.metrics);
-  const [openRecordId, setOpenRecordId] = useState<string | null>(null);
+  const records = result.records;
+  const metrics = result.metrics;
   const filterFormRef = useRef<HTMLFormElement>(null);
   const filterSearchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [operations, setOperations] = useState<
-    Partial<Record<string, RecordOperation>>
-  >({});
-
-  const updateRecord = useCallback((nextRecord: SourceRecord) => {
-    const previous = recordsRef.current.find(
-      (record) => record.id === nextRecord.id,
-    );
-    const nextRecords = recordsRef.current.map((record) =>
-      record.id === nextRecord.id ? nextRecord : record,
-    );
-    recordsRef.current = nextRecords;
-    setRecords(nextRecords);
-    if (previous) {
-      setMetrics((current) =>
-        updateMetricsForRecord(current, previous.status, nextRecord.status),
-      );
-    }
-  }, []);
-
-  const startOperation = useCallback(
-    (recordId: string, operation: RecordOperation) => {
-      setOperations((current) => ({ ...current, [recordId]: operation }));
-    },
-    [],
-  );
-
-  const finishOperation = useCallback((recordId: string) => {
-    setOperations((current) => {
-      const next = { ...current };
-      delete next[recordId];
-      return next;
-    });
-  }, []);
 
   return (
     <main className="page-shell">
       <section className="page-container">
+        <div className="mb-5"><p className="page-eyebrow">Font i procés</p><h1 className="page-title">Registres</h1><p className="page-description">Localitza un registre, consulta el resultat i segueix-ne la fase actual.</p></div>
         {cloudBlock&&<section role="alert" className="mb-5 rounded-xl border-2 border-neutral-900 bg-neutral-100 p-4"><p className="font-semibold">Processament temporalment aturat</p><p className="mt-1 text-sm">{cloudBlock.label}. Pots consultar els registres, però no iniciar un procés nou.</p></section>}
         <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
           <Metric label="Registres totals" value={metrics.total} />
@@ -164,75 +110,14 @@ export function ProcessingWorkbench({
                 ))}
               </select>
             </form>
-            <div className="divide-y">
-              {records.map((record) => {
-                const isOpen = openRecordId === record.id;
-                return (
-                  <section key={record.id} className="px-4">
-                    <button
-                      type="button"
-                      aria-expanded={isOpen}
-                      aria-controls={`record-detail-${record.id}`}
-                      className="flex w-full items-start gap-4 py-4 text-left"
-                      onClick={() =>
-                        setOpenRecordId(isOpen ? null : record.id)
-                      }
-                    >
-                      <div className="min-w-0 flex-1 text-left">
-                        <p className="font-medium leading-5">{record.title}</p>
-                        <p className="mt-1 break-words text-xs leading-5 text-neutral-500">
-                          {record.sourceRecordId} ·{" "}
-                          {record.providerName ?? "Entitat no informada"}
-                        </p>
-                        <div className="mt-3 flex flex-wrap items-center gap-2">
-                          <span className="rounded-full border border-neutral-300 px-2.5 py-1 text-xs font-medium text-neutral-700">
-                            {FINANCING_TYPE_LABELS[record.financingType]}
-                          </span>
-                          <span className="text-xs text-neutral-500">
-                            {SOURCE_LABELS[record.sourceDataset] ??
-                              record.sourceDataset}
-                          </span>
-                          <Badge className={statusStyles[record.status]}>
-                            {statusLabels[record.status]}
-                          </Badge>
-                          <span className="text-xs text-neutral-500">
-                            {record.carteraCode ?? "Sense correspondència"}
-                          </span>
-                        </div>
-                      </div>
-                      {!isOpen && record.matchingCandidates[0] && (
-                        <MatchSummary record={record} />
-                      )}
-                      <ChevronDown
-                        aria-hidden="true"
-                        className={cn(
-                          "mt-1 size-4 shrink-0 text-neutral-500 transition-transform",
-                          isOpen && "rotate-180",
-                        )}
-                      />
-                    </button>
-                    {isOpen && (
-                      <div
-                        id={`record-detail-${record.id}`}
-                        className="border-t pb-5 pt-4"
-                      >
-                        <DetailPanel
-                          record={record}
-                          embedded
-                          operation={
-                            operations[record.id] ?? (cloudBlock ? undefined : inferOperation(record))
-                          }
-                          onRecordUpdate={updateRecord}
-                          onOperationStart={startOperation}
-                          onOperationFinish={finishOperation}
-                          cloudBlocked={Boolean(cloudBlock)}
-                        />
-                      </div>
-                    )}
-                  </section>
-                );
-              })}
-            </div>
+            <WorkTable headings={["Cas i font", "Entitat", "Tipologia", "Estat", "Lot", "Acció"]} empty={records.length ? undefined : "No hi ha registres amb aquests filtres."}>
+              {records.map(record => { const href = `/records/${record.id}?${new URLSearchParams({ from: `/?${new URLSearchParams({ q: filters.query, type: filters.type, page: String(filters.page) })}` })}`; return <tr key={record.id}>
+                <td data-label="Cas i font"><Link href={href} className="font-semibold underline underline-offset-2">{record.title}</Link><p className="mt-1 break-words text-xs text-muted-foreground">{record.sourceRecordId} · {SOURCE_LABELS[record.sourceDataset] ?? record.sourceDataset}</p></td>
+                <td data-label="Entitat">{record.providerName ?? "No informada"}</td><td data-label="Tipologia">{FINANCING_TYPE_LABELS[record.financingType]}</td>
+                <td data-label="Estat"><span className={`rounded-md border px-2 py-1 text-xs ${record.status === "error" ? "status-error" : record.status === "revisio" || record.status === "sense_evidencia" ? "status-warning" : record.status === "completat" ? "status-success" : "status-neutral"}`}>{statusLabels[record.status]}</span></td>
+                <td data-label="Lot">{record.batchNumber ?? "—"}</td><td data-label="Acció"><Link href={href} className="inline-block rounded-md border px-3 py-2 text-sm">Obrir cas</Link></td>
+              </tr>; })}
+            </WorkTable>
             <Pagination result={result} filters={filters} />
           </section>
         </div>
@@ -245,7 +130,7 @@ function Pagination({
   result,
   filters,
 }: {
-  result: SourcePage;
+  result: SourceListPage;
   filters: {
     query: string;
     type: string;
@@ -295,301 +180,7 @@ function Pagination({
   );
 }
 
-function MatchSummary({ record }: { record: SourceRecord }) {
-  const candidate = record.matchingCandidates[0];
-  if (!candidate) return null;
-  return (
-    <div className="mt-3 rounded-xl border border-neutral-300 bg-white p-3">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <p className="text-[13.2px] font-semibold uppercase tracking-wide text-neutral-500">
-            Proposta de correspondència
-          </p>
-          <p className="mt-1 text-sm font-semibold">
-            {candidate.targetCode} · {candidate.targetName}
-          </p>
-        </div>
-        <span className="shrink-0 rounded-full bg-neutral-900 px-2.5 py-1 text-xs font-semibold text-white">
-          {Math.round(candidate.score * 100)}%
-        </span>
-      </div>
-      <p className="mt-2 text-xs font-semibold text-neutral-700">
-        {record.reviewDecision
-          ? reviewDecisionLabel(record.reviewDecision)
-          : "Obre Revisió per validar"}
-      </p>
-    </div>
-  );
-}
-
-function DetailPanel({
-  record,
-  embedded = false,
-  operation,
-  onRecordUpdate,
-  onOperationStart,
-  onOperationFinish,
-  cloudBlocked,
-}: {
-  record?: SourceRecord;
-  embedded?: boolean;
-  operation?: RecordOperation;
-  onRecordUpdate: (record: SourceRecord) => void;
-  onOperationStart: (recordId: string, operation: RecordOperation) => void;
-  onOperationFinish: (recordId: string) => void;
-  cloudBlocked: boolean;
-}) {
-  if (!record)
-    return (
-      <aside className="rounded-2xl border border-dashed border-neutral-300 bg-white p-5 text-sm text-neutral-500">
-        Selecciona un registre de la taula per consultar-ne el detall i iniciar
-        el procés.
-      </aside>
-    );
-  const payload = Object.entries(record.sourcePayload).filter(
-    ([key, value]) =>
-      !key.startsWith("Fórmula ·") &&
-      !(typeof value === "string" && value.trim().startsWith("=")) &&
-      value !== null &&
-      value !== "",
-  );
-  return (
-    <aside
-      className={
-        embedded ? "bg-white" : "surface self-start p-5 xl:sticky xl:top-20"
-      }
-    >
-      <p className="text-xs font-semibold uppercase tracking-[0.15em] text-neutral-600">
-        Detall i traçabilitat
-      </p>
-      <h2 className="mt-2 text-lg font-semibold leading-snug">
-        {record.title}
-      </h2>
-      <dl className="mt-5 grid gap-3 border-y border-neutral-200 py-5 text-sm">
-        <Detail
-          label="Tipologia"
-          value={FINANCING_TYPE_LABELS[record.financingType]}
-        />
-        <Detail
-          label="Font"
-          value={SOURCE_LABELS[record.sourceDataset] ?? record.sourceDataset}
-        />
-        <Detail label="Identificador" value={record.sourceRecordId} />
-        <Detail label="Mecanisme" value={record.mechanism} />
-        <Detail label="Import" value={formatAmount(record.amount)} />
-        <Detail label="Fitxer" value={record.sourceFile ?? "—"} />
-        <Detail
-          label="Full / fila"
-          value={`${record.sourceSheet ?? "—"} · ${record.sourceRow ?? "—"}`}
-        />
-      </dl>
-      <RecordStages
-        record={record}
-        operation={operation}
-        onRecordUpdate={onRecordUpdate}
-        onOperationStart={onOperationStart}
-        onOperationFinish={onOperationFinish}
-        cloudBlocked={cloudBlocked}
-      />
-      {record.externalEnrichment && (
-        <ExternalEnrichmentDetail enrichment={record.externalEnrichment} />
-      )}
-      {(record.analysis || record.matchingCandidates.length > 0) ? (
-        <div className="mt-5">
-          <div className="flex items-center justify-between gap-3">
-            <p className="text-xs font-semibold uppercase tracking-wide text-neutral-500">
-              Candidats de correspondència
-            </p>
-            <span className="rounded-full bg-neutral-100 px-2.5 py-1 text-xs font-semibold">
-              {record.reviewDecision
-                ? reviewDecisionLabel(record.reviewDecision)
-                : "Revisió necessària"}
-            </span>
-          </div>
-          <div className="mt-3 space-y-3">
-            <AnalysisResult analysis={record.analysis} candidates={record.matchingCandidates}/>
-          </div>
-          {record.reviewDecision && (
-            <p className="mt-3 rounded-xl bg-neutral-100 p-3 text-xs font-semibold">
-              Decisió registrada: {reviewDecisionLabel(record.reviewDecision)}
-            </p>
-          )}
-            {record.analysis?.reliability_status !== "invalidated" && (
-              <ReviewControls
-                record={record}
-                onRecordUpdate={onRecordUpdate}
-              />
-            )}
-        </div>
-      ) : (
-        <div className="mt-5 rounded-xl bg-neutral-100 p-4 text-sm text-neutral-900">
-          <p className="font-semibold">Matching encara no executat</p>
-          <p className="mt-1 leading-5">
-            Crea un lot quan el registre disposi d&apos;evidència per generar
-            una proposta.
-          </p>
-        </div>
-      )}
-      <div className="mt-5">
-        <div className="flex items-center justify-between gap-3">
-          <p className="text-xs font-semibold uppercase tracking-wide text-neutral-500">
-            Evidència documental del registre
-          </p>
-          <span className="rounded-full bg-neutral-100 px-2.5 py-1 text-xs font-semibold text-neutral-700">
-            {record.sourceDocuments.length}
-          </span>
-        </div>
-        {record.sourceDocuments.length ? (
-          <ul className="mt-3 space-y-2">
-            {record.sourceDocuments.map((document) => (
-              <li
-                key={document.id}
-                className="rounded-xl border border-neutral-200 p-3"
-              >
-                <div className="flex items-center justify-between gap-3">
-                  <span className="text-xs font-semibold text-neutral-700">
-                    {sourceDocumentTypeLabel(document.documentType)}
-                  </span>
-                  <span className="text-xs text-neutral-500">
-                    {sourceDocumentStatusLabel(document.status)}
-                  </span>
-                </div>
-                <a
-                  href={`/api/documents/${document.id}/open`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="mt-2 block break-all text-xs leading-5 text-neutral-700 underline decoration-neutral-300 underline-offset-2 hover:text-black"
-                >
-                  {document.url}
-                </a>
-                {document.status === "fetched" && (
-                  <div className="mt-3 rounded-lg bg-neutral-50 p-3">
-                    <div className="flex flex-wrap gap-2 text-[13.2px] text-neutral-600">
-                      <span>
-                        {document.textLength?.toLocaleString("ca-ES")} caràcters
-                      </span>
-                      <span>·</span>
-                      <span>{document.chunkCount} fragments</span>
-                      {document.qualityScore != null && (
-                        <>
-                          <span>·</span>
-                          <span>
-                            qualitat {Math.round(document.qualityScore * 100)}%
-                          </span>
-                        </>
-                      )}
-                    </div>
-                    <DocumentProvenance document={document}/>
-                {document.textPreview && (
-                      <p className="mt-2 line-clamp-5 whitespace-pre-line text-xs leading-5 text-neutral-700">
-                        {document.textPreview}
-                      </p>
-                    )}
-                    {document.qualityFlags.length > 0 && (
-                      <p className="mt-2 text-[13.2px] text-neutral-500">
-                        Avisos:{" "}
-                        {document.qualityFlags
-                          .map(qualityFlagLabel)
-                          .join(" · ")}
-                      </p>
-                    )}
-                  </div>
-                )}
-                <p className="mt-2 text-[13.2px] text-neutral-500">
-                  {document.sourceFields.join(" · ")}
-                </p>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="mt-3 text-sm text-neutral-500">
-            No s&apos;ha trobat cap URL a la fila original.
-          </p>
-        )}
-      </div>
-      <details className="mt-5 rounded-xl border border-neutral-200 p-4">
-        <summary className="cursor-pointer text-xs font-semibold uppercase tracking-wide text-neutral-500">
-          Totes les dades originals ({payload.length})
-        </summary>
-        <dl className="mt-3 max-h-96 space-y-3 overflow-auto pr-2 text-xs">
-          {payload.map(([key, value]) => (
-            <div key={key}>
-              <dt className="font-semibold text-neutral-500">{key}</dt>
-              <dd className="mt-1 break-words leading-5 text-neutral-700">
-                {String(value)}
-              </dd>
-            </div>
-          ))}
-        </dl>
-      </details>
-    </aside>
-  );
-}
-
-function ExternalEnrichmentDetail({
-  enrichment,
-}: {
-  enrichment: NonNullable<SourceRecord["externalEnrichment"]>;
-}) {
-  const fields = [
-    ["Títol contrastat", enrichment.title],
-    ["Entitat", enrichment.providerName],
-    ["NIF", enrichment.providerNif],
-    ["Mecanisme", enrichment.mechanism],
-    ["Data", enrichment.awardDate],
-    [
-      "Import",
-      enrichment.amount == null ? null : formatAmount(enrichment.amount),
-    ],
-    ["Organisme", enrichment.contractingBody],
-    ["Col·lectiu", enrichment.targetPopulation],
-  ];
-  return (
-    <section className="mt-5 rounded-xl border border-neutral-200 bg-neutral-50 p-4">
-      <div className="flex items-center justify-between gap-3">
-        <p className="text-xs font-semibold uppercase tracking-wide text-neutral-900">
-          Dades contrastades amb fonts oficials
-        </p>
-        <span className="text-xs font-semibold">
-          {enrichment.confidence == null ? "Confiança no disponible" : `${Math.round(enrichment.confidence * 100)}%`}
-        </span>
-      </div>
-      <p className="mt-3 text-sm leading-6">{enrichment.summary}</p>
-      <dl className="mt-3 space-y-2 text-xs">
-        {fields
-          .filter(([, value]) => value !== null && value !== "")
-          .map(([label, value]) => (
-            <div
-              key={String(label)}
-              className="grid grid-cols-[105px_1fr] gap-2"
-            >
-              <dt className="font-semibold text-neutral-500">{label}</dt>
-              <dd>{String(value)}</dd>
-            </div>
-          ))}
-      </dl>
-      {enrichment.evidence.length > 0 && (
-        <details className="mt-3">
-          <summary className="cursor-pointer text-xs font-semibold">
-            Fragments justificatius ({enrichment.evidence.length})
-          </summary>
-          <div className="mt-2 max-h-56 space-y-2 overflow-auto">
-            {enrichment.evidence.map((item) => (
-              <blockquote
-                key={item.ordinal}
-                className="border-l-2 border-neutral-300 pl-3 text-xs leading-5"
-              >
-                {item.content}
-              </blockquote>
-            ))}
-          </div>
-        </details>
-      )}
-    </section>
-  );
-}
-
-function RecordStages({
+export function RecordStages({
   record,
   operation,
   onRecordUpdate,
@@ -609,12 +200,12 @@ function RecordStages({
   const [networkError, setNetworkError] = useState("");
   const [pollingStopped, setPollingStopped] = useState(false);
   const [pollingAttempt, setPollingAttempt] = useState(0);
-  const [clock, setClock] = useState(() => Date.now());
+  const [clock, setClock] = useState(() => record.operationProgress ? Date.parse(record.operationProgress.lastActivityAt) : 0);
   const [startingOperation, setStartingOperation] =
     useState<RecordOperation>();
 
   useEffect(() => {
-    if (!record.operationProgress || ["finished", "incident", "idle"].includes(record.operationProgress.state)) return;
+    if (!record.operationProgress || !['active','waiting','stalled'].includes(record.operationProgress.state)) return;
     const timer = window.setInterval(() => setClock(Date.now()), 1_000);
     return () => window.clearInterval(timer);
   }, [record.operationProgress]);
@@ -745,6 +336,8 @@ function RecordStages({
               ? "Anàlisi completada"
               : record.matchingCandidates.length
               ? "Matching disponible"
+              : record.operationProgress?.state === "incident" && record.operationProgress.step === "matching"
+                ? "Interromput durant la correspondència"
               : record.matchingError
                 ? "Error de correspondència"
                 : "No executat"
@@ -771,13 +364,14 @@ function RecordStages({
         <Button
           type="button"
           className="mt-4 w-full sm:w-auto"
-          disabled={busy||cloudBlocked}
+          disabled={busy||cloudBlocked||record.operationProgress?.state === 'incident'}
           onClick={() => run("process", () => startRecordOperation(record.id, "process"))}
         >
           {displayedOperation === "process" ? "Processant..." : cloudBlocked ? "Processament no disponible" : record.status === "error" ? "Tornar a processar" : "Processar"}
         </Button>
       )}
-      {cloudBlocked&&!record.analysis&&!record.matchingCandidates.length&&<p className="mt-2 text-xs text-muted-foreground">El registre no està processant-se. Quedarà disponible quan es recuperi l’execució al núvol.</p>}
+      {cloudBlocked&&!record.analysis&&!record.matchingCandidates.length&&<p className="mt-2 text-xs text-muted-foreground">No es poden iniciar operacions des d’aquest entorn mentre l’execució estigui desactivada o bloquejada.</p>}
+      {record.operationProgress?.state === 'incident' && record.pipelineRunId && <p className="mt-2 text-sm"><Link className="underline" href={`/batches/${record.pipelineRunId}`}>Consultar l’operació interrompuda</Link>. Cal revisar el diagnòstic i les respostes rebudes abans de reprendre.</p>}
       {record.matchingCandidates.length > 0 && !record.reviewDecision && (
         <p className="mt-4 rounded-lg bg-neutral-100 p-3 text-sm font-medium">Procés completat · Pendent de revisió</p>
       )}
@@ -874,7 +468,8 @@ function enrichmentStatusLabel(value: SourceRecord["enrichmentStatus"]) {
   )[value];
 }
 
-function inferOperation(record: SourceRecord): RecordOperation | undefined {
+export function inferOperation(record: SourceRecord): RecordOperation | undefined {
+  if (["incident", "finished"].includes(record.operationProgress?.state ?? "")) return undefined;
   if (["active", "waiting", "stalled"].includes(record.operationProgress?.state ?? "") || record.evidenceStatus === "preparing" || record.enrichmentStatus === "processing" || ["preparant", "processant"].includes(record.status)) return "process";
   return undefined;
 }
@@ -888,9 +483,9 @@ function OperationProgressCard({progress,now}:{progress:NonNullable<SourceRecord
   const percentage=determinate?Math.min(100,Math.round((progress.completed!/progress.total!)*100)):null;
   return <div className={cn("mt-4 rounded-lg border p-3",progress.state==="stalled"||progress.state==="incident"?"border-neutral-900 bg-neutral-100":"border-neutral-200 bg-neutral-50")} role={progress.state==="stalled"||progress.state==="incident"?"alert":undefined}>
     <div className="flex flex-wrap items-center justify-between gap-2"><p className="text-sm font-semibold">{stateLabel}</p><span className="text-xs text-neutral-500">Temps transcorregut: {elapsed}</span></div>
-    {stepLabel&&<p className="mt-1 text-sm text-neutral-700">{stepLabel}{progress.detail?` · ${progress.detail}`:""}</p>}
+    {stepLabel&&<p className="mt-1 text-sm text-neutral-700">{progress.state==='incident'?'Pas interromput: ':''}{stepLabel}{progress.detail&&progress.state!=='incident'?` · ${progress.detail}`:""}</p>}
     {determinate&&<div className="mt-3" aria-label={`${progress.completed} de ${progress.total}`}><div className="mb-1 flex justify-between text-xs text-neutral-500"><span>{progress.completed} de {progress.total}</span><span>{percentage}%</span></div><div className="h-2 overflow-hidden rounded-full bg-neutral-200"><div className="h-full rounded-full bg-neutral-900 transition-[width]" style={{width:`${percentage}%`}} /></div></div>}
-    <p className="mt-2 text-xs text-neutral-500">Darrera activitat fa {activityAgo}.{progress.state==="stalled"?" No s’ha detectat activitat durant més de 10 minuts.":""}</p>
+    <p className="mt-2 text-xs text-neutral-500">{['incident','finished'].includes(progress.state) ? `Darrera activitat: ${new Intl.DateTimeFormat('ca-ES',{dateStyle:'short',timeStyle:'medium',timeZone:'Europe/Madrid'}).format(new Date(progress.lastActivityAt))}.` : `Darrera activitat fa ${activityAgo}.`}{progress.state==="stalled"?" No s’ha detectat activitat durant més de 10 minuts.":""}</p>
   </div>;
 }
 
@@ -903,7 +498,7 @@ function formatDuration(milliseconds:number){
 async function fetchSourceRecord(id: string, signal?: AbortSignal) {
   const response = await fetch(`/api/records/${encodeURIComponent(id)}`, {
     cache: "no-store",
-    signal,
+    signal: signal ? AbortSignal.any([signal, AbortSignal.timeout(15_000)]) : AbortSignal.timeout(15_000),
   });
   const payload = (await response.json()) as {
     record?: SourceRecord;
@@ -934,25 +529,6 @@ function isAbortError(error: unknown) {
   return error instanceof DOMException && error.name === "AbortError";
 }
 
-function updateMetricsForRecord(
-  metrics: SourcePage["metrics"],
-  previous: ProcessingStatus,
-  next: ProcessingStatus,
-) {
-  if (previous === next) return metrics;
-  const count = (status: ProcessingStatus, target: ProcessingStatus) =>
-    status === target ? 1 : 0;
-  return {
-    ...metrics,
-    queued:
-      metrics.queued - count(previous, "preparant") + count(next, "preparant"),
-    completed:
-      metrics.completed - count(previous, "completat") + count(next, "completat"),
-    review:
-      metrics.review - count(previous, "revisio") + count(next, "revisio"),
-  };
-}
-
 function Metric({
   label,
   value,
@@ -970,109 +546,7 @@ function Metric({
     </Card>
   );
 }
-function Detail({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="grid grid-cols-[90px_1fr] gap-3 sm:grid-cols-[100px_1fr]">
-      <dt className="text-neutral-500">{label}</dt>
-      <dd className="min-w-0 break-words font-medium text-neutral-800">
-        {value}
-      </dd>
-    </div>
-  );
-}
-function formatAmount(amount: number | null) {
-  return amount == null
-    ? "No informat"
-    : new Intl.NumberFormat("ca-ES", {
-        style: "currency",
-        currency: "EUR",
-        maximumFractionDigits: 0,
-      }).format(amount);
-}
-function qualityFlagLabel(flag: string) {
-  return (
-    (
-      {
-        short_text: "text curt",
-        duplicate_text: "text duplicat",
-        basic_html_extraction: "extracció HTML bàsica",
-      } as Record<string, string>
-    )[flag] ?? flag
-  );
-}
-function ReviewControls({
-  record,
-  onRecordUpdate,
-}: {
-  record: SourceRecord;
-  onRecordUpdate: (record: SourceRecord) => void;
-}) {
-  const router = useRouter();
-  const [candidateId, setCandidateId] = useState(
-    record.matchingCandidates[0]?.id ?? "",
-  );
-  const [notes, setNotes] = useState("");
-  const [reasons, setReasons] = useState<string[]>([]);
-  const [message, setMessage] = useState("");
-  const [pending, startTransition] = useTransition();
-  function submit(outcome: "select" | "reject" | "insufficient" | "outside") {
-    if(record.reviewDecision && !window.confirm("Aquesta acció substituirà la decisió vigent. Vols continuar?")) return;
-    setMessage("");
-    startTransition(async () => {
-      try {
-        const nextRecord = await submitRecordReview(record.id, {
-          expectedJobId: record.currentJobId ?? "",
-          reasons: outcome === "reject" ? reasons : [],
-          candidateId: outcome === "select" ? candidateId : undefined,
-          outcome,
-          notes,
-        });
-        onRecordUpdate(nextRecord);
-        window.dispatchEvent(new Event("navigation-counts:refresh"));
-        router.refresh();
-        setMessage("Decisió registrada correctament.");
-      } catch (error) {
-        setMessage(
-          error instanceof Error
-            ? error.message
-            : "No s'ha pogut registrar la decisió.",
-        );
-      }
-    });
-  }
-  return (
-    <div className="mt-4 rounded-xl border border-neutral-300 p-4">
-      <p className="text-sm font-semibold">Validació humana</p>
-      <label className="mt-3 block text-xs font-semibold text-neutral-600">
-        Candidat seleccionat
-        <select
-          value={candidateId}
-          onChange={(event) => setCandidateId(event.target.value)}
-          className="form-control mt-1.5 font-normal"
-        >
-          {record.matchingCandidates.map((candidate) => (
-            <option key={candidate.id} value={candidate.id}>
-              {candidate.targetCode} · {Math.round(candidate.score * 100)}% ·{" "}
-              {candidate.targetName}
-            </option>
-          ))}
-        </select>
-      </label>
-      <ReviewActions notes={notes} onNotesChange={setNotes} reasons={reasons} onReasonsChange={setReasons} pending={pending} canSelect={!!candidateId && !!record.currentJobId} canOutside={!!record.analysis} rectification={!!record.reviewDecision} onSubmit={submit}/>
-      {message && <p className="mt-3 text-xs text-neutral-600">{message}</p>}
-      <ReviewHistory record={record}/>
-    </div>
-  );
-}
-function reviewDecisionLabel(
-  decision: NonNullable<SourceRecord["reviewDecision"]>,
-) {
-  return (
-    {
-      approved: "Aprovat",
-      corrected: "Corregit",
-      rejected: "Rebutjat",
-      insufficient_evidence: "Evidència insuficient",
-    } as const
-  )[decision];
+
+function reviewDecisionLabel(decision: NonNullable<SourceRecord["reviewDecision"]>) {
+  return { approved: "Aprovat", corrected: "Corregit", rejected: "Rebutjat", insufficient_evidence: "Evidència insuficient" }[decision];
 }

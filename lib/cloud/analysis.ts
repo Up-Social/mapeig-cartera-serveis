@@ -1,3 +1,4 @@
+import {readEvidenceChunks} from '../pipeline/evidence-reader';
 import {positiveAuditSchema,positiveAuditInput,applyPositiveAudit,POSITIVE_AUDIT_INSTRUCTIONS,POSITIVE_AUDIT_VERSION} from './positive-audit';
 import {normalizeCandidates} from './normalize-candidates';
 import {needsContractRepair,contractRepairSchema,CONTRACT_REPAIR_INSTRUCTIONS,CONTRACT_REPAIR_VERSION} from './repair-contract';
@@ -21,15 +22,22 @@ export async function analyzeRecord(c:Context,job:{id:string;source_record_id:st
  if(r.error)throw new CloudFailure('internal');
  const docs=await c.db.from('source_documents').select('id,text_length,extraction_method,quality_flags').eq('source_record_id',job.source_record_id).eq('status','fetched');
  if(docs.error)throw new CloudFailure('internal');
- const evidence=await c.db.from('current_evidence_chunks').select('id,content,ordinal,source_document_id').in('source_document_id',(docs.data??[]).map(d=>d.id)).order('source_document_id').order('ordinal').limit(96);
- if(evidence.error||!evidence.data?.length)throw new CloudFailure('document');
+ const evidence={data:await readEvidenceChunks(c.db,(docs.data??[]).map(d=>d.id))};
+ if(!evidence.data.length)throw new CloudFailure('document');
  const documents=new Map((docs.data??[]).map(document=>[document.id,document]));
  const assessed=evidence.data.map(chunk=>{
   const document=documents.get(chunk.source_document_id);
   const quality={content:chunk.content,textLength:document?.text_length,extractionMethod:document?.extraction_method,qualityFlags:document?.quality_flags};
   return {...chunk,eligible:isEligibleEvidence(quality),rejection_reasons:evidenceRejectionReasons(quality)};
  });
- const chunks=selectEvidenceWindow(assessed.filter(chunk=>chunk.eligible));
+ const pinned=await readCheckpoint<typeof assessed>(c,`evidence:${job.id}:${phase}`);
+ const prior=await readCheckpoint<{state:string}>(c,`ai:${job.id}:${phase==='matching'?'matching':'enrichment'}`);
+ // Legacy receipts have ordinals from the old first-96, head/tail window.
+ // Reconstruct that exact window, then pin it before reusing the receipt.
+ const pool=prior?.state==='received'?assessed.slice(0,96):assessed;
+ if(prior?.state==='received'&&!pinned&&pool.some(chunk=>chunk.rejection_reasons.includes('corrupt_text')))throw new CloudFailure('validation',5,{operation:'evidence_recovery',code:'NEW_ANALYSIS_REQUIRED'});
+ const chunks=pinned??selectEvidenceWindow(pool.filter(chunk=>chunk.eligible),12,prior?.state==='received');
+ if(!pinned)await checkpoint(c,`evidence:${job.id}:${phase}`,chunks);
  const rejectedEvidence=assessed.filter(chunk=>!chunk.eligible).map(chunk=>({source_document_id:chunk.source_document_id,ordinal:chunk.ordinal,reasons:chunk.rejection_reasons}));
  if(phase==='enrichment'){
   if(!chunks.length){
@@ -44,10 +52,13 @@ export async function analyzeRecord(c:Context,job:{id:string;source_record_id:st
   try {result=bindEnrichmentRoles(JSON.parse(extractOutputText(raw)),chunks);validateScopeFacts(result.scope_facts,chunks.length);if(!result.evidence_ordinals.length||result.evidence_ordinals.some(n=>!Number.isInteger(n)||n<1||n>chunks.length))throw Error();}catch {throw new CloudFailure('validation');}
   await commit(c,job.id,'enrichment',{enrichment:result,model,usage:raw.usage,evidence:[...new Set(result.evidence_ordinals)].map(n=>chunks[n-1])});
  }else{
-  const catalog=await loadOfficialCatalog(c.db);
+  const pinnedVersion=await readCheckpoint<string>(c,`catalog:${job.id}`);
+  const catalog=await loadOfficialCatalog(c.db,pinnedVersion??undefined);
+  if(!pinnedVersion&&prior?.state==='received'&&catalog.version.provenance?.parser_version==='normative-fields-v2')throw new CloudFailure('validation',5,{operation:'catalog_recovery',code:'NEW_CATALOG_ANALYSIS_REQUIRED'});
+  if(!pinnedVersion)await checkpoint(c,`catalog:${job.id}`,catalog.version.id);
   if(!chunks.length){
    const fallback=assessed[0];
-   const result:AnalysisOutput&{rule_audit:Record<string,unknown>;model_conclusion:null}={classification:'insufficient_evidence',reasons:[],explanation:'La font localitzada no conté text substantiu de l’expedient. Cal obtenir la resolució, l’annex o un document oficial que acrediti el servei i les persones destinatàries.',service_description:'',target_population:'',evidence_ordinals:[1],population_verified:false,social_service_verified:false,candidates:[],rule_audit:{version:EVIDENCE_POLICY_VERSION,rule:'ineligible_evidence',evidence_policy:{version:EVIDENCE_POLICY_VERSION,rejected:rejectedEvidence}},model_conclusion:null};
+   const result:AnalysisOutput&{rule_audit:Record<string,unknown>;model_conclusion:null}={classification:'insufficient_evidence',reasons:[],explanation:'La font localitzada no conté text substantiu de l’expedient. Cal obtenir la resolució, l’annex o un document oficial que acrediti el servei i les persones destinatàries.',service_description:'',target_population:'',evidence_ordinals:[1],population_verified:false,social_service_verified:false,candidates:[],rule_audit:{version:EVIDENCE_POLICY_VERSION,rule:'ineligible_evidence',evidence_policy:{version:EVIDENCE_POLICY_VERSION,total_chunks:assessed.length,selected_chunks:chunks.length,selection_complete:chunks.length===assessed.filter(chunk=>chunk.eligible).length,rejected:rejectedEvidence}},model_conclusion:null};
    validateAnalysis(result,catalog.all,1);
    await commit(c,job.id,'analysis',{version:catalog.version.id,result,usage:null,candidates:[],evidence:fallback?[fallback]:[]});
    await checkpoint(c,`${job.id}:${phase}`,{complete:true,evidence_policy:EVIDENCE_POLICY_VERSION,rejected:rejectedEvidence});
@@ -92,7 +103,7 @@ export async function analyzeRecord(c:Context,job:{id:string;source_record_id:st
    accreditations.financed_object={kind:'service_financing',evidence_ordinals:exactOrdinals,basis:'official_service_code_and_description'};
   }
   const scoped=applyScopeRules(result,enrichment?.scope_facts?.roles,chunks,accreditations);
-  const ruled={...scoped,rule_audit:{...scoped.rule_audit,evidence_policy:{version:EVIDENCE_POLICY_VERSION,rejected:rejectedEvidence}},model_conclusion:JSON.parse(extractOutputText(raw))};
+  const ruled={...scoped,rule_audit:{...scoped.rule_audit,evidence_policy:{version:EVIDENCE_POLICY_VERSION,total_chunks:assessed.length,selected_chunks:chunks.length,selection_complete:chunks.length===assessed.filter(chunk=>chunk.eligible).length,rejected:rejectedEvidence}},model_conclusion:JSON.parse(extractOutputText(raw))};
   validateAnalysis(ruled,catalog.all,chunks.length);
   await commit(c,job.id,'analysis',{version:catalog.version.id,result:ruled,usage:raw.usage,candidates:ruled.candidates.map(candidate=>({...candidate,model,metadata:{response_id:raw.id,usage:raw.usage,positive_audit_version:auditVersion,normalization_version:'catalog-binding-v1'},evidence:candidate.evidence_ordinals.map(n=>chunks[n-1])})),evidence:ruled.evidence_ordinals.map(n=>chunks[n-1])});
  }

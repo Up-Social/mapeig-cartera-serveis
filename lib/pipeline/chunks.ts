@@ -20,6 +20,7 @@ export function splitText(text: string) {
   return chunks;
 }
 export function scoreQuality(length: number, flags: string[]) {
+  if (flags.some(flag => ["corrupt_text", "incomplete_extraction", "empty_text"].includes(flag))) return 0;
   let score = length >= 3_000 ? 1 : length >= 1_000 ? 0.85 : length >= 300 ? 0.65 : 0.35;
   if (flags.includes("duplicate_text")) score -= 0.25;
   if (flags.includes("basic_html_extraction")) score -= 0.1;

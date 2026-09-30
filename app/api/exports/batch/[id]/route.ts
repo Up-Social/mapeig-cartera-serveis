@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { hasUnitSchema, schemaSelect, type ExportProvision } from "@/lib/runtime-schema";
 import { createServerSupabase } from "@/lib/records-page";
 import { createProvisionExcel, type ProvisionExcelRow } from "@/lib/provision-excel";
 
@@ -30,13 +31,14 @@ export async function GET(
       { status: 409 },
     );
   const recordIds = jobs.map((job) => job.source_record_id);
-  const { data, error } = await supabase
+  let query = supabase
     .from("service_provisions")
     .select(
-      "id,source_id,call_url,regulatory_basis_url,provider_name,provider_nif,mechanism,award_date,amount,contracting_body,target_population,source_reference,service_code,master_services(service_name),official_services(service_name)",
+      schemaSelect("id,source_id,unit_id,centre,period,act_type,annex_reference,call_url,regulatory_basis_url,provider_name,provider_nif,mechanism,award_date,amount,contracting_body,target_population,source_reference,service_code,master_services(service_name),official_services(service_name)"),
     )
-    .in("source_record_id", recordIds)
-    .order("created_at");
+    .in("source_record_id", recordIds).order("created_at");
+  if (hasUnitSchema()) query = query.is("superseded_at", null);
+  const { data, error } = await query.returns<ExportProvision[]>();
   if (error) return Response.json({ error: error.message }, { status: 500 });
   if (!data?.length)
     return Response.json(

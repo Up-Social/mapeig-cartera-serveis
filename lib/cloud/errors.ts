@@ -1,7 +1,7 @@
 export class CloudYield extends Error {constructor(public wait=1){super("yield");}}
 export type FailureKind='budget'|'transient'|'vercel_quota'|'openai_quota'|'credentials'|'document'|'validation'|'provider_unknown'|'internal';
 export class CloudFailure extends Error {
- constructor(public kind:FailureKind,public retryAfter=5){super(kind);}
+ constructor(public kind:FailureKind,public retryAfter=5, public diagnostic?:{operation:string;code:string}){super(kind);}
 }
 export function publicFailure(error:unknown):CloudFailure {
  return error instanceof CloudFailure?error:new CloudFailure('internal');

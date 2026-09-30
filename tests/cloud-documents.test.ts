@@ -15,7 +15,7 @@ test('OCR resumes persisted pages after each Sandbox disappears',async()=>{
   await assert.rejects(extractDocument(c,'job','doc','https://unused.invalid',true),/yield/);
   assert.equal(recognized,2);
   const result=await extractDocument(c,'job','doc','https://unused.invalid',true);
-  assert.equal(result.method,'tesseract-ocr');assert.equal(result.partial,false);assert.equal(recognized,2);assert.equal(stopped,3);
+  assert.equal(result.method,'pdf-ocr-markdown-v2');assert.equal(result.partial,false);assert.equal(recognized,2);assert.equal(stopped,3);
   await extractDocument(c,'job','doc','https://unused.invalid',true);assert.equal(stopped,3);
  }finally{Sandbox.create=create;if(env===undefined)delete process.env.CLOUD_SANDBOX_SNAPSHOT;else process.env.CLOUD_SANDBOX_SNAPSHOT=env;}
 });

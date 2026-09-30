@@ -1,6 +1,7 @@
 import "server-only";
 import { createServerSupabase } from "./records-page";
 import type { Entity, EntityFilters, EntityPage } from "./entity-types";
+import {hasUnitSchema} from './runtime-schema';
 
 const PAGE_SIZE = 25;
 export async function getEntityPage(filters: EntityFilters): Promise<EntityPage> {
@@ -34,12 +35,14 @@ export async function getEntityPage(filters: EntityFilters): Promise<EntityPage>
   const data = await query.order("legal_name").range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
   if (data.error) throw data.error;
   const ids = (data.data ?? []).map((r) => r.id);
+  let activeProvisions = db.from("service_provisions").select("entity_id").in("entity_id", ids);
+  if (hasUnitSchema()) activeProvisions = activeProvisions.is("superseded_at", null);
   const [aliases, services, relations, links, provisions] = ids.length ? await Promise.all([
     db.from("entity_aliases").select("entity_id,alias,source").in("entity_id", ids),
     db.from("reses_services").select("entity_id,registry_number,service_name,service_type,capacity,address,municipality,postal_code,county,active").in("entity_id", ids).order("service_name"),
     db.from("entity_catalog_relations").select("entity_id,service_code,relation_type,source_type,master_services(service_name),official_services(service_name)").in("entity_id", ids),
     db.from("source_record_entities").select("entity_id").in("entity_id", ids),
-    db.from("service_provisions").select("entity_id").in("entity_id", ids),
+    activeProvisions,
   ]) : [{ data: [] }, { data: [] }, { data: [] }, { data: [] }, { data: [] }];
   const entities: Entity[] = (data.data ?? []).map((row) => ({
     id: row.id, legalName: row.legal_name, nif: row.nif, qualification: row.qualification, validationStatus: row.validation_status, active: row.active,

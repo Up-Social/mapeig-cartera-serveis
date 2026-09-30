@@ -1,6 +1,7 @@
 import type { FinancingType } from "./financing-types";
 import type { RecordOperation } from "./record-operation";
 import type { SourceRecord } from "./workbench-types";
+import { failureLabels, type FailureKind } from './cloud/errors';
 
 export const ISSUE_CATEGORIES = [
   "rejected",
@@ -55,6 +56,13 @@ export type IssuePage = {
 };
 
 export function classifyIssue(record: SourceRecord): IssueRecord | null {
+  if (record.operationProgress?.state === 'incident' && !['needs_review','approved','corrected','rejected','insufficient_evidence'].includes(record.currentJobStatus ?? '')) {
+    const phase = record.operationProgress.step === 'enrichment' ? 'enrichment' : ['document_discovery','document_extraction','ocr'].includes(record.operationProgress.step ?? '') ? 'evidence' : 'matching';
+    const category = phase === 'enrichment' ? 'enrichment_error' : phase === 'evidence' ? 'document_error' : 'matching_error';
+    // A paused worker can retain a ready/matching job. Do not offer a new call
+    // before its received/unknown provider response has been reconciled.
+    return issue(record, category, phase, failureLabels[record.operationProgress.failureKind as FailureKind] ?? failureLabels.internal, null);
+  }
   if (record.analysis?.reliability_status === "invalidated") {
     return issue(
       record,

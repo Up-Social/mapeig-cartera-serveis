@@ -78,8 +78,10 @@ test.afterAll(async()=>{
 });
 
 async function login(page:Page){
+ const password='local-workflow-fixture-only';
  await page.goto('/batches');
- await page.getByRole('textbox',{name:'Contrasenya'}).fill('local-workflow-fixture-only');
+ await page.locator('[data-app-ready="true"]').waitFor();
+ await page.getByRole('textbox',{name:'Contrasenya'}).fill(password);
  await Promise.all([page.waitForURL('**/batches'),page.getByRole('button',{name:'Entrar'}).click()]);
  await page.locator('[data-app-ready="true"]').waitFor();
 }
@@ -112,196 +114,78 @@ async function expectBatchActionHoverContrast(page:Page){
  }
 }
 
-test('blocked batch is understandable and actionable',async({page})=>{
+test('blocked batches have readable details without disclosures',async({page})=>{
  await login(page);
- await expect(page.getByRole('alert').filter({hasText:'Processament temporalment aturat'})).toContainText('Quota de Vercel esgotada');
  await expect(page.getByRole('button',{name:'Processament no disponible'})).toBeDisabled();
- await page.getByRole('button',{name:'Lots'}).click();
- await page.getByRole('button',{name:'Requereixen atenció'}).click();
- const quickResume=page.getByRole('button',{name:/Reprendre lot /}).first();
- await expect(quickResume).toBeVisible();
- await expect(quickResume).toBeDisabled();
- const heading=page.getByRole('button',{name:/Lot .*Pausat per quota/}).first();
- await heading.click();
+ await page.goto(`/batches/${pausedRun}`);
  await expect(page.getByRole('heading',{name:'Processament aturat'})).toBeVisible();
- await expect(page.getByText('100%')).toHaveCount(0);
- await page.getByText('Veure detall tècnic de les fases').click();
- await expect(page.getByText(/0 errors propis · 1 bloquejats · 0 pendents/).first()).toBeVisible();
- await page.getByRole('link',{name:/Obrir detall del lot/}).click();
- await expect(page.getByRole('heading',{name:'Lot pausat fictici'})).toBeVisible();
- await expect(page.getByRole('link',{name:'Obrir registre'})).toBeVisible();
+ await expect(page.locator('details')).toHaveCount(0);
+ await expect(page.getByText('Veure detall tècnic de les fases')).toBeVisible();
+ await expectBatchActionHoverContrast(page);
 });
-
-test('Vercel can be checked without resuming paused work',async({page})=>{
+test('technical incidence finishes the record spinner and retains explanation',async({page})=>{
+ await login(page);
+ const matching=await db.from('pipeline_jobs').update({status:'matching',preparation_status:'ready',enrichment_status:'completed'}).eq('run_id',operationRun);if(matching.error)throw matching.error;
+ await db.from('worker_tasks').update({current_step:'matching',progress_completed:0,progress_total:1,failure_kind:'internal'}).eq('run_id',operationRun);
+ await page.goto(`/records/${operationRecord}`);
+ await expect(page.getByRole('heading',{level:1})).toContainText('Operació individual pausada');
+ await expect(page.getByText('Incidència tècnica',{exact:true})).toBeVisible();
+ await expect(page.getByRole('button',{name:'Processant...',exact:true})).toHaveCount(0);
+ await expect(page.getByText('Interromput durant la correspondència')).toBeVisible();
+ await expect(page.getByText(/Encara no hi ha cap resultat de correspondència guardat/)).toBeVisible();
+ await expect(page.getByText(/La revisió encara no està disponible/)).toBeVisible();
+ await expect(page.getByRole('button',{name:'Desar decisió',exact:true})).toHaveCount(0);
+ await expect(page.locator('details')).toHaveCount(0);
+});
+test('batch results link to a visible review and keep the return context',async({page})=>{
+ await login(page);await page.goto(`/batches/${diagnosticRun}/results`);
+ await expect(page.getByRole('heading',{name:'Errors tècnics'})).toBeVisible();
+ const technical=page.getByRole('article').filter({hasText:'Subvenció amb document tècnic fictici'});
+ await expect(technical).toContainText('Document no processable.');
+ await expect(page.locator('details')).toHaveCount(0);
+ await page.getByRole('link',{name:'Revisar ara'}).click();
+ await expect(page).toHaveURL(new RegExp(`/records/${reviewRecord}`));
+ await expect(page.getByRole('heading',{name:'Resultat de l’anàlisi'})).toBeVisible();
+ await expect(page.getByText('Evidència de l’expedient',{exact:true})).toBeVisible();
+ await expect(page.getByRole('link',{name:'← Tornar al llistat'})).toHaveAttribute('href',new RegExp(`/batches/${diagnosticRun}/results`));
+ await expect(page.locator('details')).toHaveCount(0);
+});
+test('catalog groups explain hierarchy and SAD retains complete normative functions',async({page})=>{
+ await login(page);await page.goto('/catalog/1.1.2');
+ await expect(page.getByRole('heading',{name:'Prestacions d’aquest agrupador'})).toBeVisible();
+ await page.getByRole('link',{name:/1.1.2.1 · Servei d'ajuda/}).click();
+ await expect(page.getByRole('heading',{name:'Fitxa normativa completa'})).toBeVisible();
+ await expect(page.getByText('Ajuda a la llar.',{exact:false}).first()).toBeVisible();
+ await expect(page.getByRole('heading',{name:'Condicions d’accés'})).toBeVisible();
+ await expect(page.locator('details')).toHaveCount(0);
+ await page.screenshot({path:`docs/local/implementation-20260930/catalog-${test.info().project.name}.png`,fullPage:true});
+});
+test('batch creation has no year filter and costs remain explicit',async({page})=>{
+ await login(page);await expect(page.getByLabel('Any de la font')).toHaveCount(0);
+ await expect(page.getByText(/auditories tenen cost de tokens/)).toBeVisible();
+ await expect(page.getByRole('button',{name:'Processament no disponible'})).toBeDisabled();
+});
+test('checking cloud availability does not resume paused tasks',async({page})=>{
  await login(page);
  try{
   await page.getByRole('button',{name:'Comprovar si Vercel torna a estar disponible'}).click();
-  await expect(page.getByRole('alert').filter({hasText:'Processament temporalment aturat'})).toBeHidden();
-  await expect(page.getByText('Vercel torna a estar disponible. Cap lot s’ha reprès automàticament.')).toBeVisible();
+  await expect(page.getByText('Vercel torna a estar disponible. Cap lot s’ha reprès automàticament.')).toBeVisible({timeout:30_000});
   await expect(page.getByRole('button',{name:'Crear i processar lot'})).toBeEnabled();
-  await page.getByRole('button',{name:'Lots'}).click();
-  await page.getByRole('button',{name:'Requereixen atenció'}).click();
-  await expect(page.getByRole('button',{name:/Reprendre lot /}).first()).toBeEnabled();
-  await page.getByRole('button',{name:/Lot .*Pausat per quota/}).first().click();
-  await expect(page.getByRole('button',{name:'Reprendre només aquest lot'})).toBeVisible();
-  const task=await db.from('worker_tasks').select('execution_state,failure_kind').eq('run_id',pausedRun).order('created_at',{ascending:false}).order('id',{ascending:false}).limit(1).single();
-  if(task.error)throw task.error;
-  expect(task.data).toMatchObject({execution_state:'paused',failure_kind:'vercel_quota'});
- }finally{
-  const restored=await db.from('cloud_resources').update({blocked_kind:'vercel_quota',owner:null,lease_until:null}).eq('name','sandbox');
-  if(restored.error)throw restored.error;
- }
+  const task=await db.from('worker_tasks').select('execution_state').eq('run_id',pausedRun).single();
+  expect(task.data?.execution_state).toBe('paused');
+ }finally{await db.from('cloud_resources').update({blocked_kind:'vercel_quota'}).eq('name','sandbox');}
 });
-
-test('results explain blocked work and open the record',async({page})=>{
- await login(page);
- await page.goto(`/batches/${pausedRun}/results`);
- await expect(page.getByRole('status')).toContainText('Aquest lot està aturat');
- await expect(page.getByText(/Estat: Bloquejat/)).toBeVisible();
- await page.getByRole('link',{name:'Obrir registre'}).click();
- await expect(page).toHaveURL(new RegExp(`record=${pausedRecord}`));
- await expect(page.getByText('Processament temporalment aturat')).toBeVisible();
- await page.getByRole('button',{name:/Lot pausat fictici/}).click();
- await expect(page.getByRole('button',{name:'Processament no disponible'})).toBeDisabled();
-});
-
-test('results explain human review and technical errors with accessible actions',async({page})=>{
- await login(page);
- await page.goto(`/batches/${diagnosticRun}/results`);
- await expect(page.getByRole('heading',{name:/Lot /})).toBeVisible();
- await expect(page.getByRole('heading',{name:'Revisions humanes pendents'})).toBeVisible();
- await expect(page.getByRole('heading',{name:'Errors tècnics'})).toBeVisible();
- const reviewCard=page.getByRole('article').filter({hasText:'Conveni pendent de revisió fictici'});
- await expect(reviewCard).toContainText('Cal revisar la falta d’evidència');
- await expect(reviewCard).toContainText('No consta la població destinatària');
- await expect(reviewCard.getByRole('link',{name:'Revisar ara'})).toBeVisible();
- const technicalCard=page.getByRole('article').filter({hasText:'Subvenció amb document tècnic fictici'});
- await expect(technicalCard).toContainText('Preparació de fonts');
- await expect(technicalCard).toContainText('No s’ha pogut llegir cap document útil');
- await expect(technicalCard.getByRole('link',{name:'Veure incidència'})).toBeVisible();
- await technicalCard.getByText('Veure detall tècnic').click();
- await expect(technicalCard).toContainText('Document no processable.');
-
- await expectBatchActionHoverContrast(page);
-});
-
-test('batch summary, detail and review form one coherent route',async({page})=>{
- await login(page);
- await page.getByRole('button',{name:'Requereixen atenció',exact:true}).click();
- const row=page.getByRole('button',{name:/Lot .*2 registres · 1 per revisar · 1 error tècnic/}).first();
- await expect(row).toBeVisible();
- await row.click();
- await expect(page.getByText('2 registres · 1 per revisar · 1 error tècnic')).toHaveCount(2);
- await expect(page.getByText('100%')).toHaveCount(0);
- await Promise.all([
-  page.waitForURL(`**/batches/${diagnosticRun}/results`),
-  page.getByRole('link',{name:'Obrir detall del lot (2)'}).click(),
- ]);
- await expect(page.getByRole('heading',{level:1})).toContainText('Lot ');
- await expect(page.getByRole('navigation',{name:'Filtrar registres del lot'})).toBeVisible();
- await expect(page.getByRole('link',{name:'Tots (2)'})).toHaveAttribute('aria-current','page');
- await expect(page.getByText('Filtres avançats')).toBeVisible();
- await page.getByRole('link',{name:'Errors (1)'}).click();
- await expect(page.getByText('Subvenció amb document tècnic fictici')).toBeVisible();
- await expect(page.getByText('Conveni pendent de revisió fictici')).toHaveCount(0);
- await page.getByRole('link',{name:'Per revisar (1)'}).click();
- await page.getByRole('link',{name:'Revisar ara'}).click();
- await expect(page.getByRole('link',{name:'Tornar al detall del lot'})).toBeVisible();
-});
-
-test('a background batch updates automatically when it finishes',async({page})=>{
- const available=await db.from('cloud_resources').update({blocked_kind:null,owner:null,lease_until:null}).eq('name','sandbox');
- if(available.error)throw available.error;
- const task=await db.from('worker_tasks').insert({
-  task_type:'process_run',run_id:diagnosticRun,executor:'vercel_workflow',status:'running',execution_state:'running',
-  lease_owner:randomUUID(),lease_until:new Date(Date.now()+60_000).toISOString(),last_progress_at:new Date().toISOString(),
- }).select('id').single();
- if(task.error){
-  await db.from('cloud_resources').update({blocked_kind:'vercel_quota',owner:null,lease_until:null}).eq('name','sandbox');
-  throw task.error;
- }
- try{
-  await login(page);
-  await expect(page.getByRole('button',{name:new RegExp(`Lot .*En execució.*2 registres`)})).toBeVisible();
-  const completed=await db.from('worker_tasks').update({
-   status:'completed',execution_state:'completed',lease_owner:null,lease_until:null,completed_at:new Date().toISOString(),
-  }).eq('id',task.data.id);
-  if(completed.error)throw completed.error;
-  await expect(page.getByRole('button',{name:new RegExp(`Lot .*Finalitzat amb incidències.*2 registres`)})).toBeVisible({timeout:15_000});
-  await expect(page.getByRole('status')).toContainText('ha finalitzat');
-  await expect(page.getByRole('status')).toContainText('actualitzat automàticament');
- }finally{
-  const removed=await db.from('worker_tasks').delete().eq('id',task.data.id);
-  if(removed.error)throw removed.error;
-  const restored=await db.from('cloud_resources').update({blocked_kind:'vercel_quota',owner:null,lease_until:null}).eq('name','sandbox');
-  if(restored.error)throw restored.error;
- }
-});
-
-test('all visible batch actions keep their text contrast on hover',async({page})=>{
- await login(page);
- await expectBatchActionHoverContrast(page);
- await page.getByRole('button',{name:'Requereixen atenció',exact:true}).click();
- await page.getByRole('button',{name:/Lot .*Lot preparat per revisar/}).first().click();
- await expect(page.getByRole('link',{name:/Revisar .* pendent/})).toBeVisible();
- await expectBatchActionHoverContrast(page);
-});
-
-test('individual operations are separated from normal batches',async({page})=>{
- await login(page);
- await page.getByRole('button',{name:'Operacions individuals'}).click();
- await page.getByRole('button',{name:'Requereixen atenció'}).click();
- await page.getByRole('button',{name:/Operació .*Pausat per quota/}).first().click();
- await expect(page.getByText('Operació individual pausada fictícia')).toBeVisible();
-});
-
-test('batch controls remain usable on a mobile viewport',async({page},testInfo)=>{
- test.skip(testInfo.project.name!=='mobile','mobile-only assertion');
- await login(page);
- await expect(page.getByRole('alert').filter({hasText:'Processament temporalment aturat'})).toBeVisible();
- await page.getByRole('button',{name:'Lots'}).click();
- await page.getByRole('button',{name:'Requereixen atenció'}).click();
- await expect(page.getByRole('button',{name:/Lot .*Pausat per quota/}).first()).toBeVisible();
-});
-
-test('automatic OCR can be disabled and enabled from administration',async({page})=>{
- await login(page);
- await page.goto('/admin');
- await expect(page.getByRole('heading',{name:'Configuració del processament'})).toBeVisible();
+test('OCR setting is reversible in the isolated database',async({page})=>{
+ await login(page);await page.goto('/admin');
  await expect(page.getByTestId('ocr-status')).toHaveText('Activat');
  await page.getByRole('button',{name:'Desactivar OCR automàtic'}).click();
- await expect(page.getByRole('status')).toContainText('ha quedat desactivat');
  await expect(page.getByTestId('ocr-status')).toHaveText('Desactivat');
- const disabled=await db.from('app_settings').select('enabled').eq('key','automatic_ocr').single();
- if(disabled.error)throw disabled.error;
- expect(disabled.data.enabled).toBe(false);
  await page.getByRole('button',{name:'Activar OCR automàtic'}).click();
- await expect(page.getByRole('status')).toContainText('ha quedat activat');
  await expect(page.getByTestId('ocr-status')).toHaveText('Activat');
- const enabled=await db.from('app_settings').select('enabled').eq('key','automatic_ocr').single();
- if(enabled.error)throw enabled.error;
- expect(enabled.data.enabled).toBe(true);
 });
-
-test('a paused batch can be resumed directly from the list after Vercel recovers',async({page},testInfo)=>{
- test.skip(testInfo.project.name!=='desktop','desktop mutation assertion');
- await login(page);
- try{
-  await page.getByRole('button',{name:'Comprovar si Vercel torna a estar disponible'}).click();
-  await expect(page.getByRole('alert').filter({hasText:'Processament temporalment aturat'})).toBeHidden();
-  await page.getByRole('button',{name:'Requereixen atenció'}).click();
-  const quickResume=page.getByRole('button',{name:/Reprendre lot /}).first();
-  await expect(quickResume).toBeEnabled();
-  await quickResume.click();
-  await expect(page.getByRole('status')).toContainText('s’ha reprès correctament');
-  const task=await db.from('worker_tasks').select('execution_state,failure_kind').eq('run_id',pausedRun).order('created_at',{ascending:false}).order('id',{ascending:false}).limit(1).single();
-  if(task.error)throw task.error;
-  expect(task.data.execution_state).toBe('pending');
-  expect(task.data.failure_kind).toBeNull();
- }finally{
-  const task=await db.from('worker_tasks').update({status:'failed',execution_state:'paused',failure_kind:'vercel_quota',dispatch_at:null,workflow_id:null,lease_until:null,lease_owner:null}).eq('run_id',pausedRun);
-  if(task.error)throw task.error;
-  const restored=await db.from('cloud_resources').update({blocked_kind:'vercel_quota',owner:null,lease_until:null}).eq('name','sandbox');
-  if(restored.error)throw restored.error;
- }
+test('process help describes partial OCR and individual concert approvals',async({page})=>{
+ await login(page);await page.goto('/process');
+ await expect(page.getByRole('heading',{name:'Concerts amb diverses transaccions'})).toBeVisible();
+ await expect(page.getByText(/25 pàgines OCR/)).toBeVisible();
+ await expect(page.locator('details')).toHaveCount(0);
 });

@@ -48,7 +48,7 @@ export type ExternalEnrichment = {
   summary: string; confidence: number | null; model: string; evidence: Array<{ ordinal: number; content: string }>;
 };
 export type MatchingCandidate = {
-  legalReference?:string;
+  legalReference?:string; catalogVersionId?:string;
   id: string; pipelineJobId: string; rank: number; targetCode: string; targetName: string; score: number;
   rationale: string; model: string; evidence: Array<{ ordinal: number; content: string; explanation: string | null }>;
   serviceDetail: { sectorScope: string | null; portfolioStatus: string | null } | null;
@@ -57,11 +57,13 @@ export type SourceDocument = {
   resolution?: import('./pipeline/official-resolution').Resolution;
   id: string; url: string; documentType: string; sourceFields: string[];
   status: "discovered" | "fetching" | "fetched" | "unsupported" | "error";
-  mimeType: string | null; textPreview: string | null; textLength: number | null;
+  extractedText?:string|null; mimeType: string | null; textPreview: string | null; textLength: number | null;
   extractionMethod: string | null; qualityScore: number | null; qualityFlags: string[]; chunkCount: number;
 };
 export type SourcePage = {
   records: SourceRecord[]; total: number; page: number; pageCount: number; pageSize: number;
   metrics: { total: number; completed: number; review: number; queued: number };
 };
+export type SourceListRow = Pick<SourceRecord, "id" | "title" | "sourceDataset" | "sourceRecordId" | "providerName" | "financingType" | "status" | "batchNumber">;
+export type SourceListPage = Omit<SourcePage, "records"> & { records: SourceListRow[] };
 export type ReviewQueue = { records: SourceRecord[]; total: number; reviewed: number };

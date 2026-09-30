@@ -41,7 +41,7 @@ export function discoverRecordDocuments(record: SourceRow): DocumentRow[] {
 export async function discoverResolvedDocuments(record:SourceRow){
  const documents=discoverRecordDocuments(record);
  const extra:DocumentRow[]=[];
- for(const document of documents.slice(0,10)){
+ for(const document of documents){
   const resolutions=await resolveOfficialDocuments(document.url);
   for(const resolution of resolutions){
    if(resolution.result==='unresolved'){document.resolution=resolution;continue;}

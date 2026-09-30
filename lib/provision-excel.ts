@@ -1,7 +1,6 @@
-import "server-only";
 import ExcelJS from "exceljs";
 
-export type ProvisionExcelRow = { source_id: string; call_url: string | null; regulatory_basis_url: string | null; provider_name: string | null; provider_nif: string | null; mechanism: string; award_date: string | null; amount: number | null; contracting_body: string | null; target_population: string | null; source_reference: string; service_code: string; service_name: string };
+export type ProvisionExcelRow = { unit_id?:string; centre?:string|null; period?:string|null; act_type?:string|null; annex_reference?:string|null; source_id: string; call_url: string | null; regulatory_basis_url: string | null; provider_name: string | null; provider_nif: string | null; mechanism: string; award_date: string | null; amount: number | null; contracting_body: string | null; target_population: string | null; source_reference: string; service_code: string; service_name: string };
 
 export async function createProvisionExcel(rows: ProvisionExcelRow[]) {
   const workbook = new ExcelJS.Workbook();
@@ -21,11 +20,16 @@ export async function createProvisionExcel(rows: ProvisionExcelRow[]) {
     { header: "Fuente (dataset/registro)", key: "source_reference", width: 34 },
     { header: "Código Cartera", key: "service_code", width: 18 },
     { header: "Nombre servicio Cartera", key: "service_name", width: 48 },
+    {header:"ID unidad",key:"unit_id",width:38},
+    {header:"Centro",key:"centre",width:32},
+    {header:"Periodo",key:"period",width:22},
+    {header:"Tipo de acto",key:"act_type",width:20},
+    {header:"Anexo / página",key:"annex_reference",width:60},
   ];
   sheet.getRow(1).font = { bold: true };
   sheet.getRow(1).alignment = { vertical: "middle", wrapText: true };
   sheet.getRow(1).height = 32;
-  sheet.autoFilter = { from: "A1", to: "M1" };
+  sheet.autoFilter = { from: "A1", to: "R1" };
   for (const item of rows) {
     const row = sheet.addRow({ ...item, call_url: hyperlink(item.call_url), regulatory_basis_url: hyperlink(item.regulatory_basis_url), award_date: item.award_date ? new Date(`${item.award_date}T00:00:00`) : null, amount: item.amount == null ? null : Number(item.amount) });
     row.alignment = { vertical: "top", wrapText: true };

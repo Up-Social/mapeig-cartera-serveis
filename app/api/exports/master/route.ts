@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { hasUnitSchema, schemaSelect, type ExportProvision } from "@/lib/runtime-schema";
 import ExcelJS from "exceljs";
 import { createServerSupabase } from "@/lib/records-page";
 
@@ -12,12 +13,14 @@ export async function GET() {
       { status: 500 },
     );
   const supabase = createServerSupabase();
-  const { data, error } = await supabase
+  let query = supabase
     .from("service_provisions")
     .select(
-      "source_id,call_url,regulatory_basis_url,provider_name,provider_nif,mechanism,award_date,amount,contracting_body,target_population,source_reference,service_code",
+      schemaSelect("source_id,unit_id,centre,period,act_type,annex_reference,call_url,regulatory_basis_url,provider_name,provider_nif,mechanism,award_date,amount,contracting_body,target_population,source_reference,service_code,official_services(service_name),master_services(service_name)"),
     )
     .order("created_at");
+  if (hasUnitSchema()) query = query.is("superseded_at", null);
+  const { data, error } = await query.returns<ExportProvision[]>();
   if (error) return Response.json({ error: error.message }, { status: 500 });
   if (!data?.length)
     return Response.json(
@@ -37,6 +40,7 @@ export async function GET() {
     structuredClone(sheet.getCell(2, index + 1).style),
   );
   if (sheet.rowCount > 1) sheet.spliceRows(2, sheet.rowCount - 1);
+  ["Nombre servicio Cartera","ID unidad","Centro","Periodo","Tipo de acto","Anexo / página"].forEach((header,i)=>{sheet.getCell(1,13+i).value=header;});
   for (const item of data) {
     const row = sheet.addRow([
       item.source_id,
@@ -51,9 +55,11 @@ export async function GET() {
       item.target_population,
       item.source_reference,
       item.service_code,
+      ((Array.isArray(item.official_services)?item.official_services[0]:item.official_services) as {service_name?:string}|null)?.service_name ?? "",
+      item.unit_id,item.centre,item.period,item.act_type,item.annex_reference,
     ]);
     row.eachCell({ includeEmpty: true }, (cell, column) => {
-      cell.style = structuredClone(templateStyles[column - 1]);
+      if(column <= templateStyles.length)cell.style = structuredClone(templateStyles[column - 1]);
     });
     row.getCell(7).numFmt = "yyyy-mm-dd";
     row.getCell(8).numFmt = "#,##0.00";

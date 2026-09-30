@@ -10,6 +10,7 @@ const eslintConfig = defineConfig([
     // Default ignores of eslint-config-next:
     ".next/**",
     ".next-workflow-build/**",
+    ".cache/**",
     "app/.well-known/workflow/**",
     "out/**",
     "build/**",

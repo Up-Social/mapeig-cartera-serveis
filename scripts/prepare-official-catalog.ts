@@ -9,12 +9,12 @@ const changes=JSON.parse(readFileSync(affectations,'utf8'));
 const entities:Record<string,string>={eacute:'é',rsquo:'’',oacute:'ó',ograve:'ò',uacute:'ú',iacute:'í',agrave:'à',egrave:'è',uuml:'ü',iuml:'ï',ccedil:'ç',ndash:'–',middot:'·',nbsp:' ',Ograve:'Ò',euro:'€',quot:'"',Agrave:'À',ordf:'ª',Eacute:'É',Oacute:'Ó',Egrave:'È',Iacute:'Í',Uacute:'Ú',amp:'&',lt:'<',gt:'>'};
 function text(s:string=''):string {return (s??'').replace(/<br\s*\/?>|<\/p>|<\/div>|<\/tr>/gi,'\n').replace(/<[^>]+>/g,'').replace(/&#(\d+);/g,(_,n)=>String.fromCodePoint(Number(n))).replace(/&([a-zA-Z]+);/g,(_,n)=>{if(!(n in entities))throw Error(`Unknown entity ${n}`);return entities[n];}).replace(/[\t ]+/g,' ').replace(/ *\n */g,'\n').replace(/\n{3,}/g,'\n\n').trim();}
 const annex=doc.bodyDocument.find((s:{title:string})=>s.title==='Annex 1');
-const versionId=`pjc-557820-${doc.uriELI.validity}`;
+const versionId=`pjc-557820-${doc.uriELI.validity}-fields-v2`;
 const index=text(annex.text.split('<table')[0]);
 const services:OfficialService[]=index.split('\n').flatMap(line=>{const m=line.match(/^([123](?:\.\d+)*)\.?\s+(.+)$/);return m?[{version_id:versionId,service_code:m[1],service_name:m[2],parent_code:m[1].includes('.')?m[1].slice(0,m[1].lastIndexOf('.')):null,benefit_type:({'1':'service','2':'economic','3':'technological'} as const)[m[1][0] as '1'|'2'|'3'],description:'',target_population:'',conditions:'',legal_reference:`https://portaljuridic.gencat.cat/ca/document-del-pjur/?documentId=557820&validity=${doc.uriELI.validity}&traceability=02`,normative_fields:{}}]:[];});
 for(const table of annex.text.match(/<table\b[\s\S]*?<\/table>/gi)??[]) {
- const fields:Record<string,string>={};
- for(const row of table.match(/<tr\b[\s\S]*?<\/tr>/gi)??[]) {const cells=[...row.matchAll(/<td\b[^>]*>([\s\S]*?)<\/td>/gi)].map(m=>text(m[1]));if(cells.length===2)fields[cells[0]]=cells[1];}
+ const fields:Record<string,string>={};let lastField="";
+ for(const row of table.match(/<tr\b[\s\S]*?<\/tr>/gi)??[]) {const cells=[...row.matchAll(/<td\b[^>]*>([\s\S]*?)<\/td>/gi)].map(m=>text(m[1]));if(cells.length===2){if(cells[0])lastField=cells[0];if(!lastField)throw Error("Continuation without field");fields[lastField]=[fields[lastField],cells[1]].filter(Boolean).join("\n\n");}else if(cells.length===1&&lastField){fields[lastField]+="\n\n"+cells[0];}}
  const code=fields['Prestació']?.match(/^([123](?:\.\d+)+)/)?.[1];
  if(!code && Object.values(fields).every(v=>!v)) continue;
  if(!code)throw Error('Fitxa sense codi '+JSON.stringify(fields).slice(0,500));const s=services.find(s=>s.service_code===code);if(!s)throw Error(`Fitxa no indexada ${code}`);

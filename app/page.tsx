@@ -1,4 +1,5 @@
-import { getSourcePage,getSourceRecord } from "@/lib/records-page";
+import { getSourcePage } from "@/lib/records-page";
+import { redirect } from "next/navigation";
 import {isUuid} from '@/lib/uuid';
 import { ProcessingWorkbench } from "./processing-workbench-v2";
 import {getCloudResourceBlock} from '@/lib/batches';
@@ -16,7 +17,7 @@ export default async function Home({ searchParams }: PageProps<"/">) {
   };
   const result = await getSourcePage(filters);
   const cloudBlock=await getCloudResourceBlock();
-  if(typeof params.record==='string'&&isUuid(params.record)){const record=await getSourceRecord(params.record);if(record){result.records=[record];result.total=1;result.pageCount=1;}}
+  if(typeof params.record==='string'&&isUuid(params.record)) redirect(`/records/${params.record}?${new URLSearchParams({ from: "/" })}`);
   return (
     <ProcessingWorkbench
       key={`${filters.page}:${filters.query}:${filters.type}`}
