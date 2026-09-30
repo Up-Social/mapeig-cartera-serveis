@@ -317,7 +317,7 @@ export function RecordStages({
         <StageRow
           number="1"
           title="Preparar fonts"
-          status={evidenceStatusLabel(record.evidenceStatus)}
+          status={record.issueGroup === "source" ? "Error de preparació" : evidenceStatusLabel(record.evidenceStatus)}
           complete={record.evidenceStatus === "ready"}
         />
         <StageRow
@@ -338,6 +338,8 @@ export function RecordStages({
               ? "Matching disponible"
               : record.operationProgress?.state === "incident" && record.operationProgress.step === "matching"
                 ? "Interromput durant la correspondència"
+              : record.issueGroup === "source"
+                ? "No executat"
               : record.matchingError
                 ? "Error de correspondència"
                 : "No executat"

@@ -73,6 +73,13 @@ test("classifies evidence and enrichment failures before a generic matching erro
   assert.equal(classifyIssue({ ...record, enrichmentStatus: "error", enrichmentError: "fallada" })?.category, "enrichment_error");
 });
 
+test("keeps a persisted source failure out of matching errors", () => {
+  const issue = classifyIssue({ ...record, currentJobStatus: "error", evidenceStatus: "pending", issueGroup: "source" });
+  assert.equal(issue?.category, "document_error");
+  assert.equal(issue?.phase, "evidence");
+  assert.equal(issue?.retryOperation, "prepare");
+});
+
 test("offers the complete OCR recovery only for unsupported PDF evidence", () => {
   const pdfIssue = classifyIssue({
     ...record,

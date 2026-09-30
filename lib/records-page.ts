@@ -60,9 +60,13 @@ export async function getSourceRecord(id: string): Promise<SourceRecord | null> 
   if(record.currentJobId&&record.pipelineRunId)taskQuery=taskQuery.or(`pipeline_job_id.eq.${record.currentJobId},progress_job_id.eq.${record.currentJobId}`);
   else if(record.currentJobId)taskQuery=taskQuery.eq('pipeline_job_id',record.currentJobId);
   else taskQuery=taskQuery.eq('run_id',record.pipelineRunId!);
-  const task=await taskQuery.maybeSingle();
+  const [task,issueProjection]=await Promise.all([
+    taskQuery.maybeSingle(),
+    db.from('current_issue_results').select('issue_group').eq('id',id).maybeSingle(),
+  ]);
   if(task.error)throw task.error;
-  return {...record,operationProgress:recordOperationProgress(task.data as ProgressTask|null)};
+  if(issueProjection.error)throw issueProjection.error;
+  return {...record,issueGroup:(issueProjection.data?.issue_group as SourceRecord['issueGroup'])??null,operationProgress:recordOperationProgress(task.data as ProgressTask|null)};
 }
 
 async function countRows(status?: ProcessingStatus) {

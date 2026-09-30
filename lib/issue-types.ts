@@ -76,6 +76,7 @@ export function classifyIssue(record: SourceRecord): IssueRecord | null {
     if(record.evidenceStatus==='no_source')return issue(record,'no_source','evidence',record.evidenceError??'Sense font documental.','prepare');
     if(record.evidenceStatus==='unsupported')return issue(record,'unsupported','evidence',record.evidenceError??'Format no compatible.',isOcrEligible(record)?'ocr':'prepare');
     if(record.evidenceStatus==='error')return issue(record,'document_error','evidence',record.evidenceError??'Error documental.','prepare');
+    if(record.issueGroup==='source')return issue(record,'document_error','evidence',record.matchingError??'No s\'ha pogut preparar la font documental.','prepare');
     if(record.enrichmentStatus==='error')return issue(record,'enrichment_error','enrichment',record.enrichmentError??'Error de contrast.','enrich');
     return issue(record,'matching_error','matching',record.matchingError??'Error tècnic del treball vigent.','process');
   }

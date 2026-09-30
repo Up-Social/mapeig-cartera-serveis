@@ -18,6 +18,7 @@ export type RecordOperationProgress = {
 export type SourceRecord = {
   currentJobId?: string | null;
   currentJobStatus?: string | null;
+  issueGroup?: "insufficient" | "source" | "technical" | null;
   operationProgress?: RecordOperationProgress | null;
   isHistorical?: boolean;
   historicalDataUnavailable?: boolean;
