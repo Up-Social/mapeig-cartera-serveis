@@ -132,6 +132,9 @@ textarea:focus-visible {
   .page-container {
     @apply mx-auto w-full max-w-[1440px] px-4 py-4 sm:px-6 sm:py-5 lg:px-8;
   }
+  .page-container-fluid {
+    @apply max-w-none;
+  }
   .page-eyebrow {
     @apply text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground;
   }
@@ -170,8 +173,7 @@ textarea:focus-visible {
   .status-success { @apply border-green-300 bg-green-50 text-green-900; }
   .status-neutral { @apply border-border bg-muted/50 text-foreground; }
   .table-status {
-    @apply inline-flex max-w-full items-center rounded-md border px-2 py-1 text-xs leading-4;
-    overflow-wrap: anywhere;
+    @apply inline-flex max-w-full items-center whitespace-nowrap rounded-md border px-2 py-1 text-xs leading-4;
   }
   .table-action {
     @apply inline-flex items-center gap-1.5 whitespace-nowrap rounded-md border px-2.5 py-1.5 text-xs font-medium leading-4 transition-colors hover:bg-muted;
@@ -192,6 +194,26 @@ textarea:focus-visible {
   .issues-table th:nth-child(3) { width: 6.5rem; }
   .issues-table th:nth-child(4) { width: 8rem; }
   .issues-table th:nth-child(5) { width: 6.75rem; }
+  .records-table {
+    min-width: 56rem;
+    table-layout: fixed;
+    font-size: 0.75rem;
+    line-height: 1.125rem;
+  }
+  .records-table th,
+  .records-table td {
+    padding-left: 0.625rem;
+    padding-right: 0.625rem;
+  }
+  .records-table td {
+    padding-top: 0.625rem;
+    padding-bottom: 0.625rem;
+  }
+  .records-table th:nth-child(2) { width: 12rem; }
+  .records-table th:nth-child(3) { width: 9rem; }
+  .records-table th:nth-child(4) { width: 8rem; }
+  .records-table th:nth-child(5) { width: 6rem; }
+  .records-table th:nth-child(6) { width: 6rem; }
 }
 
 @media (max-width: 767px) {

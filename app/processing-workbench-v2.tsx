@@ -55,7 +55,7 @@ export function ProcessingWorkbench({
 
   return (
     <main className="page-shell">
-      <section className="page-container">
+      <section className="page-container page-container-fluid">
         <div className="mb-5"><p className="page-eyebrow">Font i procés</p><h1 className="page-title">Registres</h1><p className="page-description">Localitza un registre, consulta el resultat i segueix-ne la fase actual.</p></div>
         {cloudBlock&&<section role="alert" className="mb-5 rounded-xl border-2 border-neutral-900 bg-neutral-100 p-4"><p className="font-semibold">Processament temporalment aturat</p><p className="mt-1 text-sm">{cloudBlock.label}. Pots consultar els registres, però no iniciar un procés nou.</p></section>}
         <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
@@ -110,7 +110,7 @@ export function ProcessingWorkbench({
                 ))}
               </select>
             </form>
-            <WorkTable headings={["Cas i font", "Entitat", "Tipologia", "Estat", "Lot", "Acció"]} empty={records.length ? undefined : "No hi ha registres amb aquests filtres."}>
+            <WorkTable className="records-table" headings={["Cas i font", "Entitat", "Tipologia", "Estat", "Lot", "Acció"]} empty={records.length ? undefined : "No hi ha registres amb aquests filtres."}>
               {records.map(record => { const href = `/records/${record.id}?${new URLSearchParams({ from: `/?${new URLSearchParams({ q: filters.query, type: filters.type, page: String(filters.page) })}` })}`; return <tr key={record.id}>
                 <td data-label="Cas i font"><Link href={href} className="font-semibold underline underline-offset-2">{record.title}</Link><p className="mt-1 break-words text-xs text-muted-foreground">{record.sourceRecordId} · {SOURCE_LABELS[record.sourceDataset] ?? record.sourceDataset}</p></td>
                 <td data-label="Entitat">{record.providerName ?? "No informada"}</td><td data-label="Tipologia">{FINANCING_TYPE_LABELS[record.financingType]}</td>
