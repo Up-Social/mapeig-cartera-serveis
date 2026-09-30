@@ -85,6 +85,47 @@ test("offers the complete OCR recovery only for unsupported PDF evidence", () =>
   assert.equal(otherIssue?.retryOperation, "prepare");
 });
 
+test("offers OCR when insufficient evidence comes from a corrupt PDF", () => {
+  const pdf = {
+    id: "doc-corrupt",
+    url: "https://example.org/scan.pdf?download=1",
+    documentType: "annex",
+    sourceFields: [],
+    status: "fetched" as const,
+    mimeType: "application/pdf",
+    textPreview: "KZ > /M EdZ",
+    textLength: 28_834,
+    extractionMethod: "pdftotext",
+    qualityScore: 0,
+    qualityFlags: ["corrupt_text"],
+    chunkCount: 30,
+  };
+  const result = classifyIssue({
+    ...record,
+    status: "sense_evidencia",
+    matchingError: null,
+    sourceDocuments: [pdf],
+    analysis: {
+      classification: "insufficient_evidence",
+      explanation: "El text disponible no permet acreditar el servei.",
+    } as NonNullable<SourceRecord["analysis"]>,
+  });
+  assert.equal(result?.category, "insufficient_evidence");
+  assert.equal(result?.retryOperation, "ocr");
+
+  const readable = classifyIssue({
+    ...record,
+    status: "sense_evidencia",
+    matchingError: null,
+    sourceDocuments: [{ ...pdf, qualityScore: 1, qualityFlags: [] }],
+    analysis: {
+      classification: "insufficient_evidence",
+      explanation: "La font és llegible però no acredita el servei.",
+    } as NonNullable<SourceRecord["analysis"]>,
+  });
+  assert.equal(readable?.retryOperation, "process");
+});
+
 test("filters issues by type and text", () => {
   const issue = classifyIssue(record)!;
   assert.equal(issueMatchesFilters(issue, { type: "contractacio", query: "model" }), true);

@@ -69,7 +69,7 @@ export function classifyIssue(record: SourceRecord): IssueRecord | null {
       "insufficient_evidence",
       "review",
       "Aquest resultat automàtic no és fiable perquè no disposa d'una confiança positiva i d'evidència documental substantiva. Cal reanalitzar-lo.",
-      "process",
+      requiresPdfOcr(record) ? "ocr" : "process",
     );
   }
   if(record.currentJobStatus==='error'){
@@ -81,7 +81,7 @@ export function classifyIssue(record: SourceRecord): IssueRecord | null {
   }
   const classification=record.analysis?.reviewed_classification??record.analysis?.classification;
   if(classification==='discarded'||classification==='out_of_portfolio')return null;
-  if(classification==='insufficient_evidence')return issue(record,'insufficient_evidence','review',record.analysis?.review_notes??record.analysis?.explanation??'Falta evidència acreditada.','process');
+  if(classification==='insufficient_evidence')return issue(record,'insufficient_evidence','review',record.analysis?.review_notes??record.analysis?.explanation??'Falta evidència acreditada.',requiresPdfOcr(record)?'ocr':'process');
   if (record.analysis?.reviewed_classification === 'out_of_portfolio') return null;
 
   if (record.reviewDecision === "rejected") {
@@ -112,6 +112,13 @@ export function isOcrEligible(record: SourceRecord) {
   if (record.evidenceStatus !== "unsupported") return false;
   const diagnostic = `${record.evidenceError ?? ""} ${record.sourceDocuments.map((document) => `${document.mimeType ?? ""} ${document.url}`).join(" ")}`.toLocaleLowerCase("ca");
   return diagnostic.includes("ocr") && (diagnostic.includes("pdf") || record.sourceDocuments.some((document) => document.mimeType?.includes("pdf") || document.url.toLocaleLowerCase("ca").endsWith(".pdf")));
+}
+
+function requiresPdfOcr(record: SourceRecord) {
+  return record.sourceDocuments.some(document =>
+    document.qualityFlags.some(flag => flag === "corrupt_text" || flag === "incomplete_extraction") &&
+    (document.mimeType?.toLocaleLowerCase("ca").includes("pdf") || /\.pdf(?:$|[?#])/i.test(document.url)),
+  );
 }
 
 function issue(
