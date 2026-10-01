@@ -9,8 +9,8 @@ export function WorkTable({ headings, children, empty, className = "" }: { headi
   </div>;
 }
 
-export function TableActionLink({ href, label, children = "Veure" }: { href: string; label: string; children?: ReactNode }) {
-  return <Link aria-label={label} title={label} className="table-action" href={href}><Eye aria-hidden="true" className="size-3.5 shrink-0"/><span>{children}</span></Link>;
+export function TableActionLink({ href, label }: { href: string; label: string; children?: ReactNode }) {
+  return <Link aria-label={label} title={label} className="table-action" href={href}><Eye aria-hidden="true" className="size-4"/><span className="sr-only">{label}</span></Link>;
 }
 
 export function WorkPager({ href, page, pageCount, total, pageSize = 25 }: { href: (page: number) => string; page: number; pageCount: number; total: number; pageSize?: number }) {

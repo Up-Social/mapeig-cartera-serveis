@@ -173,7 +173,7 @@ textarea:focus-visible {
     @apply inline-flex max-w-full items-center whitespace-nowrap rounded-md border px-2 py-1 text-xs leading-4;
   }
   .table-action {
-    @apply inline-flex items-center gap-1.5 whitespace-nowrap rounded-md border px-2.5 py-1.5 text-xs font-medium leading-4 transition-colors hover:bg-muted;
+    @apply inline-flex size-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2;
   }
 }
 
