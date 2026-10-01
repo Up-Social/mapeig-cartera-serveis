@@ -301,7 +301,7 @@ function jobStateLabel(job: BatchJob) {
       corrected: "Corregit",
       rejected: "Revisat",
       insufficient_evidence: "Evidència insuficient",
-      error: "Error tècnic",
+      error: "Errors tècnics",
     } as Record<string, string>
   )[jobState(job)] ?? "Pendent";
 }

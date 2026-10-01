@@ -1,6 +1,7 @@
 "use client";
 import {useEffect,useState} from 'react';
 import type {SourceRecord} from '@/lib/workbench-types';
+import {sourceDocumentTypeLabel} from '@/lib/ui-labels';
 type Unit={id:string;provider_name:string;centre:string|null;period:string;service_code:string;amount:number|null;status:string;evidence_quote:string;review_note:string|null;page:number;act_type:string};
 export function ConcertUnits({record,services}:{record:SourceRecord;services:Array<{code:string;name:string}>}) {
  const [supported,setSupported]=useState(true);
@@ -24,7 +25,7 @@ export function ConcertUnits({record,services}:{record:SourceRecord;services:Arr
  <label>Servei de Cartera<select className="form-control mt-1 w-full" name="service_code" required><option value="">Selecciona el codi de l’annex</option>{services.map(s=><option key={s.code} value={s.code}>{s.code} · {s.name}</option>)}</select></label>
  <label>Tipus d’acte<select className="form-control mt-1 w-full" name="act_type"><option value="award">Adjudicació / concert</option><option value="renewal">Pròrroga</option><option value="amendment">Modificació</option><option value="termination">Extinció</option></select></label>
  <label>Import individual acreditat (€)<input className="form-text mt-1 w-full" type="number" step="0.01" name="amount"/></label>
- <label>Document<select className="form-control mt-1 w-full" name="document_id" required><option value="">Selecciona el document</option>{record.sourceDocuments.filter(d=>d.status==='fetched').map(d=><option key={d.id} value={d.id}>{d.documentType} · {d.url}</option>)}</select></label>
+ <label>Document<select className="form-control mt-1 w-full" name="document_id" required><option value="">Selecciona el document</option>{record.sourceDocuments.filter(d=>d.status==='fetched').map(d=><option key={d.id} value={d.id}>{sourceDocumentTypeLabel(d.documentType)} · {d.url}</option>)}</select></label>
  <label>Pàgina de l’annex<input className="form-text mt-1 w-full" type="number" name="page" min="1" required/></label>
  <label className="md:col-span-2">Cita literal de la fila i del codi de servei<textarea className="form-text mt-1 min-h-28 w-full" name="evidence_quote" minLength={20} maxLength={12000} required/></label>
  <button disabled={busy} className="rounded border px-3 py-2 disabled:opacity-50">{busy?'Guardant…':'Afegir unitat pendent de revisió'}</button></form>:<p className="text-sm">Valida primer el resultat del registre vigent per poder desglossar les transaccions acreditades.</p>}

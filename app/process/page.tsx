@@ -95,7 +95,7 @@ export default function ProcessPage() {
           <div className="mt-4 grid gap-3 sm:grid-cols-3">
             <FlowRule icon={CheckCircle2} label="Decisió positiva" text="Aprovat o corregit → provisió vigent." />
             <FlowRule icon={CircleAlert} label="Altres decisions" text="Descartat o fora de cartera → Resultats. Evidència insuficient → Incidències." />
-            <FlowRule icon={FileSearch} label="Error tècnic" text="Preparació, contrast o matching → Incidències." />
+            <FlowRule icon={FileSearch} label="Errors tècnics" text="Preparació, contrast o correspondència → Incidències." />
           </div>
         </section>
 

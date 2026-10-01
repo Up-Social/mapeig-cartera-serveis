@@ -18,12 +18,21 @@ export type IssueCategory = (typeof ISSUE_CATEGORIES)[number];
 export const ISSUE_CATEGORY_LABELS: Record<IssueCategory, string> = {
   rejected: "No encaixa amb la Cartera",
   insufficient_evidence: "Evidència insuficient",
-  matching_error: "Error de correspondència",
-  enrichment_error: "Error de contrast",
-  document_error: "Error documental",
+  matching_error: "Errors de correspondència",
+  enrichment_error: "Errors de contrast",
+  document_error: "Errors documentals",
   no_source: "Sense font documental",
   unsupported: "Format no compatible",
 };
+
+export function issuePhaseLabel(phase: IssueRecord["phase"]) {
+  return ({
+    review: "Revisió humana",
+    matching: "Correspondència",
+    enrichment: "Contrast de dades",
+    evidence: "Preparació documental",
+  } as const)[phase];
+}
 
 export type IssueRecord = {
   record: SourceRecord;

@@ -81,7 +81,7 @@ function technicalGuidance(job: BatchJob): BatchResultGuidance {
   ) {
     return {
       kind: "technical",
-      label: "Error tècnic",
+      label: "Errors tècnics",
       title: "No s’ha pogut llegir cap document útil",
       explanation:
         "S’ha localitzat una font, però el sistema no n’ha pogut extreure prou text per contrastar el registre. Pot ser un document escanejat, un enllaç inaccessible o un format que necessita OCR.",
@@ -95,7 +95,7 @@ function technicalGuidance(job: BatchJob): BatchResultGuidance {
   if (normalized.includes("no_source") || normalized.includes("sense font")) {
     return {
       kind: "technical",
-      label: "Error tècnic",
+      label: "Errors tècnics",
       title: "No s’ha trobat una font oficial utilitzable",
       explanation:
         "El procés no ha localitzat un document oficial que permeti contrastar la informació del registre.",
@@ -108,7 +108,7 @@ function technicalGuidance(job: BatchJob): BatchResultGuidance {
   if (phase === "Contrast de dades") {
     return {
       kind: "technical",
-      label: "Error tècnic",
+      label: "Errors tècnics",
       title: "No s’ha pogut completar el contrast de dades",
       explanation:
         "La font estava preparada, però el sistema no ha pogut estructurar o contrastar la informació necessària.",
@@ -121,7 +121,7 @@ function technicalGuidance(job: BatchJob): BatchResultGuidance {
   if (phase === "Correspondència amb la Cartera") {
     return {
       kind: "technical",
-      label: "Error tècnic",
+      label: "Errors tècnics",
       title: "No s’ha pogut completar la correspondència",
       explanation:
         "El sistema no ha pogut generar una classificació completa a partir de les dades contrastades.",
@@ -133,7 +133,7 @@ function technicalGuidance(job: BatchJob): BatchResultGuidance {
 
   return {
     kind: "technical",
-    label: "Error tècnic",
+    label: "Errors tècnics",
     title: "El processament no s’ha pogut completar",
     explanation:
       "Una de les fases automàtiques ha fallat abans de generar un resultat revisable.",

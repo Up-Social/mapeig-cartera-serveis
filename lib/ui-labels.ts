@@ -16,8 +16,25 @@ export function sourceDocumentStatusLabel(status: string) {
     fetching: "Descarregant",
     fetched: "Text extret",
     unsupported: "Format no compatible",
-    error: "Error",
+    error: "Errors",
   }, status);
+}
+
+export function pipelineStageLabel(stage: string) {
+  return labelFrom({
+    queued: "En espera",
+    preparation: "Preparació de fonts",
+    preparing: "Preparació de fonts",
+    enrichment: "Contrast de dades",
+    enriching: "Contrast de dades",
+    matching: "Correspondència",
+    review: "Revisió humana",
+    completed: "Finalitzat",
+    finished: "Finalitzat",
+    paused: "Aturat",
+    error: "Errors",
+    failed: "Errors",
+  }, stage);
 }
 
 export function portfolioStatusLabel(status: string) {
@@ -39,6 +56,10 @@ export function entityValidationStatusLabel(status: string) {
 
 export function catalogRelationTypeLabel(type: string) {
   return labelFrom({ confirmed: "confirmada", auxiliary: "auxiliar" }, type);
+}
+
+export function catalogRelationSourceLabel(type: string) {
+  return labelFrom({ provision: "provisió validada", reses: "registre RESES" }, type);
 }
 
 function labelFrom(labels: Record<string, string>, value: string) {

@@ -32,7 +32,7 @@ const statusLabels: Record<ProcessingStatus, string> = {
   revisio: "Per revisar",
   sense_evidencia: "Sense evidència",
   rebutjat: "Rebutjat",
-  error: "Error",
+  error: "Errors",
 };
 
 export function ProcessingWorkbench({
@@ -341,7 +341,7 @@ export function RecordStages({
               : record.issueGroup === "source"
                 ? "No executat"
               : record.matchingError
-                ? "Error de correspondència"
+              ? "Errors de correspondència"
                 : "No executat"
           }
           complete={(Boolean(record.analysis) || record.matchingCandidates.length > 0) && record.analysis?.reliability_status !== "invalidated"}
@@ -465,7 +465,7 @@ function enrichmentStatusLabel(value: SourceRecord["enrichmentStatus"]) {
       pending: "Pendent",
       processing: "Contrastant amb la font oficial",
       completed: "Dades oficials contrastades",
-      error: "Error de contrast",
+      error: "Errors de contrast",
     } as const
   )[value];
 }
