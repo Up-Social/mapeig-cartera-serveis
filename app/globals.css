@@ -138,6 +138,9 @@ textarea:focus-visible {
   .page-title {
     @apply mt-1 text-2xl font-semibold tracking-tight sm:text-3xl;
   }
+  .detail-title {
+    @apply mt-1 text-lg font-semibold leading-snug tracking-tight sm:text-xl;
+  }
   .page-description {
     @apply mt-1 max-w-3xl text-sm leading-6 text-muted-foreground;
   }
@@ -154,7 +157,7 @@ textarea:focus-visible {
     @apply h-10 w-full min-w-0 rounded-md border border-input bg-background px-3 text-sm outline-none focus:border-ring focus:ring-2 focus:ring-ring/20;
   }
   .data-table {
-    @apply w-full border-collapse text-left;
+    @apply w-full border-collapse text-left text-sm leading-5;
   }
   .data-table th {
     @apply border-b bg-muted/40 px-3 py-2.5 text-xs font-semibold text-muted-foreground;
@@ -180,8 +183,6 @@ textarea:focus-visible {
 @media (min-width: 768px) {
   .data-table {
     min-width: 52rem;
-    font-size: 0.8125rem;
-    line-height: 1.25rem;
   }
   .issues-table {
     min-width: 60rem;
@@ -194,8 +195,8 @@ textarea:focus-visible {
   .records-table {
     min-width: 56rem;
     table-layout: fixed;
-    font-size: 0.75rem;
-    line-height: 1.125rem;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
   }
   .records-table th,
   .records-table td {
@@ -218,7 +219,7 @@ textarea:focus-visible {
   .responsive-table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
   .responsive-table tr { border-bottom: 1px solid var(--border); padding: 0.5rem 0; }
   .responsive-table td { border: 0; padding: 0.3rem 1rem; }
-  .responsive-table td[data-label]::before { content: attr(data-label); display: block; font-size: 0.75rem; font-weight: 600; color: var(--muted-foreground); }
+  .responsive-table td[data-label]::before { content: attr(data-label); display: block; font-size: 0.8125rem; line-height: 1.5; font-weight: 600; color: var(--muted-foreground); }
 }
 
 .dark {

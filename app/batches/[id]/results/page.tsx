@@ -47,7 +47,7 @@ export default async function BatchResults({
         <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
           Detall del lot
         </p>
-        <h1 className="mt-1 text-2xl font-semibold">
+        <h1 className="detail-title">
           {batch.selectedCount ? `Lot ${batch.batchNumber}` : "Lot buit"}
         </h1>
         <p className="mt-2 text-muted-foreground">

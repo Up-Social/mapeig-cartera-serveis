@@ -91,7 +91,7 @@ function Brand({ collapsed = false, mobile = false }: { collapsed?: boolean; mob
 }
 
 function NavigationBadge({ value, active, compact = false }: { value: number; active: boolean; compact?: boolean }) {
-  return <span className={cn("inline-flex min-w-6 items-center justify-center rounded-full px-1.5 py-0.5 text-[11px] font-semibold tabular-nums", compact && "absolute -right-1 -top-1 min-w-5 px-1 text-[10px]", active ? "bg-sidebar-primary-foreground/15 text-sidebar-primary-foreground" : "bg-sidebar-accent text-sidebar-accent-foreground")}>{value > 999 ? "999+" : value.toLocaleString("ca-ES")}</span>;
+  return <span className={cn("inline-flex min-w-6 items-center justify-center rounded-full px-1.5 py-0.5 text-xs font-semibold tabular-nums", compact && "absolute -right-1 -top-1 min-w-5 px-1", active ? "bg-sidebar-primary-foreground/15 text-sidebar-primary-foreground" : "bg-sidebar-accent text-sidebar-accent-foreground")}>{value > 999 ? "999+" : value.toLocaleString("ca-ES")}</span>;
 }
 
 function Logout({ collapsed = false }: { collapsed?: boolean }) {
