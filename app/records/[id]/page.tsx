@@ -5,6 +5,7 @@ import { getJobRecord } from "@/lib/job-record";
 import { isUuid } from "@/lib/uuid";
 import { getReviewList } from "@/lib/review-list";
 import { classifyIssue } from "@/lib/issue-types";
+import { CaseStudyNavigation } from "@/components/case-study-navigation";
 import { getCloudResourceBlock } from "@/lib/batches";
 import { CaseStudy } from "./study";
 import { safeCaseOrigin } from "@/lib/case-origin";
@@ -76,8 +77,8 @@ export default async function RecordPage({ params, searchParams }: PageProps<"/r
   }
   return <main className="page-shell"><section className="page-container space-y-5">
     <div className="flex flex-wrap items-center justify-between gap-3"><Link href={origin} className="inline-block text-sm underline underline-offset-2">← Tornar al llistat</Link><nav aria-label="Navegació entre casos" className="flex gap-2 text-sm">{previous && <Link className="rounded-md border px-3 py-2" href={previous}>Anterior</Link>}{next && <Link className="rounded-md border px-3 py-2" href={next}>Següent</Link>}</nav></div>
-    <div><p className="page-eyebrow">Estudi del cas · {record.sourceRecordId}{record.batchNumber ? ` · Lot ${record.batchNumber}` : ""}</p><h1 className="page-title max-w-[75ch] break-words">{record.title}</h1><p className="page-description">{recordReviewLabel(record)}</p></div>
-    <nav aria-label="Apartats del cas" className="flex flex-wrap gap-4 text-sm"><a href="#resultat" className="underline">Resultat</a><a href="#evidencies" className="underline">Evidències</a><a href="#dades" className="underline">Dades</a><a href="#historial" className="underline">Historial</a><a href="#decisio" className="font-semibold underline lg:hidden">Anar a la decisió</a></nav>
+    <div><p className="page-eyebrow">Estudi del cas · {record.sourceRecordId}{record.batchNumber ? ` · Lot ${record.batchNumber}` : ""}</p><h1 className="mt-1 max-w-[80ch] break-words text-xl font-semibold tracking-tight sm:text-2xl">{record.title}</h1><p className="page-description">{recordReviewLabel(record)}</p></div>
+    <CaseStudyNavigation />
     <CaseStudy initialRecord={record} services={(services.data ?? []).map(service => ({ code: service.service_code, name: service.service_name, scope: service.target_population }))} origin={origin} next={next} issue={classifyIssue(record)} cloudBlocked={Boolean(cloudBlock)} />
   </section></main>;
 }

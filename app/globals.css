@@ -221,11 +221,6 @@ textarea:focus-visible {
   .responsive-table td[data-label]::before { content: attr(data-label); display: block; font-size: 0.75rem; font-weight: 600; color: var(--muted-foreground); }
 }
 
-@media (min-width: 1024px) {
-  .case-study-grid { grid-template-columns: minmax(0, 1fr) 340px; }
-  .case-study-decision { position: sticky; top: 1.25rem; }
-}
-
 .dark {
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
