@@ -22,7 +22,6 @@ import { AnalysisResult } from "@/components/analysis-result";
 import { displaySourceIdentifier } from "@/lib/source-identifiers";
 import { sourcePayloadFieldLabel, sourcePayloadValue } from "@/lib/source-payload-display";
 import { sourceDocumentStatusLabel, sourceDocumentTypeLabel } from "@/lib/ui-labels";
-import { batchButtonVariants } from "@/components/batch-button";
 
 type Filters = { batchId?: string; type: string; state: string; query: string };
 type ServiceOption = { code: string; name: string; scope: string | null };
@@ -64,7 +63,7 @@ export function ReviewWorkbench({
           <div>
             <p className="page-eyebrow">Validació humana</p>
             <div className="mt-1 flex items-center gap-2">
-              <h2 className="text-xl font-semibold tracking-tight sm:text-2xl">Revisió de correspondències</h2>
+              <h2 className="page-title !mt-0">Revisió de correspondències</h2>
               <Badge className="rounded-full px-2.5 tabular-nums">{records.length - reviewed}</Badge>
             </div>
             <p className="page-description">
@@ -80,7 +79,7 @@ export function ReviewWorkbench({
             {refreshing ? "Actualitzant…" : "Actualitzar"}
           </Button>
         </div>
-        {filters.batchId&&<Link className={batchButtonVariants({size:"sm",className:"mt-4"})} href={`/batches/${filters.batchId}/results`}>Tornar al detall del lot</Link>}
+        {filters.batchId&&<Link className="back-link mt-4 w-fit" href={`/batches/${filters.batchId}/results`}>← Tornar al detall del lot</Link>}
         <form ref={formRef} className="surface mt-5 grid gap-3 p-4 md:grid-cols-[minmax(220px,1fr)_220px]">
           <input type="hidden" name="batch" value={filters.batchId ?? ""} />
           <input type="hidden" name="state" value={filters.state} />
@@ -232,7 +231,7 @@ export function ReviewDetail({
           <p className="text-xs font-semibold uppercase tracking-wide text-neutral-500">
             {SOURCE_LABELS[record.sourceDataset] ?? record.sourceDataset} · {displaySourceIdentifier(record.sourceRecordId)}
           </p>
-          <h3 className="mt-2 break-words text-xl font-semibold leading-7">
+          <h3 className="detail-title break-words">
             {record.title}
           </h3>
         </div>
@@ -243,7 +242,7 @@ export function ReviewDetail({
         )}
       </div>
       <section id="resultat" className="mt-5 border-t pt-5">
-        <h4 className="text-lg font-semibold">Resultat de l’anàlisi</h4>
+        <h4 className="section-title">Resultat de l’anàlisi</h4>
         <div className="mt-3 space-y-3"><AnalysisResult analysis={record.analysis} candidates={record.matchingCandidates}/></div>
       </section>
       <section className="mt-5 border-t pt-5">

@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getSourceRecord, createServerSupabase } from "@/lib/records-page";
 import { getJobRecord } from "@/lib/job-record";
@@ -13,6 +12,7 @@ import { getSourcePage } from "@/lib/records-page";
 import { getCurrentResults } from "@/lib/current-results";
 import { getApprovedPage } from "@/lib/approved";
 import { recordReviewLabel } from "@/lib/record-review-state";
+import { DetailNavigation } from "@/components/detail-navigation";
 
 type ContextRow = { id: string; jobId?: string | null; provisionId?: string };
 async function contextPage(path: string, p: URLSearchParams, page: number): Promise<{ rows: ContextRow[]; pageCount: number }> {
@@ -76,7 +76,7 @@ export default async function RecordPage({ params, searchParams }: PageProps<"/r
     }
   }
   return <main className="page-shell"><section className="page-container space-y-5">
-    <div className="flex flex-wrap items-center justify-between gap-3"><Link href={origin} className="inline-block text-sm underline underline-offset-2">← Tornar al llistat</Link><nav aria-label="Navegació entre casos" className="flex gap-2 text-sm">{previous && <Link className="rounded-md border px-3 py-2" href={previous}>Anterior</Link>}{next && <Link className="rounded-md border px-3 py-2" href={next}>Següent</Link>}</nav></div>
+    <DetailNavigation backHref={origin} backLabel="Tornar al llistat" previousHref={previous} nextHref={next}/>
     <div><p className="page-eyebrow">Estudi del cas · {record.sourceRecordId}{record.batchNumber ? ` · Lot ${record.batchNumber}` : ""}</p><h1 className="detail-title max-w-[80ch] break-words">{record.title}</h1><p className="page-description">{recordReviewLabel(record)}</p></div>
     <CaseStudyNavigation />
     <CaseStudy initialRecord={record} services={(services.data ?? []).map(service => ({ code: service.service_code, name: service.service_name, scope: service.target_population }))} origin={origin} next={next} issue={classifyIssue(record)} cloudBlocked={Boolean(cloudBlock)} />

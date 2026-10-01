@@ -19,7 +19,7 @@ export function IssuesWorkbench({ result, filters }: { result: IssuePage; filter
   const formRef = useRef<HTMLFormElement>(null);
   const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   return <main className="page-shell"><section className="page-container">
-    <div><p className="page-eyebrow">Seguiment i resolució</p><div className="mt-1 flex items-center gap-2"><h1 className="text-xl font-semibold tracking-tight sm:text-2xl">Incidències</h1><Badge className="rounded-full px-2.5 tabular-nums">{result.metrics.total}</Badge></div><p className="page-description">Casos que no han generat una provisió aprovada: evidència insuficient i errors del procés. Els descartats tenen un apartat propi.</p></div>
+    <div><p className="page-eyebrow">Seguiment i resolució</p><div className="mt-1 flex items-center gap-2"><h1 className="page-title !mt-0">Incidències</h1><Badge className="rounded-full px-2.5 tabular-nums">{result.metrics.total}</Badge></div><p className="page-description">Casos que no han generat una provisió aprovada: evidència insuficient i errors del procés. Els descartats tenen un apartat propi.</p></div>
     <div className="mt-6 grid grid-cols-2 gap-3 xl:grid-cols-4">
       <Metric label="Total" value={result.metrics.total} />
       <Metric label="Evidència insuficient" value={result.metrics.insufficient} />

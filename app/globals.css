@@ -136,16 +136,29 @@ textarea:focus-visible {
     @apply text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground;
   }
   .page-title {
-    @apply mt-1 text-2xl font-semibold tracking-tight sm:text-3xl;
+    @apply mt-1 text-2xl font-semibold leading-tight tracking-tight;
   }
   .detail-title {
-    @apply mt-1 text-lg font-semibold leading-snug tracking-tight sm:text-xl;
+    @apply mt-1 max-w-[80ch] text-xl font-semibold leading-snug tracking-tight;
   }
   .page-description {
     @apply mt-1 max-w-3xl text-sm leading-6 text-muted-foreground;
   }
   .surface {
     @apply rounded-xl bg-card text-card-foreground ring-1 ring-foreground/10;
+  }
+  .section-title {
+    @apply text-lg font-semibold leading-snug tracking-tight;
+  }
+  .subsection-title {
+    @apply text-sm font-semibold leading-5;
+  }
+  .detail-navigation {
+    @apply flex min-h-10 flex-wrap items-center justify-between gap-2 border-b pb-3;
+  }
+  .back-link,
+  .context-nav-link {
+    @apply inline-flex min-h-9 items-center gap-1.5 rounded-md px-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring;
   }
   .form-control {
     @apply h-8 w-full min-w-0 appearance-none rounded-md border border-input bg-background px-2.5 pr-8 text-sm outline-none transition-colors focus:border-ring focus:ring-2 focus:ring-ring/20 disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground disabled:opacity-60;

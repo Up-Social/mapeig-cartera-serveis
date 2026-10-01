@@ -33,7 +33,7 @@ export function CatalogWorkbench({
             <div className="inline-flex rounded-full border border-neutral-300 bg-white px-3 py-1 text-xs font-semibold text-neutral-700">
               Catàleg mestre · només lectura
             </div>
-            <h2 className="mt-3 text-2xl font-semibold tracking-tight">
+            <h2 className="page-title">
               Catàleg de serveis
             </h2>
             <p className="mt-1 max-w-2xl text-sm leading-6 text-neutral-600">

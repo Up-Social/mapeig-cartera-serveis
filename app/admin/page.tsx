@@ -8,7 +8,7 @@ export default async function AdminPage() {
 
   return (
     <main className="page-shell">
-      <section className="page-container">
+      <section className="page-container space-y-5">
         <div>
           <p className="page-eyebrow">Administració</p>
           <h1 className="page-title">Configuració del processament</h1>

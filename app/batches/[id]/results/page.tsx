@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { batchButtonVariants } from "@/components/batch-button";
+import { DetailNavigation } from "@/components/detail-navigation";
 import { CLASSIFICATION_LABELS } from "@/lib/analysis-contract";
 import { batchResultGuidance } from "@/lib/batch-result-guidance";
 import type { BatchJob } from "@/lib/batch-types";
@@ -39,9 +40,7 @@ export default async function BatchResults({
 
   return (
     <main className="page-container space-y-5">
-      <Link className={batchButtonVariants({ size: "sm" })} href={`/batches/${id}`}>
-        Tornar al lot
-      </Link>
+      <DetailNavigation backHref={`/batches/${id}`} backLabel="Tornar al lot"/>
 
       <div>
         <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
@@ -50,7 +49,7 @@ export default async function BatchResults({
         <h1 className="detail-title">
           {batch.selectedCount ? `Lot ${batch.batchNumber}` : "Lot buit"}
         </h1>
-        <p className="mt-2 text-muted-foreground">
+        <p className="page-description">
           {batch.jobs.length} {batch.jobs.length === 1 ? "registre" : "registres"} · {batch.reviewCount} per revisar ·{" "}
           {batch.errorCount} {batch.errorCount === 1 ? "error tècnic" : "errors tècnics"}
         </p>
