@@ -206,7 +206,7 @@ textarea:focus-visible {
   .issues-table th:nth-child(4) { width: 8rem; }
   .issues-table th:nth-child(5) { width: 6.75rem; }
   .records-table {
-    min-width: 56rem;
+    min-width: 64rem;
     table-layout: fixed;
     font-size: 0.875rem;
     line-height: 1.25rem;
@@ -220,11 +220,13 @@ textarea:focus-visible {
     padding-top: 0.625rem;
     padding-bottom: 0.625rem;
   }
-  .records-table th:nth-child(2) { width: 12rem; }
-  .records-table th:nth-child(3) { width: 9rem; }
-  .records-table th:nth-child(4) { width: 8rem; }
-  .records-table th:nth-child(5) { width: 6rem; }
-  .records-table th:nth-child(6) { width: 6rem; }
+  .records-table th:nth-child(1) { width: 17rem; }
+  .records-table th:nth-child(2) { width: 10rem; }
+  .records-table th:nth-child(3) { width: 7rem; }
+  .records-table th:nth-child(4) { width: 9rem; }
+  .records-table th:nth-child(5) { width: 8rem; }
+  .records-table th:nth-child(6) { width: 10rem; }
+  .records-table th:nth-child(7) { width: 3rem; }
 }
 
 @media (max-width: 767px) {

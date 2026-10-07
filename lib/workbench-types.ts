@@ -43,6 +43,7 @@ export type SourceRecord = {
   updatedAt?: string | null;
   pipelineRunId: string | null;
   batchNumber: string | null;
+  latestRunPurpose?: string | null;
   externalEnrichment: ExternalEnrichment | null;
 };
 export type ExternalEnrichment = {
@@ -67,6 +68,19 @@ export type SourcePage = {
   records: SourceRecord[]; total: number; page: number; pageCount: number; pageSize: number;
   metrics: { total: number; completed: number; review: number; queued: number };
 };
-export type SourceListRow = Pick<SourceRecord, "id" | "title" | "sourceDataset" | "sourceRecordId" | "providerName" | "financingType" | "status" | "batchNumber">;
-export type SourceListPage = Omit<SourcePage, "records"> & { records: SourceListRow[] };
+export type SourceListRow = Pick<SourceRecord, "id" | "title" | "sourceDataset" | "sourceRecordId" | "providerName" | "financingType" | "batchNumber"> & {
+  processingState: "pending" | "in_progress" | "processed" | "error";
+  reviewState: "awaiting_review" | "reviewed" | "not_applicable";
+  destination: string;
+  executionCount: number;
+  batchExecutionCount: number;
+  individualExecutionCount: number;
+  otherExecutionCount: number;
+  latestRunId: string | null;
+  latestRunPurpose: string | null;
+};
+export type SourceListPage = Omit<SourcePage, "records" | "metrics"> & {
+  records: SourceListRow[];
+  metrics: { total:number; pending:number; inProgress:number; processed:number; failed:number; review:number };
+};
 export type ReviewQueue = { records: SourceRecord[]; total: number; reviewed: number };

@@ -150,7 +150,12 @@ async function enrichCandidateServices(batches: BatchSummary[]) {
 
 async function enrichExecutions(batches: BatchSummary[]) {
  if(!batches.length)return batches;
- const r=await createServerSupabase().from('worker_tasks').select('run_id,execution_state,lease_until,last_progress_at,failure_kind,cloud_budget_reservations(reserved_usd,actual_usd)').eq('executor','vercel_workflow').in('run_id',batches.map(b=>b.id)).order('created_at',{ascending:false});
- if(r.error)throw new Error('No s’ha pogut consultar l’execució remota.');
- return batches.map(batch=>{const tasks=r.data.filter(t=>t.run_id===batch.id);const task=tasks[0];const reservations=tasks.flatMap(t=>Array.isArray(t.cloud_budget_reservations)?t.cloud_budget_reservations:[]);const reservedCostUsd=reservations.reduce((total,item)=>total+Number(item.reserved_usd??0),0);const settled=reservations.filter(item=>item.actual_usd!=null);const actualCostUsd=settled.length?settled.reduce((total,item)=>total+Number(item.actual_usd),0):null;if(!task)return {...batch,reservedCostUsd,actualCostUsd};const execution=executionStatus(task);return {...batch,reservedCostUsd,actualCostUsd,execution,isActive:['pending','running'].includes(execution.state)};});
+ const db=createServerSupabase();
+ const ids=batches.map(b=>b.id);
+ const [tasksResult,costsResult]=await Promise.all([
+  db.from('worker_tasks').select('run_id,execution_state,lease_until,last_progress_at,failure_kind').eq('executor','vercel_workflow').in('run_id',ids).order('created_at',{ascending:false}),
+  db.from('ai_cost_per_run').select('run_id,total_usd,measured_calls,pending_reserved_usd').in('run_id',ids),
+ ]);
+ if(tasksResult.error||costsResult.error)throw new Error('No s’ha pogut consultar l’execució remota.');
+ return batches.map(batch=>{const task=tasksResult.data.find(t=>t.run_id===batch.id);const cost=costsResult.data.find(c=>c.run_id===batch.id);const reservedCostUsd=Number(cost?.pending_reserved_usd??0);const actualCostUsd=cost?.measured_calls?Number(cost.total_usd):null;if(!task)return {...batch,reservedCostUsd,actualCostUsd};const execution=executionStatus(task);return {...batch,reservedCostUsd,actualCostUsd,execution,isActive:['pending','running'].includes(execution.state)};});
 }

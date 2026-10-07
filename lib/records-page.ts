@@ -12,9 +12,13 @@ import {recordOperationProgress,type ProgressTask} from './record-progress';
 
 export const PAGE_SIZE = 25;
 
-export type AiCostSummary={scope:'concert'|'altres';measuredRecords:number;totalUsd:number;averageUsd:number};
+export type AiCostSummary={
+  scope:'concert'|'altres';measuredRecords:number;totalUsd:number;averageUsd:number;
+  measuredCalls:number;runsWithCost:number;reviewedRecords:number;
+  unsettledCalls:number;pendingReservedUsd:number;
+};
 export async function getAiCostSummary():Promise<AiCostSummary[]>{
-  const result=await createServerSupabase().from('ai_cost_summary').select('scope,measured_records,total_usd,average_usd');
+  const result=await createServerSupabase().from('ai_cost_summary').select('scope,measured_records,total_usd,average_usd,measured_calls,runs_with_cost,reviewed_records,unsettled_calls,pending_reserved_usd');
   if(result.error){
     // Older deployments can still serve the records page before this local migration.
     if(result.error.code==='PGRST205'||result.error.code==='42P01')return [];
@@ -22,7 +26,10 @@ export async function getAiCostSummary():Promise<AiCostSummary[]>{
   }
   return (result.data??[]).filter(row=>row.scope==='concert'||row.scope==='altres').map(row=>({
     scope:row.scope as 'concert'|'altres',measuredRecords:Number(row.measured_records),
-    totalUsd:Number(row.total_usd),averageUsd:Number(row.average_usd),
+    totalUsd:Number(row.total_usd),averageUsd:Number(row.average_usd??0),
+    measuredCalls:Number(row.measured_calls),runsWithCost:Number(row.runs_with_cost),
+    reviewedRecords:Number(row.reviewed_records),unsettledCalls:Number(row.unsettled_calls),
+    pendingReservedUsd:Number(row.pending_reserved_usd),
   }));
 }
 
@@ -34,11 +41,18 @@ export function createServerSupabase() {
   return createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
 }
 
-export async function getSourcePage(input: { page: number; query: string; type: string }): Promise<SourceListPage> {
+export type SourcePageFilters = { page: number; query: string; type: string; processing?: string; execution?: string; review?: string };
+export async function getSourcePage(input: SourcePageFilters): Promise<SourceListPage> {
   const supabase = createServerSupabase();
   const from = (input.page - 1) * PAGE_SIZE;
-  let request = supabase.from("source_records").select("id,title,source_dataset,source_record_id,provider_name,financing_type,processing_status,pipeline_jobs(id,run_id,created_at,pipeline_runs(batch_number))", { count: "exact" });
+  let request = supabase.from("imported_record_processing_overview").select("id,title,source_dataset,source_record_id,provider_name,financing_type,batch_number,run_id,destination,processing_state,review_state,execution_count,batch_execution_count,individual_execution_count,other_execution_count,latest_run_purpose", { count: "exact" });
   if (input.type !== "totes") request = request.eq("financing_type", input.type);
+  if (input.processing && input.processing !== "all") request = request.eq("processing_state", input.processing);
+  if (input.execution === "none") request = request.eq("execution_count", 0);
+  if (input.execution === "batch") request = request.gt("batch_execution_count", 0);
+  if (input.execution === "individual") request = request.gt("individual_execution_count", 0);
+  if (input.execution === "other") request = request.gt("other_execution_count", 0);
+  if (input.review && input.review !== "all") request = request.eq("review_state", input.review);
   if (input.query) {
     const safe = input.query.replaceAll(/[,%()]/g, " ").trim();
     request = request.or(`title.ilike.%${safe}%,source_record_id.ilike.%${safe}%,provider_name.ilike.%${safe}%`);
@@ -46,16 +60,21 @@ export async function getSourcePage(input: { page: number; query: string; type: 
   const { data, error, count } = await request.order("updated_at", { ascending: false }).order("id").range(from, from + PAGE_SIZE - 1);
   if (error) throw error;
   const total = count ?? 0;
-  const projected = data?.length ? await supabase.from('current_record_results').select('id,execution_status').in('id', data.map(row=>row.id)) : {data:[],error:null};
-  if (projected.error) throw projected.error;
-  const executionStatuses = new Map((projected.data??[]).map(row=>[row.id,row.execution_status]));
-  const [all, latestJobMetrics] = await Promise.all([
-    countRows(), getLatestJobMetrics(),
-  ]);
+  const summary=await supabase.from('imported_record_processing_summary').select('total,pending,in_progress,processed,failed,awaiting_review').single();
+  if(summary.error)throw summary.error;
   return {
-    records: (data ?? []).map(row => ({ id: row.id, title: row.title, sourceDataset: row.source_dataset, sourceRecordId: row.source_record_id, providerName: row.provider_name, financingType: row.financing_type, status: executionStatuses.get(row.id)==='error'?'error':row.processing_status, batchNumber: mapLatestRun(row.pipeline_jobs)?.number ?? null })), total, page: input.page,
+    records: (data ?? []).map(row => ({
+      id:row.id,title:row.title,sourceDataset:row.source_dataset,sourceRecordId:row.source_record_id,
+      providerName:row.provider_name,financingType:row.financing_type,
+      batchNumber:row.batch_number==null?null:String(row.batch_number).padStart(8,"0"),
+      latestRunId:row.run_id,latestRunPurpose:row.latest_run_purpose,destination:row.destination,
+      processingState:row.processing_state as "pending" | "in_progress" | "processed" | "error",
+      reviewState:row.review_state as "awaiting_review" | "reviewed" | "not_applicable",
+      executionCount:Number(row.execution_count),batchExecutionCount:Number(row.batch_execution_count),
+      individualExecutionCount:Number(row.individual_execution_count),otherExecutionCount:Number(row.other_execution_count),
+    })), total, page: input.page,
     pageCount: Math.max(1, Math.ceil(total / PAGE_SIZE)), pageSize: PAGE_SIZE,
-    metrics: { total: all, ...latestJobMetrics },
+    metrics: {total:Number(summary.data.total),pending:Number(summary.data.pending),inProgress:Number(summary.data.in_progress),processed:Number(summary.data.processed),failed:Number(summary.data.failed),review:Number(summary.data.awaiting_review)},
   };
 }
 
@@ -81,21 +100,6 @@ export async function getSourceRecord(id: string): Promise<SourceRecord | null> 
   if(task.error)throw task.error;
   if(issueProjection.error)throw issueProjection.error;
   return {...record,issueGroup:(issueProjection.data?.issue_group as SourceRecord['issueGroup'])??null,operationProgress:recordOperationProgress(task.data as ProgressTask|null)};
-}
-
-async function countRows(status?: ProcessingStatus) {
-  let request = createServerSupabase().from("source_records").select("id", { count: "exact", head: true });
-  if (status) request = request.eq("processing_status", status);
-  const { count, error } = await request;
-  if (error) throw error;
-  return count ?? 0;
-}
-
-async function getLatestJobMetrics() {
-  const db=createServerSupabase();
-  const count=async(destination:string)=>{const r=await db.from('current_record_results').select('id',{count:'exact',head:true}).eq('destination',destination);if(r.error)throw r.error;return r.count??0;};
-  const [queued,completed,review]=await Promise.all([count('processing'),count('approved'),count('review')]);
-  return {queued,completed,review};
 }
 
 export function mapRecord(row: Record<string, unknown>): SourceRecord {
@@ -152,6 +156,7 @@ export function mapRecord(row: Record<string, unknown>): SourceRecord {
     updatedAt: row.updated_at == null ? null : String(row.updated_at),
     pipelineRunId: mapLatestRun(row.pipeline_jobs)?.id ?? null,
     batchNumber: mapLatestRun(row.pipeline_jobs)?.number ?? null,
+    latestRunPurpose: mapLatestRun(row.pipeline_jobs)?.purpose ?? null,
     externalEnrichment: mapEnrichment(row.record_enrichments),
   };
 }
@@ -181,14 +186,15 @@ export function mapLatestCandidates(value: unknown): SourceRecord["matchingCandi
   }).sort((a, b) => a.rank - b.rank);
 }
 
-export const RECORD_SELECT = "*,source_documents(id,url,resolution,document_type,source_fields,status,mime_type,extracted_text,text_preview,text_length,extraction_method,quality_score,quality_flags,chunk_count),record_enrichments(extracted_title,provider_name,provider_nif,mechanism,award_date,amount,contracting_body,target_population,summary,confidence,engine_version,record_enrichment_evidence(evidence_chunks(ordinal,content))),review_decisions(id,pipeline_job_id,classification,reasons,decision,reason,created_at),pipeline_jobs(id,run_id,status,error_message,created_at,analysis_results(*),pipeline_runs(batch_number),matching_candidates(id,pipeline_job_id,catalog_version_id,rank,target_code,target_name,score,rationale,engine_version,matching_candidate_evidence(explanation,evidence_chunks(ordinal,content))))";
+export const RECORD_SELECT = "*,source_documents(id,url,resolution,document_type,source_fields,status,mime_type,extracted_text,text_preview,text_length,extraction_method,quality_score,quality_flags,chunk_count),record_enrichments(extracted_title,provider_name,provider_nif,mechanism,award_date,amount,contracting_body,target_population,summary,confidence,engine_version,record_enrichment_evidence(evidence_chunks(ordinal,content))),review_decisions(id,pipeline_job_id,classification,reasons,decision,reason,created_at),pipeline_jobs(id,run_id,status,error_message,created_at,analysis_results(*),pipeline_runs(batch_number,parameters),matching_candidates(id,pipeline_job_id,catalog_version_id,rank,target_code,target_name,score,rationale,engine_version,matching_candidate_evidence(explanation,evidence_chunks(ordinal,content))))";
 
 function mapLatestRun(value: unknown) {
   if (!Array.isArray(value) || !value.length) return null;
   const job = [...value].map((item) => item as Record<string, unknown>).sort((a, b) => String(b.created_at).localeCompare(String(a.created_at))||String(b.id).localeCompare(String(a.id)))[0];
   const rawRun = Array.isArray(job.pipeline_runs) ? job.pipeline_runs[0] : job.pipeline_runs;
   const run = rawRun as Record<string, unknown> | null;
-  return { id: String(job.run_id), number: run?.batch_number == null ? null : String(run.batch_number).padStart(8, "0") };
+  const parameters=run?.parameters && typeof run.parameters==='object' ? run.parameters as Record<string,unknown> : null;
+  return { id: String(job.run_id), number: run?.batch_number == null ? null : String(run.batch_number).padStart(8, "0"), purpose:parameters?.purpose==null?null:String(parameters.purpose) };
 }
 
 export async function getReviewQueue(input: { batchId?: string; type?: string; state?: string; query?: string }): Promise<ReviewQueue> {

@@ -20,7 +20,7 @@ async function contextPage(path: string, p: URLSearchParams, page: number): Prom
   const query = (p.get("q") ?? "").slice(0, 120);
   const type = p.get("type") ?? "totes";
   if (path === "/") {
-    const result = await getSourcePage({ page, query, type });
+    const result = await getSourcePage({ page, query, type, processing:p.get("processing") ?? "all", execution:p.get("execution") ?? "all", review:p.get("review") ?? "all" });
     return { rows: result.records.map(row => ({ id: row.id })), pageCount: result.pageCount };
   }
   if (path === "/approved") {
@@ -89,7 +89,7 @@ export default async function RecordPage({ params, searchParams }: PageProps<"/r
   }
   return <main className="page-shell"><section className="page-container space-y-5">
     <DetailNavigation backHref={origin} backLabel="Tornar al llistat" previousHref={previous} nextHref={next}/>
-    <div><p className="page-eyebrow">Estudi del cas · {record.sourceRecordId}{record.batchNumber ? ` · Lot ${record.batchNumber}` : ""}</p><h1 className="detail-title max-w-[80ch] break-words">{record.title}</h1><p className="page-description">{recordReviewLabel(record)}</p></div>
+    <div><p className="page-eyebrow">Estudi del cas · {record.sourceRecordId}{record.batchNumber ? ` · ${record.latestRunPurpose === 'record_operation' || record.latestRunPurpose === 'automated_single' ? 'Execució individual' : record.latestRunPurpose === 'automated_batch' || record.latestRunPurpose === 'automated_cloud' ? 'Lot' : 'Execució'} ${record.batchNumber}` : ""}</p><h1 className="detail-title max-w-[80ch] break-words">{record.title}</h1><p className="page-description">{recordReviewLabel(record)}</p></div>
     <CaseStudyNavigation showUnits={record.financingType==="concert"} />
     <CaseStudy initialRecord={record} services={(services.data ?? []).map(service => ({ code: service.service_code, name: service.service_name, scope: service.target_population }))} origin={origin} next={next} issue={classifyIssue(record)} cloudBlocked={Boolean(cloudBlock)} concertExportState={concertExportState} />
   </section></main>;

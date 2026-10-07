@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { TableActionLink, WorkTable } from "@/components/work-list";
 import type {
-  ProcessingStatus,
   SourceListPage,
   SourceRecord,
 } from "@/lib/workbench-types";
@@ -23,16 +22,15 @@ import {
 } from "@/lib/record-operation";
 import type {CloudResourceBlock} from '@/lib/batch-types';
 
-const statusLabels: Record<ProcessingStatus, string> = {
-  pendent: "Pendent",
-  preparant: "En cua",
-  processant: "Processant",
-  preparat: "Llest",
-  completat: "Aprovat",
-  revisio: "Per revisar",
-  sense_evidencia: "Sense evidència",
-  rebutjat: "Rebutjat",
-  error: "Errors",
+const processingLabels = {
+  pending: "Pendent de processar",
+  in_progress: "En curs",
+  processed: "Processat",
+  error: "Error de procés",
+} as const;
+const outcomeLabels: Record<string,string> = {
+  approved:"Aprovat",discarded:"Descartat",outside:"Fora de cartera",
+  issues:"Incidència",review:"Resultat per revisar",
 };
 
 export function ProcessingWorkbench({
@@ -46,6 +44,9 @@ export function ProcessingWorkbench({
     page: number;
     query: string;
     type: string;
+    processing: string;
+    execution: string;
+    review: string;
   };
 }) {
   const records = result.records;
@@ -58,19 +59,12 @@ export function ProcessingWorkbench({
       <section className="page-container">
         <div className="mb-5"><p className="page-eyebrow">Font i procés</p><h1 className="page-title">Registres</h1><p className="page-description">Localitza un registre, consulta el resultat i segueix-ne la fase actual.</p></div>
         {cloudBlock&&<section role="alert" className="mb-5 rounded-xl border-2 border-neutral-900 bg-neutral-100 p-4"><p className="font-semibold">Processament temporalment aturat</p><p className="mt-1 text-sm">{cloudBlock.label}. Pots consultar els registres, però no iniciar un procés nou.</p></section>}
-        <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 xl:grid-cols-5">
           <Metric label="Registres totals" value={metrics.total} />
-          <Metric label="En cua" value={metrics.queued} accent="amber" />
-          <Metric
-            label="Completats"
-            value={metrics.completed}
-            accent="green"
-          />
-          <Metric
-            label="Revisió necessària"
-            value={metrics.review}
-            accent="violet"
-          />
+          <Metric label="Pendents de processar" value={metrics.pending} accent="amber" />
+          <Metric label="Processats" value={metrics.processed} accent="green" />
+          <Metric label="Errors de procés" value={metrics.failed} accent="amber" />
+          <Metric label="Pendents de revisió" value={metrics.review} accent="violet" />
         </div>
         <div className="mt-6">
           <section className="surface overflow-hidden">
@@ -78,17 +72,17 @@ export function ProcessingWorkbench({
               <div>
                 <h2 className="text-lg font-semibold">Registres importats</h2>
                 <p className="mt-1 text-sm text-neutral-500">
-                  Consulta totes les files i el seu estat. La selecció i
-                  execució es gestionen des de Lots.
+                  Aquí hi són tots els registres importats, també els ja processats. Filtra per processament, tipus d’execució i revisió.
                 </p>
               </div>
               <Link href="/batches" className={buttonVariants({ size: "lg" })}>
                 Anar a Lots
               </Link>
             </div>
-            <form ref={filterFormRef} className="grid gap-3 border-b border-neutral-200 bg-neutral-50 p-4 md:grid-cols-[1fr_220px]">
+            <form ref={filterFormRef} className="grid gap-3 border-b border-neutral-200 bg-neutral-50 p-4 sm:grid-cols-2 xl:grid-cols-[minmax(16rem,1fr)_repeat(4,minmax(10rem,13rem))]">
               <Input
                 name="q"
+                aria-label="Cercar registres"
                 defaultValue={filters.query}
                 placeholder="Cercar títol, ID o entitat..."
                 onChange={() => {
@@ -98,6 +92,7 @@ export function ProcessingWorkbench({
               />
               <select
                 name="type"
+                aria-label="Filtrar per tipologia"
                 defaultValue={filters.type}
                 className="form-control"
                 onChange={() => filterFormRef.current?.requestSubmit()}
@@ -109,13 +104,34 @@ export function ProcessingWorkbench({
                   </option>
                 ))}
               </select>
+              <select name="processing" aria-label="Filtrar per processament" defaultValue={filters.processing} className="form-control" onChange={() => filterFormRef.current?.requestSubmit()}>
+                <option value="all">Tots els processos</option>
+                <option value="pending">Pendents de processar</option>
+                <option value="in_progress">En curs</option>
+                <option value="processed">Processats</option>
+                <option value="error">Errors de procés</option>
+              </select>
+              <select name="execution" aria-label="Filtrar per tipus d’execució" defaultValue={filters.execution} className="form-control" onChange={() => filterFormRef.current?.requestSubmit()}>
+                <option value="all">Totes les execucions</option>
+                <option value="none">Sense execucions</option>
+                <option value="batch">Amb lots</option>
+                <option value="individual">Amb execucions individuals</option>
+                <option value="other">Amb altres execucions</option>
+              </select>
+              <select name="review" aria-label="Filtrar per revisió" defaultValue={filters.review} className="form-control" onChange={() => filterFormRef.current?.requestSubmit()}>
+                <option value="all">Totes les revisions</option>
+                <option value="awaiting_review">Pendents de revisió</option>
+                <option value="reviewed">Revisats</option>
+              </select>
             </form>
-            <WorkTable className="records-table" headings={["Cas i font", "Entitat", "Tipologia", "Estat", "Lot", "Acció"]} empty={records.length ? undefined : "No hi ha registres amb aquests filtres."}>
-              {records.map(record => { const href = `/records/${record.id}?${new URLSearchParams({ from: `/?${new URLSearchParams({ q: filters.query, type: filters.type, page: String(filters.page) })}` })}`; return <tr key={record.id}>
+            <p className="border-b border-neutral-200 px-4 py-2 text-xs text-neutral-600">Pendent de processar = cap execució registrada. Processat = l’última execució ha acabat; la revisió humana es mostra a part. Les execucions compten intents, incloses les reanàlisis.</p>
+            <WorkTable className="records-table" headings={["Cas i font", "Entitat", "Tipologia", "Processament", "Revisió", "Execucions", "Acció"]} empty={records.length ? undefined : "No hi ha registres amb aquests filtres."}>
+              {records.map(record => { const href = `/records/${record.id}?${new URLSearchParams({ from: `/?${new URLSearchParams({ q: filters.query, type: filters.type, processing: filters.processing, execution: filters.execution, review: filters.review, page: String(filters.page) })}` })}`; return <tr key={record.id}>
                 <td data-label="Cas i font"><Link href={href} className="font-semibold underline underline-offset-2">{record.title}</Link><p className="mt-1 break-words text-xs text-muted-foreground">{record.sourceRecordId} · {SOURCE_LABELS[record.sourceDataset] ?? record.sourceDataset}</p></td>
                 <td data-label="Entitat">{record.providerName ?? "No informada"}</td><td data-label="Tipologia">{FINANCING_TYPE_LABELS[record.financingType]}</td>
-                <td data-label="Estat"><span className={`table-status ${record.status === "error" ? "status-error" : record.status === "revisio" || record.status === "sense_evidencia" ? "status-warning" : record.status === "completat" ? "status-success" : "status-neutral"}`}>{statusLabels[record.status]}</span></td>
-                <td data-label="Lot">{record.batchNumber ?? "—"}</td><td data-label="Acció"><TableActionLink href={href} label={`Obrir el cas ${record.title}`}/></td>
+                <td data-label="Processament"><span title="Indica si aquest registre té execucions i si l’última ha acabat o ha fallat." className={`table-status ${record.processingState === "error" ? "status-error" : record.processingState === "processed" ? "status-success" : record.processingState === "in_progress" ? "status-warning" : "status-neutral"}`}>{processingLabels[record.processingState]}</span>{outcomeLabels[record.destination] && <p className="mt-1 text-xs text-neutral-600">{record.processingState === "pending" && record.destination === "issues" ? "Incidència de font" : outcomeLabels[record.destination]}</p>}</td>
+                <td data-label="Revisió"><span title="La revisió humana és independent del processament automàtic." className={`table-status ${record.reviewState === "reviewed" ? "status-success" : record.reviewState === "awaiting_review" ? "status-warning" : "status-neutral"}`}>{record.reviewState === "reviewed" ? "Revisat" : record.reviewState === "awaiting_review" ? "Pendent de revisió" : record.processingState === "processed" ? "Sense revisió" : "Encara no"}</span></td>
+                <td data-label="Execucions"><strong>{record.executionCount}</strong> {record.executionCount === 1 ? "execució" : "execucions"}<p className="mt-1 text-xs text-neutral-600">{record.batchExecutionCount} en lot · {record.individualExecutionCount} {record.individualExecutionCount === 1 ? "individual" : "individuals"}{record.otherExecutionCount ? ` · ${record.otherExecutionCount} altres` : ""}</p>{record.latestRunId && <Link href={`/batches/${record.latestRunId}`} className="mt-1 inline-block text-xs underline underline-offset-2">Última #{record.batchNumber}</Link>}</td><td data-label="Acció"><TableActionLink href={href} label={`Obrir el cas ${record.title}`}/></td>
               </tr>; })}
             </WorkTable>
             <Pagination result={result} filters={filters} />
@@ -134,6 +150,9 @@ function Pagination({
   filters: {
     query: string;
     type: string;
+    processing: string;
+    execution: string;
+    review: string;
   };
 }) {
   const href = (page: number) => {
@@ -141,6 +160,9 @@ function Pagination({
       page: String(page),
       q: filters.query,
       type: filters.type,
+      processing: filters.processing,
+      execution: filters.execution,
+      review: filters.review,
     });
     return `/?${params}`;
   };
