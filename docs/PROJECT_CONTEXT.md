@@ -70,6 +70,8 @@ Quan un PDF no conté text digital, **Incidències** ofereix una recuperació co
 
 L'OCR automàtic està activat per defecte. L'apartat **Administració** permet activar-lo o desactivar-lo per als lots i processos automàtics nous. Cada lot conserva el valor vigent en el moment de crear-se, de manera que un canvi de configuració no altera una execució ja iniciada. Encara que estigui activat, l'OCR només s'executa quan l'extracció normal d'un PDF no obté text útil.
 
+La mitjana del cost de processament amb IA per registre, separada entre concerts i altres tipologies, es consulta a **Administració**. No ocupa espai al llistat habitual de registres. És una estimació calculada amb l'ús mesurat, no una factura del proveïdor.
+
 En el desplegament web, Vercel només crea tasques persistents a `worker_tasks`; no intenta mantenir processos Node.js després d'una petició. Un worker TypeScript extern reclama les tasques de manera atòmica i executa el procés complet contra Supabase remot. En desenvolupament local, el despatx és immediat per defecte i es pot forçar la cua amb `WORKER_EXECUTION_MODE=queue`.
 
 Totes les pàgines, APIs i accions queden darrere d'una contrasenya compartida configurada amb `APP_ACCESS_PASSWORD`. La sessió signada caduca al cap de set dies i es conserva en una cookie `HttpOnly`; els intents fallits es limiten temporalment i les escriptures validen l'origen. Si falta la variable, l'aplicació falla de manera tancada i només mostra la pantalla d'accés. Cada lot nou rep també un pressupost preventiu de proveïdor, amb cost reservat i confirmat visible al detall.

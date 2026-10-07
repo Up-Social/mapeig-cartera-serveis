@@ -22,7 +22,6 @@ import {
   type RecordOperation,
 } from "@/lib/record-operation";
 import type {CloudResourceBlock} from '@/lib/batch-types';
-import type {AiCostSummary} from '@/lib/records-page';
 
 const statusLabels: Record<ProcessingStatus, string> = {
   pendent: "Pendent",
@@ -40,11 +39,9 @@ export function ProcessingWorkbench({
   result,
   filters,
   cloudBlock,
-  aiCosts,
 }: {
   result: SourceListPage;
   cloudBlock: CloudResourceBlock;
-  aiCosts:AiCostSummary[];
   filters: {
     page: number;
     query: string;
@@ -75,20 +72,6 @@ export function ProcessingWorkbench({
             accent="violet"
           />
         </div>
-        <section className="surface mt-5 p-5" aria-labelledby="ai-cost-title" data-testid="ai-cost-summary">
-          <h2 id="ai-cost-title" className="text-lg font-semibold">Cost mitjà de processament amb IA</h2>
-          <p className="mt-1 text-sm text-muted-foreground">Estimació per registre a partir dels tokens d’IA registrats i la tarifa configurada; no és una factura del proveïdor ni l’import del concert.</p>
-          <div className="mt-4 grid gap-3 sm:grid-cols-2">
-            {(['concert','altres'] as const).map(scope=>{
-              const cost=aiCosts.find(item=>item.scope===scope);
-              return <div key={scope} className="rounded-lg border bg-muted/20 p-4"><p className="text-sm font-semibold">{scope==='concert'?'Concerts':'Altres tipologies'}</p>
-                <p className="mt-1 text-2xl font-bold tabular-nums">{cost?new Intl.NumberFormat('ca-ES',{style:'currency',currency:'USD',minimumFractionDigits:4,maximumFractionDigits:5}).format(cost.averageUsd):'Sense dades'}</p>
-                <p className="mt-1 text-xs text-muted-foreground">{cost?`${cost.measuredRecords} registres amb ús mesurat`:'Encara no hi ha cap ús mesurat'}</p>
-              </div>;
-            })}
-          </div>
-          <p className="mt-3 text-xs text-muted-foreground">Mitjana de totes les execucions atribuïbles a cada registre amb cost calculat. Els registres sense ús confirmat queden fora; no inclou OCR local, infraestructura ni revisió humana.</p>
-        </section>
         <div className="mt-6">
           <section className="surface overflow-hidden">
             <div className="flex flex-col gap-4 border-b border-neutral-200 p-5 lg:flex-row lg:items-center lg:justify-between">
