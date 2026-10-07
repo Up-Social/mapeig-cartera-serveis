@@ -17,7 +17,14 @@ const CONCURRENCY=8;
 const args=process.argv.slice(2);
 const apply=args.includes('--apply');
 const audit=args.includes('--audit');
-if(apply===audit || args.some(arg=>!['--apply','--audit',`--project-ref=${PROJECT_REF}`].includes(arg)))
+const excludeArgs=args.filter(arg=>arg.startsWith('--exclude-local-document='));
+const excludedLocalDocumentId=excludeArgs[0]?.slice('--exclude-local-document='.length);
+const skipArgs=args.filter(arg=>arg.startsWith('--skip-diverged-document='));
+const skippedDivergedDocumentId=skipArgs[0]?.slice('--skip-diverged-document='.length);
+const uuidPattern=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+if(excludeArgs.length>1 || skipArgs.length>1 || (excludedLocalDocumentId&&!uuidPattern.test(excludedLocalDocumentId)) || (skippedDivergedDocumentId&&!uuidPattern.test(skippedDivergedDocumentId)) || (excludedLocalDocumentId&&excludedLocalDocumentId===skippedDivergedDocumentId))
+ throw Error('Identificador de document local exclòs invàlid');
+if(apply===audit || args.some(arg=>!['--apply','--audit',`--project-ref=${PROJECT_REF}`].includes(arg)&&!arg.startsWith('--exclude-local-document=')&&!arg.startsWith('--skip-diverged-document=')))
  throw Error('Indica --audit o --apply --project-ref='+PROJECT_REF);
 if(apply&&!args.includes(`--project-ref=${PROJECT_REF}`))throw Error('Cal confirmar el ref de producció');
 
@@ -57,10 +64,13 @@ async function rows(db:SupabaseClient,table:string,columns:string):Promise<Row[]
 
 function sameIdentity(table:string,local:Row[],remote:Row[],fields:(keyof Row)[]){
  if(local.length!==remote.length)throw Error(`${table}: nombre de files diferent (${local.length}/${remote.length}); cal renovar la captura`);
+ const differences:string[]=[];
  for(let i=0;i<local.length;i++){
-  if(fields.some(field=>local[i][field]!==remote[i][field]))
-   throw Error(`${table}: identitat o contingut diferent a la posició ${i}; cal renovar la captura`);
+  const different=fields.filter(field=>local[i][field]!==remote[i][field]);
+  if(different.length)
+   differences.push(`${local[i].id}/${remote[i].id}:${different.join(',')}`);
  }
+ if(differences.length)throw Error(`${table}: ${differences.length} files amb identitat o contingut diferent (${differences.slice(0,20).join('; ')}); cal renovar la captura`);
 }
 
 function entry(kind:Entry['kind'],row:Row):Entry|undefined {
@@ -92,7 +102,26 @@ async function inventory(local:SupabaseClient,remote:SupabaseClient):Promise<Ent
  const entries:Entry[]=[];
  for(const [table,localColumns,identity,kind] of tables){
   const remoteColumns=apply?localColumns:localColumns.split(',').filter(column=>!column.startsWith('storage_')).join(',');
-  const [localRows,remoteRows]=await Promise.all([rows(local,table,localColumns),rows(remote,table,remoteColumns)]);
+  const [allLocalRows,allRemoteRows]=await Promise.all([rows(local,table,localColumns),rows(remote,table,remoteColumns)]);
+  let localRows=allLocalRows;
+  let remoteRows=allRemoteRows;
+  if(table==='source_documents'&&excludedLocalDocumentId){
+   const excluded=allLocalRows.filter(row=>row.id===excludedLocalDocumentId);
+   if(excluded.length!==1||allRemoteRows.some(row=>row.id===excludedLocalDocumentId))
+    throw Error('El document exclòs no és una única fila exclusiva de la base local');
+   localRows=allLocalRows.filter(row=>row.id!==excludedLocalDocumentId);
+   console.log(`Document exclusiu local exclòs del trasllat: ${excludedLocalDocumentId}`);
+  }
+  if(table==='source_documents'&&skippedDivergedDocumentId){
+   const localRow=localRows.find(row=>row.id===skippedDivergedDocumentId);
+   const remoteRow=allRemoteRows.find(row=>row.id===skippedDivergedDocumentId);
+   if(!localRow||!remoteRow||localRow.source_record_id!==remoteRow.source_record_id||localRow.url!==remoteRow.url||
+      (localRow.status===remoteRow.status&&localRow.content_hash===remoteRow.content_hash))
+    throw Error('El document divergent no coincideix amb la diferència local esperada');
+   localRows=localRows.filter(row=>row.id!==skippedDivergedDocumentId);
+   remoteRows=allRemoteRows.filter(row=>row.id!==skippedDivergedDocumentId);
+   console.log(`Document divergent exclòs sense canviar el seu estat remot: ${skippedDivergedDocumentId}`);
+  }
   sameIdentity(table,localRows,remoteRows,identity);
   const selected=localRows.map((row,index)=>{
    const item=entry(kind,row);
@@ -118,7 +147,7 @@ async function inventory(local:SupabaseClient,remote:SupabaseClient):Promise<Ent
 
 async function downloadAndVerify(db:SupabaseClient,item:Entry):Promise<Buffer>{
  const result=await db.storage.from(BUCKET).download(item.path);
- if(result.error||!result.data)throw Error(`No es pot llegir ${item.path}`);
+ if(result.error||!result.data)throw Error(`No es pot llegir ${item.path}: ${result.error?.message??'sense dades'}`);
  const bytes=Buffer.from(await result.data.arrayBuffer());
  if(digest(bytes)!==item.sha256)throw Error(`SHA-256 incorrecte: ${item.path}`);
  return bytes;
@@ -133,8 +162,16 @@ async function link(remote:SupabaseClient,item:Entry){
   query=item.sourceHash?query.eq('content_hash',item.sourceHash):query.is('content_hash',null);
  }else query=query.eq('source_payload_hash',item.sourceHash!);
  const updated=await query.select('id');
- if(updated.error||updated.data?.length!==1)throw Error(`No s’ha pogut enllaçar ${table}/${item.id}: ${updated.error?.message??'fila no actualitzada'}`);
+ if(updated.error||updated.data?.length!==1){
+  // A lost response may hide a successful update; accept only the exact pointer.
+  const current=await remote.from(table).select('storage_path,storage_sha256').eq('id',item.id!).maybeSingle();
+  if(!current.error&&current.data?.storage_path===item.path&&current.data.storage_sha256===item.sha256)return;
+  throw Error(`No s’ha pogut enllaçar ${table}/${item.id}: ${updated.error?.message??current.error?.message??'fila no actualitzada'}`);
+ }
 }
+
+const retryable=(error:unknown)=>/fetch failed|network|timeout|ECONNRESET|HTTP 5\d\d|HTTP 429|rate limit/i.test(error instanceof Error?error.message:String(error));
+const pause=(ms:number)=>new Promise<void>(resolve=>setTimeout(resolve,ms));
 
 async function inBatches(items:Entry[],work:(item:Entry)=>Promise<void>){
  for(let start=0;start<items.length;start+=CONCURRENCY){
@@ -156,18 +193,28 @@ async function main(){
  }
  let uploaded=0,alreadyPresent=0,linked=0;
  await inBatches(items,async item=>{
-  const bytes=await downloadAndVerify(local,item);
-  const exists=await remote.storage.from(BUCKET).exists(item.path);
-  if(exists.error)throw exists.error;
-  if(!exists.data){
-   const contentType=item.path.endsWith('.pdf')?'application/pdf':item.path.endsWith('.xlsx')?'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet':item.path.endsWith('.html')?'text/html':item.path.endsWith('.xml')?'application/xml':item.path.endsWith('.txt')?'text/plain':item.path.endsWith('.json')?'application/json':'application/octet-stream';
-   const result=await remote.storage.from(BUCKET).upload(item.path,bytes,{contentType,upsert:false});
-   if(result.error)throw Error(`No s’ha pogut pujar ${item.path}: ${result.error.message}`);
-   uploaded++;
-  }else alreadyPresent++;
-  await downloadAndVerify(remote,item);
-  await link(remote,item);
-  if(item.kind!=='shared'&&!item.alreadyLinked)linked++;
+  for(let attempt=1;attempt<=5;attempt++)try{
+   const bytes=await downloadAndVerify(local,item);
+   const exists=await remote.storage.from(BUCKET).exists(item.path);
+   // storage-js reports a missing HEAD as data:false plus a 400/404 error.
+   // Only that documented absence is safe to proceed to upload.
+   if(exists.error && !(exists.data===false && [400,404].includes(Number(exists.error.status))))
+    throw exists.error;
+   if(!exists.data){
+    const contentType=item.path.endsWith('.pdf')?'application/pdf':item.path.endsWith('.xlsx')?'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet':item.path.endsWith('.html')?'text/html':item.path.endsWith('.xml')?'application/xml':item.path.endsWith('.txt')?'text/plain':item.path.endsWith('.json')?'application/json':'application/octet-stream';
+    const result=await remote.storage.from(BUCKET).upload(item.path,bytes,{contentType,upsert:false});
+    if(result.error)throw Error(`No s’ha pogut pujar ${item.path}: ${result.error.message}`);
+    uploaded++;
+   }else alreadyPresent++;
+   await downloadAndVerify(remote,item);
+   await link(remote,item);
+   if(item.kind!=='shared'&&!item.alreadyLinked)linked++;
+   return;
+  }catch(error){
+   if(attempt===5||!retryable(error))throw error;
+   console.warn(`Error de xarxa transitori; reintent ${attempt}/4 per ${item.kind}/${item.id??'shared'}`);
+   await pause(500*2**(attempt-1));
+  }
  });
  const finalInventory=await inventory(local,remote);
  if(finalInventory.length!==items.length||finalInventory.some(item=>item.kind!=='shared'&&!item.alreadyLinked))

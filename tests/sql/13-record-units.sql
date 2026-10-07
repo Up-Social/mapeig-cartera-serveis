@@ -1,4 +1,4 @@
-do $$ declare sid uuid:=gen_random_uuid();rid uuid;j uuid;v text;code text;d uuid;legacy uuid;u uuid;u2 uuid;pid uuid;quote text;payload jsonb;digest text:=repeat('a',64);doc_path text;item_path text;begin
+do $$ declare sid uuid:=gen_random_uuid();rid uuid;j uuid;v text;code text;d uuid;legacy uuid;u uuid;u2 uuid;u3 uuid;pid uuid;quote text;payload jsonb;digest text:=repeat('a',64);doc_path text;item_path text;begin
  insert into source_records(id,source_dataset,source_record_id,mechanism,title,financing_type,amount) values(sid,'concerts','UNITS-'||sid,'Concert','Unit fixture','concert',10000);
  insert into pipeline_runs default values returning id into rid;
  insert into pipeline_jobs(run_id,source_record_id,status) values(rid,sid,'needs_review') returning id into j;
@@ -33,5 +33,13 @@ do $$ declare sid uuid:=gen_random_uuid();rid uuid;j uuid;v text;code text;d uui
  perform review_record_unit(u2,j,true,'Segona entitat sense import individual acreditat');
  if (select count(*) from service_provisions where source_record_id=sid and superseded_at is null)<>2 then raise exception 'Expected 2 Excel lines';end if;
  if (select sum(amount) from service_provisions where source_record_id=sid and superseded_at is null)<>3000 then raise exception 'Global amount duplicated';end if;
+ payload:=payload||jsonb_build_object('act_type','renewal');
+ u3:=save_record_unit(sid,j,payload);
+ item_path:='cases/'||sid||'/items/'||u3||'/documents/'||d||'/'||digest||'.pdf';
+ insert into storage.objects(bucket_id,name) values('cloud-documents',item_path);
+ update record_units set storage_path=item_path,storage_sha256=digest where id=u3;
+ if review_record_unit(u3,j,true,'Pròrroga revisada sense nova adjudicació') is not null then raise exception 'Renewal created a provision';end if;
+ if (select status from record_units where id=u3)<>'approved' then raise exception 'Renewal evidence not reviewed';end if;
+ if exists(select 1 from service_provisions where unit_id=u3) then raise exception 'Renewal double-counted';end if;
  begin perform review_analysis(sid,'reject',j,array['not_social_service'],null,null,'No ha de sobreescriure les unitats');raise exception 'Split decisions overwritten';exception when others then if sqlerrm='Split decisions overwritten' then raise;end if;end;
 end $$;

@@ -8,19 +8,24 @@ const sections = [
   { id: "resultat", label: "Resultat" },
   { id: "evidencies", label: "Evidències" },
   { id: "dades", label: "Dades" },
+  { id: "unitats", label: "Unitats" },
   { id: "historial", label: "Historial" },
 ] as const;
 
 type SectionId = (typeof sections)[number]["id"];
 
-export function CaseStudyNavigation() {
+export function CaseStudyNavigation({showUnits=false}:{showUnits?:boolean}) {
   const [active, setActive] = useState<SectionId>("resum");
+  const visibleSections=sections.filter(section=>showUnits||section.id!=="unitats");
 
   useEffect(() => {
     const updateActiveSection = () => {
-      const marker = 180;
+      // At the end of a short page the browser cannot scroll the final section
+      // all the way under the sticky navigation. Count it once it enters view.
+      const marker = Math.min(480,window.innerHeight*0.45);
       let current: SectionId = "resum";
       for (const section of sections) {
+        if(section.id==="unitats"&&!showUnits)continue;
         const element = document.getElementById(section.id);
         if (element && element.getBoundingClientRect().top <= marker) current = section.id;
       }
@@ -34,12 +39,12 @@ export function CaseStudyNavigation() {
       window.removeEventListener("scroll", updateActiveSection);
       window.removeEventListener("hashchange", updateActiveSection);
     };
-  }, []);
+  }, [showUnits]);
 
   return <nav aria-label="Apartats de l'estudi" className="surface sticky top-0 z-20 p-3 shadow-sm">
-    <p className="mb-2 text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">Estudi del cas · 6 apartats</p>
+    <p className="mb-2 text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">Estudi del cas · {visibleSections.length} apartats</p>
     <div className="flex gap-2 overflow-x-auto pb-1">
-      {sections.map((section, index) => <a
+      {visibleSections.map((section, index) => <a
         key={section.id}
         href={`#${section.id}`}
         aria-current={active === section.id ? "location" : undefined}

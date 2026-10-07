@@ -2,7 +2,7 @@ import ExcelJS from "exceljs";
 
 export type ProvisionExcelRow = { unit_id?:string; centre?:string|null; period?:string|null; act_type?:string|null; annex_reference?:string|null; source_id: string; call_url: string | null; regulatory_basis_url: string | null; provider_name: string | null; provider_nif: string | null; mechanism: string; award_date: string | null; amount: number | null; contracting_body: string | null; target_population: string | null; source_reference: string; service_code: string; service_name: string };
 
-export async function createProvisionExcel(rows: ProvisionExcelRow[]) {
+export async function createProvisionExcel(rows: ProvisionExcelRow[], options: { reviewWarnings?: string[] } = {}) {
   const workbook = new ExcelJS.Workbook();
   workbook.creator = "Mapeig cartera de serveis";
   const sheet = workbook.addWorksheet("Detalle_Provisiones", { views: [{ state: "frozen", ySplit: 1 }] });
@@ -35,6 +35,15 @@ export async function createProvisionExcel(rows: ProvisionExcelRow[]) {
     row.alignment = { vertical: "top", wrapText: true };
     row.getCell(7).numFmt = "yyyy-mm-dd";
     row.getCell(8).numFmt = "#,##0.00";
+  }
+  if (options.reviewWarnings?.length) {
+    const review = workbook.addWorksheet("Estado_Revision");
+    review.columns = [
+      { header: "Estado de la exportación", key: "warning", width: 105 },
+    ];
+    review.getRow(1).font = { bold: true };
+    review.addRow({ warning: "Exportación parcial: solo incluye las líneas aprobadas; las pendientes no representan un importe cero." });
+    for (const warning of options.reviewWarnings) review.addRow({ warning });
   }
   const output = await workbook.xlsx.writeBuffer(); return new Uint8Array(output);
 }

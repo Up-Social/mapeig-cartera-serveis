@@ -12,6 +12,20 @@ import {recordOperationProgress,type ProgressTask} from './record-progress';
 
 export const PAGE_SIZE = 25;
 
+export type AiCostSummary={scope:'concert'|'altres';measuredRecords:number;totalUsd:number;averageUsd:number};
+export async function getAiCostSummary():Promise<AiCostSummary[]>{
+  const result=await createServerSupabase().from('ai_cost_summary').select('scope,measured_records,total_usd,average_usd');
+  if(result.error){
+    // Older deployments can still serve the records page before this local migration.
+    if(result.error.code==='PGRST205'||result.error.code==='42P01')return [];
+    throw result.error;
+  }
+  return (result.data??[]).filter(row=>row.scope==='concert'||row.scope==='altres').map(row=>({
+    scope:row.scope as 'concert'|'altres',measuredRecords:Number(row.measured_records),
+    totalUsd:Number(row.total_usd),averageUsd:Number(row.average_usd),
+  }));
+}
+
 export function createServerSupabase() {
   if (process.env.WORKFLOW_TEST_PROJECT) assertTestEnvironment(process.env);
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;

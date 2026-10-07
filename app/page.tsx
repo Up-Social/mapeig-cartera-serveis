@@ -1,4 +1,4 @@
-import { getSourcePage } from "@/lib/records-page";
+import { getSourcePage,getAiCostSummary } from "@/lib/records-page";
 import { redirect } from "next/navigation";
 import {isUuid} from '@/lib/uuid';
 import { ProcessingWorkbench } from "./processing-workbench-v2";
@@ -15,8 +15,7 @@ export default async function Home({ searchParams }: PageProps<"/">) {
     query: typeof params.q === "string" ? params.q.slice(0, 120) : "",
     type: typeof params.type === "string" ? params.type : "totes",
   };
-  const result = await getSourcePage(filters);
-  const cloudBlock=await getCloudResourceBlock();
+  const [result,cloudBlock,aiCosts]=await Promise.all([getSourcePage(filters),getCloudResourceBlock(),getAiCostSummary()]);
   if(typeof params.record==='string'&&isUuid(params.record)) redirect(`/records/${params.record}?${new URLSearchParams({ from: "/" })}`);
   return (
     <ProcessingWorkbench
@@ -24,6 +23,7 @@ export default async function Home({ searchParams }: PageProps<"/">) {
       result={result}
       filters={filters}
       cloudBlock={cloudBlock}
+      aiCosts={aiCosts}
     />
   );
 }

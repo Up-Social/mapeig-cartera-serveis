@@ -13,6 +13,7 @@ import { getCurrentResults } from "@/lib/current-results";
 import { getApprovedPage } from "@/lib/approved";
 import { recordReviewLabel } from "@/lib/record-review-state";
 import { DetailNavigation } from "@/components/detail-navigation";
+import { hasUnitSchema } from "@/lib/runtime-schema";
 
 type ContextRow = { id: string; jobId?: string | null; provisionId?: string };
 async function contextPage(path: string, p: URLSearchParams, page: number): Promise<{ rows: ContextRow[]; pageCount: number }> {
@@ -41,6 +42,17 @@ export default async function RecordPage({ params, searchParams }: PageProps<"/r
   const services = await createServerSupabase().from("eligible_official_services").select("service_code,service_name,target_population").order("service_code");
   const cloudBlock = await getCloudResourceBlock();
   if (services.error) throw services.error;
+  let concertExportState: "ready" | "partial" | "pending" = "ready";
+  if (record.financingType === "concert" && hasUnitSchema()) {
+    const db = createServerSupabase();
+    const [drafts, active] = await Promise.all([
+      db.from("record_units").select("id", { count: "exact", head: true }).eq("source_record_id", id).neq("unit_key", "legacy").eq("status", "draft"),
+      db.from("service_provisions").select("id", { count: "exact", head: true }).eq("source_record_id", id).is("superseded_at", null),
+    ]);
+    if (drafts.error) throw drafts.error;
+    if (active.error) throw active.error;
+    if ((drafts.count ?? 0) > 0) concertExportState = (active.count ?? 0) > 0 ? "partial" : "pending";
+  }
   const origin = safeCaseOrigin(query.from);
   let previous: string | null = null;
   let next: string | null = null;
@@ -78,7 +90,7 @@ export default async function RecordPage({ params, searchParams }: PageProps<"/r
   return <main className="page-shell"><section className="page-container space-y-5">
     <DetailNavigation backHref={origin} backLabel="Tornar al llistat" previousHref={previous} nextHref={next}/>
     <div><p className="page-eyebrow">Estudi del cas · {record.sourceRecordId}{record.batchNumber ? ` · Lot ${record.batchNumber}` : ""}</p><h1 className="detail-title max-w-[80ch] break-words">{record.title}</h1><p className="page-description">{recordReviewLabel(record)}</p></div>
-    <CaseStudyNavigation />
-    <CaseStudy initialRecord={record} services={(services.data ?? []).map(service => ({ code: service.service_code, name: service.service_name, scope: service.target_population }))} origin={origin} next={next} issue={classifyIssue(record)} cloudBlocked={Boolean(cloudBlock)} />
+    <CaseStudyNavigation showUnits={record.financingType==="concert"} />
+    <CaseStudy initialRecord={record} services={(services.data ?? []).map(service => ({ code: service.service_code, name: service.service_name, scope: service.target_population }))} origin={origin} next={next} issue={classifyIssue(record)} cloudBlocked={Boolean(cloudBlock)} concertExportState={concertExportState} />
   </section></main>;
 }

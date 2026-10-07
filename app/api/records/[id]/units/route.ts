@@ -13,6 +13,16 @@ export async function POST(request:Request,{params}:{params:Promise<{id:string}>
  const {id}=await params;const body=await request.json().catch(()=>null);
  if(!isUuid(id)||!isUuid(body?.expectedJobId??''))return Response.json({error:'Registre o execució no vàlids'},{status:400});
  const db=createServerSupabase();
+ if(body.prepareExtractedUnitId){
+  if(!isUuid(body.prepareExtractedUnitId)||typeof body.providerName!=='string'||typeof body.serviceCode!=='string')
+   return Response.json({error:'Dades de la línia no vàlides'},{status:400});
+  const owned=await db.from('record_units').select('id').eq('id',body.prepareExtractedUnitId).eq('source_record_id',id).maybeSingle();
+  if(owned.error||!owned.data)return Response.json({error:'Unitat no trobada'},{status:404});
+  const prepared=await db.rpc('prepare_extracted_concert_unit',{p_unit:body.prepareExtractedUnitId,p_expected_job:body.expectedJobId,
+   p_provider_name:body.providerName,p_service_code:body.serviceCode});
+  if(prepared.error)return Response.json({error:prepared.error.message},{status:409});
+  return Response.json({id:prepared.data});
+ }
  if(body.unitId){
   if(!isUuid(body.unitId)||typeof body.approve!=='boolean')return Response.json({error:'Decisió no vàlida'},{status:400});
   const unit=await db.from('record_units').select('id').eq('id',body.unitId).eq('source_record_id',id).maybeSingle();

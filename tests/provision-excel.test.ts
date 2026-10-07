@@ -13,3 +13,11 @@ test('multiple reviewed units export distinct lines, traceable IDs and no repeat
  assert.equal(sheet.getCell('D3').value,'Entitat B');assert.equal(sheet.getCell('R3').value,'annex.pdf · p. 13');
  assert.deepEqual(sheet.getCell('B2').value,{text:base.call_url,hyperlink:base.call_url});
 });
+test('partial export states pending lines without turning unknown amounts into zero',async()=>{
+ const row:ProvisionExcelRow={source_id:'CONCERT-1',call_url:null,regulatory_basis_url:null,provider_name:'Entitat A',provider_nif:'G00000000',mechanism:'Concert',award_date:null,amount:null,contracting_body:null,target_population:null,source_reference:'concerts:1',service_code:'1.1.2.1',service_name:'Ajuda a domicili',unit_id:'unit-a',act_type:'award'};
+ const bytes=await createProvisionExcel([row],{reviewWarnings:['Registro concert-1: 41 líneas pendientes de revisión.']});
+ const wb=new ExcelJS.Workbook();await wb.xlsx.load(Uint8Array.from(bytes).buffer);
+ assert.equal(wb.getWorksheet('Detalle_Provisiones')?.getCell('H2').value,null);
+ assert.match(String(wb.getWorksheet('Estado_Revision')?.getCell('A2').value),/solo incluye las líneas aprobadas/);
+ assert.match(String(wb.getWorksheet('Estado_Revision')?.getCell('A3').value),/41 líneas pendientes/);
+});

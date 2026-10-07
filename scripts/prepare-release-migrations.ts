@@ -9,6 +9,13 @@ const names=[
  '20261007102000_case_storage_deletion_compatibility',
  '20261007103000_skip_snapshot_on_storage_metadata',
  '20261007104000_master_source_archives',
+ '20261007110000_concert_resolution_links',
+ '20261007111000_concert_horizon_state',
+ '20261007112000_prepare_extracted_concert_unit',
+ '20261007113000_concert_source_identity',
+ '20261007114000_concert_act_types',
+ '20261007115000_review_nonaward_concert_units',
+ '20261007120000_concert_observed_identity_and_ai_cost',
 ];
 const root=resolve(import.meta.dirname,'..');
 if(readFileSync(join(root,'supabase/.temp/project-ref'),'utf8').trim()!=='vvzxlevbfjvzygorbpxn')
@@ -30,8 +37,9 @@ writeFileSync(sql,[
  'CREATE TEMP TABLE release_migration_input(version text PRIMARY KEY,name text,statement text);',
  `\\copy release_migration_input FROM '${escapePsql(csv)}' WITH (FORMAT csv)`,
  'DO $$ BEGIN',
- ' IF (SELECT count(*) FROM release_migration_input) <> 5 THEN RAISE EXCEPTION \'Inventario de migraciones incompleto\'; END IF;',
+ ` IF (SELECT count(*) FROM release_migration_input) <> ${migrations.length} THEN RAISE EXCEPTION 'Inventario de migraciones incompleto'; END IF;`,
  ' IF EXISTS (SELECT 1 FROM supabase_migrations.schema_migrations s JOIN release_migration_input r USING(version)) THEN RAISE EXCEPTION \'Migracion ya aplicada: detener y reconciliar\'; END IF;',
+ ' IF (SELECT count(*) FROM public.source_records) <> 28124 OR (SELECT count(*) FROM public.source_documents) <> 52830 OR (SELECT count(*) FROM public.record_units) <> 29 OR (SELECT count(*) FROM public.service_provisions) <> 29 OR (SELECT count(*) FROM public.review_decisions) <> 32 OR (SELECT count(*) FROM public.pipeline_jobs) <> 311 OR (SELECT count(*) FROM public.worker_tasks) <> 124 OR (SELECT count(*) FROM storage.objects) <> 327 THEN RAISE EXCEPTION \'La base ha cambiado desde la captura de corte: detener y reconciliar\'; END IF;',
  'END $$;',
  ...migrations.map(({path})=>`\\ir ${path}`),
  'INSERT INTO supabase_migrations.schema_migrations(version,statements,name)',
@@ -39,4 +47,4 @@ writeFileSync(sql,[
  'SELECT version,name FROM supabase_migrations.schema_migrations WHERE version IN (SELECT version FROM release_migration_input) ORDER BY version;',
 ].join('\n')+'\n',{mode:0o600});
 console.log(`Paquete local preparado: ${sql}`);
-console.log('Aplica las cinco migraciones y su historial en una transacción con psql -X -1 -v ON_ERROR_STOP=1 -W -f RUTA.');
+console.log(`Aplica las ${migrations.length} migraciones y su historial en una transacción con psql -X -1 -v ON_ERROR_STOP=1 -W -f RUTA.`);

@@ -46,8 +46,25 @@ export async function GET(
       { status: 409 },
     );
 
+  const reviewWarnings: string[] = [];
+  if (hasUnitSchema()) {
+    const pending = new Map<string, number>();
+    for (let offset = 0;; offset += 1000) {
+      const result = await supabase.from("record_units")
+        .select("source_record_id")
+        .in("source_record_id", recordIds)
+        .neq("unit_key", "legacy")
+        .eq("status", "draft")
+        .range(offset, offset + 999);
+      if (result.error) return Response.json({ error: result.error.message }, { status: 500 });
+      for (const unit of result.data ?? []) pending.set(unit.source_record_id, (pending.get(unit.source_record_id) ?? 0) + 1);
+      if ((result.data?.length ?? 0) < 1000) break;
+    }
+    for (const [recordId, count] of pending) reviewWarnings.push(`Registro ${recordId}: ${count} líneas pendientes de revisión.`);
+  }
+
   let bytes: Uint8Array;
-  try { bytes = await createProvisionExcel((data ?? []).map((item) => ({ ...item, service_name: relationName(item.official_services ?? item.master_services) })) as unknown as ProvisionExcelRow[]); }
+  try { bytes = await createProvisionExcel((data ?? []).map((item) => ({ ...item, service_name: relationName(item.official_services ?? item.master_services) })) as unknown as ProvisionExcelRow[], { reviewWarnings }); }
   catch (error) { return Response.json({ error: error instanceof Error ? error.message : String(error) }, { status: 500 }); }
   const stamp = new Date().toISOString().replace(/[:T]/g, "-").slice(0, 16);
   const batchNumber = String(run.batch_number).padStart(8, "0");
