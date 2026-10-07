@@ -1,0 +1,21 @@
+/** Synthetic, non-official documents modelled on the 18 examples in Sprint 1 - Mapeig.pdf. */
+export const SPRINT1_CONCERT_CASES = [
+ {caseNo:1,example:'TALMA · denegació',title:'Resolució de denegació TALMA',text:'Resolc denegar la petició de TALMA per a les places sol·licitades. No es formalitza cap adjudicació.',effect:'none'},
+ {caseNo:2,example:'OBINSO · cessament',title:'Cessament voluntari de 7 places OBINSO',text:'Resolc el cessament voluntari de set places concertades d’OBINSO amb efectes al període indicat.',effect:'possible_reduction'},
+ {caseNo:3,example:'24-000052-AP · modificació',title:'Modificació del servei de residència assistida',text:'Resolc la modificació de les places de l’expedient 24-000052-AP. El nou total s’ha de comparar amb l’anterior.',effect:'possible_delta'},
+ {caseNo:4,example:'DSI/2075/2025 · proposta',title:'Acord de proposta DSI/2075/2025',text:'El Comitè de Provisió formula una proposta de resolució abans de l’adjudicació definitiva.',effect:'provisional'},
+ {caseNo:5,example:'DSI/3434/2024 · convocatòria',title:'Resolució DSI/3434/2024 de convocatòria anticipada',text:'Resolc obrir la convocatòria per rebre sol·licituds de les entitats interessades. Cap entitat beneficiària encara.',effect:'none'},
+ {caseNo:6,example:'Institut del Desert · recurs',title:'Resolució recurs de reposició Fundació Institut del Desert',text:'S’estima el recurs de reposició i es resol una adjudicació nova a favor de la fundació.',effect:'possible_award'},
+ {caseNo:7,example:'programa 315 · rectificació',title:'Resolució de rectificació d’errors de la pròrroga del programa 315',text:'Resolc la rectificació de l’import d’una resolució anterior; aquesta publicació no és una nova pròrroga.',effect:'possible_correction'},
+ {caseNo:8,example:'26-000183-AP · títol genèric',title:'Resolució de l’expedient: 26-000183-AP',text:'Resolc adjudicar la provisió del servei social a una entitat determinada. El títol no identifica el tipus d’acte.',effect:'possible_award'},
+ {caseNo:9,example:'DSI 3383/2025 · places desertes',title:'Provisió de places desertes DSI 3383/2025',text:'Resolc adjudicar a una entitat les places desertes de la convocatòria DSI 3383/2025.',effect:'possible_award'},
+ {caseNo:10,example:'25-000163-AP · Barcelona',title:'Exp. 25-000163-AP (Barcelona)',text:'Resolc l’adjudicació de serveis de l’expedient 25-000163-AP al Servei Territorial de Barcelona.',effect:'possible_award'},
+ {caseNo:11,example:'programa 315 · modalitats mixtes',title:'Provisió de concert social i gestió delegada',text:'Resolc adjudicar línies de concert social i línies de gestió delegada a entitats diferents en un mateix annex.',effect:'possible_award'},
+ {caseNo:12,example:'programa 317 · pròrroga Girona',title:'Pròrroga del programa 317 · Servei Territorial de Girona',text:'Resolc la pròrroga dels concerts del programa 317 per a un període nou. L’annex inclou Import a assignar DA.',effect:'possible_new_period'},
+ {caseNo:13,example:'EO-02/2024 · emergència',title:'Provisió per emergència EO-02/2024',text:'Resolc la provisió per emergència de fins a deu places amb un import màxim acreditat.',effect:'possible_maximum'},
+ {caseNo:14,example:'Consorci de Barcelona · finançador',title:'Provisió del Consorci de Serveis Socials de Barcelona',text:'El Consorci de Serveis Socials de Barcelona resol adjudicar el concert i finança aquest servei.',effect:'possible_award'},
+ {caseNo:15,example:'R. Aut-2/2026 · despesa',title:'Autorització de la despesa anualitat 2026',text:'Resolc l’autorització de la despesa dels serveis en funcionament. No es crea cap plaça ni adjudicació nova.',effect:'none'},
+ {caseNo:16,example:'SIE Hospitalet 2025-2029 · plurianual',title:'Provisió de Serveis SIE Hospitalet 2025-2029',text:'Resolc adjudicar la provisió SIE per al període 2025-2029 amb un import total plurianual.',effect:'possible_allocation'},
+ {caseNo:17,example:'Llar Enric d’Ossó · cessió',title:'Cessió del Servei de Pis assistit Llar Enric d’Ossó',text:'Resolc la cessió del concert a una altra entitat prestadora. El compromís econòmic es manté.',effect:'none'},
+ {caseNo:18,example:'23-038-PN-IN-AP · convalidació',title:'Convalidació de la Resolució 23-038-PN-IN-AP',text:'Es convalida la resolució de l’expedient 23-038-PN-IN-AP sense canviar-ne l’import.',effect:'none'},
+] as const;

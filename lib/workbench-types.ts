@@ -27,6 +27,8 @@ export type SourceRecord = {
   providerName: string | null; amount: number | null; status: ProcessingStatus;
   carteraCode: string | null; carteraName: string | null; confidence: number | null; evidence: string | null;
   sourceFile: string | null; sourceSheet: string | null; sourceRow: number | null;
+  importRunId?:string|null;
+  sourceStoragePath?:string|null;
   sourcePayload: Record<string, string | number | boolean | null>;
   evidenceStatus: "pending" | "preparing" | "ready" | "no_source" | "unsupported" | "error";
   evidenceError: string | null;

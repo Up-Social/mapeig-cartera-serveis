@@ -18,6 +18,11 @@ for(const file of readdirSync('supabase/migrations').filter(f=>f.endsWith('.sql'
   console.log(`Applied ${file}`);
 }
 sql("NOTIFY pgrst, 'reload schema';");
+// This isolated CLI image uses a Storage API that inserts with ON CONFLICT(bucket_id,name),
+// while its newer database schema only has partial/versioned uniqueness. Keep the
+// compatibility index inside the disposable test project; never apply it remotely.
+execFileSync('docker',['exec','-i',container,'psql','-U','supabase_admin','-d','postgres','-X','-v','ON_ERROR_STOP=1','-At'],
+ {input:'create unique index if not exists workflow_test_storage_current_name_key on storage.objects(bucket_id,name collate "C") where archived_at is null;',encoding:'utf8'});
 await new Promise(resolve=>setTimeout(resolve,1000));
 const db=createClient(TEST_API,status.SERVICE_ROLE_KEY,{auth:{persistSession:false,autoRefreshToken:false}});
 const catalog=JSON.parse(readFileSync('data/legal/cartera.json','utf8'));

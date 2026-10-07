@@ -106,6 +106,8 @@ export function mapRecord(row: Record<string, unknown>): SourceRecord {
     sourceFile: row.source_file == null ? null : String(row.source_file),
     sourceSheet: row.source_sheet == null ? null : String(row.source_sheet),
     sourceRow: row.source_row == null ? null : Number(row.source_row),
+    importRunId:row.import_run_id==null?null:String(row.import_run_id),
+    sourceStoragePath:row.storage_path==null?null:String(row.storage_path),
     sourcePayload: (row.source_payload ?? {}) as SourceRecord["sourcePayload"],
     evidenceStatus: row.evidence_status as SourceRecord["evidenceStatus"], evidenceError: row.evidence_error == null ? null : String(row.evidence_error),
     enrichmentStatus: row.enrichment_status as SourceRecord["enrichmentStatus"], enrichmentError: row.enrichment_error == null ? null : String(row.enrichment_error),

@@ -1,9 +1,10 @@
 import { createHash } from "node:crypto";
-import { access } from "node:fs/promises";
+import { access,readFile } from "node:fs/promises";
 import path from "node:path";
 import { createClient } from "@supabase/supabase-js";
 import ExcelJS from "exceljs";
 import WebSocket from "ws";
+import {archiveImportWorkbook,archiveImportedRow} from '../lib/source-storage';
 
 type Scalar = string | number | boolean | null;
 type Payload = Record<string, Scalar>;
@@ -11,6 +12,7 @@ type ImportRow = {
   source_dataset: string; source_record_id: string; mechanism: string; title: string;
   provider_name: string | null; amount: number | null; processing_status: "pendent";
   source_file: string; source_sheet: string; source_row: number;
+  import_run_id:string;
   source_payload: Payload; source_payload_hash: string; updated_at: string;
 };
 type MasterServiceRow = {
@@ -70,6 +72,7 @@ const supabase = createClient(supabaseUrl, serviceRoleKey, {
   auth: { persistSession: false, autoRefreshToken: false },
   realtime: { transport: WebSocket as never },
 });
+const archivedWorkbooks=new Map<string,{path:string;sha256:string}>();
 
 async function main() {
   const { data: run, error: runError } = await supabase.from("import_runs").insert({
@@ -83,6 +86,7 @@ async function main() {
   for (const spec of masterOnly ? [] : specs) {
     const filePath = path.join(sourceDir!, spec.file);
     await access(filePath);
+    archivedWorkbooks.set(spec.file,await archiveImportWorkbook(supabase,run.id,spec.file,await readFile(filePath)));
     const workbook = new ExcelJS.Workbook();
     await workbook.xlsx.readFile(filePath);
     for (const sheetName of spec.sheets) {
@@ -101,7 +105,7 @@ async function main() {
         batch.push({
           source_dataset: spec.dataset(sheetName), source_record_id: sourceRecordId,
           mechanism: spec.mechanism, title, provider_name: spec.provider(payload), amount: spec.amount(payload),
-          processing_status: "pendent", source_file: spec.file, source_sheet: sheetName, source_row: rowNumber,
+          processing_status: "pendent", source_file: spec.file, source_sheet: sheetName, source_row: rowNumber,import_run_id:run.id,
           source_payload: payload,
           source_payload_hash: createHash("sha256").update(stableJson(payload)).digest("hex"),
           updated_at: new Date().toISOString(),
@@ -113,7 +117,9 @@ async function main() {
       console.log(`${spec.dataset(sheetName)}: ${sheetRows} files importades`);
     }
   }
-  const masterRows = await importMaster(path.join(sourceDir!, masterFile));
+  const masterPath=path.join(sourceDir!, masterFile);
+  archivedWorkbooks.set(masterFile,await archiveImportWorkbook(supabase,run.id,masterFile,await readFile(masterPath)));
+  const masterRows = await importMaster(masterPath);
   rowsRead += masterRows;
   rowsWritten += masterRows;
   const { error } = await supabase.from("import_runs").update({
@@ -138,6 +144,16 @@ void main().catch((error: unknown) => {
 async function writeBatch(rows: ImportRow[]) {
   const { error } = await supabase.from("source_records").upsert(rows, { onConflict: "source_dataset,source_record_id" });
   if (error) throw error;
+  const ids=await supabase.from('source_records').select('id,source_record_id').eq('source_dataset',rows[0].source_dataset).in('source_record_id',rows.map(row=>row.source_record_id));
+  if(ids.error)throw ids.error;
+  const byExternalId=new Map((ids.data??[]).map(row=>[row.source_record_id,row.id]));
+  for(let start=0;start<rows.length;start+=8){
+    await Promise.all(rows.slice(start,start+8).map(async row=>{
+      const id=byExternalId.get(row.source_record_id),workbook=archivedWorkbooks.get(row.source_file);
+      if(!id||!workbook)throw Error('Fila importada sense referència al llibre arxivat');
+      await archiveImportedRow(supabase,id,row.import_run_id,row,workbook);
+    }));
+  }
   await syncImportedEntities(rows);
   return rows.length;
 }

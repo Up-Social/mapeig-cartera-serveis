@@ -93,6 +93,7 @@ Cada cas es pot desplegar per veure el motiu, la fase, la data, els candidats i 
 
 ### Què significa cada bloc del detall
 
+- **Resum del cas**: posa primer l'entitat, l'import i el mecanisme que consten a la font i, quan existeixen, els valors extrets del document. Les diferències es marquen com a pendents de revisió. En concerts hi apareix un cribratge conservador del tipus d'acte; si no hi ha text oficial llegible, indica que només s'ha utilitzat el títol. Aquest cribratge no crea imports ni valida el resultat econòmic net.
 - **Dades originals de l'Excel**: informació importada de la fila d'origen. Serveix de context i no es considera contrast extern. Les fórmules no es mostren ni s'envien a OpenAI.
 - **Dades contrastades amb fonts oficials**: camps extrets dels documents descarregats (conveni, contractació, convocatòria o base reguladora). Cada extracció mostra confiança i els fragments que la sustenten.
 - **Documents oficials**: URL, estat d'extracció i qualitat de la font utilitzada. Si no hi ha document preparat, el cas no es pot enriquir ni enviar a matching.
@@ -100,12 +101,14 @@ Cada cas es pot desplegar per veure el motiu, la fase, la data, els candidats i 
 
 El matching combina els fragments de la font oficial amb el catàleg per proposar el servei, però la decisió final continua sent humana. Que una dada aparegui a l'Excel no implica que estigui contrastada; la interfície manté aquesta diferència visible.
 
+El text complet de cada document i la resta de camps originals s'obren a demanda des del detall, per mantenir la lectura inicial breu sense perdre la traçabilitat.
+
 ## Exportar el detall d'un lot
 
 Quan un lot té almenys una provisió aprovada o corregida, al seu costat apareix el botó **Descarregar Excel**. Cada lot genera un llibre independent amb l'estat vigent en el moment de la descàrrega:
 
 - només conté el full `Detalle_Provisiones`;
-- conté les 12 columnes operatives del Master i afegeix `Nombre servicio Cartera`;
+- conté les 12 columnes operatives, `Nombre servicio Cartera` i cinc camps de desglossament (ID d'unitat, centre, període, tipus d'acte i referència de l'annex);
 - només inclou les provisions aprovades o corregides d'aquell lot;
 - no barreja resultats d'altres lots;
 - les dates, imports i hipervincles mantenen el tipus correcte;

@@ -147,7 +147,7 @@ test('batch results link to a visible review and keep the return context',async(
  await expect(page).toHaveURL(new RegExp(`/records/${reviewRecord}`));
  await expect(page.getByRole('heading',{name:'Resultat de l’anàlisi'})).toBeVisible();
  await expect(page.getByText('Evidència de l’expedient',{exact:true})).toBeVisible();
- await expect(page.getByRole('link',{name:'← Tornar al llistat'})).toHaveAttribute('href',new RegExp(`/batches/${diagnosticRun}/results`));
+ await expect(page.getByRole('link',{name:'Tornar al llistat'})).toHaveAttribute('href',new RegExp(`/batches/${diagnosticRun}/results`));
  await expect(page.locator('details')).toHaveCount(0);
 });
 test('catalog groups explain hierarchy and SAD retains complete normative functions',async({page})=>{
@@ -176,12 +176,16 @@ test('checking cloud availability does not resume paused tasks',async({page})=>{
  }finally{await db.from('cloud_resources').update({blocked_kind:'vercel_quota'}).eq('name','sandbox');}
 });
 test('OCR setting is reversible in the isolated database',async({page})=>{
- await login(page);await page.goto('/admin');
- await expect(page.getByTestId('ocr-status')).toHaveText('Activat');
- await page.getByRole('button',{name:'Desactivar OCR automàtic'}).click();
- await expect(page.getByTestId('ocr-status')).toHaveText('Desactivat');
- await page.getByRole('button',{name:'Activar OCR automàtic'}).click();
- await expect(page.getByTestId('ocr-status')).toHaveText('Activat');
+ const previous=await db.from('app_settings').select('enabled').eq('key','automatic_ocr').single();if(previous.error)throw previous.error;
+ const reset=await db.from('app_settings').update({enabled:true}).eq('key','automatic_ocr');if(reset.error)throw reset.error;
+ try{
+  await login(page);await page.goto('/admin');
+  await expect(page.getByTestId('ocr-status')).toHaveText('Activat');
+  await page.getByRole('button',{name:'Desactivar OCR automàtic'}).click();
+  await expect(page.getByTestId('ocr-status')).toHaveText('Desactivat');
+  await page.getByRole('button',{name:'Activar OCR automàtic'}).click();
+  await expect(page.getByTestId('ocr-status')).toHaveText('Activat');
+ }finally{const restored=await db.from('app_settings').update({enabled:previous.data.enabled}).eq('key','automatic_ocr');if(restored.error)throw restored.error;}
 });
 test('process help describes partial OCR and individual concert approvals',async({page})=>{
  await login(page);await page.goto('/process');

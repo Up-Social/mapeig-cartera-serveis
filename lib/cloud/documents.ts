@@ -5,9 +5,13 @@ import {CloudFailure,CloudYield} from './errors';
 import {htmlToText,cleanText} from '../pipeline/document-input';
 import {hash} from '../pipeline/chunks';
 import {fetchOfficialDocument} from '../pipeline/official-resolution';
+import {archiveSource} from '../source-storage';
 type Extraction={text:string;method:string;hash:string;mime:string;partial:boolean;extraction_version:string;coverage?:unknown};
 export async function extractDocument(c:Context,job:string,id:string,url:string,ocr:boolean):Promise<Extraction>{
- const cached=await readCheckpoint<Extraction>(c,`document:${id}:${EXTRACTION_VERSION}`);if(cached)return cached;
+ const source=await c.db.from('source_documents').select('id,source_record_id,url,content_hash,storage_path,storage_sha256,mime_type').eq('id',id).single();
+ if(source.error||!source.data)throw new CloudFailure('internal');
+ const cached=await readCheckpoint<Extraction>(c,`document:${id}:${EXTRACTION_VERSION}`);
+ if(cached){await archiveSource(c.db,source.data);return cached;}
  let fetched:{bytes:Buffer;mimeType:string};
  const original=await readCheckpoint<{path:string;mime:string;hash:string}>(c,`original:${id}`);
  if(original){
@@ -15,10 +19,10 @@ export async function extractDocument(c:Context,job:string,id:string,url:string,
   fetched={bytes:Buffer.from(await r.data.arrayBuffer()),mimeType:original.mime};
  }else{
   try {fetched=await fetchOfficialDocument(url);}catch {throw new CloudFailure('document');}
-  const digest=hash(fetched.bytes.toString('base64'));const path=`${c.task}/${id}/${digest}`;
-  const r=await c.db.storage.from('cloud-documents').upload(path,fetched.bytes,{upsert:true,contentType:fetched.mimeType});if(r.error)throw new CloudFailure('internal');
-  await checkpoint(c,`original:${id}`,{path,mime:fetched.mimeType,hash:digest});
+  const archived=await archiveSource(c.db,source.data,fetched);
+  await checkpoint(c,`original:${id}`,{path:archived.path,mime:fetched.mimeType,hash:archived.sha256});
  }
+ if(original)await archiveSource(c.db,source.data,fetched);
  const digest=hash(fetched.bytes.toString('base64'));
  const pdf=fetched.mimeType.includes('pdf')||fetched.bytes.subarray(0,4).toString()==='%PDF';
  if(!pdf){

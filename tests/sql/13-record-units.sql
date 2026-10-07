@@ -1,4 +1,4 @@
-do $$ declare sid uuid:=gen_random_uuid();rid uuid;j uuid;v text;code text;d uuid;legacy uuid;u uuid;u2 uuid;pid uuid;quote text;payload jsonb;begin
+do $$ declare sid uuid:=gen_random_uuid();rid uuid;j uuid;v text;code text;d uuid;legacy uuid;u uuid;u2 uuid;pid uuid;quote text;payload jsonb;digest text:=repeat('a',64);doc_path text;item_path text;begin
  insert into source_records(id,source_dataset,source_record_id,mechanism,title,financing_type,amount) values(sid,'concerts','UNITS-'||sid,'Concert','Unit fixture','concert',10000);
  insert into pipeline_runs default values returning id into rid;
  insert into pipeline_jobs(run_id,source_record_id,status) values(rid,sid,'needs_review') returning id into j;
@@ -15,11 +15,22 @@ do $$ declare sid uuid:=gen_random_uuid();rid uuid;j uuid;v text;code text;d uui
  if save_record_unit(sid,j,payload)<>u then raise exception 'Unit duplicated';end if;
  begin perform save_record_unit(sid,gen_random_uuid(),payload);raise exception 'Stale unit accepted';exception when others then if sqlerrm='Stale unit accepted' then raise;end if;end;
  begin perform save_record_unit(sid,j,payload||'{"evidence_quote":"Una cita inventada que no consta en el document"}');raise exception 'Invented evidence accepted';exception when others then if sqlerrm='Invented evidence accepted' then raise;end if;end;
+ begin perform review_record_unit(u,j,true,'Validació individual sense còpia');raise exception 'Missing Storage accepted';exception when others then if sqlerrm='Missing Storage accepted' then raise;end if;end;
+ doc_path:='cases/'||sid||'/documents/'||d||'/'||digest||'.pdf';
+ insert into storage.objects(bucket_id,name) values('cloud-documents',doc_path);
+ update source_documents set storage_path=doc_path,storage_sha256=digest where id=d;
+ item_path:='cases/'||sid||'/items/'||u||'/documents/'||d||'/'||digest||'.pdf';
+ insert into storage.objects(bucket_id,name) values('cloud-documents',item_path);
+ update record_units set storage_path=item_path,storage_sha256=digest where id=u;
  pid:=review_record_unit(u,j,true,'Validació individual amb annex acreditat');
  if review_record_unit(u,j,true,'Segona petició idempotent')<>pid then raise exception 'Approval duplicated';end if;
  if not exists(select 1 from service_provisions where id=legacy and superseded_at is not null) then raise exception 'Legacy ID lost';end if;
  payload:=payload||jsonb_build_object('provider_name','Entitat de prova B','centre','Centre B','amount',null,'evidence_quote','Entitat de prova B. Servei '||code||'. Període 2026, import no acreditat.');
- u2:=save_record_unit(sid,j,payload);perform review_record_unit(u2,j,true,'Segona entitat sense import individual acreditat');
+ u2:=save_record_unit(sid,j,payload);
+ item_path:='cases/'||sid||'/items/'||u2||'/documents/'||d||'/'||digest||'.pdf';
+ insert into storage.objects(bucket_id,name) values('cloud-documents',item_path);
+ update record_units set storage_path=item_path,storage_sha256=digest where id=u2;
+ perform review_record_unit(u2,j,true,'Segona entitat sense import individual acreditat');
  if (select count(*) from service_provisions where source_record_id=sid and superseded_at is null)<>2 then raise exception 'Expected 2 Excel lines';end if;
  if (select sum(amount) from service_provisions where source_record_id=sid and superseded_at is null)<>3000 then raise exception 'Global amount duplicated';end if;
  begin perform review_analysis(sid,'reject',j,array['not_social_service'],null,null,'No ha de sobreescriure les unitats');raise exception 'Split decisions overwritten';exception when others then if sqlerrm='Split decisions overwritten' then raise;end if;end;

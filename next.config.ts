@@ -13,7 +13,10 @@ const nextConfig: NextConfig = {
       { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
       { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
       { key: "Content-Security-Policy", value: "frame-ancestors 'none'; base-uri 'self'; object-src 'none'" },
-    ] }];
+    ] },
+    {source:'/api/documents/:id/open',headers:[{key:'Content-Security-Policy',value:"sandbox; default-src 'none'; frame-ancestors 'none'; base-uri 'none'; object-src 'none'"}]},
+    {source:'/api/records/:id/units/:unitId/source',headers:[{key:'Content-Security-Policy',value:"sandbox; default-src 'none'; frame-ancestors 'none'; base-uri 'none'; object-src 'none'"}]}
+    ];
   },
 };
 

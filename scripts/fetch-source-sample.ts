@@ -1,5 +1,6 @@
 import {EXTRACTION_VERSION,recoverPdfText} from '../lib/pipeline/readable-document';
 import { createHash } from "node:crypto";
+import {archiveSource} from '../lib/source-storage';
 import {fetchOfficialDocument} from "../lib/pipeline/official-resolution";
 import { execFile } from "node:child_process";
 import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
@@ -16,9 +17,11 @@ import {
 
 type Document = {
   id: string;
+  source_record_id:string;
   url: string;
   document_type: string;
   status?: string;
+  content_hash?:string|null;storage_path?:string|null;storage_sha256?:string|null;mime_type?:string|null;
   source_records?:
     | { source_payload?: Record<string, unknown> }
     | Array<{ source_payload?: Record<string, unknown> }>;
@@ -48,6 +51,7 @@ async function main() {
     await update(document.id, { status: "fetching", error_message: null });
     try {
       const fetched = await withTimeout(fetchOfficialDocument(document.url), TIMEOUT_MS + 5_000, "Temps total de descàrrega excedit");
+      await archiveSource(supabase,document,{bytes:fetched.bytes,mimeType:fetched.mimeType});
       let extraction = await extract(fetched.bytes, fetched.mimeType, fetched.finalUrl, ocrEnabled);
       if (isUnusableWebExtraction(extraction.text)) {
         const payloadText = buildSourcePayloadEvidence(documentPayload(document));
@@ -85,7 +89,7 @@ async function selectStratifiedSample(limit: number) {
     const statuses = ocrEnabled ? ["discovered", "error", "unsupported"] : ["discovered", "error"];
     const data: (Document & {source_record_id:string})[] = [];
     for (let start=0;;start+=500) {
-      const page = await supabase.from("source_documents").select("id,url,document_type,status,source_record_id,source_records(source_payload)").in("source_record_id", recordIds).in("status", statuses).order("id").range(start,start+499);
+      const page = await supabase.from("source_documents").select("id,url,document_type,status,source_record_id,content_hash,storage_path,storage_sha256,mime_type,source_records(source_payload)").in("source_record_id", recordIds).in("status", statuses).order("id").range(start,start+499);
       if(page.error) throw page.error;
       data.push(...(page.data??[]) as (Document & {source_record_id:string})[]);
       if((page.data?.length??0)<500) break;
@@ -105,7 +109,7 @@ async function selectStratifiedSample(limit: number) {
   const urls = new Set<string>();
   const perType = Math.max(1, Math.ceil(limit / typeOrder.length));
   for (const type of typeOrder) {
-    const { data, error } = await supabase.from("source_documents").select("id,url,document_type,source_records(source_payload)")
+    const { data, error } = await supabase.from("source_documents").select("id,url,document_type,source_record_id,content_hash,storage_path,storage_sha256,mime_type,source_records(source_payload)")
       .eq("status", "discovered").eq("document_type", type).order("id").limit(perType * 10);
     if (error) throw error;
     for (const item of (data ?? []) as Document[]) {
@@ -114,7 +118,7 @@ async function selectStratifiedSample(limit: number) {
     }
   }
   if (selected.length < limit) {
-    const { data, error } = await supabase.from("source_documents").select("id,url,document_type,source_records(source_payload)")
+    const { data, error } = await supabase.from("source_documents").select("id,url,document_type,source_record_id,content_hash,storage_path,storage_sha256,mime_type,source_records(source_payload)")
       .eq("status", "discovered").order("id").limit(limit * 20);
     if (error) throw error;
     for (const item of (data ?? []) as Document[]) {
