@@ -53,9 +53,11 @@ export async function POST(
           : await matchPreparedRecord(id);
     return Response.json({ ok: true, result });
   } catch (error) {
+    const activeTask=error instanceof Error&&error.message==='ACTIVE_TASK';
     return Response.json(
       {
         error: publicErrorMessage(error, "No s'ha pogut iniciar l'operació."),
+        ...(activeTask?{code:'ACTIVE_TASK'}:{}),
       },
       { status: 409 },
     );

@@ -10,7 +10,7 @@ export async function startRecordOperation(recordId:string,operation:RecordOpera
  const mode=executionMode();const mock=process.env.PIPELINE_PROVIDER==='mock';if(mock)assertTestEnvironment(process.env);else if(mode==='disabled')throw Error('Execució desactivada en aquest entorn.');
  const automaticOcr=operation==='process'?await getAutomaticOcrEnabled():null;
  const db=createServerSupabase();const r=await db.rpc(expectedJobId?'retry_job_operation':'begin_record_operation',{p_record:requireUuid(recordId),p_operation:operation,p_executor:mode==='vercel_workflow'?'vercel_workflow':'local',...(expectedJobId?{p_expected_job:requireUuid(expectedJobId)}:{})});
- if(r.error)throw Error(r.error.message.includes('PROVIDER_UNKNOWN')?'Cal resoldre la petició de proveïdor de resultat desconegut.':'No es pot iniciar: hi ha una tasca activa o falta preparar les dades.');
+ if(r.error)throw Error(r.error.message.includes('PROVIDER_UNKNOWN')?'Cal resoldre la petició de proveïdor de resultat desconegut.':r.error.message.includes('ACTIVE_TASK')?'ACTIVE_TASK':'No es pot iniciar: hi ha una tasca activa o falta preparar les dades.');
  const result=r.data as {runId:string;jobId:string;taskId:string;attemptId:string;newJob:boolean};
  if(automaticOcr!==null){
   const run=await db.from('pipeline_runs').select('parameters').eq('id',result.runId).single();

@@ -8,6 +8,7 @@ import type {SourceRecord} from "@/lib/workbench-types";
 const STORAGE_KEY="mapeig:issue-reprocessing:v1";
 const MAX_WAIT_MS=20*60_000;
 type Campaign={startedAt:string;accepted:Record<string,string>;done:string[];errors:Record<string,string>};
+class ActiveTaskError extends Error {}
 const emptyCampaign=():Campaign=>({startedAt:new Date().toISOString(),accepted:{},done:[],errors:{}});
 
 export function IssueReprocessor({targets,blocked,unavailable}:{targets:IssueReprocessTarget[];blocked:number;unavailable:boolean}){
@@ -64,7 +65,8 @@ export function IssueReprocessor({targets,blocked,unavailable}:{targets:IssueRep
      body:JSON.stringify({operation:"process",...(target.expectedJobId?{expectedJobId:target.expectedJobId}:{})}),
      signal:AbortSignal.timeout(25_000),
     });
-    const payload=await response.json() as {error?:string;result?:{jobId?:string}};
+    const payload=await response.json() as {error?:string;code?:string;result?:{jobId?:string}};
+    if(response.status===409&&payload.code==='ACTIVE_TASK')throw new ActiveTaskError(payload.error??'Ja hi ha un procés actiu per a aquest registre.');
     if(!response.ok||!payload.result?.jobId)throw Error(payload.error??"No s'ha pogut iniciar; comprova el cas abans de repetir-lo.");
     jobId=payload.result.jobId;
    }
@@ -83,11 +85,16 @@ export function IssueReprocessor({targets,blocked,unavailable}:{targets:IssueRep
   else save({...existing,errors:{}});
   stop.current=false;setStopping(false);setRunning(true);
   let cursor=0;
+  const deferred=new Map<string,number>();
   try{
    await Promise.all(Array.from({length:3},async()=>{
     while(!stop.current&&cursor<pending.length){
      const target=pending[cursor++];
      try{await runOne(target);}catch(error){
+     if(error instanceof ActiveTaskError){
+      const attempts=(deferred.get(target.id)??0)+1;
+      if(attempts<=12){deferred.set(target.id,attempts);pending.push(target);if(cursor>=pending.length-1)await new Promise(resolve=>setTimeout(resolve,15_000));continue;}
+     }
      const message=error instanceof Error?error.message:"Cal comprovar el cas abans de repetir-lo.";
      save({...current.current!,errors:{...current.current!.errors,[target.id]:message}});
      if(error instanceof TypeError||error instanceof DOMException)stop.current=true;
