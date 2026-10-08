@@ -15,3 +15,11 @@ test('remote matching keeps required classification schema',()=>{
 test('chunking makes progress beyond fifty units',()=>{
  const result=splitText('A'.repeat(200000));assert.ok(result.length>50);assert.ok(result.every(x=>x.length>0));
 });
+test('chunking never splits a Unicode surrogate pair at the end or overlap',()=>{
+ for(const text of ['A'.repeat(1199)+'😀'+'B'.repeat(1300),'A'.repeat(1019)+'😀'+'B'.repeat(3000)]){
+  const chunks=splitText(text);
+  assert.ok(chunks.length>1);
+  assert.ok(chunks.some(chunk=>chunk.includes('😀')));
+  assert.ok(chunks.every(chunk=>Buffer.from(chunk,'utf8').toString('utf8')===chunk));
+ }
+});

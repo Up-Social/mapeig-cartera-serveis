@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {bindEnrichmentRoles,type Enrichment} from '../lib/pipeline/enrichment-contract';
+import {bindEnrichmentRoles,normalizeAwardDate,type Enrichment} from '../lib/pipeline/enrichment-contract';
 
 const role=(value:string,kind:string,ordinal=1)=>({value,state:'known' as const,kind,evidence_ordinals:[ordinal],quotes:['Cita literal suficient per al contracte.']});
 const enrichment={
@@ -23,4 +23,10 @@ test('an ungrounded auxiliary fact becomes unknown instead of aborting the recor
  const value={...enrichment,scope_facts:{...enrichment.scope_facts,funding_recipient:{value:'Entitat no citada',evidence_ordinals:[]}}};
  const result=bindEnrichmentRoles(value,[{content:'Resolució del Departament.'},{content:'Colisée Care, SL.'}]);
  assert.deepEqual(result.scope_facts.funding_recipient,{value:null,evidence_ordinals:[]});
+});
+test('invalid or absent model dates stay unknown before the database commit',()=>{
+ for(const value of ['null','', '2024-02-30','2024','0000-01-01','08/10/2026'])assert.equal(normalizeAwardDate(value),null);
+ assert.equal(normalizeAwardDate(null),null);
+ assert.equal(normalizeAwardDate('2024-02-29'),'2024-02-29');
+ assert.equal(bindEnrichmentRoles({...enrichment,award_date:'null'},[]).award_date,null);
 });

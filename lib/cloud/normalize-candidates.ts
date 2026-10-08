@@ -1,7 +1,13 @@
-import {assertEligible,type OfficialService} from '../official-catalog';
+import {assertEligible,eligibleServices,type OfficialService} from '../official-catalog';
 import type {AnalysisOutput} from '../analysis-contract';
 // The selected code identifies the normative reference; case facts still need
 // documentary validation and the independent service-specific positive audit.
+export function insufficientForIneligibleCode(value:AnalysisOutput,all:OfficialService[]):AnalysisOutput|null {
+ if(value.classification!=='in_portfolio'||!Array.isArray(value.candidates))return null;
+ const eligible=new Set(eligibleServices(all).map(service=>service.service_code));
+ if(!value.candidates.some(candidate=>!eligible.has(candidate.code)))return null;
+ return {...value,classification:'insufficient_evidence',reasons:[],candidates:[],explanation:'La proposta automàtica conté un codi que no identifica una prestació de servei elegible de la Cartera. Cal revisar la correspondència amb la font oficial abans de proposar cap servei.'};
+}
 export function normalizeCandidates(value:AnalysisOutput,all:OfficialService[],chunkCount:number):AnalysisOutput {
  if(value.classification!=='in_portfolio'||!Array.isArray(value.candidates))return value;
  const candidates=value.candidates.filter(c=>Number.isFinite(c.score)&&c.score>0).map(c=>{

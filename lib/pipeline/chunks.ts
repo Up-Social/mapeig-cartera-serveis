@@ -12,12 +12,22 @@ export function splitText(text: string) {
       const boundary = Math.max(paragraph, sentence);
       if (boundary > start + CHUNK_SIZE * 0.6) end = boundary + (boundary === sentence ? 1 : 0);
     }
+    // String indexes are UTF-16 code units. Keep surrogate pairs intact so
+    // each chunk remains valid JSON when sent to PostgREST.
+    if (splitsSurrogatePair(text, end)) end += 1;
     const chunk = text.slice(start, end).trim();
     if (chunk) chunks.push(chunk);
     if (end >= text.length) break;
     start = Math.max(start + 1, end - OVERLAP);
+    if (splitsSurrogatePair(text, start)) start -= 1;
   }
   return chunks;
+}
+function splitsSurrogatePair(text: string, index: number) {
+  if (index <= 0 || index >= text.length) return false;
+  const previous = text.charCodeAt(index - 1);
+  const next = text.charCodeAt(index);
+  return previous >= 0xd800 && previous <= 0xdbff && next >= 0xdc00 && next <= 0xdfff;
 }
 export function scoreQuality(length: number, flags: string[]) {
   if (flags.some(flag => ["corrupt_text", "incomplete_extraction", "empty_text"].includes(flag))) return 0;

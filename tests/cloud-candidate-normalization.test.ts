@@ -1,5 +1,5 @@
 import {test} from 'node:test';import assert from 'node:assert/strict';
-import {normalizeCandidates} from '../lib/cloud/normalize-candidates';
+import {normalizeCandidates,insufficientForIneligibleCode} from '../lib/cloud/normalize-candidates';
 import {needsContractRepair,contractRepairSchema} from '../lib/cloud/repair-contract';
 import {validateAnalysis,type AnalysisOutput} from '../lib/analysis-contract';
 import type {OfficialService} from '../lib/official-catalog';
@@ -13,6 +13,15 @@ test('incompatible candidate does not invalidate compatible alternatives',()=>{c
 test('missing scope or no compatible candidates yields uncertainty, never outside portfolio',()=>{for(const value of [{...base,population_verified:false},{...base,candidates:[candidate('1.1',.9,false)]}]){const result=validateAnalysis(normalizeCandidates(value,all,1),all,1);assert.equal(result.classification,'insufficient_evidence');assert.deepEqual(result.candidates,[]);}});
 test('zero-score proposals become insufficient evidence instead of a positive match',()=>{const result=normalizeCandidates({...base,candidates:[candidate('1.1',0)]},all,1);assert.equal(result.classification,'insufficient_evidence');assert.deepEqual(result.candidates,[]);});
 test('normalization cannot hide parents, economic leaves, unknown codes or invalid evidence',()=>{for(const c of [candidate('1',.9,false),candidate('2',.9,false),candidate('9',.9,false),{...candidate('1.1',.9,false),evidence_ordinals:[2]}])assert.throws(()=>normalizeCandidates({...base,candidates:[c]},all,1));});
+test('an ineligible code makes the entire proposal reviewable without accepting a plausible alternative',()=>{
+ const response={...base,candidates:[candidate('1',.9),candidate('1.1',.8)]};
+ const fallback=insufficientForIneligibleCode(response,all);
+ assert.ok(fallback);
+ assert.equal(validateAnalysis(fallback,all,1).classification,'insufficient_evidence');
+ assert.deepEqual(fallback.candidates,[]);
+ assert.deepEqual(response.candidates.map(c=>c.code),['1','1.1']);
+ assert.equal(insufficientForIneligibleCode(base,all),null);
+});
 test('repair is restricted to incomplete nonpositive conclusions',()=>{
  assert.equal(needsContractRepair(base),false);
  assert.equal(needsContractRepair({...base,classification:'discarded',candidates:[]}),true);

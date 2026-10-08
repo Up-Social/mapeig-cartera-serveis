@@ -18,7 +18,14 @@ export function bindEnrichmentRoles(value:Enrichment,chunks:Array<{content:strin
  }
  const roles=scopeFacts.roles;
  const provider=supportedRoleValue(roles?.service_provider,chunks)??supportedRoleValue(roles?.economic_recipient,chunks);
- return {...value,scope_facts:scopeFacts,...(provider?{provider_name:provider}:{})};
+ return {...value,award_date:normalizeAwardDate(value.award_date),scope_facts:scopeFacts,...(provider?{provider_name:provider}:{})};
+}
+export function normalizeAwardDate(value:string|null):string|null{
+ if(typeof value!=='string')return null;
+ const date=value.trim();
+ if(!/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(date)||date.startsWith('0000-'))return null;
+ const parsed=new Date(`${date}T00:00:00.000Z`);
+ return !Number.isNaN(parsed.getTime())&&parsed.toISOString().slice(0,10)===date?date:null;
 }
 function nullableString() { return { anyOf: [{ type: "string" }, { type: "null" }] }; }
 export function sanitize(value: unknown) { if (!value || typeof value !== "object" || Array.isArray(value)) return {}; return Object.fromEntries(Object.entries(value as Record<string, unknown>).filter(([name, field]) => !name.startsWith("Fórmula ·") && !(typeof field === "string" && field.trim().startsWith("=")))); }

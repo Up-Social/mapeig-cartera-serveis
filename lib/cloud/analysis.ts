@@ -1,6 +1,6 @@
 import {readEvidenceChunks} from '../pipeline/evidence-reader';
-import {positiveAuditSchema,positiveAuditInput,applyPositiveAudit,POSITIVE_AUDIT_INSTRUCTIONS,POSITIVE_AUDIT_VERSION} from './positive-audit';
-import {normalizeCandidates} from './normalize-candidates';
+import {positiveAuditSchema,positiveAuditInput,applyPositiveAudit,insufficientWithoutPositiveQuote,POSITIVE_AUDIT_INSTRUCTIONS,POSITIVE_AUDIT_VERSION} from './positive-audit';
+import {normalizeCandidates,insufficientForIneligibleCode} from './normalize-candidates';
 import {needsContractRepair,contractRepairSchema,CONTRACT_REPAIR_INSTRUCTIONS,CONTRACT_REPAIR_VERSION} from './repair-contract';
 import {normalizeMissingScope} from './normalize-analysis';
 import {commit,checkpoint,readCheckpoint,rpc,lease,type Context} from './context';
@@ -69,7 +69,13 @@ export async function analyzeRecord(c:Context,job:{id:string;source_record_id:st
   const raw=await providerRequest(c,`ai:${job.id}:matching`,{model,instructions:MATCHING_INSTRUCTIONS,input:buildNormativeInput({...r.data,verified_enrichment:Array.isArray(r.data.record_enrichments)?r.data.record_enrichments[0]:r.data.record_enrichments},promptServices,catalog.all,catalog.version.general_context,chunks),text:{format:{type:'json_schema',name:'analysis',strict:true,schema:candidatesOnlySchema(promptServices.map(service=>service.service_code))}},max_output_tokens:4000});
   await rpc(c.db,'cloud_provider_usage',{...lease(c),p_key:`usage:${job.id}:analysis`,p_usage:raw.usage??{}});
   let result:AnalysisOutput;
-  try {result=bindExplicitCodeCandidates(addNamedCandidates(normalizeMissingScope(normalizeCandidates(JSON.parse(extractOutputText(raw)),catalog.all,chunks.length)),catalog.eligible,chunks),catalog.eligible,chunks);}catch {throw new CloudFailure('validation');}
+  let modelEvidenceIssue:string|null=null;
+  try {
+   const parsed=JSON.parse(extractOutputText(raw)) as AnalysisOutput;
+   const ineligible=insufficientForIneligibleCode(parsed,catalog.all);
+   if(ineligible)modelEvidenceIssue='ineligible_candidate_code';
+   result=bindExplicitCodeCandidates(addNamedCandidates(normalizeMissingScope(normalizeCandidates(ineligible??parsed,catalog.all,chunks.length)),catalog.eligible,chunks),catalog.eligible,chunks);
+  }catch {throw new CloudFailure('validation');}
   if(needsContractRepair(result)){
    const repaired=await providerRequest(c,`ai:${job.id}:${CONTRACT_REPAIR_VERSION}`,{model,instructions:CONTRACT_REPAIR_INSTRUCTIONS,input:JSON.stringify({previous_analysis:result,expedient_evidence:chunks.map((x,i)=>({ordinal:i+1,content:x.content}))}),text:{format:{type:'json_schema',name:'contract_repair',strict:true,schema:contractRepairSchema(chunks.length)}},max_output_tokens:1800});
    await rpc(c.db,'cloud_provider_usage',{...lease(c),p_key:`usage:${job.id}:${CONTRACT_REPAIR_VERSION}`,p_usage:repaired.usage??{}});
@@ -89,7 +95,12 @@ export async function analyzeRecord(c:Context,job:{id:string;source_record_id:st
     const candidateServices=result.candidates.map(candidate=>catalog.eligible.find(service=>service.service_code===candidate.code)!).filter(Boolean);
     const audit=await providerRequest(c,`ai:${job.id}:${POSITIVE_AUDIT_VERSION}`,{model,instructions:POSITIVE_AUDIT_INSTRUCTIONS,input:positiveAuditInput(result,catalog.all,catalog.version.general_context,chunks),text:{format:{type:'json_schema',name:'positive_audit',strict:true,schema:positiveAuditSchema(result.candidates.map(x=>x.code),chunks,candidateServices)}},max_output_tokens:2000});
     await rpc(c.db,'cloud_provider_usage',{...lease(c),p_key:`usage:${job.id}:${POSITIVE_AUDIT_VERSION}`,p_usage:audit.usage??{}});
-    try {result=validateAnalysis(bindExplicitCodeCandidates(applyPositiveAudit(result,JSON.parse(extractOutputText(audit)),catalog.all,chunks),catalog.eligible,chunks),catalog.all,chunks.length);}catch {throw new CloudFailure('validation');}
+    try {
+     const parsedAudit=JSON.parse(extractOutputText(audit));
+     const uncited=insufficientWithoutPositiveQuote(result,parsedAudit);
+     if(uncited)modelEvidenceIssue='positive_audit_missing_quote';
+     result=validateAnalysis(bindExplicitCodeCandidates(uncited??applyPositiveAudit(result,parsedAudit,catalog.all,chunks),catalog.eligible,chunks),catalog.all,chunks.length);
+    }catch {throw new CloudFailure('validation');}
    }
   }
   const enrichment=Array.isArray(r.data.record_enrichments)?r.data.record_enrichments[0]:r.data.record_enrichments;
@@ -103,7 +114,7 @@ export async function analyzeRecord(c:Context,job:{id:string;source_record_id:st
    accreditations.financed_object={kind:'service_financing',evidence_ordinals:exactOrdinals,basis:'official_service_code_and_description'};
   }
   const scoped=applyScopeRules(result,enrichment?.scope_facts?.roles,chunks,accreditations);
-  const ruled={...scoped,rule_audit:{...scoped.rule_audit,evidence_policy:{version:EVIDENCE_POLICY_VERSION,total_chunks:assessed.length,selected_chunks:chunks.length,selection_complete:chunks.length===assessed.filter(chunk=>chunk.eligible).length,rejected:rejectedEvidence}},model_conclusion:JSON.parse(extractOutputText(raw))};
+  const ruled={...scoped,rule_audit:{...scoped.rule_audit,...(modelEvidenceIssue?{model_evidence_issue:modelEvidenceIssue}:{}),evidence_policy:{version:EVIDENCE_POLICY_VERSION,total_chunks:assessed.length,selected_chunks:chunks.length,selection_complete:chunks.length===assessed.filter(chunk=>chunk.eligible).length,rejected:rejectedEvidence}},model_conclusion:JSON.parse(extractOutputText(raw))};
   validateAnalysis(ruled,catalog.all,chunks.length);
   await commit(c,job.id,'analysis',{version:catalog.version.id,result:ruled,usage:raw.usage,candidates:ruled.candidates.map(candidate=>({...candidate,model,metadata:{response_id:raw.id,usage:raw.usage,positive_audit_version:auditVersion,normalization_version:'catalog-binding-v1'},evidence:candidate.evidence_ordinals.map(n=>chunks[n-1])})),evidence:ruled.evidence_ordinals.map(n=>chunks[n-1])});
  }
