@@ -11,7 +11,9 @@ export async function extractDocument(c:Context,job:string,id:string,url:string,
  const source=await c.db.from('source_documents').select('id,source_record_id,url,content_hash,storage_path,storage_sha256,mime_type').eq('id',id).single();
  if(source.error||!source.data)throw new CloudFailure('internal');
  const cached=await readCheckpoint<Extraction>(c,`document:${id}:${EXTRACTION_VERSION}`);
- if(cached){await archiveSource(c.db,source.data);return cached;}
+ // A failed attempt can copy an incomplete extraction into a recovery task.
+ // It must be recomputed with the new OCR setting instead of failing again.
+ if(cached&&!cached.partial){await archiveSource(c.db,source.data);return cached;}
  let fetched:{bytes:Buffer;mimeType:string};
  const original=await readCheckpoint<{path:string;mime:string;hash:string}>(c,`original:${id}`);
  if(original){

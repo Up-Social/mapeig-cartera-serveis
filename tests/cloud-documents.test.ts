@@ -5,7 +5,10 @@ import {extractDocument} from '../lib/cloud/documents';
 import {sha256} from '../lib/source-storage';
 import type {Context} from '../lib/cloud/context';
 test('OCR resumes persisted pages after each Sandbox disappears',async()=>{
- const journal=new Map<string,unknown>([['original:doc',{path:'private/mock',mime:'application/pdf',hash:'mock'}]]);
+ const journal=new Map<string,unknown>([
+  ['original:doc',{path:'private/mock',mime:'application/pdf',hash:'mock'}],
+  ['document:doc:readable-markdown-v2',{text:'## Pàgina 1\n\n',method:'pdf-text-markdown-v2',hash:'mock',mime:'application/pdf',partial:true,extraction_version:'readable-markdown-v2'}],
+ ]);
  const archivedHash=sha256(Buffer.from('%PDF-synthetic'));
  const archivedName=`${archivedHash}.pdf`;
  const db={storage:{from:()=>({download:async()=>({data:new Blob(['%PDF-synthetic']),error:null}),list:async()=>({data:[{name:archivedName}],error:null})})},rpc:async(name:string,args:Record<string,unknown>)=>{if(name==='cloud_checkpoint')journal.set(String(args.p_key),args.p_value);return {data:true,error:null};},from:(table:string)=>{let key='';const q={select:()=>q,eq:(name:string,value:string)=>{if(name==='item_key')key=value;return q;},single:async()=>({data:table==='source_documents'?{id:'doc',source_record_id:'record',url:'https://unused.invalid',storage_path:`cases/record/documents/doc/${archivedName}`,storage_sha256:archivedHash}:null,error:null}),maybeSingle:async()=>({data:journal.has(key)?{value:journal.get(key)}:null,error:null})};return q;}};
