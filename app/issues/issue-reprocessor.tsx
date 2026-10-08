@@ -19,11 +19,43 @@ export function IssueReprocessor({targets,blocked,unavailable}:{targets:IssueRep
  const stop=useRef(false);
  useEffect(()=>{
   let timer:number|undefined;
+  let cancelled=false;
   try{
    const stored=JSON.parse(localStorage.getItem(STORAGE_KEY)??"null") as Campaign|null;
-   if(stored&&Date.now()-Date.parse(stored.startedAt)<7*86_400_000){current.current=stored;timer=window.setTimeout(()=>setCampaign(stored),0);}
+   if(stored&&Date.now()-Date.parse(stored.startedAt)<7*86_400_000){
+    current.current=stored;timer=window.setTimeout(()=>setCampaign(stored),0);
+    // Another tab or an operator may have finished these jobs while this tab was closed.
+    void (async()=>{
+     const ids=[...new Set([...Object.keys(stored.accepted).filter(id=>!stored.done.includes(id)),...Object.keys(stored.errors)])];
+     const done=new Set(stored.done);
+     const errors={...stored.errors};
+     for(let i=0;i<ids.length;i+=3){
+      if(cancelled)return;
+      await Promise.all(ids.slice(i,i+3).map(async id=>{
+       try{
+        const response=await fetch(`/api/records/${id}`,{cache:"no-store",signal:AbortSignal.timeout(15_000)});
+        if(!response.ok)return;
+        const payload=await response.json() as {record?:SourceRecord};
+        const record=payload.record;
+        if(!record)return;
+        const finishedSinceStart=record.operationProgress?.state==="finished"&&Boolean(record.operationProgress.finishedAt)&&Date.parse(record.operationProgress.finishedAt!)>=Date.parse(stored.startedAt);
+        const acceptedJobFinished=record.currentJobId===stored.accepted[id]&&isRecordOperationTerminal("process",record);
+        if(!recordOperationNeedsAttention(record)&&(finishedSinceStart||acceptedJobFinished)){
+         done.add(id);delete errors[id];
+        }else if(record.issueGroup==="source"&&errors[id]){
+         errors[id]="La font continua sense document processable; revisa el cas abans de repetir-lo.";
+        }
+       }catch{/* Keep the checkpoint if current status cannot be verified. */}
+      }));
+     }
+     if(!cancelled&&current.current===stored){
+      const reconciled={...stored,done:[...done],errors};
+      current.current=reconciled;setCampaign(reconciled);localStorage.setItem(STORAGE_KEY,JSON.stringify(reconciled));
+     }
+    })();
+   }
   }catch{/* An invalid browser checkpoint never starts a remote operation. */}
-  return ()=>{if(timer!==undefined)window.clearTimeout(timer);};
+  return ()=>{cancelled=true;if(timer!==undefined)window.clearTimeout(timer);};
  },[]);
  const save=(value:Campaign)=>{current.current=value;setCampaign(value);localStorage.setItem(STORAGE_KEY,JSON.stringify(value));};
  async function latestRecord(id:string){
@@ -113,7 +145,7 @@ export function IssueReprocessor({targets,blocked,unavailable}:{targets:IssueRep
   <p className="mt-2 max-w-[85ch] text-sm leading-6">Cada cas torna a cercar els documents oficials, preparar-los, contrastar-los i proposar una correspondència. Es conserva l&apos;historial i cap resultat s&apos;aprova automàticament. Es processen fins a tres casos alhora per limitar la càrrega. El contrast i la correspondència poden tenir cost d&apos;IA.</p>
   <p className="mt-2 text-sm">{targets.length} casos disponibles{blocked?` · ${blocked} operacions interrompudes excloses fins a conciliar el diagnòstic`:""}.</p>
   {unavailable&&<p className="mt-2 text-sm">El processament no està disponible en aquest entorn. Obre la versió de producció per executar-lo.</p>}
-  {campaign&&<p role="status" className="mt-2 text-sm tabular-nums">{accepted} iniciats · {done} finalitzats · {errors} requereixen comprovació. {running?"Processament en curs.":""}</p>}
+  {campaign&&<p role="status" className="mt-2 text-sm tabular-nums">Seguiment d&apos;aquest navegador: {accepted} iniciats · {done} finalitzats · {errors} requereixen comprovació. {running?"Processament en curs.":""} Les operacions iniciades fora d&apos;aquest navegador no es compten aquí.</p>}
   <div className="mt-3 flex flex-wrap gap-2"><button type="button" disabled={running||unavailable||pending===0} onClick={()=>void start()} className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-50">{campaign?"Continuar el reprocessament":"Reprocessar els casos disponibles"}</button>{running&&<button type="button" disabled={stopping} onClick={()=>{stop.current=true;setStopping(true);}} className="rounded-md border px-4 py-2 text-sm">{stopping?"Aturant…":"Aturar després dels casos en curs"}</button>}</div>
   {errors>0&&<div className="mt-3 text-xs"><p>Els casos amb error no s&apos;han repetit automàticament. Revisa l&apos;estat individual abans de tornar-los a iniciar.</p><ul className="mt-2 list-inside list-disc space-y-1">{failedTargets.slice(0,10).map(target=><li key={target.id}><a className="underline" href={`/records/${target.id}?from=%2Fissues`}>Obrir el cas {target.id.slice(0,8)}</a>: {campaign?.errors[target.id]}</li>)}</ul>{failedTargets.length>10&&<p className="mt-1">{failedTargets.length-10} casos més requereixen comprovació.</p>}</div>}
  </section>;
