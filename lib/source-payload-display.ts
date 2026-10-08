@@ -83,8 +83,8 @@ function formatDate(value: string) {
   if (Number.isNaN(date.getTime())) return value;
   const includesTime = value.includes("T");
   return new Intl.DateTimeFormat("ca-ES", includesTime
-    ? { dateStyle: "short", timeStyle: "medium" }
-    : { dateStyle: "short" }).format(date);
+    ? { dateStyle: "short", timeStyle: "medium", timeZone: "Europe/Madrid" }
+    : { dateStyle: "short", timeZone: "Europe/Madrid" }).format(date);
 }
 
 function humanizeKey(key: string) {
