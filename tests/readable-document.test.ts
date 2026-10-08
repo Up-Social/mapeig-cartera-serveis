@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {recoverPdfText,textDefects,EXTRACTION_VERSION} from '../lib/pipeline/readable-document';
+import {recoverPdfText,textDefects,EXTRACTION_VERSION,MAX_DOCUMENT_CHARS} from '../lib/pipeline/readable-document';
 import {documentQuality,isEligibleEvidence} from '../lib/evidence-eligibility';
 import {selectEvidenceWindow} from '../lib/cloud/evidence-window';
 const good='La resolució acredita el servei d’ajuda a domicili i les persones destinatàries, entitats prestadores i finançament. '.repeat(15);
@@ -21,6 +21,16 @@ test('disabled or unsuccessful OCR produces incomplete extraction',async()=>{
 test('OCR cap cannot silently certify a partially recovered document',async()=>{
  let calls=0;const result=await recoverPdfText(Array(26).fill(corrupt).join('\f'),true,async()=>{calls++;return good;});
  assert.equal(calls,25);assert.equal(result.partial,true);
+});
+test('a fully readable 220k-character PDF is not discarded by the old text cap',async()=>{
+ const document=good.repeat(Math.ceil(220_000/good.length)).slice(0,220_000);
+ const result=await recoverPdfText(document,false,async()=>{throw Error('OCR must not run');},1);
+ assert.equal(MAX_DOCUMENT_CHARS,250_000);
+ assert.equal(result.partial,false);
+ assert.equal(result.coverage.complete,true);
+ assert.equal(result.text.length,document.trim().length+'## Pàgina 1\n\n'.length);
+ const tooLong=await recoverPdfText(document.repeat(2),false,async()=>{throw Error('OCR must not run');},1);
+ assert.equal(tooLong.partial,true);
 });
 test('normal Catalan, Spanish, legal tables and non-Latin names are preserved',()=>{
  for(const text of [good,'NIF | Import | Codi\n B12345678 | 10.500,50 € | 1.2.3','Марія Коваль, servei social i atenció comunitària.'])assert.deepEqual(textDefects(text),[]);

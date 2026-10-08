@@ -1,6 +1,6 @@
 /** Shared by local Poppler and the cloud sandbox; Markdown never repairs encoding. */
 export const EXTRACTION_VERSION = 'readable-markdown-v2';
-export const MAX_DOCUMENT_CHARS = 200_000;
+export const MAX_DOCUMENT_CHARS = 250_000;
 export const MAX_OCR_PAGES = 25;
 export function textDefects(text: string): string[] {
   const value = text.trim();
