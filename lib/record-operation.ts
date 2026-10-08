@@ -2,6 +2,10 @@ import type { SourceRecord } from "./workbench-types";
 
 export type RecordOperation = "prepare" | "enrich" | "match" | "process" | "ocr";
 
+export function recordOperationNeedsAttention(record: SourceRecord) {
+  return record.operationProgress?.state === "incident" || record.currentJobStatus === "error";
+}
+
 export function isRecordOperationTerminal(
   operation: RecordOperation,
   record: SourceRecord,

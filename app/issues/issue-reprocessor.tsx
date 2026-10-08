@@ -1,7 +1,7 @@
 "use client";
 
 import {useEffect,useRef,useState} from "react";
-import {isRecordOperationTerminal} from "@/lib/record-operation";
+import {isRecordOperationTerminal,recordOperationNeedsAttention} from "@/lib/record-operation";
 import type {IssueReprocessTarget} from "@/lib/issues";
 import type {SourceRecord} from "@/lib/workbench-types";
 
@@ -37,6 +37,7 @@ export function IssueReprocessor({targets,blocked,unavailable}:{targets:IssueRep
   while(Date.now()<deadline){
    const record=await latestRecord(id);
    if(record.currentJobId&&record.currentJobId!==jobId)throw Error("Una altra execució ha substituït aquest treball; comprova el cas abans de repetir-lo.");
+   if(record.currentJobId===jobId&&recordOperationNeedsAttention(record))throw Error("El procés s'ha interromput o té un error tècnic; revisa el cas abans de repetir-lo.");
    if(record.currentJobId===jobId&&isRecordOperationTerminal("process",record))return;
    await new Promise(resolve=>setTimeout(resolve,8_000));
   }

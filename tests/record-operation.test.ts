@@ -3,6 +3,7 @@ import test from "node:test";
 
 import {
   isRecordOperationTerminal,
+  recordOperationNeedsAttention,
   type RecordOperation,
 } from "../lib/record-operation";
 import { createRecordStatusResponse } from "../lib/record-status-response";
@@ -134,4 +135,11 @@ test("returns the current record without caching it", async () => {
 
 for (const operation of ['match','process','enrich','prepare','ocr'] as const) test(`stops ${operation} on a paused technical incident`,()=>{
  assert.equal(isRecordOperationTerminal(operation, withRecord({operationProgress:{state:'incident',step:'matching',completed:0,total:1,detail:null,startedAt:'2026-09-30',lastActivityAt:'2026-09-30',finishedAt:null,attempts:1,failureKind:'internal'}})),true);
+});
+
+test('a paused or failed job needs attention rather than counting as a completed campaign case',()=>{
+ const paused=withRecord({currentJobStatus:'matching',operationProgress:{state:'incident',step:'document_extraction',completed:0,total:3,detail:null,startedAt:'2026-10-08',lastActivityAt:'2026-10-08',finishedAt:null,attempts:3,failureKind:'internal'}});
+ assert.equal(recordOperationNeedsAttention(paused),true);
+ assert.equal(recordOperationNeedsAttention(withRecord({currentJobStatus:'error'})),true);
+ assert.equal(recordOperationNeedsAttention(withRecord({currentJobStatus:'insufficient_evidence',operationProgress:{...paused.operationProgress!,state:'finished'}})),false);
 });
