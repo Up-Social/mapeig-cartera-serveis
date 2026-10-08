@@ -47,6 +47,12 @@ export function IssueReprocessor({targets,blocked,unavailable}:{targets:IssueRep
   let jobId=prior.accepted[target.id];
   if(!jobId){
    const record=await latestRecord(target.id);
+   // A separate OCR test or a resumed paused task may have completed while
+   // this browser campaign was offline. Count that work without duplicating it.
+   if(record.operationProgress?.state==="finished"&&record.operationProgress.finishedAt&&Date.parse(record.operationProgress.finishedAt)>=Date.parse(prior.startedAt)){
+    save({...current.current!,done:[...new Set([...current.current!.done,target.id])],errors:Object.fromEntries(Object.entries(current.current!.errors).filter(([id])=>id!==target.id))});
+    return;
+   }
    if((record.currentJobId??null)!==(target.expectedJobId??null)){
     if(!record.currentJobId)throw Error("El treball anterior ha canviat; comprova el cas abans de repetir-lo.");
     // The previous POST may have succeeded before its response was lost.
