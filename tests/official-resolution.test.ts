@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {resolveOfficialDocuments} from '../lib/pipeline/official-resolution';
+import {resolveOfficialDocuments,resolveBopbPdf} from '../lib/pipeline/official-resolution';
 import {isPrivateAddress} from '../lib/pipeline/document-input';
 const caseId='aaaaaaaa-0000-4000-8000-000000000001';
 const source=`https://contractaciopublica.cat/ca/detall-publicacio/${caseId}/20`;
@@ -21,4 +21,16 @@ test('e-Tauler retains stable document references and officially linked annexes'
 test('document safety rejects loopback, local, link-local and multicast destinations',()=>{
  for(const ip of ['127.0.0.1','10.0.0.1','169.254.169.254','100.64.0.1','::1','fe80::1','fd00::1','224.0.0.1'])assert.ok(isPrivateAddress(ip),ip);
  assert.equal(isPrivateAddress('8.8.8.8'),false);
+});
+test('BOPB PDF relation is accepted only for the same announcement and expected publication year',async()=>{
+ const url='https://bop.diba.cat/anunci/3602191/anunci-vic';
+ const html='<time datetime="2024-03-19">19/03/2024</time><a href="/anunci/descarrega-pdf/3602191">PDF</a>';
+ const [resolved]=await resolveBopbPdf(url,2024,async()=>html);
+ assert.equal(resolved.result,'resolved');assert.equal(resolved.resolved_url,'https://bop.diba.cat/anunci/descarrega-pdf/3602191');
+ assert.equal(resolved.relation_path,`${url}#anunci/descarrega-pdf/3602191`);
+ for(const [year,body] of [[2021,html],[2024,html.replaceAll('3602191','3130141')],[2024,'<app-root/>']] as const){
+  const [result]=await resolveBopbPdf(url,year,async()=>body);
+  assert.equal(result.result,'unresolved');assert.equal(result.resolved_url,url);
+ }
+ assert.deepEqual(await resolveBopbPdf('https://example.com/anunci/3602191',2024,async()=>html),[]);
 });

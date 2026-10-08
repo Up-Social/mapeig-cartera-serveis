@@ -4,6 +4,24 @@ type Json=Record<string,unknown>;
 type ReadJson=(url:string)=>Promise<Json>;
 export type Resolution={original_url:string;resolved_url:string;publication_id:string;case_id:string;document_type:string;method:string;resolved_at:string;result:'resolved'|'unresolved';diagnostic?:string;relation_path?:string};
 export async function officialJson(url:string){const r=await fetchWithLimits(url,{allowedHosts:OFFICIAL_DOCUMENT_HOSTS});if(!r.mimeType.includes('json'))throw Error('Official metadata is not JSON');return JSON.parse(r.bytes.toString('utf8')) as Json;}
+export async function officialBopbHtml(url:string){
+ const r=await fetchWithLimits(url,{allowedHosts:['bop.diba.cat']});
+ if(!r.mimeType.includes('html'))throw Error('BOPB announcement is not HTML');
+ return r.bytes.toString('utf8');
+}
+export async function resolveBopbPdf(original:string,expectedYear:number,readHtml=officialBopbHtml):Promise<Resolution[]>{
+ const url=new URL(original);
+ const match=url.protocol==='https:'&&url.hostname==='bop.diba.cat'?url.pathname.match(/^\/anunci\/(\d+)(?:\/[^/]*)?\/?$/):null;
+ if(!match||!Number.isInteger(expectedYear)||expectedYear<2000||expectedYear>2100)return [];
+ const id=match[1];const base={original_url:original,resolved_url:original,publication_id:id,case_id:'',document_type:'regulatory_basis',method:'official-bopb-link-v1',resolved_at:new Date().toISOString()};
+ try{
+  const html=await readHtml(original);
+  const published=html.match(/<time\s+datetime=["'](\d{4})-\d{2}-\d{2}["']/i)?.[1];
+  const download=new RegExp(`href=["'](\\/anunci\\/descarrega-pdf\\/${id})(?:["'?#])`,'i').test(html);
+  if(!published||Number(published)!==expectedYear||!download)return [{...base,result:'unresolved',diagnostic:'BOPB announcement year or PDF relation does not match the source record'}];
+  return [{...base,resolved_url:`https://bop.diba.cat/anunci/descarrega-pdf/${id}`,result:'resolved',relation_path:`${original}#anunci/descarrega-pdf/${id}`}];
+ }catch{return [{...base,result:'unresolved',diagnostic:'BOPB announcement or PDF relation could not be verified'}];}
+}
 export async function resolveOfficialDocuments(original:string,read:ReadJson=officialJson):Promise<Resolution[]>{
  const url=new URL(original);const now=new Date().toISOString();
  const base={original_url:original,resolved_url:original,publication_id:'',case_id:'',document_type:'publication',method:'official-metadata-v1',resolved_at:now};

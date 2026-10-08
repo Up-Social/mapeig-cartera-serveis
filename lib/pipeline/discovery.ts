@@ -1,6 +1,6 @@
 import {createHash} from "node:crypto";
 import {classifySourceDocumentField} from "../provision-links";
-import {resolveOfficialDocuments,type Resolution} from './official-resolution';
+import {resolveOfficialDocuments,resolveBopbPdf,type Resolution} from './official-resolution';
 type SourceRow = { id: string; source_payload: Record<string, unknown> };
 type DocumentRow = {
   source_record_id: string; url: string; url_hash: string; document_type: string;
@@ -42,7 +42,10 @@ export async function discoverResolvedDocuments(record:SourceRow){
  const documents=discoverRecordDocuments(record);
  const extra:DocumentRow[]=[];
  for(const document of documents){
-  const resolutions=await resolveOfficialDocuments(document.url);
+  const expectedYear=Number(record.source_payload?.['Any de la convocatòria']);
+  const resolutions=new URL(document.url).hostname==='bop.diba.cat'
+   ?await resolveBopbPdf(document.url,expectedYear)
+   :await resolveOfficialDocuments(document.url);
   for(const resolution of resolutions){
    if(resolution.result==='unresolved'){document.resolution=resolution;continue;}
    extra.push({...document,url:resolution.resolved_url,url_hash:createHash('sha256').update(resolution.resolved_url).digest('hex'),document_type:resolution.document_type,resolution});
