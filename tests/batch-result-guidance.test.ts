@@ -28,9 +28,10 @@ const baseJob: BatchJob = {
   },
 };
 
-test("mostra el motiu específic d'una revisió humana", () => {
+test("envia la manca d'evidència a incidències, no a revisió pendent", () => {
   const guidance = batchResultGuidance({
     ...baseJob,
+    currentDestination: "issues",
     analysis: {
       id: "analysis-1",
       classification: "insufficient_evidence",
@@ -46,10 +47,15 @@ test("mostra el motiu específic d'una revisió humana", () => {
     },
   });
 
-  assert.equal(guidance.kind, "review");
-  assert.equal(guidance.title, "Cal revisar la falta d’evidència");
+  assert.equal(guidance.kind, "issue");
+  assert.equal(guidance.title, "No hi ha una proposta revisable amb prou evidència");
   assert.match(guidance.explanation, /població destinatària/);
-  assert.match(guidance.nextStep, /Comprova la font/);
+  assert.match(guidance.nextStep, /Incidències/);
+});
+
+test("manté la proposta acreditada en revisió", () => {
+  const guidance = batchResultGuidance({ ...baseJob, currentDestination: "review" });
+  assert.equal(guidance.kind, "review");
 });
 
 test("tradueix un document no processable a una explicació útil", () => {

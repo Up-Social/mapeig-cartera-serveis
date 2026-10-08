@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { paginateBatchSummaries } from "../lib/batch-list";
+import { currentAttentionCounts, paginateBatchSummaries } from "../lib/batch-list";
 import type { BatchSummary } from "../lib/batch-types";
 
 const summary = (id: number, purpose: string): BatchSummary => ({
@@ -32,4 +32,25 @@ test("batch filtering happens before pagination, including beyond the first data
   assert.equal(page.total, 27);
   assert.equal(page.pageCount, 2);
   assert.deepEqual(page.items.map(item => item.id), ["36", "35"]);
+});
+
+test("an insufficient-evidence incident stays in the attention filter without a review link", () => {
+  const incident = { ...summary(1, "automated_batch"), insufficientCount: 1 };
+  const pending = paginateBatchSummaries([incident], { page: 1, kind: "batches", status: "attention" });
+  assert.equal(pending.total, 1);
+  assert.equal(pending.items[0].reviewCount, 0);
+  assert.equal(paginateBatchSummaries([incident], { page: 1, kind: "batches", status: "finished" }).total, 0);
+});
+
+test("counts only canonical current review destinations for each run", () => {
+  const counts = currentAttentionCounts([
+    { run_id: "run-a", destination: "issues", classification: "insufficient_evidence" },
+    { run_id: "run-a", destination: "review", classification: "in_portfolio" },
+    { run_id: "run-a", destination: "issues", classification: null },
+    { run_id: "run-b", destination: "review", classification: "out_of_portfolio" },
+    { run_id: null, destination: "review", classification: "in_portfolio" },
+  ]);
+  assert.deepEqual(counts.get("run-a"), { review: 1, insufficient: 1 });
+  assert.deepEqual(counts.get("run-b"), { review: 1, insufficient: 0 });
+  assert.equal(counts.size, 2);
 });

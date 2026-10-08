@@ -12,6 +12,7 @@ export type SampleRecord = {
 };
 export type BatchJob = {
   isCurrent?:boolean;
+  currentDestination?:string|null;
   phases?:Record<'preparation'|'enrichment'|'matching',import('./pipeline-progress').ProgressState>;
   id: string; sourceRecordId: string; sourceDataset: SourceDataset; financingType: FinancingType; externalId: string; title: string;
   status: string; preparationStatus: EvidencePreparationStatus; preparationMessage: string | null;

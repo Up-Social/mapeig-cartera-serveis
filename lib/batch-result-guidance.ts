@@ -2,7 +2,7 @@ import type { Classification } from "./analysis-contract";
 import type { BatchJob } from "./batch-types";
 
 export type BatchResultGuidance = {
-  kind: "review" | "technical" | "waiting" | "completed";
+  kind: "review" | "issue" | "technical" | "waiting" | "completed";
   label: string;
   title: string;
   explanation: string;
@@ -20,6 +20,19 @@ const REVIEW_TITLES: Record<Classification, string> = {
 
 export function batchResultGuidance(job: BatchJob): BatchResultGuidance {
   if (job.status === "error") return technicalGuidance(job);
+
+  if (job.status === "needs_review" && (job.currentDestination === "issues" || job.analysis?.classification === "insufficient_evidence")) {
+    const insufficient = job.analysis?.classification === "insufficient_evidence";
+    return {
+      kind: "issue",
+      label: insufficient ? "Incidència · evidència insuficient" : "Incidència · resultat no fiable",
+      title: insufficient ? "No hi ha una proposta revisable amb prou evidència" : "Cal tornar a contrastar aquest resultat",
+      explanation: insufficient ? job.analysis?.explanation?.trim() || "La documentació no acredita prou bé els camps necessaris per classificar el servei." : "El resultat automàtic no és fiable i no es pot presentar com a proposta pendent de validació.",
+      nextStep: insufficient ? "Obre el registre des d’Incidències, comprova les fonts i documenta la falta d’evidència o completa la informació abans de revisar-lo." : "Obre el registre des d’Incidències, comprova les fonts i reprèn l’anàlisi abans de validar cap proposta.",
+      technicalDetail: null,
+      phase: null,
+    };
+  }
 
   if (job.status === "needs_review") {
     const classification = job.analysis?.classification;

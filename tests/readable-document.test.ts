@@ -25,6 +25,18 @@ test('OCR cap cannot silently certify a partially recovered document',async()=>{
 test('normal Catalan, Spanish, legal tables and non-Latin names are preserved',()=>{
  for(const text of [good,'NIF | Import | Codi\n B12345678 | 10.500,50 € | 1.2.3','Марія Коваль, servei social i atenció comunitària.'])assert.deepEqual(textDefects(text),[]);
 });
+test('wide PDF annex columns do not turn readable entities and amounts into corrupt text',async()=>{
+ const annex=[
+  'Nom entitat'.padEnd(145)+'NIF entitat'.padEnd(145)+'Nombre de places'.padEnd(145)+'Import',
+  ...Array.from({length:4},(_,i)=>`Residència Social ${i+1}, SL`.padEnd(145)+`B6279257${i}`.padEnd(145)+'1'.padEnd(145)+'1.361,36 €'),
+ ].join('\n');
+ assert.deepEqual(textDefects(annex),[]);
+ const result=await recoverPdfText(annex,false,async()=>{throw Error('OCR must not run for a readable annex');},1);
+ assert.equal(result.partial,false);
+ assert.equal(result.coverage.pages[0].method,'text');
+ assert.match(result.text,/Residència Social 1, SL/);
+ assert.match(result.text,/1\.361,36 €/);
+});
 test('select a relevant annex beyond the former 96-fragment cutoff',()=>{
  const chunks=Array.from({length:150},(_,ordinal)=>({source_document_id:'doc',ordinal,content:ordinal===123?'Annex adjudicataris, servei 1.2.6.2.6, places concertades':good}));
  assert.ok(selectEvidenceWindow(chunks).some(c=>c.ordinal===123));

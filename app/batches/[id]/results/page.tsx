@@ -10,7 +10,7 @@ import { getBatch } from "@/lib/batches";
 import { FINANCING_TYPE_LABELS } from "@/lib/financing-types";
 import { isUuid } from "@/lib/uuid";
 
-type ResultView = "all" | "review" | "errors" | "resolved";
+type ResultView = "all" | "review" | "issues" | "errors" | "resolved";
 
 export default async function BatchResults({
   params,
@@ -51,7 +51,7 @@ export default async function BatchResults({
         </h1>
         <p className="page-description">
           {batch.jobs.length} {batch.jobs.length === 1 ? "registre" : "registres"} · {batch.reviewCount} per revisar ·{" "}
-          {batch.errorCount} {batch.errorCount === 1 ? "error tècnic" : "errors tècnics"}
+          {batch.insufficientCount} amb evidència insuficient · {batch.errorCount} {batch.errorCount === 1 ? "error tècnic" : "errors tècnics"}
         </p>
         {batch.reviewCount > 0 && (
           <Link
@@ -63,7 +63,7 @@ export default async function BatchResults({
         )}
       </div>
 
-      {(batch.reviewCount > 0 || batch.errorCount > 0) && (
+      {(batch.reviewCount > 0 || batch.insufficientCount > 0 || batch.errorCount > 0) && (
         <section
           aria-label="Què requereix atenció"
           className="grid gap-3 md:grid-cols-2"
@@ -73,10 +73,17 @@ export default async function BatchResults({
               <p className="text-2xl font-semibold tabular-nums">{batch.reviewCount}</p>
               <h2 className="mt-1 font-semibold">Revisions humanes pendents</h2>
               <p className="mt-2 text-sm text-muted-foreground">
-                El procés automàtic ha acabat i ha deixat una proposta o una falta
-                d’evidència. Una persona ha de confirmar o rectificar el resultat abans
+                El procés automàtic ha acabat i ha deixat una proposta revisable.
+                Una persona ha de confirmar o rectificar el resultat abans
                 de donar-lo per vàlid.
               </p>
+            </article>
+          )}
+          {batch.insufficientCount > 0 && (
+            <article className="rounded-xl border bg-card p-4">
+              <p className="text-2xl font-semibold tabular-nums">{batch.insufficientCount}</p>
+              <h2 className="mt-1 font-semibold">Incidències per evidència insuficient</h2>
+              <p className="mt-2 text-sm text-muted-foreground">El resultat no acredita prou bé el servei. Consulta les fonts i el diagnòstic de cada registre abans de decidir com continuar.</p>
             </article>
           )}
           {batch.errorCount > 0 && (
@@ -105,6 +112,7 @@ export default async function BatchResults({
       <nav className="flex flex-wrap gap-2" aria-label="Filtrar registres del lot">
         <ResultViewLink id={id} current={view} value="all" label={`Tots (${batch.jobs.length})`} />
         <ResultViewLink id={id} current={view} value="review" label={`Per revisar (${batch.reviewCount})`} />
+        <ResultViewLink id={id} current={view} value="issues" label={`Incidències (${batch.jobs.filter((job) => job.currentDestination === "issues").length})`} />
         <ResultViewLink id={id} current={view} value="errors" label={`Errors (${batch.errorCount})`} />
         <ResultViewLink id={id} current={view} value="resolved" label={`Revisats (${resolvedCount})`} />
       </nav>
@@ -189,6 +197,7 @@ function JobResult({ job, batchId }: { job: BatchJob; batchId: string }) {
     job.analysis?.reviewed_classification ?? job.analysis?.classification;
   const guidance = batchResultGuidance(job);
   const isTechnical = guidance.kind === "technical";
+  const isIssue = guidance.kind === "issue";
   const needsReview = guidance.kind === "review";
   const resultHref = `/records/${job.sourceRecordId}?${new URLSearchParams({ job: job.id, from: `/batches/${batchId}/results` })}`;
 
@@ -262,7 +271,7 @@ function JobResult({ job, batchId }: { job: BatchJob; batchId: string }) {
         >
           {needsReview
             ? "Revisar ara"
-            : isTechnical
+            : isTechnical || isIssue
               ? "Veure incidència"
               : "Veure resultat i evidència"}
         </Link>
@@ -279,6 +288,7 @@ function JobResult({ job, batchId }: { job: BatchJob; batchId: string }) {
 
 function jobState(job: BatchJob) {
   if (job.status === "error") return "error";
+  if (job.currentDestination === "issues") return "issue";
   if (
     ["approved", "corrected", "rejected", "insufficient_evidence", "needs_review"].includes(
       job.status,
@@ -300,13 +310,14 @@ function jobStateLabel(job: BatchJob) {
       corrected: "Corregit",
       rejected: "Revisat",
       insufficient_evidence: "Evidència insuficient",
+      issue: "Incidència",
       error: "Errors tècnics",
     } as Record<string, string>
   )[jobState(job)] ?? "Pendent";
 }
 
 function resultView(filter: Record<string, string | undefined>): ResultView {
-  if (["all", "review", "errors", "resolved"].includes(filter.view ?? "")) {
+  if (["all", "review", "issues", "errors", "resolved"].includes(filter.view ?? "")) {
     return filter.view as ResultView;
   }
   if (filter.review === "needs_review") return "review";
@@ -319,7 +330,8 @@ function resultView(filter: Record<string, string | undefined>): ResultView {
 
 function matchesView(job: BatchJob, view: ResultView) {
   const state = jobState(job);
-  if (view === "review") return state === "needs_review";
+  if (view === "review") return job.currentDestination === "review";
+  if (view === "issues") return state === "issue";
   if (view === "errors") return state === "error";
   if (view === "resolved") {
     return ["approved", "corrected", "rejected", "insufficient_evidence"].includes(state);

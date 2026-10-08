@@ -5,7 +5,7 @@ import {CloudFailure,CloudYield} from './errors';
 import {htmlToText,cleanText} from '../pipeline/document-input';
 import {hash} from '../pipeline/chunks';
 import {fetchOfficialDocument} from '../pipeline/official-resolution';
-import {archiveSource} from '../source-storage';
+import {archiveSource,readSource} from '../source-storage';
 type Extraction={text:string;method:string;hash:string;mime:string;partial:boolean;extraction_version:string;coverage?:unknown};
 export async function extractDocument(c:Context,job:string,id:string,url:string,ocr:boolean):Promise<Extraction>{
  const source=await c.db.from('source_documents').select('id,source_record_id,url,content_hash,storage_path,storage_sha256,mime_type').eq('id',id).single();
@@ -18,8 +18,15 @@ export async function extractDocument(c:Context,job:string,id:string,url:string,
   const r=await c.db.storage.from('cloud-documents').download(original.path);if(r.error||!r.data)throw new CloudFailure('internal');
   fetched={bytes:Buffer.from(await r.data.arrayBuffer()),mimeType:original.mime};
  }else{
-  try {fetched=await fetchOfficialDocument(url);}catch {throw new CloudFailure('document');}
-  const archived=await archiveSource(c.db,source.data,fetched);
+  let archived:{path:string;sha256:string};
+  if(source.data.storage_path&&source.data.storage_sha256){
+   const stored=await readSource(c.db,source.data);
+   fetched={bytes:stored.bytes,mimeType:stored.mimeType};
+   archived=stored;
+  }else{
+   try {fetched=await fetchOfficialDocument(url);}catch {throw new CloudFailure('document');}
+   archived=await archiveSource(c.db,source.data,fetched);
+  }
   await checkpoint(c,`original:${id}`,{path:archived.path,mime:fetched.mimeType,hash:archived.sha256});
  }
  if(original)await archiveSource(c.db,source.data,fetched);

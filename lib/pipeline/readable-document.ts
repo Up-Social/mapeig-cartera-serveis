@@ -5,13 +5,17 @@ export const MAX_OCR_PAGES = 25;
 export function textDefects(text: string): string[] {
   const value = text.trim();
   if (!value) return ['empty_text'];
+  // pdftotext -layout pads wide annex tables with spaces; assess the content,
+  // not the column spacing, before deciding that a page needs OCR.
+  const contentLength = value.replace(/\s/g, '').length;
   const controls = (value.match(/[\u0000-\u0008\u000b\u000e-\u001f\u007f-\u009f\ufffd]/g) ?? []).length;
   const letters = (value.match(/\p{L}/gu) ?? []).length;
   const symbols = (value.match(/[^\p{L}\p{N}\p{P}\p{Z}\s€%+<>=|]/gu) ?? []).length;
+  const digits = (value.match(/\p{N}/gu) ?? []).length;
   const words = value.match(/\p{L}+/gu) ?? [];
   const fragments = words.filter(word => word.length <= 2).length;
   const fragmented = words.length >= 30 && fragments / words.length > .62;
-  return controls > 0 || (value.length > 80 && (symbols / value.length > .08 || (letters / value.length < .18 && (value.match(/\p{N}/gu)??[]).length / value.length < .25))) || fragmented
+  return controls > 0 || (contentLength > 80 && (symbols / contentLength > .08 || (letters / contentLength < .18 && digits / contentLength < .25))) || fragmented
     ? ['corrupt_text'] : [];
 }
 export function needsOcr(text: string) { return text.trim().length < 50 || textDefects(text).length > 0; }

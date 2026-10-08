@@ -7,7 +7,7 @@ import { createServerSupabase, mapLatestCandidates } from "./records-page";
 import type { BatchJob, BatchSummary, CloudResourceBlock, ExportSummary, SampleRecord, SourceDataset } from "./batch-types";
 import { FINANCING_TYPES, financingTypeForDataset, type FinancingType } from "./financing-types";
 import { summarizePhases,type ProgressState } from "./pipeline-progress";
-import { paginateBatchSummaries, type BatchListFilters } from "./batch-list";
+import { currentAttentionCounts, paginateBatchSummaries, type BatchListFilters } from "./batch-list";
 
 export async function getBalancedSample(excludedIds: string[] = []): Promise<SampleRecord[]> {
   const { data, error } = await createServerSupabase().rpc("sample_financing_type_candidates", { candidate_limit: 20, excluded_ids: excludedIds });
@@ -44,8 +44,31 @@ export async function getBatchPage(input: BatchListFilters) {
     rows.push(...(result.data ?? []));
     if ((result.data?.length ?? 0) < 500) break;
   }
-  const result = paginateBatchSummaries(rows.map(mapBatchSummary), input);
+  const current = await loadCurrentAttentionResults();
+  const byRun = currentAttentionCounts(current);
+  const result = paginateBatchSummaries(rows.map((row) => {
+    const batch = mapBatchSummary(row);
+    const counts = byRun.get(batch.id);
+    return { ...batch, reviewCount: counts?.review ?? 0, insufficientCount: counts?.insufficient ?? 0 };
+  }), input);
   return { ...result, items: await enrichExecutions(result.items) };
+}
+
+async function loadCurrentAttentionResults() {
+  const db = createServerSupabase();
+  const rows: Array<{ run_id: string | null; destination: string; classification: string | null }> = [];
+  for (let start = 0; ; start += 500) {
+    const result = await db.from("current_record_results")
+      .select("run_id,destination,classification")
+      .in("destination", ["review", "issues"])
+      .not("run_id", "is", null)
+      .order("run_id").order("id")
+      .range(start, start + 499);
+    if (result.error) throw result.error;
+    rows.push(...(result.data ?? []));
+    if ((result.data?.length ?? 0) < 500) break;
+  }
+  return rows;
 }
 
 export async function getBatch(id: string): Promise<BatchSummary | null> {
@@ -136,12 +159,23 @@ async function enrichCandidateServices(batches: BatchSummary[]) {
   for(let offset=0;;offset+=500){const r=await db.from('job_phase_states').select('id,preparation,enrichment,matching').in('run_id',batches.map(b=>b.id)).order('id').range(offset,offset+499);if(r.error)throw r.error;phases.push(...(r.data??[]));if((r.data?.length??0)<500)break;}
   const byId=new Map(phases.map(p=>[p.id,p]));
   const labels=new Map<string,{title:string;external_id:string|null;is_current:boolean}>();
+  const destinations=new Map<string,string>();
   const jobIds=batches.flatMap(b=>b.jobs.map(j=>j.id));
-  for(let offset=0;offset<jobIds.length;offset+=100){const r=await db.from('job_result_labels').select('*').in('id',jobIds.slice(offset,offset+100));if(r.error)throw r.error;for(const label of r.data)labels.set(label.id,label);}
+  for(let offset=0;offset<jobIds.length;offset+=100){
+   const ids=jobIds.slice(offset,offset+100);
+   const [labelsResult,currentResult]=await Promise.all([
+    db.from('job_result_labels').select('*').in('id',ids),
+    db.from('current_record_results').select('job_id,destination').in('job_id',ids),
+   ]);
+   if(labelsResult.error)throw labelsResult.error;
+   if(currentResult.error)throw currentResult.error;
+   for(const label of labelsResult.data)labels.set(label.id,label);
+   for(const result of currentResult.data)if(result.job_id)destinations.set(result.job_id,result.destination);
+  }
   batches=batches.map(batch=>{
-   const jobs=batch.jobs.map(job=>({...job,title:labels.get(job.id)?.title??job.title,externalId:labels.get(job.id)?.external_id??job.externalId,isCurrent:labels.get(job.id)?.is_current??false,phases:byId.get(job.id)}));
+   const jobs=batch.jobs.map(job=>({...job,title:labels.get(job.id)?.title??job.title,externalId:labels.get(job.id)?.external_id??job.externalId,isCurrent:labels.get(job.id)?.is_current??false,currentDestination:destinations.get(job.id)??null,phases:byId.get(job.id)}));
    for(const job of jobs)if(!job.phases)throw Error('Falta la projecció SQL de fases');
-   return {...batch,jobs,approvedCount:jobs.filter(j=>['approved','corrected'].includes(j.status)).length,rejectedCount:jobs.filter(j=>(j.analysis?.reviewed_classification??j.analysis?.classification)==='discarded').length,insufficientCount:jobs.filter(j=>j.analysis?.reliability_status==='invalidated'||(j.analysis?.reviewed_classification??j.analysis?.classification)==='insufficient_evidence').length,reviewCount:jobs.filter(j=>j.status==='needs_review'&&j.analysis?.reliability_status!=='invalidated').length,
+   return {...batch,jobs,approvedCount:jobs.filter(j=>['approved','corrected'].includes(j.status)).length,rejectedCount:jobs.filter(j=>(j.analysis?.reviewed_classification??j.analysis?.classification)==='discarded').length,insufficientCount:jobs.filter(j=>j.currentDestination==='issues'&&(j.analysis?.reviewed_classification??j.analysis?.classification)==='insufficient_evidence').length,reviewCount:jobs.filter(j=>j.currentDestination==='review').length,
     progress:{preparation:summarizePhases(jobs.map(j=>j.phases!.preparation)),enrichment:summarizePhases(jobs.map(j=>j.phases!.enrichment)),matching:summarizePhases(jobs.map(j=>j.phases!.matching))}};
   });
  }
