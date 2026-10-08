@@ -277,8 +277,11 @@ export function ReviewDetail({
                   rel="noreferrer"
                   className="mt-2 block break-all text-xs underline"
                 >
-                  {document.url}
+                  {document.archived ? 'Obrir còpia arxivada' : document.status === 'fetched' ? 'Comprovar i arxivar l’original' : document.url}
                 </a>
+                {document.status === 'fetched' && document.archived === false && (
+                  <p role="alert" className="mt-2 text-xs text-amber-900">El text és històric, però falta verificar i arxivar la còpia original. La URL actual pot haver canviat.</p>
+                )}
                 <DocumentProvenance document={document}/>
                 {document.textPreview && (
                   <p className="mt-2 line-clamp-4 text-xs leading-5 text-neutral-600">

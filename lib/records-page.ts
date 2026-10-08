@@ -134,6 +134,7 @@ export function mapRecord(row: Record<string, unknown>): SourceRecord {
       const defects=textDefects(String(item.extracted_text ?? item.text_preview ?? ""));
       return {
         id: String(item.id), url: String(item.url), documentType: String(item.document_type),
+        archived: Boolean(item.storage_path),
         resolution: item.resolution as SourceRecord['sourceDocuments'][number]['resolution'],
         sourceFields: Array.isArray(item.source_fields) ? item.source_fields.map(String) : [],
         status: item.status as SourceRecord["sourceDocuments"][number]["status"],
@@ -186,7 +187,7 @@ export function mapLatestCandidates(value: unknown): SourceRecord["matchingCandi
   }).sort((a, b) => a.rank - b.rank);
 }
 
-export const RECORD_SELECT = "*,source_documents(id,url,resolution,document_type,source_fields,status,mime_type,extracted_text,text_preview,text_length,extraction_method,quality_score,quality_flags,chunk_count),record_enrichments(extracted_title,provider_name,provider_nif,mechanism,award_date,amount,contracting_body,target_population,summary,confidence,engine_version,record_enrichment_evidence(evidence_chunks(ordinal,content))),review_decisions(id,pipeline_job_id,classification,reasons,decision,reason,created_at),pipeline_jobs(id,run_id,status,error_message,created_at,analysis_results(*),pipeline_runs(batch_number,parameters),matching_candidates(id,pipeline_job_id,catalog_version_id,rank,target_code,target_name,score,rationale,engine_version,matching_candidate_evidence(explanation,evidence_chunks(ordinal,content))))";
+export const RECORD_SELECT = "*,source_documents(id,url,resolution,document_type,source_fields,status,mime_type,storage_path,extracted_text,text_preview,text_length,extraction_method,quality_score,quality_flags,chunk_count),record_enrichments(extracted_title,provider_name,provider_nif,mechanism,award_date,amount,contracting_body,target_population,summary,confidence,engine_version,record_enrichment_evidence(evidence_chunks(ordinal,content))),review_decisions(id,pipeline_job_id,classification,reasons,decision,reason,created_at),pipeline_jobs(id,run_id,status,error_message,created_at,analysis_results(*),pipeline_runs(batch_number,parameters),matching_candidates(id,pipeline_job_id,catalog_version_id,rank,target_code,target_name,score,rationale,engine_version,matching_candidate_evidence(explanation,evidence_chunks(ordinal,content))))";
 
 function mapLatestRun(value: unknown) {
   if (!Array.isArray(value) || !value.length) return null;

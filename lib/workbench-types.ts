@@ -60,6 +60,7 @@ export type MatchingCandidate = {
 export type SourceDocument = {
   resolution?: import('./pipeline/official-resolution').Resolution;
   id: string; url: string; documentType: string; sourceFields: string[];
+  archived?: boolean;
   status: "discovered" | "fetching" | "fetched" | "unsupported" | "error";
   extractedText?:string|null; mimeType: string | null; textPreview: string | null; textLength: number | null;
   extractionMethod: string | null; qualityScore: number | null; qualityFlags: string[]; chunkCount: number;
