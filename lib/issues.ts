@@ -1,6 +1,24 @@
 import "server-only";
 import {classifyIssue,type IssueFilters,type IssuePage} from './issue-types';
 import {createServerSupabase,mapRecord,RECORD_SELECT} from './records-page';
+export type IssueReprocessTarget={id:string;expectedJobId:string|null};
+export async function getIssueReprocessTargets():Promise<{eligible:IssueReprocessTarget[];blocked:number}>{
+ const db=createServerSupabase();
+ const rows=await db.from('current_issue_results').select('id,job_id').eq('human_reviewed',false).order('id').limit(500);
+ if(rows.error)throw rows.error;
+ const jobs=(rows.data??[]).map(row=>row.job_id).filter((id):id is string=>typeof id==='string');
+ const tasks=jobs.length?await db.from('worker_tasks').select('pipeline_job_id,status,execution_state,failure_kind,created_at').in('pipeline_job_id',jobs).order('created_at',{ascending:false}).limit(1000):{data:[],error:null};
+ if(tasks.error)throw tasks.error;
+ const latest=new Map<string,NonNullable<typeof tasks.data>[number]>();
+ for(const task of tasks.data??[])if(task.pipeline_job_id&&!latest.has(task.pipeline_job_id))latest.set(task.pipeline_job_id,task);
+ const eligible:IssueReprocessTarget[]=[];let blocked=0;
+ for(const row of rows.data??[]){
+  const task=row.job_id?latest.get(row.job_id):null;
+  if(task&&(['paused','interrupted'].includes(task.execution_state??'')||['queued','running'].includes(task.status??'')||task.failure_kind==='provider_unknown')){blocked++;continue;}
+  eligible.push({id:row.id,expectedJobId:row.job_id});
+ }
+ return {eligible,blocked};
+}
 export async function getIssuePage(filters:IssueFilters):Promise<IssuePage>{
  const db=createServerSupabase();
  let request=db.from('current_issue_results').select('*',{count:'exact'});

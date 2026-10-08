@@ -39,14 +39,16 @@ export function CaseStudy({ initialRecord, services, origin, next, cloudBlocked,
   const [notes, setNotes] = useState("");
   const [reasons, setReasons] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
+  const router = useRouter();
   const [operation, setOperation] = useState<RecordOperation | undefined>(() => cloudBlocked && !initialRecord.operationProgress ? undefined : inferOperation(initialRecord));
   const startOperation = useCallback((_: string, current: RecordOperation) => setOperation(current), []);
-  const finishOperation = useCallback(() => setOperation(undefined), []);
+  const finishOperation = useCallback(() => {setOperation(undefined);router.refresh();}, [router]);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [reprocessMessage, setReprocessMessage] = useState("");
+  const [reprocessError, setReprocessError] = useState("");
   const [showDocumentText,setShowDocumentText]=useState(false);
   const [showOriginalFields,setShowOriginalFields]=useState(false);
-  const router = useRouter();
   const historical = !!record.isHistorical;
   const invalidated = record.analysis?.reliability_status === "invalidated";
   const canEdit = canReviewRecord(record);
@@ -96,6 +98,33 @@ export function CaseStudy({ initialRecord, services, origin, next, cloudBlocked,
     finally { setBusy(false); }
   }
 
+  async function reprocess(operationToRun: RecordOperation) {
+    if (busy || operation || cloudBlocked) return;
+    setBusy(true);
+    setReprocessMessage("");
+    setReprocessError("");
+    try {
+      const response = await fetch(`/api/records/${record.id}/operation`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ operation: operationToRun, ...(record.currentJobId ? { expectedJobId: record.currentJobId } : {}) }),
+        signal: AbortSignal.timeout(20_000),
+      });
+      const payload = await response.json() as { error?: string };
+      if (!response.ok) throw new Error(payload.error ?? "No s'ha pogut iniciar el reintent.");
+      setReprocessMessage(operationToRun === "process" || operationToRun === "ocr"
+        ? "Reprocessament iniciat: fonts, contrast i correspondència. El progrés s'actualitza a continuació."
+        : "Fase reiniciada. El progrés s'actualitza a continuació.");
+      setOperation(operationToRun);
+      window.dispatchEvent(new Event("navigation-counts:refresh"));
+      router.refresh();
+    } catch (cause) {
+      setReprocessError(cause instanceof Error ? cause.message : "No s'ha pogut iniciar el reintent.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   const originalFields = Object.entries(record.sourcePayload).filter(([key, value]) => !key.startsWith("Fórmula ·") && value !== null && value !== "" && !(typeof value === "string" && value.trim().startsWith("=")));
   return <div className="min-w-0 space-y-5">
     <CaseAtAGlance record={record}/>
@@ -109,7 +138,7 @@ export function CaseStudy({ initialRecord, services, origin, next, cloudBlocked,
     </div></section>
     <div className="min-w-0 space-y-5">
       {!historical && <section className="surface p-4"><h3 className="text-sm font-semibold">Procés · {record.reviewDecision ? decisionLabels[record.reviewDecision] : record.analysis ? "Anàlisi completada · pendent de validació humana" : record.operationProgress?.state === "incident" ? recordReviewLabel(record) : record.operationProgress?.detail ?? record.status}</h3><RecordStages record={record} operation={operation} onRecordUpdate={setRecord} onOperationStart={startOperation} onOperationFinish={finishOperation} cloudBlocked={cloudBlocked} concertExportState={concertExportState} /></section>}
-      {issue && <section role={issue.phase === "review" ? "status" : "alert"} className={`rounded-xl border p-5 ${issue.phase === "review" ? "status-warning" : "status-error"}`}><h2 className="text-lg font-semibold">Incidència · {ISSUE_CATEGORY_LABELS[issue.category]}</h2><p className="mt-2 max-w-[75ch] text-sm leading-6">{issue.message}</p>{issue.retryOperation && <button type="button" disabled={busy || cloudBlocked} className="mt-3 rounded-md border border-current px-3 py-2 text-sm" onClick={async () => { setBusy(true); setError(""); try { const response = await fetch(`/api/records/${record.id}/operation`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ operation: issue.retryOperation, expectedJobId: record.currentJobId }), signal: AbortSignal.timeout(20000) }); const value = await response.json(); if (!response.ok) throw new Error(value.error ?? "No s'ha pogut iniciar el reintent."); setMessage("Reintent iniciat."); router.refresh(); } catch (cause) { setError(cause instanceof Error ? cause.message : "No s'ha pogut iniciar el reintent."); } finally { setBusy(false); } }}>Reintentar aquesta fase</button>}</section>}
+      {issue && <section role={issue.phase === "review" ? "status" : "alert"} className={`rounded-xl border p-5 ${issue.phase === "review" ? "status-warning" : "status-error"}`}><h2 className="text-lg font-semibold">Incidència · {ISSUE_CATEGORY_LABELS[issue.category]}</h2><p className="mt-2 max-w-[75ch] text-sm leading-6">{issue.message}</p>{issue.retryOperation && <div className="mt-4 space-y-3"><p className="max-w-[75ch] text-sm leading-6">Torna a cercar i preparar els documents, contrasta les dades i proposa la correspondència. Conserva l&apos;anàlisi anterior a l&apos;historial; no aprova cap resultat. El contrast i la correspondència poden tenir cost d&apos;IA.</p><div className="flex flex-wrap gap-2"><button type="button" disabled={busy || !!operation || cloudBlocked} className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-50" onClick={() => void reprocess(issue.retryOperation === "ocr" ? "ocr" : "process")}>{busy ? "Iniciant…" : issue.retryOperation === "ocr" ? "Tornar a processar amb OCR" : "Tornar a processar tot el cas"}</button>{(["prepare", "enrich", "match"] as const).includes(issue.retryOperation as "prepare" | "enrich" | "match") && <button type="button" disabled={busy || !!operation || cloudBlocked} className="rounded-md border border-current px-4 py-2 text-sm disabled:opacity-50" onClick={() => void reprocess(issue.retryOperation!)}>{issue.retryOperation === "prepare" ? "Reintentar només la preparació" : issue.retryOperation === "enrich" ? "Reintentar només el contrast" : "Reintentar només la correspondència"}</button>}</div><p className="text-xs">«Només» repeteix la fase indicada; el processament complet continua fins al resultat de l&apos;anàlisi.</p>{cloudBlocked && <p className="text-xs">El processament no està disponible en aquest entorn de consulta.</p>}{reprocessMessage && <p role="status" className="text-sm">{reprocessMessage}</p>}{reprocessError && <p role="alert" className="text-sm">{reprocessError}</p>}</div>}</section>}
       <section id="resultat" className="surface scroll-mt-32 p-5"><p className="page-eyebrow">Proposta automàtica</p><h2 className="section-title mt-1">Resultat de l’anàlisi</h2><p className="mt-1 text-sm text-muted-foreground">Una proposta requereix validació humana, encara que la confiança estimada sigui alta.</p><div className="mt-4"><AnalysisResult analysis={record.analysis} candidates={record.matchingCandidates} returnTo={`/records/${record.id}?${new URLSearchParams({from:origin,...(record.isHistorical&&record.currentJobId?{job:record.currentJobId}:{})})}`} /></div></section>
       <section id="evidencies" className="surface scroll-mt-32 p-5"><h2 className="section-title">Evidències i fonts oficials</h2><p className="mt-1 text-sm text-muted-foreground">Documents i fragments utilitzats per contrastar el cas.</p>{record.sourceDocuments.length ? <><button type="button" aria-expanded={showDocumentText} onClick={()=>setShowDocumentText(value=>!value)} className="mt-3 rounded-md border px-3 py-2 text-sm font-medium">{showDocumentText?'Amaga el text complet':'Mostra el text complet dels documents'}</button><div className="mt-4 space-y-3">{record.sourceDocuments.map(doc => <article key={doc.id} className="rounded-lg border p-4"><div className="flex flex-wrap justify-between gap-2"><strong>{sourceDocumentTypeLabel(doc.documentType)}</strong><span className="text-sm">{sourceDocumentStatusLabel(doc.status)}</span></div><a className="mt-2 block break-all text-sm underline" href={`/api/documents/${doc.id}/open`} target="_blank" rel="noreferrer">Obrir document oficial</a><DocumentProvenance document={doc}/>{doc.qualityFlags.some(flag=>["corrupt_text","incomplete_extraction"].includes(flag))&&<p role="alert" className="status-error mt-3 p-3 text-sm">Text no fiable. Cal recuperar el document abans de tornar a analitzar aquest cas.</p>}<p className="mt-2 text-xs">{doc.textLength??0} caràcters · {doc.chunkCount} fragments · qualitat tècnica {doc.qualityScore==null?"pendent de comprovar":`${Math.round(doc.qualityScore*100)}%`}</p>{showDocumentText&&(doc.extractedText||doc.textPreview) && <p className="mt-3 whitespace-pre-wrap break-words text-sm leading-6">{doc.extractedText||doc.textPreview}</p>}</article>)}</div></> : <p className="mt-4 text-sm">Sense document oficial vinculat.</p>}</section>
       <section id="dades" className="surface scroll-mt-32 p-5"><p className="page-eyebrow">Extracció · pendent de revisió</p><h2 className="section-title mt-1">Dades extretes de fonts oficials</h2>{record.externalEnrichment ? <><p className="mt-3 max-w-[75ch] text-sm leading-6">{record.externalEnrichment.summary}</p><dl className="mt-4 grid gap-4 text-sm sm:grid-cols-2">{([["Entitat", record.externalEnrichment.providerName], ["NIF", record.externalEnrichment.providerNif], ["Mecanisme", record.externalEnrichment.mechanism], ["Població", record.externalEnrichment.targetPopulation], [record.financingType === "concert" ? "Import global del document" : "Import", record.externalEnrichment.amount]] as const).filter(([, value]) => value != null).map(([label, value]) => <div key={label}><dt className="font-semibold text-muted-foreground">{label}</dt><dd>{typeof value === "number" ? new Intl.NumberFormat("ca-ES", { style: "currency", currency: "EUR" }).format(value) : String(value)}</dd>{record.financingType === "concert" && label === "Import global del document" && <p className="mt-1 text-xs text-muted-foreground">Aquest valor no està assignat a cada entitat. Consulta el repartiment de l’annex.</p>}</div>)}</dl></> : <p className="mt-3 text-sm">No hi ha camps contrastats estructurats per a aquesta execució.</p>}

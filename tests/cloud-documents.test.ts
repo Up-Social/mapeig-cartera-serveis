@@ -13,15 +13,16 @@ test('OCR resumes persisted pages after each Sandbox disappears',async()=>{
  const archivedName=`${archivedHash}.pdf`;
  const db={storage:{from:()=>({download:async()=>({data:new Blob(['%PDF-synthetic']),error:null}),list:async()=>({data:[{name:archivedName}],error:null})})},rpc:async(name:string,args:Record<string,unknown>)=>{if(name==='cloud_checkpoint')journal.set(String(args.p_key),args.p_value);return {data:true,error:null};},from:(table:string)=>{let key='';const q={select:()=>q,eq:(name:string,value:string)=>{if(name==='item_key')key=value;return q;},single:async()=>({data:table==='source_documents'?{id:'doc',source_record_id:'record',url:'https://unused.invalid',storage_path:`cases/record/documents/doc/${archivedName}`,storage_sha256:archivedHash}:null,error:null}),maybeSingle:async()=>({data:journal.has(key)?{value:journal.get(key)}:null,error:null})};return q;}};
  const c={db,task:'test',owner:'owner',generation:1} as unknown as Context;
- const create=Sandbox.create;const env=process.env.CLOUD_SANDBOX_SNAPSHOT;process.env.CLOUD_SANDBOX_SNAPSHOT='mock';let recognized=0,stopped=0;
- Sandbox.create=async()=>({writeFiles:async()=>{},runCommand:async(_cmd:string,args:string[])=>{if(args[3]==='tesseract')recognized++;return {exitCode:0};},readFileToBuffer:async({path}:{path:string})=>Buffer.from(path.endsWith('info.txt')?'Pages: 2':path.endsWith('page.txt')?'Text sintètic de prova amb prou longitud per comprovar la recuperació de cada pàgina.':''),stop:async()=>{stopped++;}}) as unknown as Awaited<ReturnType<typeof create>>;
+ const create=Sandbox.create;const env=process.env.CLOUD_SANDBOX_SNAPSHOT;process.env.CLOUD_SANDBOX_SNAPSHOT='mock';let recognized=0,stopped=0;const renderDpis:string[]=[];
+ Sandbox.create=async()=>({writeFiles:async()=>{},runCommand:async(_cmd:string,args:string[])=>{if(args[3]==='tesseract')recognized++;if(args[3]==='pdftoppm')renderDpis.push(args[args.indexOf('-r')+1]);return {exitCode:0};},readFileToBuffer:async({path}:{path:string})=>Buffer.from(path.endsWith('info.txt')?'Pages: 2':path.endsWith('page.txt')?'Text sintètic de prova amb prou longitud per comprovar la recuperació de cada pàgina.':''),stop:async()=>{stopped++;}}) as unknown as Awaited<ReturnType<typeof create>>;
  try {
   await assert.rejects(extractDocument(c,'job','doc','https://unused.invalid',true),/yield/);
   assert.equal(recognized,1);assert.equal(stopped,1);
   await assert.rejects(extractDocument(c,'job','doc','https://unused.invalid',true),/yield/);
   assert.equal(recognized,2);
   const result=await extractDocument(c,'job','doc','https://unused.invalid',true);
-  assert.equal(result.method,'pdf-ocr-markdown-v2');assert.equal(result.partial,false);assert.equal(recognized,2);assert.equal(stopped,3);
+  assert.equal(result.method,'pdf-ocr-markdown-v2');assert.equal(result.partial,false);assert.equal(recognized,2);assert.equal(stopped,3);assert.deepEqual(renderDpis,['300','300']);
+  assert.deepEqual(result.coverage,{pages:[{page:1,method:'ocr',defects:[]},{page:2,method:'ocr',defects:[]}],complete:true,ocrEngine:'tesseract',ocrLanguages:['cat','spa'],ocrDpi:300});
   await extractDocument(c,'job','doc','https://unused.invalid',true);assert.equal(stopped,3);
  }finally{Sandbox.create=create;if(env===undefined)delete process.env.CLOUD_SANDBOX_SNAPSHOT;else process.env.CLOUD_SANDBOX_SNAPSHOT=env;}
 });

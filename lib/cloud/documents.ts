@@ -7,6 +7,7 @@ import {hash} from '../pipeline/chunks';
 import {fetchOfficialDocument} from '../pipeline/official-resolution';
 import {archiveSource,readSource} from '../source-storage';
 type Extraction={text:string;method:string;hash:string;mime:string;partial:boolean;extraction_version:string;coverage?:unknown};
+const OCR_RENDER_DPI=300;
 export async function extractDocument(c:Context,job:string,id:string,url:string,ocr:boolean):Promise<Extraction>{
  const source=await c.db.from('source_documents').select('id,source_record_id,url,content_hash,storage_path,storage_sha256,mime_type').eq('id',id).single();
  if(source.error||!source.data)throw new CloudFailure('internal');
@@ -54,10 +55,10 @@ export async function extractDocument(c:Context,job:string,id:string,url:string,
   if(!pageCount)throw new CloudFailure('document');
   const recovered=await recoverPdfText(rawText,ocr,async page=>{
     await progress(c,'ocr',page-1,pageCount,`OCR de la pàgina ${page} de ${pageCount}`,job);
-    const key=`ocr:${digest}:${page}:${EXTRACTION_VERSION}`;
+    const key=`ocr:${digest}:${page}:dpi${OCR_RENDER_DPI}:${EXTRACTION_VERSION}`;
     const cached=await readCheckpoint<{text:string}>(c,key);
     if(cached)return cached.text;
-    const render=await quietCommand(sb!,'pdftoppm',['-png','-r','200','-f',String(page),'-l',String(page),'-singlefile','/tmp/source.pdf','/tmp/page'],{timeoutMs:60_000});
+    const render=await quietCommand(sb!,'pdftoppm',['-png','-r',String(OCR_RENDER_DPI),'-f',String(page),'-l',String(page),'-singlefile','/tmp/source.pdf','/tmp/page'],{timeoutMs:60_000});
     if(render.exitCode!==0)throw new CloudFailure('document');
     const recognize=await quietCommand(sb!,'tesseract',['/tmp/page.png','/tmp/page','-l','cat+spa'],{timeoutMs:120_000});
     if(recognize.exitCode!==0)throw new CloudFailure('document');
@@ -65,7 +66,7 @@ export async function extractDocument(c:Context,job:string,id:string,url:string,
     await checkpoint(c,key,{text});
     throw new CloudYield();
   },pageCount);
-  const result={...recovered,hash:digest,mime:'application/pdf'};
+  const result={...recovered,coverage:recovered.method==='pdf-ocr-markdown-v2'?{...recovered.coverage,ocrEngine:'tesseract',ocrLanguages:['cat','spa'],ocrDpi:OCR_RENDER_DPI}:recovered.coverage,hash:digest,mime:'application/pdf'};
   await checkpoint(c,`document:${id}:${EXTRACTION_VERSION}`,result);return result;
  }catch(error){
   if(error instanceof CloudFailure||error instanceof CloudYield)throw error;

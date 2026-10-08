@@ -14,6 +14,7 @@ import { getApprovedPage } from "@/lib/approved";
 import { recordReviewLabel } from "@/lib/record-review-state";
 import { DetailNavigation } from "@/components/detail-navigation";
 import { hasUnitSchema } from "@/lib/runtime-schema";
+import { executionMode } from "@/lib/pipeline/execution-mode";
 
 type ContextRow = { id: string; jobId?: string | null; provisionId?: string };
 async function contextPage(path: string, p: URLSearchParams, page: number): Promise<{ rows: ContextRow[]; pageCount: number }> {
@@ -91,6 +92,6 @@ export default async function RecordPage({ params, searchParams }: PageProps<"/r
     <DetailNavigation backHref={origin} backLabel="Tornar al llistat" previousHref={previous} nextHref={next}/>
     <div><p className="page-eyebrow">Estudi del cas · {record.sourceRecordId}{record.batchNumber ? ` · ${record.latestRunPurpose === 'record_operation' || record.latestRunPurpose === 'automated_single' ? 'Execució individual' : record.latestRunPurpose === 'automated_batch' || record.latestRunPurpose === 'automated_cloud' ? 'Lot' : 'Execució'} ${record.batchNumber}` : ""}</p><h1 className="detail-title max-w-[80ch] break-words">{record.title}</h1><p className="page-description">{recordReviewLabel(record)}</p></div>
     <CaseStudyNavigation showUnits={record.financingType==="concert"} />
-    <CaseStudy initialRecord={record} services={(services.data ?? []).map(service => ({ code: service.service_code, name: service.service_name, scope: service.target_population }))} origin={origin} next={next} issue={classifyIssue(record)} cloudBlocked={Boolean(cloudBlock)} concertExportState={concertExportState} />
+    <CaseStudy initialRecord={record} services={(services.data ?? []).map(service => ({ code: service.service_code, name: service.service_name, scope: service.target_population }))} origin={origin} next={next} issue={classifyIssue(record)} cloudBlocked={Boolean(cloudBlock)||executionMode()==='disabled'} concertExportState={concertExportState} />
   </section></main>;
 }
