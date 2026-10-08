@@ -2,6 +2,7 @@ import {EXTRACTION_VERSION} from '../pipeline/readable-document';
 import {randomUUID} from 'node:crypto';
 import {cloudDb,CLOUD_VERSION,rpc,lease,checkpoint,readCheckpoint,commit,progress,type Context} from './context';
 import {publicFailure,failureLabels,CloudYield,CloudFailure} from './errors';
+import {documentIssueKind} from './document-issue';
 import {discoverResolvedDocuments} from '../pipeline/discovery';
 import {extractDocument} from './documents';
 import {splitText,hash} from '../pipeline/chunks';
@@ -51,7 +52,7 @@ export async function advance(task:string,workflow:string):Promise<{done:boolean
     const run=await db.from('pipeline_runs').select('parameters').eq('id',t.data.run_id).maybeSingle();
     let result:Awaited<ReturnType<typeof extractDocument>>;
     try {result=await extractDocument(c,job.id,doc.id,doc.url,run.data?.parameters?.ocr_recovery===true);if(result.partial){await commit(c,job.id,'document_failure',{id:doc.id,coverage:result.coverage,kind:'incomplete_extraction'});throw new CloudFailure('document');}}
-    catch(error){if(error instanceof CloudFailure&&error.kind==='document'){await commit(c,job.id,'document_failure',{id:doc.id,kind:'document'});await checkpoint(c,`document_failed:${doc.id}`,{kind:'document'});processed=true;break;}throw error;}
+    catch(error){const kind=documentIssueKind(error);if(kind){await commit(c,job.id,'document_failure',{id:doc.id,kind,...(kind==='document'?{}:{coverage:{complete:false,issue:kind}})});await checkpoint(c,`document_failed:${doc.id}`,{kind});processed=true;break;}throw error;}
     const textHash=hash(result.text);
     const duplicate=await db.from('source_documents').select('id').eq('source_record_id',job.source_record_id).eq('extracted_text_hash',textHash).neq('id',doc.id).limit(1);
     if(duplicate.error)throw Error();
