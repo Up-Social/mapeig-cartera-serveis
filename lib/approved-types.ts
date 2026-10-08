@@ -1,6 +1,7 @@
 export type ApprovedFilters = { page: number; query: string; type: string };
 export type ApprovedProvision = {
   id: string; sourceRecordId: string; sourceId: string; title: string; sourceDataset: string; financingType: string;
+  sourceArchivePending: boolean;
   batchId: string | null; batchNumber: string | null; decision: "approved" | "corrected"; decisionDate: string | null;
   catalogVersion?: string | null; unitId?:string|null; centre?:string|null; period?:string|null; actType?:string|null; annexReference?:string|null;
   serviceCode: string; serviceName: string; providerName: string | null; providerNif: string | null; mechanism: string;
