@@ -25,14 +25,18 @@ export function IssueReprocessor({targets,blocked,unavailable}:{targets:IssueRep
   return ()=>{if(timer!==undefined)window.clearTimeout(timer);};
  },[]);
  const save=(value:Campaign)=>{current.current=value;setCampaign(value);localStorage.setItem(STORAGE_KEY,JSON.stringify(value));};
+ async function latestRecord(id:string){
+  const response=await fetch(`/api/records/${id}`,{cache:"no-store",signal:AbortSignal.timeout(15_000)});
+  if(!response.ok)throw Error("No s'ha pogut consultar l'estat; comprova el cas abans de repetir-lo.");
+  const payload=await response.json() as {record?:SourceRecord};
+  if(!payload.record)throw Error("El registre ja no està disponible; comprova'l abans de repetir-lo.");
+  return payload.record;
+ }
  async function waitForResult(id:string,jobId:string){
   const deadline=Date.now()+MAX_WAIT_MS;
   while(Date.now()<deadline){
-   const response=await fetch(`/api/records/${id}`,{cache:"no-store",signal:AbortSignal.timeout(15_000)});
-   if(!response.ok)throw Error("No s'ha pogut consultar l'estat; comprova el cas abans de repetir-lo.");
-   const payload=await response.json() as {record?:SourceRecord};
-   const record=payload.record;
-   if(!record)throw Error("El registre ja no està disponible; comprova'l abans de repetir-lo.");
+   const record=await latestRecord(id);
+   if(record.currentJobId&&record.currentJobId!==jobId)throw Error("Una altra execució ha substituït aquest treball; comprova el cas abans de repetir-lo.");
    if(record.currentJobId===jobId&&isRecordOperationTerminal("process",record))return;
    await new Promise(resolve=>setTimeout(resolve,8_000));
   }
@@ -42,14 +46,21 @@ export function IssueReprocessor({targets,blocked,unavailable}:{targets:IssueRep
   const prior=current.current??emptyCampaign();
   let jobId=prior.accepted[target.id];
   if(!jobId){
-   const response=await fetch(`/api/records/${target.id}/operation`,{
-    method:"POST",headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({operation:"process",...(target.expectedJobId?{expectedJobId:target.expectedJobId}:{})}),
-    signal:AbortSignal.timeout(25_000),
-   });
-   const payload=await response.json() as {error?:string;result?:{jobId?:string}};
-   if(!response.ok||!payload.result?.jobId)throw Error(payload.error??"No s'ha pogut iniciar; comprova el cas abans de repetir-lo.");
-   jobId=payload.result.jobId;
+   const record=await latestRecord(target.id);
+   if((record.currentJobId??null)!==(target.expectedJobId??null)){
+    if(!record.currentJobId)throw Error("El treball anterior ha canviat; comprova el cas abans de repetir-lo.");
+    // The previous POST may have succeeded before its response was lost.
+    jobId=record.currentJobId;
+   }else{
+    const response=await fetch(`/api/records/${target.id}/operation`,{
+     method:"POST",headers:{"Content-Type":"application/json"},
+     body:JSON.stringify({operation:"process",...(target.expectedJobId?{expectedJobId:target.expectedJobId}:{})}),
+     signal:AbortSignal.timeout(25_000),
+    });
+    const payload=await response.json() as {error?:string;result?:{jobId?:string}};
+    if(!response.ok||!payload.result?.jobId)throw Error(payload.error??"No s'ha pogut iniciar; comprova el cas abans de repetir-lo.");
+    jobId=payload.result.jobId;
+   }
    save({...current.current!,accepted:{...current.current!.accepted,[target.id]:jobId}});
   }
   await waitForResult(target.id,jobId);
@@ -58,10 +69,11 @@ export function IssueReprocessor({targets,blocked,unavailable}:{targets:IssueRep
  async function start(){
   if(running||!targets.length||unavailable)return;
   const existing=current.current;
-  const pending=targets.filter(target=>!existing?.done.includes(target.id)&&(!existing?.errors[target.id]||!!existing.accepted[target.id]));
+  const pending=targets.filter(target=>!existing?.done.includes(target.id));
   if(!pending.length)return;
   if(!window.confirm(`Es reprocessaran fins a ${pending.length} casos, amb lectura de fonts i cost d'IA. Cap resultat s'aprovarà automàticament. Vols continuar?`))return;
   if(!existing)save(emptyCampaign());
+  else save({...existing,errors:{}});
   stop.current=false;setStopping(false);setRunning(true);
   let cursor=0;
   try{
@@ -69,8 +81,9 @@ export function IssueReprocessor({targets,blocked,unavailable}:{targets:IssueRep
     while(!stop.current&&cursor<pending.length){
      const target=pending[cursor++];
      try{await runOne(target);}catch(error){
-      const message=error instanceof Error?error.message:"Cal comprovar el cas abans de repetir-lo.";
-      save({...current.current!,errors:{...current.current!.errors,[target.id]:message}});
+     const message=error instanceof Error?error.message:"Cal comprovar el cas abans de repetir-lo.";
+     save({...current.current!,errors:{...current.current!.errors,[target.id]:message}});
+     if(error instanceof TypeError||error instanceof DOMException)stop.current=true;
      }
     }
    }));
@@ -79,7 +92,7 @@ export function IssueReprocessor({targets,blocked,unavailable}:{targets:IssueRep
  const done=targets.filter(target=>campaign?.done.includes(target.id)).length;
  const accepted=targets.filter(target=>!!campaign?.accepted[target.id]).length;
  const errors=targets.filter(target=>!!campaign?.errors[target.id]).length;
- const pending=targets.filter(target=>!campaign?.done.includes(target.id)&&(!campaign?.errors[target.id]||!!campaign.accepted[target.id])).length;
+ const pending=targets.filter(target=>!campaign?.done.includes(target.id)).length;
  const failedTargets=targets.filter(target=>!!campaign?.errors[target.id]);
  return <section className="surface p-4" aria-labelledby="issue-reprocess-title">
   <h2 id="issue-reprocess-title" className="font-semibold">Tornar a processar les incidències</h2>
