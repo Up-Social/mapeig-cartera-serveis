@@ -154,11 +154,11 @@ export async function analyzeRecord(c:Context,job:{id:string;source_record_id:st
   const rolesToReview=r.data.financing_type==='concert'&&result.classification!=='insufficient_evidence'
    ?concertRolesNeedingReview(originalRoles,chunks).filter(name=>!accreditations[name]):[];
   if(rolesToReview.length){
-   // Review all malformed determinant citations together, against the exact matching window.
+   // Independently review missing facts and malformed citations in the same pinned evidence window.
    const names=concertRolesNeedingReview(originalRoles,chunks);
    const review=await providerRequest(c,`ai:${job.id}:${CONCERT_ROLE_REPAIR_VERSION}`,{model,
     instructions:CONCERT_ROLE_REPAIR_INSTRUCTIONS,input:JSON.stringify({title:r.data.title,
-     roles:Object.fromEntries(names.map(name=>[name,originalRoles[name]])),
+     roles:Object.fromEntries(names.map(name=>[name,originalRoles?.[name]??null])),
      evidence:chunks.map((chunk,i)=>({ordinal:i+1,content:chunk.content}))}),
     text:{format:{type:'json_schema',name:'concert_role_review',strict:true,schema:concertRoleReviewSchema(names,chunks.length)}},max_output_tokens:1200});
    await rpc(c.db,'cloud_provider_usage',{...lease(c),p_key:`usage:${job.id}:${CONCERT_ROLE_REPAIR_VERSION}`,p_usage:review.usage??{}});
