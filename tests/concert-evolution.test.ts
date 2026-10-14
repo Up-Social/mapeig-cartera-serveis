@@ -77,6 +77,17 @@ test('same RESES and both documented parties can propose a cession despite the c
 test('publication identifier alone never links different entities',()=>{
  assert.deepEqual(proposeUnitLinks([lu('a'),lu('b',{actType:'cession',publishedAt:'2024-02-01',providerNif:'G87654321',originReference:'etauler:1:a'})]),[]);
 });
+test('a printed group code keeps all RESES/NIF alternatives for review without equating leaf services',()=>{
+ const originals=[lu('a',{serviceCode:'1.2.6.2.4.1'}),lu('b',{serviceCode:'1.2.6.2.4.1'})];
+ const change=lu('c',{actType:'modification',publishedAt:'2024-03-01',serviceCode:'1.2.6.2.4.1.1'});
+ const candidates=proposeUnitLinks([...originals,change]);
+ assert.deepEqual(candidates.map(c=>c.earlierUnitId),['a','b']);
+ assert.ok(candidates.every(c=>c.method==='reses_nif'&&c.evidence.includes('no acredita equivalència')));
+ assert.deepEqual(proposeUnitLinks([lu('a',{serviceCode:'1.2.6.2.4.1.2'}),change]),[]);
+ assert.deepEqual(proposeUnitLinks([lu('a',{serviceCode:'1.2.6.2.4.10'}),change]),[]);
+ assert.deepEqual(proposeUnitLinks([...originals,{...change,resesCode:null}]),[]);
+ assert.deepEqual(proposeUnitLinks([...originals,{...change,providerNif:null}]),[]);
+});
 test('SIE annualities are explicit rather than multiplying an annual price by four',()=>{
  const d=data();d.reviews[0]={...review('a'),period_start:'2025-10-01',period_end:'2029-09-30',effective_at:'2025-10-01',amount_cents:176937264,annualities:[
  {start:'2025-10-01',end:'2025-12-31',amountCents:11058579},{start:'2026-01-01',end:'2026-12-31',amountCents:44234316},

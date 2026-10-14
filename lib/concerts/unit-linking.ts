@@ -10,6 +10,10 @@ export type ConcertUnitForLink={
 export type UnitLinkCandidate={laterUnitId:string;earlierUnitId:string;method:'explicit_resolution'|'reses_nif';evidence:string};
 const normalize=(value:string|null|undefined)=>(value??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().replace(/[^A-Z0-9/]+/g,' ').trim();
 const same=(a:string|null,b:string|null)=>Boolean(a&&b&&normalize(a)===normalize(b));
+// Official annexes sometimes print a service group while a later act prints
+// its leaf. This permits a review candidate, never a service equivalence.
+const relatedService=(a:string,b:string)=>/^\d+(?:\.\d+)+$/.test(a)&&/^\d+(?:\.\d+)+$/.test(b)&&
+ (a.startsWith(`${b}.`)||b.startsWith(`${a}.`));
 export function proposeUnitLinks(units:ConcertUnitForLink[]):UnitLinkCandidate[]{
  const links:UnitLinkCandidate[]=[];
  for(const later of units){
@@ -20,9 +24,11 @@ export function proposeUnitLinks(units:ConcertUnitForLink[]):UnitLinkCandidate[]
   for(const earlier of units){
    if(later.recordId===earlier.recordId||!later.publishedAt||!earlier.publishedAt||earlier.publishedAt>later.publishedAt)continue;
    if(later.resesCode&&earlier.resesCode&&!same(later.resesCode,earlier.resesCode))continue;
-   if(later.serviceCode&&earlier.serviceCode&&!same(later.serviceCode,earlier.serviceCode))continue;
+   const groupedService=Boolean(later.serviceCode&&earlier.serviceCode&&!same(later.serviceCode,earlier.serviceCode)&&relatedService(later.serviceCode,earlier.serviceCode));
+   if(later.serviceCode&&earlier.serviceCode&&!same(later.serviceCode,earlier.serviceCode)&&!groupedService)continue;
    if(later.territory&&earlier.territory&&!same(later.territory,earlier.territory))continue;
    const sameNif=same(later.providerNif,earlier.providerNif),sameReses=same(later.resesCode,earlier.resesCode);
+   if(groupedService&&!(sameNif&&sameReses))continue;
    if(later.actType!=='cession'&&later.providerNif&&earlier.providerNif&&!sameNif)continue;
    const originalNumber=concertResolutionNumbers(earlier.recordTitle)[0];
    const explicit=Boolean((originalNumber&&citedNumbers.includes(originalNumber))||
@@ -38,6 +44,7 @@ export function proposeUnitLinks(units:ConcertUnitForLink[]):UnitLinkCandidate[]
     evidence:explicit?`Referència citada: ${later.originReference??citedNumbers.join(', ')}. RESES ${later.resesCode??'pendent'}, NIF ${later.providerNif??'pendent'}; contrast manual obligatori.`:
      cession?`Cessió: RESES ${later.resesCode}; el passatge cita NIF anterior ${earlier.providerNif} i nou ${later.providerNif}. Cal validar dates i continuïtat.`:
      `RESES ${later.resesCode} + NIF ${later.providerNif}${later.serviceCode?` + servei ${later.serviceCode}`:''}; contrast de període i document pendent.`});
+   if(groupedService)candidates[candidates.length-1].evidence+=` Codi agrupador ${earlier.serviceCode} / ${later.serviceCode}: no acredita equivalència; cal contrastar el servei concret i totes les línies alternatives.`;
   }
   // An explicit reference takes precedence; several referenced lines remain
   // alternatives. Never pick a mother just by the highest score or latest date.
