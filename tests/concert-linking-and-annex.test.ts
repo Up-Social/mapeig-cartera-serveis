@@ -150,3 +150,26 @@ test('mixed awards have the same operative interpretation in labels and processi
  const text='Resolc: 1. Denegar les peticions de l’annex 1. 2. Adjudicar les places de l’annex 2.';
  assert.equal(concertCaseKeys(title,[],text)[0],'award');
 });
+
+function mergedRow(nif:string,reses:string,disposition=''){
+ const cells=[[27,nif],[42,nif?'Entitat Exemple':''],[78,disposition],[194,reses],[240,'Servei acreditat'],[280,'5'],[290,'1.234,56 €']] as const;
+ let row='';for(const [column,value] of cells)row=row.padEnd(column)+value;return row;
+}
+const mergedHeader=' '.repeat(27)+'NIF entitat'.padEnd(15)+'Nom entitat'.padEnd(36)+'Disposició'.padEnd(116)+'Codi S'.padEnd(46)+'Tipologia de servei'.padEnd(40)+'Places';
+test('merged identity cells retain each service and preserve previously assigned row identities',()=>{
+ const first=mergedRow('G12345678','S00001','2600000001'),second=mergedRow('G87654321','S00003','2600000002');
+ const raw=[mergedHeader,first,mergedRow('','S00002'),second,mergedRow('','S00004')].join('\n');
+ const rows=extractProgram317Rows(raw);
+ assert.deepEqual(rows.map(r=>[r.row,r.nif,r.resesCode]),[[1,'G12345678','S00001'],[2,'G87654321','S00003'],[3,'G12345678','S00002'],[4,'G87654321','S00004']]);
+ assert.ok(rows[2].quote.includes('G12345678'));assert.ok(rows[2].quote.includes('S00002'));
+ assert.ok(raw.replace(/\s+/g,' ').includes(rows[2].quote));
+ assert.ok(rows.every(r=>!('amountCents' in r)));
+});
+test('merged identities are not inherited across pages, unknown layouts or different dispositions',()=>{
+ const first=mergedRow('G12345678','S00001','2600000001');
+ for(const text of [first+'\n'+mergedRow('','S00002'),mergedHeader+'\n'+first+'\f'+mergedHeader+'\n'+mergedRow('','S00002'),mergedHeader+'\n'+first+'\n'+mergedRow('','S00002','2600000099')])assert.equal(extractProgram317Rows(text).length,1);
+});
+test('an unreadable nonblank identity never inherits a previous entity',()=>{
+ const text=[mergedHeader,mergedRow('G12345678','S00001','2600000001'),mergedRow('ILLEGIBLE','S00002'),mergedRow('','S00003')].join('\n');
+ assert.equal(extractProgram317Rows(text).length,1);
+});

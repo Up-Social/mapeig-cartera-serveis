@@ -54,7 +54,35 @@ export function extractProgram317Rows(text:string){
    previousRow=lineIndex;
   }
  }
- return rows;
+ // Retain the original explicit-row numbering: persisted unit identities use it.
+ // Append only continuation rows whose entity/disposition are printed above on
+ // the same page, in a recognised table. Never inherit across a page or annex.
+ const continuations:typeof rows=[];
+ for(const [index,pageText] of text.split('\f').entries()){
+  const lines=pageText.split('\n');
+  const header=lines.find(line=>/NIF entitat/.test(line)&&/Disposició/.test(line)&&/Codi S/.test(line));
+  if(!header)continue;
+  const nifColumn=header.indexOf('NIF entitat'),nameColumn=header.indexOf('Nom entitat');
+  const serviceColumn=header.indexOf('Tipologia de servei'),placesColumn=header.indexOf('Places');
+  if(nameColumn<=nifColumn)continue;
+  let identity:typeof rows[number]|null=null,identityLine=-1,lastServiceLine=-1;
+  for(const [lineIndex,line] of lines.entries()){
+   const explicit=line.match(/\b([A-Z]\d{7}[0-9A-Z])\b.+?\b(\d{10})\b.+?\b(S\d{5})\b/);
+   if(explicit){identity=rows.find(row=>row.page===index+1&&row.nif===explicit[1]&&row.resesCode===explicit[3]&&row.quote===line.trim().replace(/\s+/g,' '))??null;identityLine=lineIndex;lastServiceLine=lineIndex;continue;}
+   const reses=line.match(/\bS\d{5}\b/);
+   if(!reses)continue;
+   // A nonblank identity cell cannot be treated as a merged cell.
+   if(line.slice(nifColumn,nameColumn).trim()){identity=null;continue;}
+   if(!identity||lineIndex<=identityLine||!/[\d.]+,\d{2}\s*€/.test(line))continue;
+   const disposition=line.slice(0,reses.index).match(/\b\d{10}\b/);
+   if(disposition&&disposition[0]!==identity.dispositionNumber){identity=null;continue;}
+   const quote=lines.slice(identityLine,lineIndex+1).join('\n').trim().replace(/\s+/g,' ');
+   continuations.push({page:index+1,row:rows.length+continuations.length+1,nif:identity.nif,resesCode:reses[0],dispositionNumber:identity.dispositionNumber,
+    observedProviderName:identity.observedProviderName,observedServiceName:serviceColumn>=0&&placesColumn>serviceColumn?printedColumn(lines,serviceColumn,placesColumn,Math.max(lastServiceLine+1,lineIndex-6),lineIndex):null,quote});
+   lastServiceLine=lineIndex;
+  }
+ }
+ return [...rows,...continuations];
 }
 
 /** Observations from the economic annex, before any service or entity is approved. */
