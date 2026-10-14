@@ -1,0 +1,562 @@
+## Pàgina 17
+
+R/N: 21728/CS00210
+                                                                                                                                                                                                                                                Versió 1-2025
+
+
+
+
+                                                   ANNEX 6 IMPORTS ECONÒMICS
+
+
+
+
+GENERALITAT DE CATALUNYA
+                                                                                                                                                                                                                                                                    Cost 1 de
+                                                                                                                                                                                                                                                  Nombre       setembre - 31
+                                                                                                                                                                                                                                       Preu       de         de desembre de
+                           Centre                                                Codi                                                                          Partida          Expedient                                              diari/     places a   2025 (IVA inclòs
+                           gestor   FUE         Nom entitat        NIF entitat   cartera      Tipologia                    Codi S   Nom servei                 pressupostària   GECAT       Disposició   Posició   Municipi      IVA   mensual    assignar           si escau)
+                           BE2151                                                                                                                                                                                                                       80      225.663,05 €
+                                                                                              Servei de centre de dia de
+                                                Fundació LaFact                               teràpia ocupacional (STO)             Centre Ocupacional.                         PL/BE-
+                                    FUE-2025-   Factoria Social                  1.2.6.2.4.   per a persones amb                    Fundació Privada           D/251000200/     2025-       26003131
+                           BE2151   04629508    de Terrassa        G58049016     1            discapacitat intel·lectual   S00845   President Amat Roumens     315P/0000        N281        42                1    Terrassa       4%   669,91 €          8       22.294,60 €
+                                                                                              Servei de centre de dia               Servei ocupacional
+                                                Fundació LaFact                               ocupacional d'inserció                d'inserció. Fundació                        PL/BE-
+                                    FUE-2025-   Factoria Social                  1.2.6.2.4.   (SOI) per a persones amb              Privada President Amat     D/251000200/     2025-       26003131
+                           BE2151   04629508    de Terrassa        G58049016     2            discapacitat intel·lectual   S03532   Roumens                    315P/0000        N281        42                1    Terrassa       4%   483,63 €          3         6.035,70 €
+                                                                                              Servei de centre de dia de
+                                                                                              teràpia ocupacional (STO)
+                                    FUE-2025-   Fundació Privada                 1.2.6.2.4.   per a persones amb                    Servei de Teràpia          D/251000200/     PL/BE-      26003131
+                           BE2151   04626599    El Maresme         G60703303     1            discapacitat intel·lectual   S07194   Ocupacional Pere Parera    315P/0000        2025-N76    64                1    Argentona      0%   669,91 €          1         2.679,64 €
+                                                                                              Servei de centre de dia de
+                                                                                              teràpia ocupacional (STO)
+                                    FUE-2025-   Fundació Privada                 1.2.6.2.4.   per a persones amb                    Taller Ocupacional Jaume   D/251000200/     PL/BE-      26003131
+                           BE2151   04626599    El Maresme         G60703303     1            discapacitat intel·lectual   S00876   Isern                      315P/0000        2025-N76    64                1    Mataró         0%   669,91 €          1         2.679,64 €
+                                                                                              Servei de centre de dia de
+                                                                                              teràpia ocupacional (STO)
+                                    FUE-2025-   Fundació Privada                 1.2.6.2.4.   per a persones amb                    Centre Ocupacional Poble   D/251000200/     PL/BE-      26003131
+                           BE2151   04626599    El Maresme         G60703303     1            discapacitat intel·lectual   S11068   Sec                        315P/0000        2025-N76    64                1    Mataró         0%   669,91 €          1         2.679,64 €
+                                                                                              Servei de centre de dia
+                                                                                              ocupacional d'inserció
+                                    FUE-2025-   Fundació Privada                 1.2.6.2.4.   (SOI) per a persones amb              Servei ocupacional         D/251000200/     PL/BE-      26003131
+                           BE2151   04626599    El Maresme         G60703303     2            discapacitat intel·lectual   S03250   d'inserció Jaume Isern     315P/0000        2025-N76    64                1    Mataró         0%   483,63 €          1         1.934,52 €
+                                                                                              Servei de centre de dia de
+                                                                                              teràpia ocupacional (STO)
+                                    FUE-2025-                                    1.2.6.2.4.   per a persones amb                    Servei Ocupacional         D/251000200/     PL/BE-      26003131
+                           BE2151   04628739    Fundació la Llar   G63579452     1            discapacitat intel·lectual   S01366   Coloma                     315P/0000        2025-N30    67                1    Avià           0%   669,91 €          3         8.038,92 €
+                                                                                              Servei de centre de dia
+                                                                                              ocupacional d'inserció
+                                    FUE-2025-                                    1.2.6.2.4.   (SOI) per a persones amb              Servei ocupacional         D/251000200/     PL/BE-      26003131
+                           BE2151   04628739    Fundació la Llar   G63579452     2            discapacitat intel·lectual   S03443   d'inserció La Llar         315P/0000        2025-N30    67                1    Avià           0%   483,63 €          1         1.934,52 €
+                                                                                              Servei de centre de dia de
+                                                T.E.C.S.A.L.,                                 teràpia ocupacional (STO)
+                                    FUE-2025-   Sociedad                         1.2.6.2.4.   per a persones amb                    Servei de teràpia          D/251000200/     PL/BE-      26003131               Cornellà de
+                           BE2151   04587766    Anónima            A58083080     1            discapacitat intel·lectual   S01892   ocupacional Tecsalsa       315P/0000        2025-N12    43                1    Llobregat      4%   669,91 €          5       13.934,13 €
+
+                                                                                                                                                                                                                                       17/24
+
+
+
+
+                                            Doc.original signat per:                              Document electrònic garantit amb signatura electrònica. Podeu verificar la seva integritat al web csv.gencat.cat fins al
+                                            Monica Martinez Bravo 06/08/2025
+                                                                                                                                                      06/08/2028
+                                                                                                                                                                                                                                                     Data creació còpia:
+                                                                                                                                                                                                                                                    06/08/2025 08:20:54
+                                                                                                                                         Original electrònic / Còpia electrònica autèntica
+                                                                                                                                                                                                                                                      Pàgina 17 de 24
+                                                                                                                                                 CODI SEGUR DE VERIFICACIÓ
+                                                                                                                            *092HINU81PFYDPMCULQ46MVPUIQTTU0X*
+                                                                                                                                          092HINU81PFYDPMCULQ46MVPUIQTTU0X
+
+## Pàgina 18
+
+R/N: 21728/CS00210
+                                                                                                                                                                                                                                                   Versió 1-2025
+
+
+
+
+                                                                                                                                                                                                                                                                       Cost 1 de
+
+
+
+
+GENERALITAT DE CATALUNYA
+                                                                                                                                                                                                                                                     Nombre       setembre - 31
+                                                                                                                                                                                                                                          Preu       de         de desembre de
+                           Centre                                                Codi                                                                            Partida          Expedient                                               diari/     places a   2025 (IVA inclòs
+                           gestor   FUE         Nom entitat        NIF entitat   cartera      Tipologia                     Codi S   Nom servei                  pressupostària   GECAT       Disposició   Posició   Municipi       IVA   mensual    assignar           si escau)
+                                                                                              Servei de centre de dia de
+                                                                                              teràpia ocupacional (STO)
+                                                T.E.C.S.A.L.,                                 per a persones amb
+                                    FUE-2025-   Sociedad                         1.2.6.2.4.   discapacitat intel·lectual,            Servei de teràpia           D/251000200/     PL/BE-      26003131               Cornellà de
+                           BE2151   04587766    Anónima            A58083080     1            amb auxiliar                  S01892   ocupacional Tecsalsa        315P/0000        2025-N12    43                1    Llobregat       4%   891,88 €          5       18.551,10 €
+                                                                                              Servei de centre de dia de
+                                                                                              teràpia ocupacional (STO)
+                                    FUE-2025-   Fundació Privada                 1.2.6.2.4.   per a persones amb                     Servei de teràpia           D/251000200/     PL/BE-      26003131               Vilafranca
+                           BE2151   04621625    Mas Albornà        G63570709     1            discapacitat intel·lectual    S02447   ocupacional Mas Albornà     315P/0000        2025-N27    66                1    del Penedès     0%   669,91 €          1         2.679,64 €
+                                                                                              Servei de centre de dia de
+                                                                                              teràpia ocupacional (STO)
+                                                                                              per a persones amb
+                                    FUE-2025-   Fundació Privada                 1.2.6.2.4.   discapacitat intel·lectual,            Servei de teràpia           D/251000200/     PL/BE-      26003131               Vilafranca
+                           BE2151   04621625    Mas Albornà        G63570709     1            amb auxiliar                  S02447   ocupacional Mas Albornà     315P/0000        2025-N27    66                1    del Penedès     0%   891,88 €          1         3.567,52 €
+                                                                                              Servei de centre de dia de
+                                                Prodiscapacitats                              teràpia ocupacional (STO)
+                                    FUE-2025-   Fundació Privada                 1.2.6.2.4.   per a persones amb                     Centre Ocupacional Vapor    D/251000200/     PL/BE-      26003131
+                           BE2151   04625589    Terrassenca        G60941861     1            discapacitat intel·lectual    S02872   Sud                         315P/0000        2025-N85    65                1    Terrassa        4%   669,91 €          4       11.147,30 €
+                                                                                              Servei de centre de dia
+                                                Prodiscapacitats                              ocupacional d'inserció
+                                    FUE-2025-   Fundació Privada                 1.2.6.2.4.   (SOI) per a persones amb               Centre Ocupacional          D/251000200/     PL/BE-      26003131
+                           BE2151   04625589    Terrassenca        G60941861     2            discapacitat intel·lectual    S03453   d'Inserció Vapor Sud        315P/0000        2025-N85    65                1    Terrassa        4%   483,63 €          5       10.059,50 €
+                                                                                              Servei de centre de dia de
+                                                                                              teràpia ocupacional (STO)                                                           PL/BE-
+                                    FUE-2025-   Fundació                         1.2.6.2.4.   per a persones amb                     Centre Ocupacional          D/251000200/     2025-       26003131
+                           BE2151   04631012    Ampans             G08444671     1            discapacitat intel·lectual    S07124   Canonge Muntanyà            315P/0000        N317        45                1    Manresa         0%   669,91 €          1         2.679,64 €
+                                                                                              Servei de centre de dia de
+                                                                                              teràpia ocupacional (STO)                                                           PL/BE-
+                                    FUE-2025-   Fundació                         1.2.6.2.4.   per a persones amb                     Centre Ocupacional La       D/251000200/     2025-       26003131               Sant Fruitós
+                           BE2151   04631012    Ampans             G08444671     1            discapacitat intel·lectual    S10589   Sagrera                     315P/0000        N317        45                1    de Bages        0%   669,91 €          4       10.718,56 €
+                                                                                              Servei de centre de dia de
+                                                                                              teràpia ocupacional (STO)                                                           PL/BE-
+                                    FUE-2025-   Fundació                         1.2.6.2.4.   per a persones amb                                                 D/251000200/     2025-       26003131               Sant Vicenç
+                           BE2151   04631012    Ampans             G08444671     1            discapacitat intel·lectual    S10751   Centre Ocupacional Encaix   315P/0000        N317        45                1    de Castellet    0%   669,91 €          6       16.077,84 €
+                                                                                              Servei de centre de dia de
+                                                                                              teràpia ocupacional (STO)
+                                                                                              per a persones amb                                                                  PL/BE-
+                                    FUE-2025-   Fundació                         1.2.6.2.4.   discapacitat intel·lectual,            Centre Ocupacional Sant     D/251000200/     2025-       26003131               Sant Joan de
+                           BE2151   04631012    Ampans             G08444671     1            amb auxiliar                  S09458   Joan                        315P/0000        N317        45                1    Vilatorrada     0%   891,88 €          1         3.567,52 €
+
+
+
+                                                                                                                                                                                                                                          18/24
+
+
+
+
+                                            Doc.original signat per:                               Document electrònic garantit amb signatura electrònica. Podeu verificar la seva integritat al web csv.gencat.cat fins al
+                                            Monica Martinez Bravo 06/08/2025
+                                                                                                                                                       06/08/2028
+                                                                                                                                                                                                                                                        Data creació còpia:
+                                                                                                                                                                                                                                                       06/08/2025 08:20:54
+                                                                                                                                          Original electrònic / Còpia electrònica autèntica
+                                                                                                                                                                                                                                                         Pàgina 18 de 24
+                                                                                                                                                  CODI SEGUR DE VERIFICACIÓ
+                                                                                                                             *092HINU81PFYDPMCULQ46MVPUIQTTU0X*
+                                                                                                                                           092HINU81PFYDPMCULQ46MVPUIQTTU0X
+
+## Pàgina 19
+
+R/N: 21728/CS00210
+                                                                                                                                                                                                                                                      Versió 1-2025
+
+
+
+
+                                                                                                                                                                                                                                                                          Cost 1 de
+
+
+
+
+GENERALITAT DE CATALUNYA
+                                                                                                                                                                                                                                                        Nombre       setembre - 31
+                                                                                                                                                                                                                                             Preu       de         de desembre de
+                           Centre                                                Codi                                                                               Partida          Expedient                                               diari/     places a   2025 (IVA inclòs
+                           gestor   FUE         Nom entitat        NIF entitat   cartera      Tipologia                     Codi S   Nom servei                     pressupostària   GECAT       Disposició   Posició   Municipi       IVA   mensual    assignar           si escau)
+                                                                                              Servei de centre de dia
+                                                                                              d'atenció especialitzada
+                                                Fundació Privada                              temporal o permanent                   Centre d'Atenció                                PL/BE-
+                                    FUE-2025-   Arc de Sant                                   per a persones amb                     Especialitzada Arc de Sant     D/251000200/     2025-       26003131
+                           BE2151   04625256    Martí              G63778815     1.2.6.2.1    discapacitat intel·lectual    S07165   Martí                          315M/0000        N685        68                1    Martorell       4%    55,30 €          2         9.662,02 €
+                                                                                              Servei de centre de dia de
+                                                                                              teràpia ocupacional (STO)
+                                                Fundació Privada                              per a persones amb                                                                     PL/BE-
+                                    FUE-2025-   Arc de Sant                      1.2.6.2.4.   discapacitat intel·lectual,                                           D/251000200/     2025-       26003131
+                           BE2151   04625260    Martí              G63778815     1            amb auxiliar                  S07166   STO Arc de Sant Martí          315P/0000        N685        68                2    Martorell       4%   891,88 €          2         7.420,44 €
+                                                                                              Servei de centre de dia de
+                                                                                              teràpia ocupacional (STO)                                                              PL/BE-
+                                    FUE-2025-   Fundació Privada                 1.2.6.2.4.   per a persones amb                     Servei de teràpia              D/251000200/     2025-       26003131
+                           BE2151   04628841    Auria              G60136637     1            discapacitat intel·lectual    S07976   ocupacional Les Comes          315P/0000        N235        63                2    Igualada        0%   669,91 €          3         8.038,92 €
+                                                                                              Servei de centre de dia
+                                                                                              ocupacional d'inserció                                                                 PL/BE-
+                                    FUE-2025-   Fundació Privada                 1.2.6.2.4.   (SOI) per a persones amb               Servei ocupacional             D/251000200/     2025-       26003131
+                           BE2151   04628841    Auria              G60136637     2            discapacitat intel·lectual    S10752   d'inserció Les Comes           315P/0000        N235        63                2    Igualada        0%   483,63 €          4         7.738,08 €
+                                                                                              Servei de centre de dia
+                                                                                              d'atenció especialitzada
+                                                                                              temporal o permanent                                                                   PL/BE-
+                                    FUE-2025-   Fundació Privada                              per a persones amb                     Servei de centre de dia per    D/251000200/     2025-       26003131
+                           BE2151   04629159    Auria              G60136637     1.2.6.2.1    discapacitat intel·lectual    S07977   discapacitats Victor Sevilla   315M/0000        N235        63                1    Jorba           0%    55,30 €          4       18.580,80 €
+                                                                                              Servei de centre de dia de
+                                                                                              teràpia ocupacional (STO)                                                              PL/BE-
+                                    FUE-2025-   Fundació Sant                    1.2.6.2.4.   per a persones amb                     STO Sant Tomàs-Sant            D/251000200/     2025-       26003131               Sant Hipòlit
+                           BE2151   04620164    Tomàs              G66918095     1            discapacitat intel·lectual    S10786   Hipòlit de Voltregà            315P/0000        N320        72                1    de Voltregà     0%   669,91 €          4       10.718,56 €
+                                                                                              Servei de centre de dia
+                                                                                              ocupacional d'inserció                 Servei Ocupacional                              PL/BE-
+                                    FUE-2025-   Fundació Sant                    1.2.6.2.4.   (SOI) per a persones amb               d'Inserció Sant Tomàs -        D/251000200/     2025-       26003131
+                           BE2151   04620164    Tomàs              G66918095     2            discapacitat intel·lectual    S08222   Calldetenes                    315P/0000        N320        72                1    Calldetenes     0%   483,63 €          1         1.934,52 €
+                                                Associació de                                 Servei de centre de dia de
+                                                Famílies amb                                  teràpia ocupacional (STO)              STO Associació de Famílies                      PL/BE-                             Santa Maria
+                                    FUE-2025-   Discapacitat del                 1.2.6.2.4.   per a persones amb                     amb Discapacitat del Baix      D/251000200/     2025-       26003131               de
+                           BE2151   04627629    Baix Montseny      G65569659     1            discapacitat intel·lectual    S10168   Montseny                       315P/0000        N376        71                1    Palautordera    0%   669,91 €          2         5.359,28 €
+                                                                                              Servei de centre de dia de
+                                                Associació de                                 teràpia ocupacional (STO)
+                                                Famílies amb                                  per a persones amb                     STO Associació de Famílies                      PL/BE-                             Santa Maria
+                                    FUE-2025-   Discapacitat del                 1.2.6.2.4.   discapacitat intel·lectual,            amb Discapacitat del Baix      D/251000200/     2025-       26003131               de
+                           BE2151   04627629    Baix Montseny      G65569659     1            amb auxiliar                  S10168   Montseny                       315P/0000        N376        71                1    Palautordera    0%   891,88 €          2         7.135,04 €
+
+                                                                                                                                                                                                                                             19/24
+
+
+
+
+                                            Doc.original signat per:                               Document electrònic garantit amb signatura electrònica. Podeu verificar la seva integritat al web csv.gencat.cat fins al
+                                            Monica Martinez Bravo 06/08/2025
+                                                                                                                                                       06/08/2028
+                                                                                                                                                                                                                                                           Data creació còpia:
+                                                                                                                                                                                                                                                          06/08/2025 08:20:54
+                                                                                                                                          Original electrònic / Còpia electrònica autèntica
+                                                                                                                                                                                                                                                            Pàgina 19 de 24
+                                                                                                                                                  CODI SEGUR DE VERIFICACIÓ
+                                                                                                                             *092HINU81PFYDPMCULQ46MVPUIQTTU0X*
+                                                                                                                                           092HINU81PFYDPMCULQ46MVPUIQTTU0X
+
+## Pàgina 20
+
+R/N: 21728/CS00210
+                                                                                                                                                                                                                                                   Versió 1-2025
+
+
+
+
+                                                                                                                                                                                                                                                                       Cost 1 de
+
+
+
+
+GENERALITAT DE CATALUNYA
+                                                                                                                                                                                                                                                     Nombre       setembre - 31
+                                                                                                                                                                                                                                          Preu       de         de desembre de
+                           Centre                                                Codi                                                                             Partida          Expedient                                              diari/     places a   2025 (IVA inclòs
+                           gestor   FUE         Nom entitat        NIF entitat   cartera      Tipologia                     Codi S   Nom servei                   pressupostària   GECAT       Disposició   Posició   Municipi      IVA   mensual    assignar           si escau)
+                                                Associació de                                 Servei de centre de dia
+                                                Famílies amb                                  ocupacional d'inserció                 SOI Associació de Famílies                    PL/BE-
+                                    FUE-2025-   Discapacitat del                 1.2.6.2.4.   (SOI) per a persones amb               amb Discapacitat del Baix    D/251000200/     2025-       26003131
+                           BE2151   04627629    Baix Montseny      G65569659     2            discapacitat intel·lectual    S11065   Montseny                     315P/0000        N376        71                1    Sant Celoni    0%   483,63 €          3         5.803,56 €
+                                                                                              Servei de centre de dia
+                                                                                              ocupacional d'inserció                 Servei Ocupacional                            PL/BE-
+                                    FUE-2025-   Fundació Viver                   1.2.6.2.4.   (SOI) per a persones amb               d'Inserció La Nau De         D/251000200/     2025-       26003131               Llinars del
+                           BE2151   04628690    de Bell-Lloc       G65434896     2            discapacitat intel·lectual    S11054   Llinars                      315P/0000        N373        69                1    Vallès         4%   483,63 €          1         2.011,90 €
+                           BE2191                                                                                                                                                                                                                          15       45.629,07 €
+                                                                                              Servei de centre de dia de
+                                                                                              teràpia ocupacional (STO)
+                                    FUE-2025-   Fundació Privada                 1.2.6.2.4.   per a persones amb                     Servei de teràpia            D/251000200/     BE-2025-    26003131
+                           BE2191   04621509    Altem              G17603325     1            discapacitat intel·lectual    S00888   ocupacional les Acàcies      315P/0000        N595        48                1    Figueres       0%   669,91 €          3         8.038,92 €
+                                                                                              Servei de centre de dia de
+                                                                                              teràpia ocupacional (STO)
+                                                                                              per a persones amb
+                                    FUE-2025-   Fundació Privada                 1.2.6.2.4.   discapacitat intel·lectual,            Servei de teràpia            D/251000200/     BE-2025-    26003131
+                           BE2191   04621509    Altem              G17603325     1            amb auxiliar                  S00888   ocupacional les Acàcies      315P/0000        N595        48                1    Figueres       0%   891,88 €          3       10.702,56 €
+                                                                                              Servei de centre de dia de
+                                                                                              teràpia ocupacional (STO)
+                                    FUE-2025-   Fundació Privada                 1.2.6.2.4.   per a persones amb                     Centre de teràpia            D/251000200/     BE-2025-    26003131
+                           BE2191   04618858    MAP                G17414905     1            discapacitat intel·lectual    S00890   ocupacional Montserrat       315P/0000        N587        47                1    Ripoll         0%   669,91 €          2         5.359,28 €
+                                                Fundació                                      Servei de centre de dia de
+                                                Autisme Mas                                   teràpia ocupacional (STO)              Servei de teràpia
+                                    FUE-2025-   Casadevall,                      1.2.6.2.4.   per a persones amb                     ocupacional Mas              D/251000200/     BE-2025-    26003131
+                           BE2191   04612771    Fundació Privada   G58434994     1            discapacitat intel·lectual    S00967   Casadevall                   315P/0000        N584        61                1    Serinyà        0%   669,91 €          1         2.679,64 €
+                                                                                              Servei de centre de dia de
+                                                Fundació                                      teràpia ocupacional (STO)
+                                                Autisme Mas                                   per a persones amb                     Servei de teràpia
+                                    FUE-2025-   Casadevall,                      1.2.6.2.4.   discapacitat intel·lectual,            ocupacional Mas              D/251000200/     BE-2025-    26003131
+                           BE2191   04612771    Fundació Privada   G58434994     1            amb auxiliar                  S00967   Casadevall                   315P/0000        N584        61                1    Serinyà        0%   891,88 €          2         7.135,04 €
+                                                Fundació
+                                                Síndrome de                                   Servei de centre de dia de
+                                                Down, de Girona                               teràpia ocupacional (STO)
+                                    FUE-2025-   i Comarques -                    1.2.6.2.4.   per a persones amb                     Centre Ocupacional           D/251000200/     BE-2025-    26003131
+                           BE2191   04625743    Astrid 21-         G17349135     1            discapacitat intel·lectual    S07051   Astrid-21                    315P/0000        N589        46                1    Girona         0%   669,91 €          2         5.359,28 €
+
+
+
+
+                                                                                                                                                                                                                                          20/24
+
+
+
+
+                                            Doc.original signat per:                               Document electrònic garantit amb signatura electrònica. Podeu verificar la seva integritat al web csv.gencat.cat fins al
+                                            Monica Martinez Bravo 06/08/2025
+                                                                                                                                                       06/08/2028
+                                                                                                                                                                                                                                                        Data creació còpia:
+                                                                                                                                                                                                                                                       06/08/2025 08:20:54
+                                                                                                                                          Original electrònic / Còpia electrònica autèntica
+                                                                                                                                                                                                                                                         Pàgina 20 de 24
+                                                                                                                                                  CODI SEGUR DE VERIFICACIÓ
+                                                                                                                             *092HINU81PFYDPMCULQ46MVPUIQTTU0X*
+                                                                                                                                           092HINU81PFYDPMCULQ46MVPUIQTTU0X
+
+## Pàgina 21
+
+R/N: 21728/CS00210
+                                                                                                                                                                                                                                                   Versió 1-2025
+
+
+
+
+                                                                                                                                                                                                                                                                       Cost 1 de
+
+
+
+
+GENERALITAT DE CATALUNYA
+                                                                                                                                                                                                                                                     Nombre       setembre - 31
+                                                                                                                                                                                                                                          Preu       de         de desembre de
+                           Centre                                                Codi                                                                             Partida          Expedient                                              diari/     places a   2025 (IVA inclòs
+                           gestor   FUE         Nom entitat        NIF entitat   cartera      Tipologia                     Codi S   Nom servei                   pressupostària   GECAT       Disposició   Posició   Municipi      IVA   mensual    assignar           si escau)
+                                                Fundació                                      Servei de centre de dia de
+                                                Síndrome de                                   teràpia ocupacional (STO)
+                                                Down, de Girona                               per a persones amb
+                                    FUE-2025-   i Comarques -                    1.2.6.2.4.   discapacitat intel·lectual,            Centre Ocupacional           D/251000200/     BE-2025-    26003131
+                           BE2191   04625743    Astrid 21-         G17349135     1            amb auxiliar                  S07051   Astrid-21                    315P/0000        N589        46                1    Girona         0%   891,88 €          1         3.567,52 €
+                                                                                              Servei de centre de dia de
+                                                                                              teràpia ocupacional (STO)                                                                                               Bisbal
+                                    FUE-2025-   Associació El                    1.2.6.2.4.   per a persones amb                     Centre ocupacional El        D/251000200/     BE-2025-    26003131               d'Empordà,
+                           BE2191   04628432    Trampolí           G17654989     1            discapacitat intel·lectual    S07818   Trampolí                     315P/0000        N614        49                1    la             4%   669,91 €          1         2.786,83 €
+                           BE2194                                                                                                                                                                                                                           3         9.069,56 €
+                                                                                              Servei de centre de dia de
+                                                                                              teràpia ocupacional (STO)
+                                                                                              per a persones amb
+                                    FUE-2025-   Fundació Privada                 1.2.6.2.4.   discapacitat intel·lectual,                                         D/251000200/     BE-2025-    26003131
+                           BE2194   04624899    Mercè Pla          G43542968     1            amb auxiliar                  S02092   STO Campredó                 315P/0000        N1348       59                1    Tortosa        0%   891,88 €          1         3.567,52 €
+                                                                                              Servei de centre de dia
+                                                                                              ocupacional d'inserció
+                                    FUE-2025-   Fundació Privada                 1.2.6.2.4.   (SOI) per a persones amb                                            D/251000200/     BE-2025-    26003131
+                           BE2194   04624899    Mercè Pla          G43542968     2            discapacitat intel·lectual    S03570   SOI Campredó                 315P/0000        N1348       59                1    Tortosa        0%   483,63 €          1         1.934,52 €
+                                                                                              Servei de centre de dia de
+                                                                                              teràpia ocupacional (STO)
+                                                                                              per a persones amb
+                                    FUE-2025-   Fundació Privada                 1.2.6.2.4.   discapacitat intel·lectual,                                         D/251000200/     BE-2025-    26003131
+                           BE2194   04618848    Astres             G17695768     1            amb auxiliar                  S08076   STO Deltebre                 315P/0000        N1350       51                1    Deltebre       0%   891,88 €          1         3.567,52 €
+                           BE2192                                                                                                                                                                                                                          12       31.093,72 €
+                                                                                              Servei de centre de dia de
+                                                                                              teràpia ocupacional (STO)
+                                    FUE-2025-                                    1.2.6.2.4.   per a persones amb                     Taller Ocupacional           D/251000200/     BE-2025-    26003131               Vallbona de
+                           BE2192   04625849    L'Olivera, SCCL    F25014176     1            discapacitat intel·lectual    S00873   l'Olivera                    315P/0000        N498        44                1    les Monges     0%   669,91 €          1         2.679,64 €
+                                                                                              Servei de centre de dia
+                                                                                              ocupacional d'inserció
+                                    FUE-2025-                                    1.2.6.2.4.   (SOI) per a persones amb               Servei ocupacional           D/251000200/     BE-2025-    26003131               Vallbona de
+                           BE2192   04625849    L'Olivera, SCCL    F25014176     2            discapacitat intel·lectual    S03523   d'inserció L'Olivera         315P/0000        N498        44                1    les Monges     0%   483,63 €          1         1.934,52 €
+                                                Associació                                    Servei de centre de dia de
+                                                Comarcal Urgell                               teràpia ocupacional (STO)
+                                                d'Ajuda al                                    per a persones amb                     Servei de teràpia
+                                    FUE-2025-   Minusvàlid,                      1.2.6.2.4.   discapacitat intel·lectual,            ocupacional del Taller Pla   D/251000200/     BE-2025-    26003131
+                           BE2192   04624979    ACUDAM             G25014036     1            amb auxiliar                  S00893   d'Urgell                     315P/0000        N500        52                1    Mollerussa     0%   891,88 €          2         7.135,04 €
+
+
+
+                                                                                                                                                                                                                                          21/24
+
+
+
+
+                                            Doc.original signat per:                               Document electrònic garantit amb signatura electrònica. Podeu verificar la seva integritat al web csv.gencat.cat fins al
+                                            Monica Martinez Bravo 06/08/2025
+                                                                                                                                                       06/08/2028
+                                                                                                                                                                                                                                                        Data creació còpia:
+                                                                                                                                                                                                                                                       06/08/2025 08:20:54
+                                                                                                                                          Original electrònic / Còpia electrònica autèntica
+                                                                                                                                                                                                                                                         Pàgina 21 de 24
+                                                                                                                                                  CODI SEGUR DE VERIFICACIÓ
+                                                                                                                             *092HINU81PFYDPMCULQ46MVPUIQTTU0X*
+                                                                                                                                           092HINU81PFYDPMCULQ46MVPUIQTTU0X
+
+## Pàgina 22
+
+R/N: 21728/CS00210
+                                                                                                                                                                                                                                                    Versió 1-2025
+
+
+
+
+                                                                                                                                                                                                                                                                        Cost 1 de
+
+
+
+
+GENERALITAT DE CATALUNYA
+                                                                                                                                                                                                                                                      Nombre       setembre - 31
+                                                                                                                                                                                                                                           Preu       de         de desembre de
+                           Centre                                                  Codi                                                                             Partida          Expedient                                             diari/     places a   2025 (IVA inclòs
+                           gestor   FUE         Nom entitat          NIF entitat   cartera      Tipologia                     Codi S   Nom servei                   pressupostària   GECAT       Disposició   Posició   Municipi     IVA   mensual    assignar           si escau)
+                                                Associació
+                                                Comarcal Urgell                                 Servei de centre de dia
+                                                d'Ajuda al                                      ocupacional d'inserció                 Servei ocupacional
+                                    FUE-2025-   Minusvàlid,                        1.2.6.2.4.   (SOI) per a persones amb               d'inserció del Taller Pla    D/251000200/     BE-2025-    26003131
+                           BE2192   04624979    ACUDAM               G25014036     2            discapacitat intel·lectual    S03530   d'Urgell                     315P/0000        N500        52                1    Mollerussa    0%   483,63 €          2         3.869,04 €
+                                                                                                Servei de centre de dia de
+                                                                                                teràpia ocupacional (STO)
+                                    FUE-2025-                                      1.2.6.2.4.   per a persones amb                                                  D/251000200/     BE-2025-    26003131
+                           BE2192   04620614    Associació Alba      G25014077     1            discapacitat intel·lectual    S00951   Taller Alba                  315P/0000        N493        53                1    Tàrrega       0%   669,91 €          1         2.679,64 €
+                                                                                                Servei de centre de dia de
+                                                                                                teràpia ocupacional (STO)
+                                    FUE-2025-                                      1.2.6.2.4.   per a persones amb                     Servei de teràpia            D/251000200/     BE-2025-    26003131
+                           BE2192   04620614    Associació Alba      G25014077     1            discapacitat intel·lectual    S06616   ocupacional L'Espígol        315P/0000        N493        53                1    Cervera       0%   669,91 €          2         5.359,28 €
+                                                                                                Servei de centre de dia de
+                                                                                                teràpia ocupacional (STO)
+                                                                                                per a persones amb
+                                    FUE-2025-                                      1.2.6.2.4.   discapacitat intel·lectual,            STO Centre de Recursos de    D/251000200/     BE-2025-    26003131
+                           BE2192   04620614    Associació Alba      G25014077     1            amb auxiliar                  S11002   Verdú                        315P/0000        N493        53                1    Verdú         0%   891,88 €          1         3.567,52 €
+                                                                                                Servei de centre de dia
+                                                Associació Talma                                ocupacional d'inserció
+                                    FUE-2025-   (servei i suport a                 1.2.6.2.4.   (SOI) per a persones amb               Servei Ocupacional           D/251000200/     BE-2025-    26003131
+                           BE2192   04629075    les persones)        G25015751     2            discapacitat intel·lectual    S03442   d'Inserció de Talma          315P/0000        N501        54                1    Juneda        0%   483,63 €          2         3.869,04 €
+                           BE2193                                                                                                                                                                                                                           31       77.362,08 €
+                                                                                                Servei de centre de dia de
+                                                                                                teràpia ocupacional (STO)
+                                                                                                per a persones amb
+                                    FUE-2025-   Fundació Privada                   1.2.6.2.4.   discapacitat intel·lectual,                                         D/251000200/     BE-2025-    26003131
+                           BE2193   04629182    Ginac                G43783133     1            amb auxiliar                  S00874   Taller ocupacional Ginesta   315P/0000        N1314       60                1    Valls         0%   891,88 €          1         3.567,52 €
+                                                                                                Servei de centre de dia de
+                                                                                                teràpia ocupacional (STO)
+                                                                                                per a persones amb                     Servei de Teràpia
+                                    FUE-2025-   Fundació Privada                   1.2.6.2.4.   discapacitat intel·lectual,            Ocupacional Mas d'en         D/251000200/     BE-2025-    26003131
+                           BE2193   04629182    Ginac                G43783133     1            amb auxiliar                  S09759   Forés                        315P/0000        N1314       60                1    Alcover       0%   891,88 €          1         3.567,52 €
+                                                                                                Servei de centre de dia
+                                                                                                ocupacional d'inserció
+                                    FUE-2025-   Fundació Privada                   1.2.6.2.4.   (SOI) per a persones amb               Servei Ocupacional           D/251000200/     BE-2025-    26003131
+                           BE2193   04629182    Ginac                G43783133     2            discapacitat intel·lectual    S09760   d'Inserció Mas d'en Forés    315P/0000        N1314       60                1    Alcover       0%   483,63 €          2         3.869,04 €
+
+
+
+
+                                                                                                                                                                                                                                           22/24
+
+
+
+
+                                            Doc.original signat per:                                 Document electrònic garantit amb signatura electrònica. Podeu verificar la seva integritat al web csv.gencat.cat fins al
+                                            Monica Martinez Bravo 06/08/2025
+                                                                                                                                                         06/08/2028
+                                                                                                                                                                                                                                                         Data creació còpia:
+                                                                                                                                                                                                                                                        06/08/2025 08:20:54
+                                                                                                                                            Original electrònic / Còpia electrònica autèntica
+                                                                                                                                                                                                                                                          Pàgina 22 de 24
+                                                                                                                                                     CODI SEGUR DE VERIFICACIÓ
+                                                                                                                               *092HINU81PFYDPMCULQ46MVPUIQTTU0X*
+                                                                                                                                              092HINU81PFYDPMCULQ46MVPUIQTTU0X
+
+## Pàgina 23
+
+R/N: 21728/CS00210
+                                                                                                                                                                                                                                                    Versió 1-2025
+
+
+
+
+                                                                                                                                                                                                                                                                        Cost 1 de
+
+
+
+
+GENERALITAT DE CATALUNYA
+                                                                                                                                                                                                                                                      Nombre       setembre - 31
+                                                                                                                                                                                                                                           Preu       de         de desembre de
+                           Centre                                                 Codi                                                                            Partida          Expedient                                               diari/     places a   2025 (IVA inclòs
+                           gestor   FUE         Nom entitat         NIF entitat   cartera      Tipologia                     Codi S   Nom servei                  pressupostària   GECAT       Disposició   Posició   Municipi       IVA   mensual    assignar           si escau)
+                                                                                               Servei de centre de dia de
+                                                Santa Teresa del                               teràpia ocupacional (STO)
+                                    FUE-2025-   Vendrell,                         1.2.6.2.4.   per a persones amb                     Servei de teràpia           D/251000200/     BE-2025-    26003131
+                           BE2193   04624563    Fundació Privada    G43392364     1            discapacitat intel·lectual    S08287   ocupacional La Sínia        315P/0000        N1311       58                1    Calafell        0%   669,91 €          2         5.359,28 €
+                                                                                               Servei de centre de dia de
+                                                                                               teràpia ocupacional (STO)
+                                                Santa Teresa del                               per a persones amb
+                                    FUE-2025-   Vendrell,                         1.2.6.2.4.   discapacitat intel·lectual,            Servei de teràpia           D/251000200/     BE-2025-    26003131
+                           BE2193   04624563    Fundació Privada    G43392364     1            amb auxiliar                  S08287   ocupacional La Sínia        315P/0000        N1311       58                1    Calafell        0%   891,88 €          3       10.702,56 €
+                                                                                               Servei de centre de dia
+                                                Santa Teresa del                               ocupacional d'inserció
+                                    FUE-2025-   Vendrell,                         1.2.6.2.4.   (SOI) per a persones amb               Servei ocupacional          D/251000200/     BE-2025-    26003131
+                           BE2193   04624563    Fundació Privada    G43392364     2            discapacitat intel·lectual    S03470   d'inserció Ventall          315P/0000        N1311       58                1    Vendrell, el    0%   483,63 €          3         5.803,56 €
+                                                                                               Servei de centre de dia
+                                                Santa Teresa del                               ocupacional d'inserció
+                                    FUE-2025-   Vendrell,                         1.2.6.2.4.   (SOI) per a persones amb               Servei Ocupacional          D/251000200/     BE-2025-    26003131
+                           BE2193   04624563    Fundació Privada    G43392364     2            discapacitat intel·lectual    S09717   d'Inserció La Sínia         315P/0000        N1311       58                1    Calafell        0%   483,63 €          2         3.869,04 €
+                                                                                               Servei de centre de dia de
+                                                                                               teràpia ocupacional (STO)
+                                    FUE-2025-   Associació Taller                 1.2.6.2.4.   per a persones amb                     Servei de teràpia           D/251000200/     BE-2025-    26003131
+                           BE2193   04623748    Baix Camp           G43036185     1            discapacitat intel·lectual    S08106   ocupacional Masia Roig      315P/0000        N1316       55                1    Reus            0%   669,91 €          2         5.359,28 €
+                                                                                               Servei de centre de dia de
+                                                                                               teràpia ocupacional (STO)
+                                                                                               per a persones amb
+                                    FUE-2025-   Associació Taller                 1.2.6.2.4.   discapacitat intel·lectual,            Servei de teràpia           D/251000200/     BE-2025-    26003131
+                           BE2193   04623748    Baix Camp           G43036185     1            amb auxiliar                  S08106   ocupacional Masia Roig      315P/0000        N1316       55                1    Reus            0%   891,88 €          2         7.135,04 €
+                                                                                               Servei de centre de dia
+                                                                                               ocupacional d'inserció
+                                    FUE-2025-   Fundació Privada                  1.2.6.2.4.   (SOI) per a persones amb                                           D/251000200/     BE-2025-    26003131
+                           BE2193   04618707    Astres              G17695768     2            discapacitat intel·lectual    S10893   SOI El Taller del Priorat   315P/0000        N1287       50                1    Masroig, el     0%   483,63 €          1         1.934,52 €
+                                                                                               Servei de centre de dia
+                                                                                               ocupacional d'inserció                 Servei Ocupacional
+                                    FUE-2025-   Fundació Pas a                    1.2.6.2.4.   (SOI) per a persones amb               d'Inserció de la Fundació   D/251000200/     BE-2025-    26003131
+                           BE2193   04629148    Pas                 G43047158     2            discapacitat intel·lectual    S11355   Topromi                     315P/0000        N1304       56                1    Tarragona       0%   483,63 €          8       15.476,16 €
+                                                Associació Pro-
+                                                Persones amb
+                                                Disminució                                     Servei de centre de dia de
+                                                Psíquica de la                                 teràpia ocupacional (STO)              Servei Terapia
+                                    FUE-2025-   Conca de                          1.2.6.2.4.   per a persones amb                     Ocupacional (STO-           D/251000200/     BE-2025-    26003131
+                           BE2193   04619899    Barberà             G43069749     1            discapacitat intel·lectual    S11638   Cambrils)                   315P/0000        N1309       57                1    Cambrils        0%   669,91 €          4       10.718,56 €
+
+                                                                                                                                                                                                                                           23/24
+
+
+
+
+                                            Doc.original signat per:                                Document electrònic garantit amb signatura electrònica. Podeu verificar la seva integritat al web csv.gencat.cat fins al
+                                            Monica Martinez Bravo 06/08/2025
+                                                                                                                                                        06/08/2028
+                                                                                                                                                                                                                                                         Data creació còpia:
+                                                                                                                                                                                                                                                        06/08/2025 08:20:54
+                                                                                                                                            Original electrònic / Còpia electrònica autèntica
+                                                                                                                                                                                                                                                          Pàgina 23 de 24
+                                                                                                                                                   CODI SEGUR DE VERIFICACIÓ
+                                                                                                                              *092HINU81PFYDPMCULQ46MVPUIQTTU0X*
+                                                                                                                                             092HINU81PFYDPMCULQ46MVPUIQTTU0X
+
+## Pàgina 24
+
+R/N: 21728/CS00210
+                                                                                                                                                                                                                                Versió 1-2025
+
+
+
+
+                                                                                                                                                                                                                                                   Cost 1 de
+
+
+
+
+GENERALITAT DE CATALUNYA
+                                                                                                                                                                                                                                 Nombre       setembre - 31
+                                                                                                                                                                                                                       Preu      de         de desembre de
+                           Centre                                               Codi                                                              Partida          Expedient                                           diari/    places a   2025 (IVA inclòs
+                           gestor    FUE       Nom entitat        NIF entitat   cartera   Tipologia              Codi S   Nom servei              pressupostària   GECAT       Disposició   Posició   Municipi   IVA   mensual   assignar           si escau)
+                           Total
+                           general                                                                                                                                                                                                   141       388.817,48 €
+
+
+
+
+                                                                                                                                                                                                                       24/24
+
+
+
+
+                                           Doc.original signat per:                           Document electrònic garantit amb signatura electrònica. Podeu verificar la seva integritat al web csv.gencat.cat fins al
+                                           Monica Martinez Bravo 06/08/2025
+                                                                                                                                                  06/08/2028
+                                                                                                                                                                                                                                    Data creació còpia:
+                                                                                                                                                                                                                                   06/08/2025 08:20:54
+                                                                                                                              Original electrònic / Còpia electrònica autèntica
+                                                                                                                                                                                                                                     Pàgina 24 de 24
+                                                                                                                                       CODI SEGUR DE VERIFICACIÓ
+                                                                                                                   *092HINU81PFYDPMCULQ46MVPUIQTTU0X*
+                                                                                                                               092HINU81PFYDPMCULQ46MVPUIQTTU0X

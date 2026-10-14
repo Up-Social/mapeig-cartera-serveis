@@ -5,8 +5,13 @@ import {archiveUnitSource} from '@/lib/source-storage';
 export async function GET(_request:Request,{params}:{params:Promise<{id:string}>}) {
  if(!hasUnitSchema())return Response.json({units:[],supported:false});
  const {id}=await params;if(!isUuid(id))return Response.json({error:'Registre no vàlid'},{status:400});
- const result=await createServerSupabase().from('record_units').select('*').eq('source_record_id',id).neq('unit_key','legacy').order('created_at');
- return result.error?Response.json({error:'No s’han pogut consultar les unitats'},{status:500}):Response.json({units:result.data});
+ const db=createServerSupabase();
+ const [result,reconciliations]=await Promise.all([
+  db.from('record_units').select('*').eq('source_record_id',id).neq('unit_key','legacy').order('created_at'),
+  db.from('concert_annex_reconciliations').select('document_id,annex,row_count,sum_cents,declared_cents,reconciled').eq('source_record_id',id),
+ ]);
+ return result.error?Response.json({error:'No s’han pogut consultar les unitats'},{status:500}):
+  Response.json({units:result.data,reconciliations:reconciliations.error?[]:reconciliations.data});
 }
 export async function POST(request:Request,{params}:{params:Promise<{id:string}>}) {
  if(!hasUnitSchema())return Response.json({error:'El desglossament d’unitats encara no està instal·lat en aquesta base de dades.'},{status:409});

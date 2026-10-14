@@ -1,10 +1,14 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {execFileSync} from 'node:child_process';
-import {extractConcertAnnexRows,extractProgram317Rows} from '../lib/concerts/annex-extraction';
+import {readFileSync} from 'node:fs';
+import {extractConcertAnnexRows,extractProgram317Rows,extractEconomicAnnexRows} from '../lib/concerts/annex-extraction';
 import {concertCaseKeys} from '../lib/concerts/case-labels';
 import {proposeRecordLinks,type ConcertPublication} from '../lib/concerts/record-linking';
 import {proposeUnitLinks,type ConcertUnitForLink} from '../lib/concerts/unit-linking';
+import {annexCandidateOrdinals} from '../lib/cloud/concert-analysis';
+import {splitText} from '../lib/pipeline/chunks';
+import {selectEvidenceWindow} from '../lib/cloud/evidence-window';
 
 test('official Barcelona annex stays split by line, NIF and RESES and reconciles to 44 services',()=>{
  const text=execFileSync('pdftotext',['-layout','tests/fixtures/official/25-000163-AP-barcelona-etauler-605700.pdf','-'],{encoding:'utf8',maxBuffer:2_000_000});
@@ -30,6 +34,34 @@ test('program annex keeps the printed entity and service separate from repeated 
  assert.equal(rows.length,1);
  assert.ok(rows[0].observedProviderName?.includes('OBINSO'));
  assert.equal('amountCents' in rows[0],false);
+});
+
+test('complete DSO/4390 official annex retains every monetary line and reconciles its VAT total',()=>{
+ const rows=extractEconomicAnnexRows(readFileSync('tests/fixtures/official/dso-4390-2023-annex-7.txt','utf8'));
+ assert.equal(rows.length,115);
+ assert.equal(rows.reduce((sum,row)=>sum+row.amountCents,0),751151852);
+ assert.ok(rows.every(row=>row.annex===7&&row.page>=32&&row.page<=47&&row.nif&&row.resesCode));
+ assert.equal(rows[0].observedProviderName,'Planiger, SA');
+});
+
+test('both official annex layouts cite a selected RESES line for every printed service code',()=>{
+ for(const name of ['dso-4390-2023-annex-7','dsi-1984-2025-annex-6']){
+  const text=readFileSync(`tests/fixtures/official/${name}.txt`,'utf8');
+  const rows=extractEconomicAnnexRows(text);
+  const codes=[...new Set(rows.map(row=>row.observedServiceCode))].filter((code):code is string=>!!code);
+  const chunks=selectEvidenceWindow(splitText(text).map((content,ordinal)=>({content,ordinal,source_document_id:name})),24);
+  const ordinals=annexCandidateOrdinals(rows.map(row=>({observed_service_code:row.observedServiceCode,reses_code:row.resesCode})),codes,chunks);
+  assert.ok(ordinals.every(ordinal=>ordinal>0),`${name}: missing cited service`);
+  assert.equal(codes.length,2);
+ }
+});
+
+test('complete DSI/1984 official annex retains its 60 monetary lines and total',()=>{
+ const rows=extractEconomicAnnexRows(readFileSync('tests/fixtures/official/dsi-1984-2025-annex-6.txt','utf8'));
+ assert.equal(rows.length,60);
+ assert.equal(rows.reduce((sum,row)=>sum+row.amountCents,0),38881748);
+ assert.ok(rows.every(row=>row.annex===6&&row.page>=17&&row.page<=24&&row.nif&&row.resesCode));
+ assert.deepEqual(new Set(rows.map(row=>row.observedServiceCode)),new Set(['1.2.6.2.4.1','1.2.6.2.4.2']));
 });
 
 test('a territorial provision and a program renewal retain overlapping case badges',()=>{

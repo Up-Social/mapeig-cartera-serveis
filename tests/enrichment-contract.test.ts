@@ -14,9 +14,10 @@ test('the evidenced service provider replaces the financing administration',()=>
  assert.equal(result.provider_name,'Colisée Care, SL');
 });
 
-test('an unsupported role value cannot replace the extracted provider',()=>{
+test('an unsupported role leaves provider unknown instead of retaining the financing administration',()=>{
  const result=bindEnrichmentRoles(enrichment,[{content:'Resolució del Departament.'},{content:'Annex sense identificació de cap entitat.'}]);
- assert.equal(result.provider_name,'GENERALITAT DE CATALUNYA');
+ assert.equal(result.provider_name,null);
+ assert.equal(result.provider_nif,null);
 });
 
 test('an ungrounded auxiliary fact becomes unknown instead of aborting the record',()=>{

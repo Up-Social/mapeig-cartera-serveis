@@ -18,7 +18,8 @@ export function bindEnrichmentRoles(value:Enrichment,chunks:Array<{content:strin
  }
  const roles=scopeFacts.roles;
  const provider=supportedRoleValue(roles?.service_provider,chunks)??supportedRoleValue(roles?.economic_recipient,chunks);
- return {...value,award_date:normalizeAwardDate(value.award_date),scope_facts:scopeFacts,...(provider?{provider_name:provider}:{})};
+ return {...value,award_date:normalizeAwardDate(value.award_date),scope_facts:scopeFacts,
+  provider_name:provider,provider_nif:provider?value.provider_nif:null};
 }
 export function normalizeAwardDate(value:string|null):string|null{
  if(typeof value!=='string')return null;

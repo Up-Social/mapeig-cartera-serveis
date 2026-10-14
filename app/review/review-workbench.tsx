@@ -326,7 +326,8 @@ export function ReviewDetail({
             {serviceMatches.length > 0 && <ul className="mt-2 max-h-56 space-y-1 overflow-y-auto" aria-label="Serveis coincidents">{serviceMatches.map((service) => <li key={service.code}><button type="button" className="w-full rounded-md px-2 py-2 text-left text-sm hover:bg-muted" onClick={() => { setSelection(`service:${service.code}`); setServiceQuery(`${service.code} · ${service.name}`); }}>{service.code} · {service.name}</button></li>)}</ul>}
             {serviceQuery.trim().length >= 2 && serviceMatches.length === 0 && <p className="mt-2 text-xs text-muted-foreground">No s&apos;han trobat serveis.</p>}
           </div>
-      <ReviewActions notes={notes} onNotesChange={setNotes} reasons={reasons} onReasonsChange={setReasons} pending={pending} canSelect={!!selection && !!record.currentJobId} canOutside={!!record.analysis} rectification={!!record.reviewDecision||selection.startsWith('service:')} onSubmit={submit}/>
+      {record.financingType==='concert'&&record.analysis?.rules_version==='concert-reconciled-annex-v1'&&<p className="mt-3 text-sm">Aquest concert s’aprova des del <a className="underline" href={`/records/${record.id}#unitats`}>repartiment complet de la fitxa</a>.</p>}
+      <ReviewActions notes={notes} onNotesChange={setNotes} reasons={reasons} onReasonsChange={setReasons} pending={pending} canSelect={!!selection && !!record.currentJobId && !(record.financingType==='concert'&&record.analysis?.rules_version==='concert-reconciled-annex-v1')} canOutside={!!record.analysis} rectification={!!record.reviewDecision||selection.startsWith('service:')} onSubmit={submit}/>
           {message && (
             <p className="mt-3 text-sm text-neutral-600">{message}</p>
           )}

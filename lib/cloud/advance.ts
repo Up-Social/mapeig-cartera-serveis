@@ -8,6 +8,7 @@ import {extractDocument} from './documents';
 import {splitText,hash} from '../pipeline/chunks';
 import {analyzeRecord} from './analysis';
 import {documentQuality} from '../evidence-eligibility';
+import {prepareConcertObservations} from './concerts';
 export async function advance(task:string,workflow:string):Promise<{done:boolean;wait:number}>{
  const db=cloudDb();const owner=randomUUID();
  const generation=await rpc<number|null>(db,'cloud_claim',{p_task:task,p_owner:owner,p_version:CLOUD_VERSION});
@@ -37,14 +38,16 @@ export async function advance(task:string,workflow:string):Promise<{done:boolean
    await commit(c,job.id,'discover',discovered);await checkpoint(c,`${job.id}:discovered`,true);
    await progress(c,'document_discovery',discovered.length,discovered.length,`${discovered.length} documents localitzats`,job.id);
   }else if(job.preparation_status!=='ready'){
-   const docs:{data:Array<{id:string;url:string;status:string;chunk_count:number;extraction_version:string|null}>}={data:[]};
+   const docs:{data:Array<{id:string;url:string;status:string;chunk_count:number;extraction_version:string|null;quality_score:number|null;quality_flags:string[]|null;mime_type:string|null}>}={data:[]};
    for(let offset=0;;offset+=200){
-    const page=await db.from('source_documents').select('id,url,status,chunk_count,extraction_version').eq('source_record_id',job.source_record_id).order('id').range(offset,offset+199);
+    const page=await db.from('source_documents').select('id,url,status,chunk_count,extraction_version,quality_score,quality_flags,mime_type').eq('source_record_id',job.source_record_id).order('id').range(offset,offset+199);
     if(page.error)throw Error();docs.data.push(...page.data);if(page.data.length<200)break;
    }
    if(!docs.data.length)throw new CloudFailure('document');
    let processed=false;
-   let completedDocuments=docs.data.filter(doc=>doc.status==='fetched'&&doc.chunk_count>0&&doc.extraction_version===EXTRACTION_VERSION).length;
+   const usable=(doc:typeof docs.data[number])=>doc.status==='fetched'&&doc.chunk_count>0&&doc.extraction_version===EXTRACTION_VERSION&&
+    Number(doc.quality_score)>0&&!doc.quality_flags?.some(flag=>['corrupt_text','incomplete_extraction','generic_portal','javascript_shell','short_text'].includes(flag));
+   let completedDocuments=docs.data.filter(usable).length;
    for(const doc of docs.data){
     if(doc.status==='fetched'&&doc.chunk_count>0&&doc.extraction_version===EXTRACTION_VERSION)continue;
     if(await readCheckpoint(c,`document_failed:${doc.id}`))continue;
@@ -60,8 +63,17 @@ export async function advance(task:string,workflow:string):Promise<{done:boolean
     await commit(c,job.id,'document',{...result,id:doc.id,text_hash:textHash,quality_score:quality.qualityScore,quality_flags:quality.qualityFlags,chunks:splitText(result.text).map((content,ordinal)=>({ordinal,content,hash:hash(content)}))});processed=true;completedDocuments+=1;
     await progress(c,'document_extraction',completedDocuments,docs.data.length,`${completedDocuments} de ${docs.data.length} documents preparats`,job.id);break;
    }
-   if(!processed){if(!docs.data.some(d=>d.status==='fetched'&&d.chunk_count>0))throw new CloudFailure('document');await commit(c,job.id,'ready',{});if(t.data.task_type==='prepare_run')await checkpoint(c,`${job.id}:complete`,true);}
+   if(!processed){
+    if(!docs.data.some(usable))throw new CloudFailure('document');
+    const pdfs=docs.data.filter(d=>d.mime_type?.includes('pdf'));
+    if(pdfs.length&&!pdfs.some(usable))throw new CloudFailure('document');
+    await commit(c,job.id,'ready',{});if(t.data.task_type==='prepare_run')await checkpoint(c,`${job.id}:complete`,true);
+   }
   }else{
+   if(!await prepareConcertObservations(c,job)){
+    await progress(c,'document_extraction',null,null,'Desglossant les línies de l’annex oficial',job.id);
+    await rpc(db,'cloud_finish',{...lease(c),p_state:'pending'});return {done:false,wait:1};
+   }
    const r=await db.from('source_records').select('enrichment_status').eq('id',job.source_record_id).single();if(r.error)throw Error();
    if(r.data.enrichment_status!=='completed'){await progress(c,'enrichment',0,1,'Contrastant les dades amb la font oficial',job.id);await analyzeRecord(c,job,'enrichment');await progress(c,'enrichment',1,1,'Dades oficials contrastades',job.id);}
    else if(t.data.task_type!=='enrich_record'){await progress(c,'matching',0,1,'Comprovant la correspondència amb la Cartera',job.id);await analyzeRecord(c,job,'matching');await progress(c,'closing',1,1,'Resultat guardat i pendent de revisió',job.id);}

@@ -22,14 +22,17 @@ test('OCR cap cannot silently certify a partially recovered document',async()=>{
  let calls=0;const result=await recoverPdfText(Array(26).fill(corrupt).join('\f'),true,async()=>{calls++;return good;});
  assert.equal(calls,25);assert.equal(result.partial,true);
 });
-test('a fully readable 220k-character PDF is not discarded by the old text cap',async()=>{
+test('a fully readable 328k-character official PDF is retained with all pages',async()=>{
  const document=good.repeat(Math.ceil(220_000/good.length)).slice(0,220_000);
  const result=await recoverPdfText(document,false,async()=>{throw Error('OCR must not run');},1);
- assert.equal(MAX_DOCUMENT_CHARS,250_000);
+ assert.equal(MAX_DOCUMENT_CHARS,1_000_000);
  assert.equal(result.partial,false);
  assert.equal(result.coverage.complete,true);
  assert.equal(result.text.length,document.trim().length+'## Pàgina 1\n\n'.length);
- const tooLong=await recoverPdfText(document.repeat(2),false,async()=>{throw Error('OCR must not run');},1);
+ const official=await recoverPdfText(document+'\f'+document,false,async()=>{throw Error('OCR must not run');},2);
+ assert.equal(official.partial,false);
+ assert.match(official.text,/## Pàgina 2/);
+ const tooLong=await recoverPdfText(document.repeat(5),false,async()=>{throw Error('OCR must not run');},1);
  assert.equal(tooLong.partial,true);
 });
 test('normal Catalan, Spanish, legal tables and non-Latin names are preserved',()=>{

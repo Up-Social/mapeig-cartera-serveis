@@ -1,0 +1,879 @@
+## Pàgina 32
+
+R/N: 21728/ CS00210
+                                                                                                                                                                                                            Versió 1-2023
+
+
+
+
+                        ANNEX 7 IMPORTS ECONÒMICS
+
+                                                                                                                                                                                         Nombre       Cost 1 de juliol -
+                                                                                                                                                                                               de     31 de desembre       Cost 1 de juliol -
+Centre                                            Codi        Tipologia                              Partida           Expedient                                             Preu        places a       de 2024 sense      31 de desembre
+gestor   FUE         Nom entitat    NIF entitat   cartera     servei         Codi S    Nom servei    pressupostària    GECAT       Disposició   Posició   Municipi     IVA   diari       assignar                  IVA       2024 amb IVA
+BE2151                                                                                                                                                                                       585       6.203.160,72 €       6.422.820,43 €
+                                                              Residència
+                                                              assistida per a
+                                                              gent gran -              Residència
+         FUE-2024-                                            temporal o               Amavir        D/251000200/315   BE-2024-                         Vilanova del
+         03657577    Planiger, SA   A83151977     1.2.3.3.2   permanent       S06850   Vilanova      E/0000            N1115       2600269934         1 Camí           4%      69,84 €         2            25.701,12 €         26.729,16 €
+                                                              Residència
+                                                              assistida per a
+                     Residència                               gent gran -              Residència                      AN/BE-
+         FUE-2024-   La Torreta                               temporal o               La Torreta de D/251000200/315   2024-
+         03653910    de Piera, SL   B61441788     1.2.3.3.2   permanent       S04549   Piera         E/0000            N1439       2600269654         1 Piera          4%      69,84 €         2            25.701,12 €         26.729,16 €
+                                                              Residència
+                                                              assistida per a
+                                                              gent gran -              Residència
+         FUE-2024-   La Saleta                                temporal o               Colisée       D/251000200/315   BE-2024-
+         03655478    Care, SL       B96648563     1.2.3.3.2   permanent       S10440   Igualada      E/0000            N1264       2600269950         1 Igualada       4%      69,84 €         7            89.953,92 €         93.552,08 €
+
+
+                                                                                       Residència
+                                                              Residència               Bell Repòs
+                     Fundació                                 assistida per a          de Súria
+                     Privada Bell                             gent gran -              (servei de                      AN/BE-
+         FUE-2024-   Repòs de                                 temporal o               residència    D/251000200/315   2024-
+         03654723    Súria          G08712762     1.2.3.3.2   permanent       S04029   assistida)    E/0000            N1466       2600269734         1 Súria          0%      69,84 €         2            25.701,12 €         25.701,12 €
+
+                                                              Residència               Residència
+                     Sant Andreu                              assistida per a          Mont-Blanc
+                     Salut,                                   gent gran -              (servei de
+         FUE-2024-   Fundació                                 temporal o               residència    D/251000200/315   BE-2024-
+         03657324    Privada        G58666983     1.2.3.3.2   permanent       S00061   assistida)    E/0000            N965        2600269957         1 Manresa        0%      69,84 €         4            51.402,24 €         51.402,24 €
+
+                                                              Residència
+                     Mutuam,                                  assistida per a          Centre
+                     Mútua de                                 gent gran -              Residencial
+         FUE-2024-   Previsió                                 temporal o               Mutuam-       D/251000200/315   BE-2024-
+         03650056    Social         V08210676     1.2.3.3.2   permanent       S04271   Manresa       E/0000            N1170       2600269958         1 Manresa        0%      69,84 €         3            38.551,68 €         38.551,68 €
+
+
+
+
+                                                                                                                                                                                                    32/47
+
+## Pàgina 33
+
+R/N: 21728/ CS00210
+                                                                                                                                                                                                            Versió 1-2023
+
+
+
+
+                                                                                                                                                                                         Nombre       Cost 1 de juliol -
+                                                                                                                                                                                               de     31 de desembre       Cost 1 de juliol -
+Centre                                             Codi        Tipologia                               Partida           Expedient                                           Preu        places a       de 2024 sense      31 de desembre
+gestor   FUE         Nom entitat     NIF entitat   cartera     servei          Codi S   Nom servei     pressupostària    GECAT       Disposició   Posició   Municipi   IVA   diari       assignar                  IVA       2024 amb IVA
+
+                                                                                        Centre de
+                     Mutuam,                                   Servei de                dia per gent
+                     Mútua de                                  centre de dia            gran
+         FUE-2024-   Previsió                                  per a gent               Mutuam-        D/251000200/315   BE-2024-
+         03650143    Social          V08210676     1.2.3.1     gran            S08799   Manresa        F/0000            N1170       2600269959         1 Manresa      0%      34,65 €         1             6.375,60 €          6.375,60 €
+
+                                                                                        Centre de
+                                                                                        dia de la
+                                                                                        Residència
+                                                                                        assistida La   D/251000200/315   BE-2024-
+                                                                               S04178   Creueta        F/0000            N1170       2600269959         1 Sabadell     0%      34,65 €        12            76.507,20 €         76.507,20 €
+                                                                                        Centre de
+                                                                                        dia
+                                                                                        Residència
+                                                                                        Les            D/251000200/315   BE-2024-                         Franqueses
+                                                                               S06767   Franqueses     F/0000            N1170       2600269959         1 del Vallès   0%      34,65 €         2            12.751,20 €         12.751,20 €
+                                                               Servei de
+                     Residencial                               centre de dia            Centre de                        AN/BE-
+         FUE-2024-   Les Deus,                                 per a gent               dia Jardins    D/251000200/315   2024-                            Corbera de
+         03656583    S.L.            B58977182     1.2.3.1     gran            S03433   de Corbera     F/0000            N1435       2600269636         1 Llobregat    4%      34,65 €         5            31.878,00 €         33.153,12 €
+                                                               Servei de                Centre de
+                                                               centre de dia            dia Sophos
+         FUE-2024-   Sophos                                    per a gent               Sant Joan      D/251000200/315   BE-2024-                         Sant Joan
+         03652647    Gestió, SL      B60148996     1.2.3.1     gran            S06333   Despí          F/0000            N1173       2600269939         1 Despí        4%      34,65 €         5            31.878,00 €         33.153,12 €
+                                                               Residència
+                                                               assistida per a
+                                                               gent gran -              Residència
+         FUE-2024-   Sophos                                    temporal o               Sophos Sant    D/251000200/315   BE-2024-                         Sant Joan
+         03652800    Gestió, SL      B60148996     1.2.3.3.2   permanent       S06334   Joan Despí     E/0000            N1173       2600269938         1 Despí        4%      69,84 €        10         128.505,60 €         133.645,82 €
+                     Residència                                Servei de                Centre de
+                     La Torreta                                centre de dia            dia La
+         FUE-2024-   de Corbera,                               per a gent               Torreta de     D/251000200/315   BE-2024-                         Corbera de
+         03653622    SL              B60935301     1.2.3.1     gran            S03931   Corbera        F/0000            N1189       2600269942         1 Llobregat    4%      34,65 €         3            19.126,80 €         19.891,87 €
+                                                               Servei de
+                                                               centre de dia            Alexia                           AN/BE-
+         FUE-2024-   G.R.                                      per a gent               Centre de      D/251000200/315   2024-
+         03656863    Gerocat, S.L.   B61006730     1.2.3.1     gran            S02647   dia            F/0000            N1472       2600269746         1 Vallirana    4%      34,65 €         5            31.878,00 €         33.153,12 €
+
+
+
+                                                                                                                                                                                                    33/47
+
+## Pàgina 34
+
+R/N: 21728/ CS00210
+                                                                                                                                                                                                              Versió 1-2023
+
+
+
+
+                                                                                                                                                                                           Nombre       Cost 1 de juliol -
+                                                                                                                                                                                                 de     31 de desembre       Cost 1 de juliol -
+Centre                                            Codi        Tipologia                                Partida           Expedient                                             Preu        places a       de 2024 sense      31 de desembre
+gestor   FUE         Nom entitat    NIF entitat   cartera     servei          Codi S   Nom servei      pressupostària    GECAT       Disposició   Posició   Municipi     IVA   diari       assignar                  IVA       2024 amb IVA
+
+                                                                                       Centre de
+                                                              Servei de                dia de la
+                     Residencia                               centre de dia            Residència                        AN/BE-
+         FUE-2024-   Casa las                                 per a gent               Casa de les     D/251000200/315   2024-
+         03652975    Monjas, SL     B61714846     1.2.3.1     gran            S05781   Monges          F/0000            N1443       2600269661         1 Cervelló       4%      34,65 €         6            38.253,60 €         39.783,74 €
+                                                              Residència
+                                                              assistida per a          Residencia
+                     Residencia                               gent gran -              3ª Edad Casa                      AN/BE-
+         FUE-2024-   Casa las                                 temporal o               de las          D/251000200/315   2024-
+         03652992    Monjas, SL     B61714846     1.2.3.3.2   permanent       S01534   Monjas          E/0000            N1442       2600269659         1 Cervelló       4%      69,84 €         2            25.701,12 €         26.729,16 €
+                                                              Residència
+                                                              assistida per a
+                                                              gent gran -              Residencia                        AN/BE-
+         FUE-2024-   Marcugamar                               temporal o               Geriátrica      D/251000200/315   2024-
+         03656578    , SL       B62833553         1.2.3.3.2   permanent       S04012   Santa Rita      E/0000            N1445       2600269667         1 Collbató       4%      69,84 €         5            64.252,80 €         66.822,91 €
+                                                                                       Centre de
+                                                              Servei de                dia de la
+                     Residència                               centre de dia            Residència                        AN/BE-
+         FUE-2024-   d'avis Sol i                             per a gent               d'avis Sol i    D/251000200/315   2024-                            Corbera de
+         03653473    Natura, SL     B63287015     1.2.3.1     gran            S07331   Natura          F/0000            N1447       2600269676         1 Llobregat      4%      34,65 €         8            51.004,80 €         53.044,99 €
+
+                                                                                       Les Oliveres
+                                                              Servei de                Centre
+                                                              centre de dia            Residencial                       AN/BE-
+         FUE-2024-   Llopart                                  per a gent               (Centre de      D/251000200/315   2024-
+         03655612    Moleras, S.L   B63522486     1.2.3.1     gran            S07212   Dia)            F/0000            N1479       2600269758         1 Cervelló       4%      34,65 €         3            19.126,80 €         19.891,87 €
+
+                                                              Residència
+                                                              assistida per a          Palau de Can
+                                                              gent gran -              Sunyer                            AN/BE-
+         FUE-2024-   Palau de Can                             temporal o               (residència     D/251000200/315   2024-                            Castellví de
+         03656540    Sunyer, SL   B63767297       1.2.3.3.2   permanent       S07187   assistida)      E/0000            N1449       2600269683         1 Rosanes        4%      69,84 €         3            38.551,68 €         40.093,75 €
+                                                              Servei de                Centre de
+                     Residència                               centre de dia            Dia                               AN/BE-
+         FUE-2024-   Eixample El                              per a gent               l'Eixample el   D/251000200/315   2024-                            Prat de
+         03652648    Prat, SL       B64532179     1.2.3.1     gran            S10275   Prat            F/0000            N1454       2600269693         1 Llobregat      4%      34,65 €         4            25.502,40 €         26.522,50 €
+
+
+
+
+                                                                                                                                                                                                      34/47
+
+## Pàgina 35
+
+R/N: 21728/ CS00210
+                                                                                                                                                                                                            Versió 1-2023
+
+
+
+
+                                                                                                                                                                                         Nombre       Cost 1 de juliol -
+                                                                                                                                                                                               de     31 de desembre       Cost 1 de juliol -
+Centre                                            Codi        Tipologia                              Partida           Expedient                                             Preu        places a       de 2024 sense      31 de desembre
+gestor   FUE         Nom entitat    NIF entitat   cartera     servei          Codi S   Nom servei    pressupostària    GECAT       Disposició   Posició   Municipi     IVA   diari       assignar                  IVA       2024 amb IVA
+                                                              Residència
+                                                              assistida per a
+                     Residència                               gent gran -              Residència                      AN/BE-
+         FUE-2024-   Eixample El                              temporal o               Eixample El   D/251000200/315   2024-                            Prat de
+         03652803    Prat, SL       B64532179     1.2.3.3.2   permanent       S10274   Prat          E/0000            N1453       2600269688         1 Llobregat      4%      69,84 €         5            64.252,80 €         66.822,91 €
+                                                              Servei de
+                     Suara                                    centre de dia            Centre de                       AN/BE-
+         FUE-2024-   Serveis,                                 per a gent               Dia Primer    D/251000200/315   2024-                            Prat de
+         03654947    SCCL           F17444225     1.2.3.1     gran            S09172   de Maig       F/0000            N1519       2600270411         1 Llobregat      0%      34,65 €         9            57.380,40 €         57.380,40 €
+
+
+                                                                                       Residència
+                                                                                       Fundació
+                                                              Residència               Privada
+                                                              assistida per a          Santa Oliva
+                     Fundació                                 gent gran -              (servei de
+         FUE-2024-   Privada                                  temporal o               residència    D/251000200/315   BE-2024-                         Olesa de
+         03651206    Santa Oliva    G08843575     1.2.3.3.2   permanent       S01271   assistida)    E/0000            N1082       2600269955         1 Montserrat     0%      69,84 €        12         154.206,72 €         154.206,72 €
+
+                     Fundació
+                     Privada                                  Servei de
+                     Casal dels                               centre de dia            Centre de
+         FUE-2024-   Avis                                     per a gent               Dia Fèlix     D/251000200/315   BE-2024-                         Esplugues
+         03656388    d'Esplugues    G63049167     1.2.3.1     gran            S11087   Llobet        F/0000            N1210       2600269960         1 de Llobregat   0%      34,65 €         5            31.878,00 €         31.878,00 €
+                                                              Servei de
+                                                              centre de dia                                            AN/BE-
+         FUE-2024-   Residencia                               per a gent               Centre de     D/251000200/315   2024-
+         03651960    Merán, SA      A61778486     1.2.3.1     gran            S04805   dia Merán     F/0000            N1434       2600269633         1 Badalona       4%      34,65 €         1             6.375,60 €          6.630,62 €
+                                                              Residència
+                                                              assistida per a
+                                                              gent gran -              Residència
+         FUE-2024-   Intercentros                             temporal o               Ballesol      D/251000200/315   BE-2024-                         Barberà del
+         03650155    Ballesol, SA   A79370599     1.2.3.3.2   permanent       S06337   Barberà       E/0000            N1087       2600269932         1 Vallès         4%      69,84 €        10         128.505,60 €         133.645,82 €
+
+
+                                                                                       Residència
+                                                                                       Ballesol -    D/251000200/315   BE-2024-
+                                                                             S07721    Almogàvers    E/0000            N1087       2600269932         1 Barcelona      4%      69,84 €        10         128.505,60 €         133.645,82 €
+
+
+
+
+                                                                                                                                                                                                    35/47
+
+## Pàgina 36
+
+R/N: 21728/ CS00210
+                                                                                                                                                                                                            Versió 1-2023
+
+
+
+
+                                                                                                                                                                                         Nombre       Cost 1 de juliol -
+                                                                                                                                                                                               de     31 de desembre       Cost 1 de juliol -
+Centre                                            Codi        Tipologia                                Partida           Expedient                                           Preu        places a       de 2024 sense      31 de desembre
+gestor   FUE         Nom entitat    NIF entitat   cartera     servei          Codi S   Nom servei      pressupostària    GECAT       Disposició   Posició   Municipi   IVA   diari       assignar                  IVA       2024 amb IVA
+                                                              Residència
+                                                              assistida per a
+                     Residencia                               gent gran -              Centre
+         FUE-2024-   Font Fargas,                             temporal o               residencial     D/251000200/315   BE-2024-
+         03653730    SL             B59165530     1.2.3.3.2   permanent       S04988   Campoamor       E/0000            N1157       2600269936         1 Barcelona    4%      69,84 €         3            38.551,68 €         40.093,75 €
+
+                                                              Residència               Residència
+                                                              assistida per a          Barcelona
+                     Residència                               gent gran -              (servei de                        AN/BE-
+         FUE-2024-   Barcelona,                               temporal o               residència      D/251000200/315   2024-
+         03654795    S.L.           B60379153     1.2.3.3.2   permanent       S02490   assistida)      E/0000            N1436       2600269643         1 Barcelona    4%      69,84 €        15         192.758,40 €         200.468,74 €
+
+
+                     Alzheimer                                Servei de
+                     Centre                                   centre de dia            Alzheimer
+         FUE-2024-   Educacional,                             per a gent               Centre          D/251000200/315   BE-2024-
+         03657646    S.L.           B60868940     1.2.3.1     gran            S02978   Educacional     F/0000            N1188       2600269940         1 Barcelona    4%      34,65 €         7            44.629,20 €         46.414,37 €
+                                                                                       Centre de
+                                                                                       dia
+                     Serveis                                  Servei de                especialitzat
+                     Geriàtrics de                            centre de dia            per a la gent                     AN/BE-
+         FUE-2024-   Barcelona,                               per a gent               gran            D/251000200/315   2024-
+         03655235    S.L.          B60874815      1.2.3.1     gran            S04439   Barcelona 2     F/0000            N1438       2600269649         1 Barcelona    4%      34,65 €         4            25.502,40 €         26.522,50 €
+                                                              Residència
+                                                              assistida per a
+                     Residència                               gent gran -              Residència                        AN/BE-                           Santa
+         FUE-2024-   Moll de la                               temporal o               Moll de la      D/251000200/315   2024-                            Coloma de
+         03655807    Fusta, SL      B61293015     1.2.3.3.2   permanent       S04937   Fusta 2         E/0000            N1473       2600269749         1 Gramenet     4%      69,84 €         7            89.953,92 €         93.552,08 €
+                                                              Residència
+                                                              assistida per a
+                     Hogar                                    gent gran -              Hogar                             AN/BE-
+         FUE-2024-   geriátrico                               temporal o               geriátrico      D/251000200/315   2024-
+         03648810    Coloma, SL     B61582896     1.2.3.3.2   permanent       S04769   Coloma          E/0000            N1440       2600269656         1 Barcelona    4%      69,84 €         2            25.701,12 €         26.729,16 €
+                                                                                       Servei de
+                                                              Servei de                centre de dia
+                     Hogar                                    centre de dia            Hogar                             AN/BE-
+         FUE-2024-   geriátrico                               per a gent               geriátrico      D/251000200/315   2024-
+         03648913    Coloma, SL     B61582896     1.2.3.1     gran            S04770   Coloma          F/0000            N1441       2600269658         1 Barcelona    4%      34,65 €         8            51.004,80 €         53.044,99 €
+
+
+
+
+                                                                                                                                                                                                    36/47
+
+## Pàgina 37
+
+R/N: 21728/ CS00210
+                                                                                                                                                                                                             Versió 1-2023
+
+
+
+
+                                                                                                                                                                                          Nombre       Cost 1 de juliol -
+                                                                                                                                                                                                de     31 de desembre       Cost 1 de juliol -
+Centre                                            Codi        Tipologia                               Partida           Expedient                                             Preu        places a       de 2024 sense      31 de desembre
+gestor   FUE         Nom entitat    NIF entitat   cartera     servei          Codi S   Nom servei     pressupostària    GECAT       Disposició   Posició   Municipi     IVA   diari       assignar                  IVA       2024 amb IVA
+                                                              Servei de
+                     Centros                                  centre de dia                                             AN/BE-
+         FUE-2024-   Residenciale                             per a gent               Centre de      D/251000200/315   2024-
+         03655544    s Amunt, SL    B62076310     1.2.3.1     gran            S04643   dia Amunt      F/0000            N1474       2600269752         1 Barcelona      4%      34,65 €         2            12.751,20 €         13.261,25 €
+                                                              Servei de
+                     Residències                              centre de dia            Centre de                        AN/BE-
+         FUE-2024-   Parc Central                             per a gent               dia Parc       D/251000200/315   2024-
+         03654373    2002, SL       B62124482     1.2.3.1     gran            S06195   Central        F/0000            N1444       2600269663         1 Barcelona      4%      34,65 €         2            12.751,20 €         13.261,25 €
+                                                              Residència
+                                                              assistida per a
+                     Residència                               gent gran -                                               AN/BE-
+         FUE-2024-   el Balancí                               temporal o               Residència el D/251000200/315    2024-
+         03653002    2000, SL       B62338256     1.2.3.3.2   permanent       S03263   Balancí       E/0000             N1475       2600269754         1 Barcelona      4%      69,84 €         2            25.701,12 €         26.729,16 €
+
+
+
+                                                                                       Centre de
+                                                              Servei de                dia Cuidem
+                                                              centre de dia            la Memòria,                      AN/BE-
+         FUE-2024-   Cuidem la                                per a gent               especialitzat D/251000200/315    2024-
+         03656918    Memòria, SL    B62775960     1.2.3.1     gran            S05279   en Alzheimer F/0000              N1476       2600269755         1 Barcelona      4%      34,65 €        10            63.756,00 €         66.306,24 €
+                                                              Servei de
+                                                              centre de dia                                             AN/BE-
+         FUE-2024-   Residencia                               per a gent               Centre de      D/251000200/315   2024-
+         03661671    Bonavita, SL   B62852934     1.2.3.1     gran            S08710   dia Bonavita   F/0000            N1477       2600269756         1 Barcelona      4%      34,65 €         7            44.629,20 €         46.414,37 €
+                                                              Servei de                Centre de
+                                                              centre de dia            dia                              AN/BE-
+         FUE-2024-   Residencial                              per a gent               Residència     D/251000200/315   2024-
+         03654309    Varsòvia, SL   B62933916     1.2.3.1     gran            S08414   les Dàlies     F/0000            N1446       2600269674         1 Barcelona      4%      34,65 €         1             6.375,60 €          6.630,62 €
+                                                              Residència
+                                                              assistida per a
+                                                              gent gran -                                               AN/BE-
+         FUE-2024-   Prytanis                                 temporal o               Prytanis       D/251000200/315   2024-                            Hospitalet
+         03650782    Gran Via, SL   B63655435     1.2.3.3.2   permanent       S10401   Plaça Europa   E/0000            N1448       2600269680         1 de Llobregat   4%      69,84 €         6            77.103,36 €         80.187,49 €
+                                                              Servei de
+                                                              centre de dia            Centre de                        AN/BE-
+         FUE-2024-   Avi Amunt,                               per a gent               dia Avi        D/251000200/315   2024-
+         03655548    SL             B63669675     1.2.3.1     gran            S06632   Amunt          F/0000            N1480       2600269759         1 Barcelona      4%      34,65 €         3            19.126,80 €         19.891,87 €
+
+
+
+                                                                                                                                                                                                     37/47
+
+## Pàgina 38
+
+R/N: 21728/ CS00210
+                                                                                                                                                                                                            Versió 1-2023
+
+
+
+
+                                                                                                                                                                                         Nombre       Cost 1 de juliol -
+                                                                                                                                                                                               de     31 de desembre       Cost 1 de juliol -
+Centre                                             Codi        Tipologia                              Partida            Expedient                                           Preu        places a       de 2024 sense      31 de desembre
+gestor   FUE         Nom entitat     NIF entitat   cartera     servei          Codi S   Nom servei    pressupostària     GECAT       Disposició   Posició   Municipi   IVA   diari       assignar                  IVA       2024 amb IVA
+                                                               Residència
+                                                               assistida per a
+                                                               gent gran -              Residència                       AN/BE-
+         FUE-2024-   SSR Hestia,                               temporal o               Hestia        D/251000200/315    2024-
+         03654917    SL              B64069412     1.2.3.3.2   permanent       S10839   Stauros       E/0000             N1451       2600269685         1 Barcelona    4%      69,84 €         3            38.551,68 €         40.093,75 €
+                                                               Residència
+                                                               assistida per a          Centre
+                                                               gent gran -              Residencial                      AN/BE-                           Santa
+         FUE-2024-                                             temporal o               Lantus        D/251000200/315    2024-                            Coloma de
+         03655792    Lantus, SL      B64336621     1.2.3.3.2   permanent       S06792   Olimpo        E/0000             N1452       2600269686         1 Gramenet     4%      69,84 €        10         128.505,60 €         133.645,82 €
+
+
+                                                                                        Residencia                       AN/BE-
+                                                                                        Geriàtrica els D/251000200/315   2024-
+                                                                               S00372   Rosers         E/0000            N1452       2600269686         1 Alella       4%      69,84 €         4            51.402,24 €         53.458,33 €
+                                                               Servei de
+                     Lepant                                    centre de dia            Lepant                           AN/BE-
+         FUE-2024-   Residencial,                              per a gent               Residencial   D/251000200/315    2024-
+         03655744    Q.G.G., SL      B64847742     1.2.3.1     gran            S07801   centre de dia F/0000             N1456       2600269695         1 Barcelona    4%      34,65 €        11            70.131,60 €         72.936,86 €
+
+                                                               Residència
+                                                               assistida per a          Lepant
+                     Lepant                                    gent gran -              Residencial                      AN/BE-
+         FUE-2024-   Residencial,                              temporal o               Residència    D/251000200/315    2024-
+         03655745    Q.G.G., SL      B64847742     1.2.3.3.2   permanent       S07834   assistida     E/0000             N1455       2600269694         1 Barcelona    4%      69,84 €        50         642.528,00 €         668.229,12 €
+
+                                                                                        Servei de
+                                                               Servei de                centre de dia
+                     Protocolo                                 centre de dia            de la                            AN/BE-
+         FUE-2024-   Residencial,                              per a gent               Residència    D/251000200/315    2024-                            Sant Adrià
+         03664483    SL              B65228116     1.2.3.1     gran            S04687   Matacàs       F/0000             N1458       2600269697         1 de Besòs     4%      34,65 €        10            63.756,00 €         66.306,24 €
+                                                               Residència
+                                                               assistida per a
+                     Protocolo                                 gent gran -                                               AN/BE-
+         FUE-2024-   Residencial,                              temporal o               Residencia    D/251000200/315    2024-                            Sant Adrià
+         03656840    SL              B65228116     1.2.3.3.2   permanent       S04546   Matacás       E/0000             N1457       2600269696         1 de Besòs     4%      69,84 €        60         771.033,60 €         801.874,94 €
+                                                               Residència
+                                                               assistida per a
+                     Suara                                     gent gran -              Centre                           AN/BE-
+         FUE-2024-   Equipament                                temporal o               Residencial   D/251000200/315    2024-
+         03654869    s Socials, SL   B65568719     1.2.3.3.2   permanent       S08923   Dovela        E/0000             N1459       2600269698         1 Barcelona    0%      69,84 €        15         192.758,40 €         192.758,40 €
+
+                                                                                                                                                                                                    38/47
+
+## Pàgina 39
+
+R/N: 21728/ CS00210
+                                                                                                                                                                                                           Versió 1-2023
+
+
+
+
+                                                                                                                                                                                        Nombre       Cost 1 de juliol -
+                                                                                                                                                                                              de     31 de desembre       Cost 1 de juliol -
+Centre                                            Codi        Tipologia                               Partida           Expedient                                           Preu        places a       de 2024 sense      31 de desembre
+gestor   FUE         Nom entitat    NIF entitat   cartera     servei          Codi S   Nom servei     pressupostària    GECAT       Disposició   Posició   Municipi   IVA   diari       assignar                  IVA       2024 amb IVA
+                                                              Servei de                Vida Gran
+                                                              centre de dia            Centre de                        AN/BE-
+         FUE-2024-   Avis d'Avui,                             per a gent               dia            D/251000200/315   2024-
+         03656834    SLU            B65579468     1.2.3.1     gran            S05713   Terapèutic     F/0000            N1460       2600269699         1 Barcelona    4%      34,65 €         6            38.253,60 €         39.783,74 €
+                                                              Servei de
+                     Leal                                     centre de dia            Centre de                        AN/BE-
+         FUE-2024-   Asistencial,                             per a gent               dia Leal       D/251000200/315   2024-
+         03651140    SL             B65992158     1.2.3.1     gran            S06501   Canyelles      F/0000            N1461       2600269700         1 Barcelona    4%      34,65 €         5            31.878,00 €         33.153,12 €
+                                                              Servei de
+                     Residència                               centre de dia            Centre de                        AN/BE-
+         FUE-2024-   Nova                                     per a gent               dia Nova       D/251000200/315   2024-
+         03655591    Alegria, SL    B66189606     1.2.3.1     gran            S05582   Alegria        F/0000            N1487       2600269766         1 Barcelona    4%      34,65 €         1             6.375,60 €          6.630,62 €
+                                                              Residència
+                                                              assistida per a
+                     Residència                               gent gran -                                               AN/BE-
+         FUE-2024-   Nova                                     temporal o               Residència     D/251000200/315   2024-
+         03655593    Alegria, SL    B66189606     1.2.3.3.2   permanent       S05581   Nova Alegria   E/0000            N1486       2600269765         1 Barcelona    4%      69,84 €         6            77.103,36 €         80.187,49 €
+                                                              Residència
+                                                              assistida per a
+                                                              gent gran -                                               AN/BE-
+         FUE-2024-   Residència                               temporal o               Residencial    D/251000200/315   2024-
+         03656520    Margal, SL     B66633561     1.2.3.3.2   permanent       S09283   Margal         E/0000            N1488       2600269767         1 Barcelona    4%      69,84 €         1            12.850,56 €         13.364,58 €
+
+                                                              Residència               Ronda de
+                     Ronda de                                 assistida per a          Dalt
+                     Dalt                                     gent gran -              Residencial,                     AN/BE-
+         FUE-2024-   Residencial                              temporal o               Residència     D/251000200/315   2024-
+         03654323    SL             B67134924     1.2.3.3.2   permanent       S09750   Assistida      E/0000            N1463       2600269731         1 Barcelona    4%      69,84 €        31         398.367,36 €         414.302,05 €
+                                                              Servei de
+                                                              centre de dia                                             AN/BE-
+         FUE-2024-                                            per a gent                              D/251000200/315   2024-
+         03656321    LAVEFI60 SL    B67529578     1.2.3.1     gran            S10729   Dia Actiu      F/0000            N1489       2600269768         1 Barcelona    4%      34,65 €         9            57.380,40 €         59.675,62 €
+
+
+
+                     Familia i
+                     Benestar                                 Servei de
+                     Social -                                 centre de dia
+         FUE-2024-   Fundació                                 per a gent               Centre de    D/251000200/315     BE-2024-
+         03656311    Privada        G58523044     1.2.3.1     gran            S01506   Dia La Mercè F/0000              N962        2600269956         1 Barcelona    4%      34,65 €         6            38.253,60 €         39.783,74 €
+
+
+                                                                                                                                                                                                   39/47
+
+## Pàgina 40
+
+R/N: 21728/ CS00210
+                                                                                                                                                                                                              Versió 1-2023
+
+
+
+
+                                                                                                                                                                                           Nombre       Cost 1 de juliol -
+                                                                                                                                                                                                 de     31 de desembre       Cost 1 de juliol -
+Centre                                             Codi        Tipologia                                Partida           Expedient                                            Preu        places a       de 2024 sense      31 de desembre
+gestor   FUE         Nom entitat     NIF entitat   cartera     servei          Codi S   Nom servei      pressupostària    GECAT       Disposició   Posició   Municipi    IVA   diari       assignar                  IVA       2024 amb IVA
+                                                                                        Centre de
+                                                               Servei de                Dia per a
+                     Residència                                centre de dia            Gent Gran                         AN/BE-
+         FUE-2024-   Tercera Edat                              per a gent               L'Onada         D/251000200/315   2024-
+         03662351    L'Onada, SL B43514504         1.2.3.1     gran            S02825   Berga           F/0000            N1518       2600270410         2 Berga         4%      34,65 €         2            12.751,20 €         13.261,25 €
+                                                                                        Servei de
+                                                                                        centre de dia
+                                                               Servei de                de la
+                     Residència                                centre de dia            residència                        AN/BE-
+         FUE-2024-   Templis                                   per a gent               Templis         D/251000200/315   2024-
+         03657065    Atlantis, SLU   B66467697     1.2.3.1     gran            S03819   Atlantis        F/0000            N1462       2600269701         1 Cubelles      4%      34,65 €         2            12.751,20 €         13.261,25 €
+                                                               Residència
+                                                               assistida per a
+                     Residència                                gent gran -              Residència                        AN/BE-
+         FUE-2024-   Tercera Edat                              temporal o               Assistida Vila D/251000200/315    2024-                            Premià de
+         03662393    L'Onada, SL B43514504         1.2.3.3.2   permanent       S08060   Clavellina     E/0000             N1518       2600270410         1 Mar           4%      69,84 €        34         436.919,04 €         454.395,80 €
+                                                               Residència
+                                                               assistida per a
+                                                               gent gran -
+         FUE-2024-   Geriàtric                                 temporal o               Geriàtric       D/251000200/315   BE-2024-                         Premià de
+         03657611    Confort, S.L.   B59419754     1.2.3.3.2   permanent       S02230   Confort         E/0000            N1159       2600269937         1 Mar           4%      69,84 €         2            25.701,12 €         26.729,16 €
+                                                                                        Centre de
+                                                               Servei de                dia de la
+                     Residencia                                centre de dia            residència                        AN/BE-
+         FUE-2024-   Geriátrica                                per a gent               geriàtrica      D/251000200/315   2024-                            Malgrat de
+         03656365    Malgrat, S.L.   B60475696     1.2.3.1     gran            S06907   Malgrat         F/0000            N1437       2600269646         1 Mar           4%      34,65 €         1             6.375,60 €          6.630,62 €
+                                                                                        Centre de
+                                                                                        Dia
+                                                               Servei de                Especialitzat
+                     Vima                                      centre de dia            en
+         FUE-2024-   Residencial,                              per a gent               Demències       D/251000200/315   BE-2024-                         Sant Vicenç
+         03656759    SL              B61185930     1.2.3.1     gran            S05186   Vora Balís      F/0000            N1190       2600269944         1 de Montalt    4%      34,65 €         2            12.751,20 €         13.261,25 €
+                                                                                        Centre de
+                                                                                        dia El          D/251000200/315   BE-2024-
+                                                                               S07526   Mirador         F/0000            N1190       2600269944         1 Mataró        4%      34,65 €         1             6.375,60 €          6.630,62 €
+                                                                                        Centre de
+                                                                                        dia Can         D/251000200/315   BE-2024-
+                                                                               S05330   Boada           F/0000            N1190       2600269944         1 Mataró        4%      34,65 €         1             6.375,60 €          6.630,62 €
+
+
+
+
+                                                                                                                                                                                                      40/47
+
+## Pàgina 41
+
+R/N: 21728/ CS00210
+                                                                                                                                                                                                             Versió 1-2023
+
+
+
+
+                                                                                                                                                                                          Nombre       Cost 1 de juliol -
+                                                                                                                                                                                                de     31 de desembre       Cost 1 de juliol -
+Centre                                             Codi        Tipologia                                Partida           Expedient                                           Preu        places a       de 2024 sense      31 de desembre
+gestor   FUE         Nom entitat     NIF entitat   cartera     servei          Codi S   Nom servei      pressupostària    GECAT       Disposició   Posició   Municipi   IVA   diari       assignar                  IVA       2024 amb IVA
+                                                                                        Centre de
+                                                                                        dia Ciutat de
+                                                                                        Sabadell
+                                                                                        Serveis
+                                                                                        Sòcio-          D/251000200/315   BE-2024-
+                                                                               S04703   sanitaris       F/0000            N1190       2600269944         1 Sabadell     4%      34,65 €         4            25.502,40 €         26.522,50 €
+                                                               Residència
+                                                               assistida per a
+                     Vima                                      gent gran -
+         FUE-2024-   Residencial,                              temporal o               Residència      D/251000200/315   BE-2024-
+         03656842    SL              B61185930     1.2.3.3.2   permanent       S04711   Laia            E/0000            N1190       2600269943         1 Mataró       4%      69,84 €         5            64.252,80 €         66.822,91 €
+                                                                                        Residència
+                                                                                        Ciutat de
+                                                                                        Sabadell
+                                                                                        Serveis
+                                                                                        Sòcio-          D/251000200/315   BE-2024-
+                                                                               S04578   sanitaris       E/0000            N1190       2600269943         1 Sabadell     4%      69,84 €         4            51.402,24 €         53.458,33 €
+                                                                                        Centre
+                                                                                        geriàtric Can   D/251000200/315   BE-2024-
+                                                                               S05329   Boada           E/0000            N1190       2600269943         1 Mataró       4%      69,84 €         1            12.850,56 €         13.364,58 €
+
+                                                                                        Residència El D/251000200/315     BE-2024-
+                                                                               S00302   Mirador       E/0000              N1190       2600269943         1 Mataró       4%      69,84 €         5            64.252,80 €         66.822,91 €
+
+
+                     Gestions                                  Servei de                Centre de
+                     Patrimonials                              centre de dia            dia Mataró
+         FUE-2024-   del                                       per a gent               Ferran          D/251000200/315   BE-2024-
+         03664316    Maresme, SL B62263710         1.2.3.1     gran            S07810   Cañete          F/0000            N1220       2600269945         1 Mataró       4%      34,65 €         2            12.751,20 €         13.261,25 €
+                                                               Servei de
+                                                               centre de dia            Centre de                         AN/BE-
+         FUE-2024-   Dalmau                                    per a gent               dia             D/251000200/315   2024-                            Pineda de
+         03655173    Aranda, SL      B63746598     1.2.3.1     gran            S06332   Montserrat      F/0000            N1481       2600269760         1 Mar          4%      34,65 €         2            12.751,20 €         13.261,25 €
+
+
+                     Serveis                                   Servei de
+                     d'assistencia                             centre de dia            Centre de                         AN/BE-
+         FUE-2024-   psicosocial                               per a gent               dia Mataró      D/251000200/315   2024-
+         03661309    S.L.            B63962096     1.2.3.1     gran            S10959   Nord            F/0000            N1450       2600269684         1 Mataró       4%      34,65 €         2            12.751,20 €         13.261,25 €
+
+
+
+                                                                                                                                                                                                     41/47
+
+## Pàgina 42
+
+R/N: 21728/ CS00210
+                                                                                                                                                                                                                Versió 1-2023
+
+
+
+
+                                                                                                                                                                                             Nombre       Cost 1 de juliol -
+                                                                                                                                                                                                   de     31 de desembre       Cost 1 de juliol -
+Centre                                             Codi        Tipologia                                   Partida           Expedient                                           Preu        places a       de 2024 sense      31 de desembre
+gestor   FUE         Nom entitat     NIF entitat   cartera     servei            Codi S   Nom servei       pressupostària    GECAT       Disposició   Posició   Municipi   IVA   diari       assignar                  IVA       2024 amb IVA
+                                                               Servei de
+                                                               centre de dia              Centre de                          AN/BE-
+         FUE-2024-   Marítim                                   per a gent                 dia Sent         D/251000200/315   2024-
+         03656631    Boramar, SL     B64607872     1.2.3.1     gran              S06443   Actiu            F/0000            N1485       2600269764         1 Mataró       4%      34,65 €         1             6.375,60 €          6.630,62 €
+                                                               Residència
+                                                               assistida per a
+                     Residència                                gent gran -                Residència
+         FUE-2024-   tercera edat                              temporal o                 tercera edat     D/251000200/315   BE-2024-                         Pineda de
+         03648415    Els Arcs, SLU   B65372872     1.2.3.3.2   permanent         S08077   Els Arcs         E/0000            N1254       2600269947         1 Mar          4%      69,84 €         1            12.850,56 €         13.364,58 €
+                                                               Residència
+                                                               assistida per a
+                                                               gent gran -                Lantus
+         FUE-2024-   Grup Lantus,                              temporal o                 Arenys Vil·la    D/251000200/315   BE-2024-                         Arenys de
+         03655975    SL           B67183079        1.2.3.3.2   permanent         S00418   Betània          E/0000            N1263       2600269949         1 Mar          4%      69,84 €        10         128.505,60 €         133.645,82 €
+                                                               Servei de
+                                                               centre de dia                                                 AN/BE-
+         FUE-2024-   Concager,                                 per a gent                 Centre de        D/251000200/315   2024-
+         03657078    SA              A43669555     1.2.3.1     gran              S09972   dia Wagner       F/0000            N1429       2600269625         1 Terrassa     4%      34,65 €         9            57.380,40 €         59.675,62 €
+                                                               Servei de
+                     La Llar de                                centre de dia              Centre de                          AN/BE-
+         FUE-2024-   l'Avia Maria,                             per a gent                 dia la Llar de   D/251000200/315   2024-
+         03655353    SL              B63123178     1.2.3.1     gran            S03130     l'Avia Maria     F/0000            N1478       2600269757         1 Terrassa     4%      34,65 €         5            31.878,00 €         33.153,12 €
+                                                               Residència
+                                                               assistida per a            Residència
+                                                               gent gran -                Tercera Edat                       AN/BE-
+         FUE-2024-   María de                                  temporal o                 Maria de         D/251000200/315   2024-
+         03652819    Luján, SL       B63760680     1.2.3.3.2   permanent       S01557     Luján            E/0000            N1482       2600269761         1 Sabadell     4%      69,84 €         2            25.701,12 €         26.729,16 €
+                                                               Servei de
+                     La Dolça                                  centre de dia              Centre de                          AN/BE-
+         FUE-2024-   Companyia                                 per a gent                 dia la Dolça     D/251000200/315   2024-
+         03654250    2, SL           B64319908     1.2.3.1     gran            S01856     Companyia        F/0000            N1483       2600269762         1 Sabadell     4%      34,65 €         4            25.502,40 €         26.522,50 €
+                                                               Residència
+                                                               assistida per a
+                                                               gent gran -                Residència
+         FUE-2024-   Vitalia                                   temporal o                 Vitalia          D/251000200/315   BE-2024-
+         03657154    Home, SL        B99438806     1.2.3.3.2   permanent       S11215     Sabadell         E/0000            N1266       2600269951         1 Sabadell     4%      69,84 €         5            64.252,80 €         66.822,91 €
+
+
+
+
+                                                                                                                                                                                                        42/47
+
+## Pàgina 43
+
+R/N: 21728/ CS00210
+                                                                                                                                                                                                             Versió 1-2023
+
+
+
+
+                                                                                                                                                                                          Nombre       Cost 1 de juliol -
+                                                                                                                                                                                                de     31 de desembre       Cost 1 de juliol -
+Centre                                            Codi        Tipologia                                Partida           Expedient                                            Preu        places a       de 2024 sense      31 de desembre
+gestor   FUE         Nom entitat    NIF entitat   cartera     servei          Codi S   Nom servei      pressupostària    GECAT       Disposició   Posició   Municipi    IVA   diari       assignar                  IVA       2024 amb IVA
+                     Residència                               Servei de                Centre de
+                     les Masies                               centre de dia            Dia les                           AN/BE-
+         FUE-2024-   de Mollet,                               per a gent               Masies de       D/251000200/315   2024-                            Mollet del
+         03656168    SL             B58448176     1.2.3.1     gran            S08853   Mollet          F/0000            N1433       2600269631         1 Vallès        4%      34,65 €         2            12.751,20 €         13.261,25 €
+                                                              Residència
+                     Residència                               assistida per a
+                     les Masies                               gent gran -              Residència                        AN/BE-
+         FUE-2024-   de Mollet,                               temporal o               les Masies      D/251000200/315   2024-                            Mollet del
+         03656195    SL             B58448176     1.2.3.3.2   permanent       S08852   de Mollet       E/0000            N1432       2600269630         1 Vallès        4%      69,84 €        16         205.608,96 €         213.833,32 €
+                                                              Residència
+                                                              assistida per a
+                     Masol                                    gent gran -
+         FUE-2024-   Residencial,                             temporal o               Residencia      D/251000200/315   BE-2024-                         Figaró-
+         03655884    SL             B63152482     1.2.3.3.2   permanent       S03599   Angelus         E/0000            N1237       2600269946         1 Montmany      4%      69,84 €         1            12.850,56 €         13.364,58 €
+
+
+                     Fundació                                 Servei de
+                     Privada                                  centre de dia            Centre de
+         FUE-2024-   Hospital de                              per a gent               dia Indaleci    D/251000200/315   BE-2024-
+         03657349    Sant Celoni    G08552739     1.2.3.1     gran            S08105   Losilla         F/0000            N1054       2600269954         1 Sant Celoni   0%      34,65 €         1             6.375,60 €          6.375,60 €
+                                                                                       Servei de
+                                                                                       Suport
+                                                                                       d'Acolliment
+                     Fundació                                 Servei de                Diürn de
+                     Privada Asil                             centre de dia            l'Asil                            AN/BE-
+         FUE-2024-   Hospital de                              per a gent               Hospital de     D/251000200/315   2024-
+         03646544    la Garriga     G08612863     1.2.3.1     gran            S03129   La Garriga      F/0000            N1465       2600269733         1 Garriga       0%      34,65 €         1             6.375,60 €          6.375,60 €
+
+                                                              Residència               Asil Hospital
+                     Fundació                                 assistida per a          de la Garriga
+                     Privada Asil                             gent gran -              (servei de                        AN/BE-
+         FUE-2024-   Hospital de                              temporal o               residència      D/251000200/315   2024-
+         03646441    la Garriga     G08612863     1.2.3.3.2   permanent       S03948   assistida)      E/0000            N1464       2600269732         1 Garriga       0%      69,84 €         4            51.402,24 €         51.402,24 €
+BE2191                                                                                                                                                                                         53         564.530,40 €         579.437,04 €
+                                                              Residència
+                                                              assistida per a
+                                                              gent gran -
+         FUE-2024-   Europalau,                               temporal o               Residència      D/251000200/315   BE-2024-                         Palau-
+         03657231    SL             B17526138     1.2.3.3.2   permanent       S04288   Europalau       E/0000            N644        2600269961         1 saverdera     4%      69,84 €         6            77.103,36 €         80.187,49 €
+
+
+                                                                                                                                                                                                     43/47
+
+## Pàgina 44
+
+R/N: 21728/ CS00210
+                                                                                                                                                                                                           Versió 1-2023
+
+
+
+
+                                                                                                                                                                                        Nombre       Cost 1 de juliol -
+                                                                                                                                                                                              de     31 de desembre       Cost 1 de juliol -
+Centre                                            Codi        Tipologia                               Partida           Expedient                                           Preu        places a       de 2024 sense      31 de desembre
+gestor   FUE         Nom entitat    NIF entitat   cartera     servei            Codi S   Nom servei   pressupostària    GECAT       Disposició   Posició   Municipi   IVA   diari       assignar                  IVA       2024 amb IVA
+                                                              Servei de
+                                                              centre de dia              Centre de
+         FUE-2024-                                            per a gent                 dia Pi i     D/251000200/315   BE-2024-
+         03654292    Vigo, SCCL     F55336275     1.2.3.1     gran              S04188   Sunyer       F/0000            N640        2600270003         1 Roses        0%      34,65 €         3            19.126,80 €         19.126,80 €
+
+
+                     Fundació                                 Servei de
+                     Privada                                  centre de dia              Centre de                      AN/BE-
+         FUE-2024-   Hospital de                              per a gent                 dia Toribi   D/251000200/315   2024-                            Castelló
+         03652265    Santa Llúcia   G17685835     1.2.3.1     gran              S05043   Duran        F/0000            N1469       2600269738         1 d'Empúries   0%      34,65 €         5            31.878,00 €         31.878,00 €
+                                                              Residència
+                                                              assistida per a
+                     Residencial                              gent gran -                Residència                     AN/BE-
+         FUE-2024-   Palamos                                  temporal o                 Assistida   D/251000200/315    2024-
+         03655427    Mar S.L.       B55358204     1.2.3.3.2   permanent         S10722   Palamós Mar E/0000             N1491       2600269770         1 Palamós      4%      69,84 €        17         218.459,52 €         227.197,90 €
+                                                              Residència
+                                                              assistida per a            Residència
+                                                              gent gran -                per a gent                     AN/BE-
+         FUE-2024-   Can Regàs,                               temporal o                 gran Can     D/251000200/315   2024-
+         03657086    SA             A55121305     1.2.3.3.2   permanent         S08933   Regàs        E/0000            N1467       2600269736         1 Girona       4%      69,84 €         6            77.103,36 €         80.187,49 €
+                                                              Residència
+                                                              assistida per a
+                     Fundació                                 gent gran -                                               AN/BE-
+         FUE-2024-   Privada Les                              temporal o                 Residència   D/251000200/315   2024-
+         03655621    Vetes          G17293150     1.2.3.3.2   permanent         S02997   Les Vetes    E/0000            N1468       2600269737         1 Salt         0%      69,84 €         3            38.551,68 €         38.551,68 €
+
+
+                     Instituto de                             Servei de
+                     Religiosas de                            centre de dia              Centre de
+         FUE-2024-   San José de                              per a gent                 dia Maria    D/251000200/315   BE-2024-
+         03652669    Gerona        R2800368I      1.2.3.1     gran              S07863   Gay          F/0000            N641        2600270006         1 Girona       0%      34,65 €        10            63.756,00 €         63.756,00 €
+
+                                                              Residència
+                     Instituto de                             assistida per a
+                     Religiosas de                            gent gran -                Centre
+         FUE-2024-   San José de                              temporal o                 geriàtric    D/251000200/315   BE-2024-
+         03653909    Gerona        R2800368I      1.2.3.3.2   permanent       S00018     Maria Gay    E/0000            N641        2600270005         1 Girona       0%      69,84 €         3            38.551,68 €         38.551,68 €
+BE2192                                                                                                                                                                                       25         256.514,40 €         266.774,97 €
+
+
+
+
+                                                                                                                                                                                                   44/47
+
+## Pàgina 45
+
+R/N: 21728/ CS00210
+                                                                                                                                                                                                             Versió 1-2023
+
+
+
+
+                                                                                                                                                                                          Nombre       Cost 1 de juliol -
+                                                                                                                                                                                                de     31 de desembre       Cost 1 de juliol -
+Centre                                            Codi        Tipologia                                Partida           Expedient                                            Preu        places a       de 2024 sense      31 de desembre
+gestor   FUE         Nom entitat    NIF entitat   cartera     servei          Codi S   Nom servei      pressupostària    GECAT       Disposició   Posició   Municipi    IVA   diari       assignar                  IVA       2024 amb IVA
+                                                              Residència
+                                                              assistida per a
+                     Arrendadora                              gent gran -              Residència
+         FUE-2024-   D'Equipame                               temporal o               Senior          D/251000200/315   BE-2024-
+         03657438    nts, SL     B25622077        1.2.3.3.2   permanent       S07521   Bellvis         E/0000            N118        2600269965         1 Bellvís       4%      69,84 €         3            38.551,68 €         40.093,75 €
+                                                              Residència
+                                                              assistida per a
+                     Serveis                                  gent gran -
+         FUE-2024-   Lleida Global                            temporal o               Residència      D/251000200/315   BE-2024-
+         03649581    Grup, SL      B25633397      1.2.3.3.2   permanent       S03431   Barbens II      E/0000            N119        2600269966         1 Barbens       4%      69,84 €         1            12.850,56 €         13.364,58 €
+
+                                                                                       Residència      D/251000200/315   BE-2024-
+                                                                             S02295    Barbens         E/0000            N119        2600269966         1 Barbens       4%      69,84 €         1            12.850,56 €         13.364,58 €
+
+                                                                                       Residència      D/251000200/315   BE-2024-
+                                                                             S07605    de La Fuliola   E/0000            N119        2600269966         1 Fuliola       4%      69,84 €         4            51.402,24 €         53.458,33 €
+
+                                                                                       Residència      D/251000200/315   BE-2024-
+                                                                             S10870    Castellserà     E/0000            N119        2600269966         1 Castellserà   4%      69,84 €         1            12.850,56 €         13.364,58 €
+
+                                                              Residència
+                                                              assistida per a          Residència
+                                                              gent gran -              Assistida                         AN/BE-
+         FUE-2024-   Clece Vitam                              temporal o               Clecevitam      D/251000200/315   2024-
+         03656218    S.A            A87045456     1.2.3.3.2   permanent       S10837   Ponent          E/0000            N1492       2600269771         1 Lleida        4%      69,84 €         4            51.402,24 €         53.458,33 €
+                                                              Servei de
+                     Centre                                   centre de dia
+         FUE-2024-   Residencial                              per a gent               Centre de       D/251000200/315   BE-2024-
+         03655758    Joviar, SL     B25370933     1.2.3.1     gran            S03489   dia Joviar      F/0000            N103        2600269963         1 Lleida        4%      34,65 €        10            63.756,00 €         66.306,24 €
+                                                              Residència
+                                                              assistida per a
+                     Residència                               gent gran -              Residència
+         FUE-2024-   Sant                                     temporal o               assistida       D/251000200/315   BE-2024-                         Torres de
+         03665208    Guardià, SL    B25574229     1.2.3.3.2   permanent       S07541   Sant Guardià    E/0000            N116        2600269964         1 Segre         4%      69,84 €         1            12.850,56 €         13.364,58 €
+BE2193                                                                                                                                                                                         23         159.588,72 €         162.401,93 €
+                                                              Residència
+                                                              assistida per a
+                                                              gent gran -
+         FUE-2024-   Intercentros                             temporal o               Ballesol -      D/251000200/315   BE-2024-
+         03649917    Ballesol, SA   A79370599     1.2.3.3.2   permanent       S10068   Reus            E/0000            N1403       2600269962         1 Reus          4%      69,84 €         1            12.850,56 €         13.364,58 €
+
+                                                                                                                                                                                                     45/47
+
+## Pàgina 46
+
+R/N: 21728/ CS00210
+                                                                                                                                                                                                            Versió 1-2023
+
+
+
+
+                                                                                                                                                                                         Nombre       Cost 1 de juliol -
+                                                                                                                                                                                               de     31 de desembre       Cost 1 de juliol -
+Centre                                           Codi        Tipologia                                 Partida           Expedient                                           Preu        places a       de 2024 sense      31 de desembre
+gestor   FUE         Nom entitat   NIF entitat   cartera     servei          Codi S   Nom servei       pressupostària    GECAT       Disposició   Posició   Municipi   IVA   diari       assignar                  IVA       2024 amb IVA
+                                                                                      Residència
+                                                                                      3a Edat i
+                                                                                      Centre de
+                                                                                      Serveis
+                                                                                      L'Onada
+                                                             Servei de                Riudoms
+                     Residència                              centre de dia            (servei de
+         FUE-2024-   Tercera Edat                            per a gent               centre de        D/251000200/315   BE-2024-
+         03662306    L'Onada, SL B43514504       1.2.3.1     gran            S05887   dia)             F/0000            N949        2600269968         1 Riudoms      4%      34,65 €         4            25.502,40 €         26.522,50 €
+                                                                                      Centre de
+                                                                                      dia l'Onada
+                                                                                      (especialitzat
+                                                                                      en el
+                                                                                      tractament
+                                                                                      de               D/251000200/315   BE-2024-
+                                                                             S04394   demències)       F/0000            N949        2600269968         1 Tarragona    4%      34,65 €         3            19.126,80 €         19.891,87 €
+                                                                                      Residència
+                                                                                      3a Edat i
+                                                                                      Centre de
+                                                                                      Serveis
+                                                             Residència               L'Onada
+                                                             assistida per a          Riudoms
+                     Residència                              gent gran -              (servei de
+         FUE-2024-   Tercera Edat                            temporal o               residència       D/251000200/315   BE-2024-
+         03662415    L'Onada, SL B43514504       1.2.3.3.2   permanent       S05885   assistida)       E/0000            N949        2600269967         1 Riudoms      4%      69,84 €         1            12.850,56 €         13.364,58 €
+
+
+
+
+                     Associació
+                     d'Alzheimer
+                     i altres
+                     trastorns                               Servei de
+                     neurocogniti                            centre de dia            Centre Diürn                       AN/BE-
+         FUE-2024-   us de Reus i                            per a gent               Especialitzat D/251000200/315      2024-
+         03655308    Baix Camp    G43737733      1.2.3.1     gran            S08070   en Alzheimer F/0000                N1470       2600269740         1 Reus         0%      34,65 €         6            38.253,60 €         38.253,60 €
+
+
+
+
+                                                                                                                                                                                                    46/47
+
+## Pàgina 47
+
+R/N: 21728/ CS00210
+                                                                                                                                                                                                               Versió 1-2023
+
+
+
+
+                                                                                                                                                                                            Nombre       Cost 1 de juliol -
+                                                                                                                                                                                                  de     31 de desembre       Cost 1 de juliol -
+Centre                                              Codi        Tipologia                               Partida           Expedient                                             Preu        places a       de 2024 sense      31 de desembre
+gestor    FUE         Nom entitat     NIF entitat   cartera     servei          Codi S   Nom servei     pressupostària    GECAT       Disposició   Posició   Municipi     IVA   diari       assignar                  IVA       2024 amb IVA
+
+
+                      Santa Teresa                              Servei de
+                      del Vendrell,                             centre de dia
+          FUE-2024-   Fundació                                  per a gent               Centre de      D/251000200/315   BE-2024-
+          03665023    Privada       G43392364       1.2.3.1     gran            S09706   dia La Sínia   F/0000            N1214       2600270024         1 Calafell       0%      34,65 €         8            51.004,80 €         51.004,80 €
+BE2194                                                                                                                                                                                            7            77.004,00 €         80.084,15 €
+                                                                Servei de
+                      Residència                                centre de dia            Centre de
+          FUE-2024-   Tercera Edat                              per a gent               dia L'Onada    D/251000200/315   BE-2024-
+          03662095    L'Onada, SL B43514504         1.2.3.1     gran            S07775   Alcanar        F/0000            N834        2600270111         1 Alcanar        4%      34,65 €         2            12.751,20 €         13.261,25 €
+                                                                Residència
+                                                                assistida per a          Residència
+                      L'Onada                                   gent gran -              L'Onada
+          FUE-2024-   Golden                                    temporal o               Golden         D/251000200/315   BE-2024-                         Sant Carles
+          03662471    Beach, SL       B43777895     1.2.3.3.2   permanent       S02885   Beach          E/0000            N833        2600269973         1 de la Ràpita   4%      69,84 €         2            25.701,12 €         26.729,16 €
+                                                                Residència
+                                                                assistida per a
+                      Serveis de                                gent gran -              Residència                       AN/BE-
+          FUE-2024-   Geriatria                                 temporal o               assistida      D/251000200/315   2024-                            Sant Carles
+          03657552    Alfacs, SL      B43920008     1.2.3.3.2   permanent       S07085   Centre Vima    E/0000            N1493       2600269772         1 de la Ràpita   4%      69,84 €         1            12.850,56 €         13.364,58 €
+
+
+
+                      Rojar                                     Residència
+                      assistència                               assistida per a
+                      sociosanitàri                             gent gran -              Residència                       AN/BE-
+          FUE-2024-   a, SA                                     temporal o               de la gent     D/251000200/315   2024-
+          03654403    unipersonal     A43647809     1.2.3.3.2   permanent       S05151   gran d'Ascó    E/0000            N1471       2600269741         1 Ascó           4%      69,84 €         2            25.701,12 €         26.729,16 €
+Total
+general                                                                                                                                                                                         693       7.260.798,24 €       7.511.518,52 €
+
+
+
+
+                                                                                                                                                                                                       47/47

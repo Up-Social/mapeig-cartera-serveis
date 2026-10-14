@@ -6,6 +6,7 @@ import {concertCaseKeys,type ConcertCaseKey} from '@/lib/concerts/case-labels';
 import {ConcertCaseBadge} from './concert-case-badge';
 
 type Unit={id:string;pipeline_job_id:string|null;provider_name:string|null;observed_provider_name:string|null;provider_nif:string|null;centre:string|null;period:string|null;service_code:string|null;observed_service_code:string|null;observed_service_name:string|null;reses_code:string|null;territory:string|null;municipality:string|null;effective_start:string|null;effective_end:string|null;quantity:number|null;amount:number|null;status:string;evidence_quote:string|null;review_note:string|null;page:number|null;act_type:string;storage_path:string|null;extraction_origin:string|null;horizon_state:string|null};
+type Reconciliation={document_id:string;annex:number;row_count:number;sum_cents:number;declared_cents:number|null;reconciled:boolean};
 type LinkedRecord={id:string;title:string;sourceRecordId:string;officialUrl:string|null;publishedAt:string|null};
 type ConcertLink={id:string;direction:'anterior'|'posterior';kind:string;method:string;status:string;evidence:string;reviewNote:string|null;record:LinkedRecord|null};
 const money=(value:number)=>new Intl.NumberFormat('ca-ES',{style:'currency',currency:'EUR'}).format(value);
@@ -15,14 +16,17 @@ const linkCase:Record<string,ConcertCaseKey>={...actCase};
 export function ConcertUnits({record,services}:{record:SourceRecord;services:Array<{code:string;name:string}>}){
  const [supported,setSupported]=useState(true);
  const [units,setUnits]=useState<Unit[]>([]);
+ const [reconciliations,setReconciliations]=useState<Reconciliation[]>([]);
  const [links,setLinks]=useState<ConcertLink[]>([]);
  const [error,setError]=useState('');
  const [busy,setBusy]=useState(false);
  const [notes,setNotes]=useState<Record<string,string>>({});
  const [editingUnitId,setEditingUnitId]=useState<string|null>(null);
  const [showAllUnits,setShowAllUnits]=useState(false);
+ const [bulkNote,setBulkNote]=useState('');
+ const [editedNames,setEditedNames]=useState<Record<string,string>>({});
  const url=`/api/records/${record.id}/units`;
- useEffect(()=>{const c=new AbortController();fetch(url,{signal:c.signal}).then(r=>r.json()).then(data=>{if(data.error)setError(data.error);else{setSupported(data.supported!==false);setUnits(data.units??[]);}}).catch(e=>{if(e.name!=='AbortError')setError('No s’han pogut carregar les unitats');});return()=>c.abort();},[url]);
+ useEffect(()=>{const c=new AbortController();fetch(url,{signal:c.signal}).then(r=>r.json()).then(data=>{if(data.error)setError(data.error);else{setSupported(data.supported!==false);setUnits(data.units??[]);setReconciliations(data.reconciliations??[]);}}).catch(e=>{if(e.name!=='AbortError')setError('No s’han pogut carregar les unitats');});return()=>c.abort();},[url]);
  useEffect(()=>{const c=new AbortController();fetch(`/api/records/${record.id}/concert-links`,{signal:c.signal,cache:'no-store'}).then(r=>r.json()).then(data=>{if(data.error)setError(data.error);else setLinks(data.links??[]);}).catch(e=>{if(e.name!=='AbortError')setError('No s’han pogut carregar els vincles');});return()=>c.abort();},[record.id]);
  async function submit(body:Record<string,unknown>){
   setBusy(true);setError('');
@@ -32,6 +36,17 @@ export function ConcertUnits({record,services}:{record:SourceRecord;services:Arr
    const current=await fetch(url,{signal:AbortSignal.timeout(15000)}).then(r=>r.json());if(current.error)throw Error(current.error);
    setUnits(current.units);setEditingUnitId(null);
   }catch(e){setError(e instanceof Error?e.message:'No s’ha pogut guardar');}finally{setBusy(false);}
+ }
+ async function reviewAll(){
+  if(!record.currentJobId||!showAllUnits||bulkNote.trim().length<10)return;
+  setBusy(true);setError('');
+  try{
+   const response=await fetch(`/api/records/${record.id}/concert-review`,{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({expectedJobId:record.currentJobId,note:bulkNote,names:editedNames}),signal:AbortSignal.timeout(120000)});
+   const result=await response.json();
+   if(!response.ok)throw Error(result.error??'No s’ha pogut validar el repartiment');
+   window.location.reload();
+  }catch(cause){setError(cause instanceof Error?cause.message:'No s’ha pogut validar el repartiment');setBusy(false);}
  }
  const serviceByCode=useMemo(()=>new Map(services.map(service=>[service.code,service.name])),[services]);
  if(!supported)return <section id="unitats" className="surface p-5"><h2 className="section-title">Repartiment del concert</h2><p className="mt-2 text-sm">El desglossament per entitats està pendent d’activació en aquesta base de dades.</p></section>;
@@ -44,6 +59,9 @@ export function ConcertUnits({record,services}:{record:SourceRecord;services:Arr
  const identifiedAmount=units.filter(unit=>unit.amount!=null).reduce((sum,unit)=>sum+Number(unit.amount),0);
  const pricedLines=units.filter(unit=>unit.amount!=null).length;
  const missingOlderOrigin=units.some(unit=>unit.horizon_state==='pre_2024_origin_unavailable');
+ const reconciled=reconciliations.find(item=>item.reconciled&&item.annex>0&&item.row_count===units.length);
+ const bulkEligible=!!reconciled&&!record.isHistorical&&record.currentJobStatus==='needs_review'&&
+  record.analysis?.rules_version==='concert-reconciled-annex-v1'&&units.every(unit=>unit.status==='draft'&&!!unit.storage_path&&unit.act_type==='award');
  const caseKeys=concertCaseKeys(record.title,units.map(unit=>unit.act_type));
  const primary=caseKeys[0],attributes=caseKeys.slice(1);
  const visibleUnits=showAllUnits||units.length<=6?units:units.slice(0,6);
@@ -73,6 +91,10 @@ export function ConcertUnits({record,services}:{record:SourceRecord;services:Arr
    <div className="rounded-xl border border-sky-200 bg-sky-50/60 p-4"><p className="text-xs font-semibold uppercase tracking-wide text-sky-900">Import de les línies identificades</p><p className="mt-1 text-2xl font-bold tabular-nums text-sky-950">{pricedLines?money(identifiedAmount):'No atribuïble'}</p><p className="text-xs text-sky-900">{pricedLines} de {units.length} línies amb import · encara no és el saldo vigent</p></div>
   </div>
   {missingOlderOrigin&&<p className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950">L’origen d’aquestes pròrrogues és anterior a 2024. Els imports repetits del document no s’atribueixen ni se sumen com a imports individuals.</p>}
+  {reconciliations.length>0&&<p role="status" className={`rounded-lg border p-3 text-sm ${reconciled?'border-emerald-300 bg-emerald-50 text-emerald-950':'border-amber-300 bg-amber-50 text-amber-950'}`}>
+   {reconciled?`Annex ${reconciled.annex} llegit complet: ${reconciled.row_count} línies i ${money(reconciled.sum_cents/100)}. La suma coincideix amb la resolució; pendent de validació humana.`:
+    'Hi ha línies documentals, però el total de l’annex encara no està conciliat. No es poden aprovar com a conjunt.'}
+  </p>}
 
   <section id="concert-distribution" className="scroll-mt-32" aria-labelledby="distribution-title" data-testid="concert-distribution">
    <div className="flex flex-wrap items-end justify-between gap-2"><div><p className="page-eyebrow">01 · Distribució</p><h3 id="distribution-title" className="text-xl font-semibold">Entitats, serveis i imports</h3></div><p className="text-xs text-muted-foreground">Una fitxa per línia de l’annex · {units.length} línies</p></div>
@@ -90,6 +112,7 @@ export function ConcertUnits({record,services}:{record:SourceRecord;services:Arr
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(180px,240px)]">
        <div className="min-w-0"><p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Línia {index+1} · Entitat</p><h5 className="mt-1 break-words text-lg font-bold leading-snug">{entity??'Nom de l’entitat pendent de verificar'}</h5>
         {entity&&!unit.provider_name&&<p className="mt-1 text-xs text-amber-800">Nom llegit a l’annex · pendent de validar</p>}
+        {bulkEligible&&<label className="mt-2 block text-xs font-semibold">Nom que constarà al resultat<input className="form-text mt-1 w-full text-sm font-normal" value={editedNames[unit.id]??entity??''} onChange={event=>setEditedNames(value=>({...value,[unit.id]:event.target.value}))} minLength={3} maxLength={300} aria-label={`Nom de l’entitat de la línia ${index+1}`}/></label>}
         <p className="mt-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Servei</p><p className="mt-1 break-words text-base font-semibold">{service??'Nom del servei pendent de contrastar'}</p>
         <p className="mt-1 text-sm text-muted-foreground">{code?`Codi de Cartera observat: ${code}`:'Codi de Cartera pendent'}{unit.reses_code?` · RESES ${unit.reses_code}`:''}</p>
        </div>
@@ -114,6 +137,7 @@ export function ConcertUnits({record,services}:{record:SourceRecord;services:Arr
     </section>)}
    </div>
    {units.length>6&&<button type="button" className="mt-4 rounded-md border px-4 py-2 text-sm font-semibold" title={showAllUnits?'Plega el llistat a les sis primeres línies':'Mostra totes les línies identificades de l’annex'} onClick={()=>setShowAllUnits(value=>!value)}>{showAllUnits?'Mostra només les 6 primeres línies':`Mostra les ${units.length} línies`}</button>}
+   {bulkEligible&&<div className="mt-5 rounded-xl border border-emerald-300 bg-emerald-50 p-4" data-testid="concert-bulk-review"><h4 className="font-semibold">Validar el repartiment complet</h4><p className="mt-1 text-sm">Comprova les {units.length} línies, els noms i els imports amb el PDF. Una única decisió aprovarà el conjunt; si falla una línia, no s’aprovarà cap.</p><label className="mt-3 block text-sm font-medium">Justificació de la validació<textarea className="form-text mt-1 w-full" rows={3} maxLength={1000} value={bulkNote} onChange={event=>setBulkNote(event.target.value)}/></label><button type="button" className="mt-3 rounded-md bg-emerald-900 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50" disabled={busy||!showAllUnits||bulkNote.trim().length<10||units.some(unit=>!(editedNames[unit.id]??unit.provider_name??unit.observed_provider_name)?.trim())} onClick={()=>void reviewAll()}>{busy?'Validant…':`Aprovar les ${units.length} línies`}</button>{!showAllUnits&&<p className="mt-2 text-xs">Mostra totes les línies abans de validar.</p>}</div>}
   </section>
 
   <section id="concert-history" aria-labelledby="history-title" className="scroll-mt-32 rounded-xl border border-violet-200 bg-violet-50/30 p-4 sm:p-5" data-testid="concert-history">
