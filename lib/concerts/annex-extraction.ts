@@ -61,7 +61,7 @@ export function extractProgram317Rows(text:string){
 export type EconomicAnnexLine={
  annex:0|6|7;page:number;row:number;nif:string;observedProviderName:string|null;
  observedServiceCode:string|null;observedServiceName?:string|null;resesCode:string;municipality:string|null;
- quantity:number;amountCents:number;quote:string;
+ quantity:number|null;amountCents:number|null;quote:string;effectiveStart?:string;effectiveEnd?:string;
 };
 
 const printedMoney=/([\d.]+,\d{2})\s*€/gu;
@@ -84,8 +84,8 @@ function observedName(lines:string[],from:number,to:number,start:number,end:numb
  * monetary row is identified by RESES, a final euro amount and a place count.
  * Blank identity cells inherit only within the same annex, never across acts.
  */
-export function extractEconomicAnnexRows(text:string):EconomicAnnexLine[]{
- const result:EconomicAnnexLine[]=[];
+export function extractEconomicAnnexRows(text:string):Array<EconomicAnnexLine & {quantity:number;amountCents:number}>{
+ const result:Array<EconomicAnnexLine & {quantity:number;amountCents:number}>=[];
  let active:6|7|null=null,nif='',name:string|null=null,serviceCode:string|null=null;
  for(const page of annexPageParts(text)){
   const lines=page.text.split('\n');let previousRow=-1;

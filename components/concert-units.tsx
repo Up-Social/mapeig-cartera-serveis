@@ -4,8 +4,9 @@ import type {SourceRecord} from '@/lib/workbench-types';
 import {sourceDocumentTypeLabel} from '@/lib/ui-labels';
 import {concertCaseKeys,type ConcertCaseKey} from '@/lib/concerts/case-labels';
 import {ConcertCaseBadge} from './concert-case-badge';
+import {ConcertEconomics} from './concert-economics';
 
-type Unit={id:string;pipeline_job_id:string|null;provider_name:string|null;observed_provider_name:string|null;provider_nif:string|null;centre:string|null;period:string|null;service_code:string|null;observed_service_code:string|null;observed_service_name:string|null;reses_code:string|null;territory:string|null;municipality:string|null;effective_start:string|null;effective_end:string|null;quantity:number|null;amount:number|null;status:string;evidence_quote:string|null;review_note:string|null;page:number|null;act_type:string;storage_path:string|null;extraction_origin:string|null;horizon_state:string|null};
+type Unit={id:string;pipeline_job_id:string|null;provider_name:string|null;observed_provider_name:string|null;provider_nif:string|null;centre:string|null;period:string|null;service_code:string|null;observed_service_code:string|null;observed_service_name:string|null;reses_code:string|null;territory:string|null;municipality:string|null;effective_start:string|null;effective_end:string|null;quantity:number|null;quantity_delta:number|null;amount:number|null;status:string;evidence_quote:string|null;review_note:string|null;page:number|null;act_type:string;storage_path:string|null;extraction_origin:string|null;horizon_state:string|null};
 type Reconciliation={document_id:string;annex:number;row_count:number;sum_cents:number;declared_cents:number|null;reconciled:boolean};
 type LinkedRecord={id:string;title:string;sourceRecordId:string;officialUrl:string|null;publishedAt:string|null};
 type ConcertLink={id:string;direction:'anterior'|'posterior';kind:string;method:string;status:string;evidence:string;reviewNote:string|null;record:LinkedRecord|null};
@@ -123,7 +124,7 @@ export function ConcertUnits({record,services}:{record:SourceRecord;services:Arr
       </div>
       <div className="mt-4 flex flex-wrap items-center gap-2 border-t pt-3 text-xs text-muted-foreground">
        {act&&<ConcertCaseBadge kind={act}/>}<span className="rounded-full border px-2.5 py-1">{unit.status==='approved'?'Línia aprovada':unit.status==='rejected'?'Línia rebutjada':'Pendent de revisió'}</span>
-       {unit.provider_nif&&<span>NIF {unit.provider_nif}</span>}{unit.centre&&<span>Centre: {unit.centre}</span>}{(unit.municipality||unit.territory)&&<span>{unit.municipality??unit.territory}</span>}{unit.period&&<span>Període {unit.period}</span>}{unit.quantity&&<span>{unit.quantity} {unit.quantity===1?'servei':'serveis'}</span>}
+       {unit.provider_nif&&<span>NIF {unit.provider_nif}</span>}{unit.centre&&<span>Centre: {unit.centre}</span>}{(unit.municipality||unit.territory)&&<span>{unit.municipality??unit.territory}</span>}{unit.period&&<span>Període {unit.period}</span>}{unit.quantity_delta!=null&&<span>Canvi de places: {unit.quantity_delta>0?'+':''}{unit.quantity_delta}</span>}{unit.quantity&&<span>{unit.quantity} {unit.quantity===1?'servei':'serveis'}</span>}
       </div>
       <details className="mt-3 rounded-lg bg-muted/20 p-3 text-sm"><summary className="cursor-pointer font-medium" title="Mostra la cita de l’annex i la font arxivada">Evidència i traçabilitat · pàgina {unit.page??'pendent'}</summary>
        <blockquote className="mt-3 break-words whitespace-pre-wrap border-l-2 pl-3 leading-6">{unit.evidence_quote??'Cita pendent'}</blockquote><p className="mt-2 break-all text-xs">ID de la línia: {unit.id}</p>
@@ -153,7 +154,9 @@ export function ConcertUnits({record,services}:{record:SourceRecord;services:Arr
    </article>)}</div>:<p className="mt-4 rounded-lg border bg-white p-4 text-sm">Encara no hi ha cap resolució anterior o posterior vinculada. Si l’acte modifica un concert previ, cal localitzar-lo i revisar les línies afectades.</p>}
   </section>
 
-  {units.some(u=>u.status==='approved')&&<p role="status" className="text-sm">L’Excel exporta les adjudicacions aprovades. Una pròrroga, esmena, cessió o cessament revisat no es compta com una nova adjudicació. La provisió global anterior es conserva a l’historial per evitar duplicar imports.</p>}
+  <ConcertEconomics recordId={record.id}/>
+
+  {units.some(u=>u.status==='approved')&&<p role="status" className="text-sm">L’Excel exporta les adjudicacions aprovades. L’exportació de foto i moviments aplica les modificacions revisades per període; no sumis aquesta foto amb l’Excel històric d’adjudicacions. La provisió global anterior es conserva a l’historial per evitar duplicar imports.</p>}
   {allowed?<details className="rounded-lg border p-4"><summary className="cursor-pointer font-semibold" title="Obre el formulari per afegir una línia acreditada de l’annex">Afegir una línia de l’annex</summary><form className="mt-4 grid gap-3 md:grid-cols-2" onSubmit={e=>{e.preventDefault();const data=Object.fromEntries(new FormData(e.currentTarget));void submit({unit:data});}}>
    {([['provider_name','Entitat beneficiària',true],['provider_nif','NIF',false],['centre','Centre',false],['period','Període acreditat',true]] as const).map(([name,label,required])=><label key={name}>{label}<input className="form-text mt-1 w-full" name={name} required={required} maxLength={300}/></label>)}
    <label>Servei de Cartera<select className="form-control mt-1 w-full" name="service_code" required><option value="">Selecciona el codi de l’annex</option>{services.map(s=><option key={s.code} value={s.code}>{s.code} · {s.name}</option>)}</select></label>

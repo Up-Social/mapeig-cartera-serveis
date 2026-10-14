@@ -10,6 +10,7 @@ export type ConcertFinancialLine={
  documentHash:string;
  lineReference:string;
  effectiveAt:string;
+ sequence?:number;
  operation:'award'|'renewal'|'delta'|'replacement'|'nonfinancial';
  amountCents:number|null;
  amountKind?:'exact'|'maximum'|'unknown';
@@ -25,15 +26,15 @@ const scope=(item:ConcertFinancialLine)=>[item.agreementKey,item.serviceCode,ite
 
 /** Deduplicate publications of the same document line, then apply each transaction in time order. */
 export function projectConcertBalances(lines:ConcertFinancialLine[]):ConcertBalance[]{
- const sorted=lines.filter(line=>line.status==='approved').sort((a,b)=>a.effectiveAt.localeCompare(b.effectiveAt)||a.id.localeCompare(b.id));
+ const sorted=lines.filter(line=>line.status==='approved').sort((a,b)=>a.effectiveAt.localeCompare(b.effectiveAt)||(a.sequence??0)-(b.sequence??0)||a.id.localeCompare(b.id));
  const seen=new Map<string,ConcertFinancialLine>();
  const transactions=new Map<string,{scope:string;amountCents:number|null;maximum:boolean;issues:string[]}>();
  for(const line of sorted){
   const identity=line.documentHash?[line.documentHash,line.lineReference,line.territory,line.period].join('\u0000'):line.id;
   const earlier=seen.get(identity);
   if(earlier){
-   const same=earlier.transactionKey===line.transactionKey&&earlier.operation===line.operation&&earlier.amountCents===line.amountCents;
-   if(!same){const key=`${scope(line)}\u0000${line.transactionKey}`;const state=transactions.get(key)??{scope:scope(line),amountCents:null,maximum:false,issues:[]};state.issues.push('La mateixa línia documental té interpretacions incompatibles.');state.amountCents=null;transactions.set(key,state);}
+   const same=scope(earlier)===scope(line)&&earlier.transactionKey===line.transactionKey&&earlier.operation===line.operation&&earlier.amountCents===line.amountCents&&earlier.amountKind===line.amountKind;
+   if(!same){const previous=transactions.get(`${scope(earlier)}\u0000${earlier.transactionKey}`);if(previous){previous.issues.push('La mateixa línia documental té interpretacions incompatibles.');previous.amountCents=null;}const key=`${scope(line)}\u0000${line.transactionKey}`;const state=transactions.get(key)??{scope:scope(line),amountCents:null,maximum:false,issues:[]};state.issues.push('La mateixa línia documental té interpretacions incompatibles.');state.amountCents=null;transactions.set(key,state);}
    continue;
   }
   seen.set(identity,line);
@@ -41,20 +42,22 @@ export function projectConcertBalances(lines:ConcertFinancialLine[]):ConcertBala
   const key=`${scope(line)}\u0000${line.transactionKey}`;
   const state=transactions.get(key)??{scope:scope(line),amountCents:null,maximum:false,issues:[]};
   if(!validCents(line.amountCents)){state.issues.push('Import sense precisió de cèntims.');state.amountCents=null;}
-  else if(line.amountCents===null){
+  else if(line.amountCents===null||line.amountKind==='unknown'){
    state.issues.push('Import no acreditat.');state.amountCents=null;
   }else if(line.operation==='award'||line.operation==='renewal'){
    if(state.amountCents!==null)state.issues.push('Una segona adjudicació de la mateixa transacció requereix una relació explícita.');
    else if(line.amountCents<0)state.issues.push('Una adjudicació no pot tenir un import negatiu.');
    else state.amountCents=line.amountCents;
   }else if(line.operation==='delta'){
-   if(state.amountCents===null)state.issues.push('No consta la base de la modificació.');
+   if(line.amountKind==='maximum'){state.issues.push('Una variació màxima no acredita el canvi efectiu.');state.amountCents=null;}
+   else if(state.amountCents===null)state.issues.push('No consta la base de la modificació.');
    else state.amountCents+=line.amountCents;
   }else if(line.operation==='replacement'){
    if(state.amountCents===null)state.issues.push('No consta la base que es vol substituir.');
    else if(line.amountCents<0)state.issues.push('El total substitutiu no pot ser negatiu.');
-   else state.amountCents=line.amountCents;
+   else {state.amountCents=line.amountCents;state.maximum=line.amountKind==='maximum';}
   }
+  if(state.amountCents!==null&&(!Number.isSafeInteger(state.amountCents)||state.amountCents<0)){state.issues.push('Saldo negatiu o fora de la precisió segura.');state.amountCents=null;}
   if(line.amountKind==='maximum')state.maximum=true;
   transactions.set(key,state);
  }
@@ -66,7 +69,7 @@ export function projectConcertBalances(lines:ConcertFinancialLine[]):ConcertBala
   value.maximum ||= state.maximum;
   value.issues.push(...state.issues);
   if(state.amountCents===null||state.issues.length)value.amountCents=null;
-  else if(value.amountCents!==null)value.amountCents+=state.amountCents;
+  else if(value.amountCents!==null){value.amountCents+=state.amountCents;if(!Number.isSafeInteger(value.amountCents)){value.issues.push('Total fora de la precisió segura.');value.amountCents=null;}}
   grouped.set(state.scope,value);
  }
  return [...grouped.values()].sort((a,b)=>[a.agreementKey,a.serviceCode,a.period,a.territory,a.funder].join('|').localeCompare([b.agreementKey,b.serviceCode,b.period,b.territory,b.funder].join('|')));

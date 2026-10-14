@@ -1,13 +1,13 @@
 import {declaredEconomicAnnexTotal,extractConcertAnnexRows,extractEconomicAnnexRows,extractProgram317Rows,type EconomicAnnexLine} from '../concerts/annex-extraction';
-import {concertActKind,proposeRecordLinks,publicationDate,type ConcertPublication} from '../concerts/record-linking';
-import {proposeUnitLinks,type ConcertUnitForLink} from '../concerts/unit-linking';
+import {concertActKind,type ConcertPublication} from '../concerts/record-linking';
+import {extractConcertChangeRows,operativeConcertChange} from '../concerts/change-extraction';
+import {storeConcertLinkProposals} from '../concerts/link-discovery';
 import {archiveUnitSource} from '../source-storage';
 import {checkpoint,lease,readCheckpoint,type Context} from './context';
 import {CloudFailure} from './errors';
 
 type Job={id:string;source_record_id:string};
 const BATCH_SIZE=5;
-const relationKind:Record<string,string>={modification:'delta',amendment:'amendment',renewal:'renewal',termination:'termination',cession:'cession',appeal:'appeal',validation:'validation'};
 
 /** Each invocation stages at most five immutable source-backed drafts. */
 export async function prepareConcertObservations(c:Context,job:Job):Promise<boolean>{
@@ -24,31 +24,54 @@ export async function prepareConcertObservations(c:Context,job:Job):Promise<bool
  const reconciliation:Array<{documentId:string;annex:number;rows:number;sumCents:number;declaredCents:number|null;reconciled:boolean}>=[];
  const publication=current.data as ConcertPublication;
  const actKind=concertActKind(publication);
- const actType=actKind&&actKind!=='other'?actKind:'award';
- const period=publicationDate(publication).slice(0,4)||null;
- const prior=await c.db.from('record_units').select('id,unit_key,storage_path,observed_service_code').eq('source_record_id',job.source_record_id).neq('unit_key','legacy');
+ const titleActType=actKind&&actKind!=='other'?actKind:null;
+ // Publication year is not the financed period. Only source-backed dates qualify.
+ const period=null;
+ const prior=await c.db.from('record_units').select('id,unit_key,storage_path,observed_service_code,amount,quantity_delta').eq('source_record_id',job.source_record_id).neq('unit_key','legacy');
  if(prior.error)throw new CloudFailure('internal');
  const existing=new Map((prior.data??[]).map(unit=>[unit.unit_key,unit]));
  let staged=0;
  for(const document of all){
   if(seen.has(document.storage_sha256!))continue;
   seen.add(document.storage_sha256!);
-  let rows=extractEconomicAnnexRows(document.extracted_text!);
+  const actType=titleActType??operativeConcertChange(document.extracted_text!)??'award';
+  if(['modification','termination'].includes(actType)){
+   const changes=extractConcertChangeRows(document.extracted_text!);
+   for(const row of changes){
+    const key=`official-change:${document.storage_sha256}:${row.row}`;
+    const prior=existing.get(key);
+    if(prior?.storage_path){
+     if(prior.observed_service_code!==row.observedServiceCode||Math.round(Number(prior.amount)*100)!==row.amountCents||prior.quantity_delta!==row.quantityDelta)throw new CloudFailure('validation',5,{operation:'concert_change_drift',code:'CONCERT_SOURCE_CHANGED'});
+     continue;
+    }
+    const registry=await c.db.from('reses_services').select('county,entities(nif,legal_name)').eq('registry_number',row.resesCode).maybeSingle();
+    if(registry.error)throw new CloudFailure('internal');
+    const entity=Array.isArray(registry.data?.entities)?registry.data.entities[0]:registry.data?.entities;
+    const registeredProviderName=entity?.nif===row.nif?entity.legal_name:null;
+    const saved=await c.db.rpc('cloud_stage_concert_change_line',{...lease(c),p_job:job.id,p_document:document.id,p_line:{...row,actType,registeredProviderName,territory:registry.data?.county??null}});
+    if(saved.error)throw new CloudFailure('validation',5,{operation:'stage_concert_change',code:saved.error.code??'DATABASE_ERROR'});
+    await archiveUnitSource(c.db,job.source_record_id,saved.data as string);
+    staged++;if(staged>=BATCH_SIZE)return false;
+   }
+   // Changes retain their signed source amount, never become an award annex.
+   continue;
+  }
+  let rows:EconomicAnnexLine[]=extractEconomicAnnexRows(document.extracted_text!);
   if(!rows.length&&!(prior.data??[]).some(unit=>!unit.unit_key.startsWith('official-annex:'))){
    const raw=document.extracted_text!.replace(/^## Pàgina \d+\s*$/gm,'\f').replace(/^\f\s*/,'');
    rows=extractConcertAnnexRows(raw).map(row=>({annex:0,page:row.page,row:row.row,nif:row.nif,
     observedProviderName:row.observedProviderName,observedServiceCode:row.serviceCode,resesCode:row.resesCode,
-    municipality:row.territory,quantity:row.quantity,amountCents:row.amountCents,quote:row.quote} satisfies EconomicAnnexLine));
+    municipality:row.territory,quantity:row.quantity,amountCents:row.amountCents,effectiveStart:row.effectiveStart,effectiveEnd:row.effectiveEnd,quote:row.quote} satisfies EconomicAnnexLine));
    if(!rows.length&&actType==='renewal')rows=extractProgram317Rows(raw).map(row=>({annex:0,page:row.page,row:row.row,
     nif:row.nif,observedProviderName:row.observedProviderName,observedServiceCode:null,
     observedServiceName:row.observedServiceName,resesCode:row.resesCode,municipality:null,
-    quantity:1,amountCents:0,quote:row.quote} satisfies EconomicAnnexLine));
+    quantity:null,amountCents:null,quote:row.quote} satisfies EconomicAnnexLine));
   }
   if(rows.length>1_000)throw new CloudFailure('validation');
   if(rows.length){
    const annex=rows[0].annex;
    const declared=annex===0?null:declaredEconomicAnnexTotal(document.extracted_text!,annex);
-   const sum=rows.reduce((value,row)=>value+row.amountCents,0);
+   const sum=rows.reduce((value,row)=>value+(row.amountCents??0),0);
    reconciliation.push({documentId:document.id,annex,rows:rows.length,sumCents:sum,declaredCents:declared,reconciled:declared!==null&&sum===declared});
   }
   const registry=new Map<string,{municipality:string|null;county:string|null;legalName:string|null}>();
@@ -78,7 +101,7 @@ export async function prepareConcertObservations(c:Context,job:Job):Promise<bool
     (normalized(registered.municipality).includes(normalized(row.municipality))||normalized(row.municipality).includes(normalized(registered.municipality)))
     ?registered.municipality:row.municipality;
    const registeredName=registered?.legalName?.startsWith(`${row.nif}|`)?registered.legalName.slice(row.nif.length+1):null;
-   const line={...row,municipality:officialMunicipality,territory:registered?.county??null,registeredProviderName:registeredName,actType,period};
+   const line={...row,municipality:officialMunicipality,territory:registered?.county??null,registeredProviderName:registeredName,actType,period:row.effectiveStart&&row.effectiveEnd?`${row.effectiveStart}/${row.effectiveEnd}`:period};
    const saved=await c.db.rpc('cloud_stage_concert_annex_line',{...lease(c),p_job:job.id,p_document:document.id,p_line:line});
    if(saved.error)throw new CloudFailure('validation',5,{operation:'stage_concert_annex',code:saved.error.code??'DATABASE_ERROR'});
    try{await archiveUnitSource(c.db,job.source_record_id,saved.data as string);}catch{throw new CloudFailure('document');}
@@ -92,43 +115,7 @@ export async function prepareConcertObservations(c:Context,job:Job):Promise<bool
   if(checked.error)throw new CloudFailure('validation',5,{operation:'reconcile_concert_annex',code:checked.error.code??'DATABASE_ERROR'});
   report.reconciled=checked.data===true;
  }
- await proposeConcertLinks(c,publication);
+ await storeConcertLinkProposals(c.db,publication.id);
  await checkpoint(c,key,{complete:true,documents:[...seen],reconciliation});
  return true;
-}
-
-async function proposeConcertLinks(c:Context,current:ConcertPublication){
- const publications:ConcertPublication[]=[];
- for(let offset=0;;offset+=500){
-  const page=await c.db.from('source_records').select('id,title,source_record_id,source_payload').eq('financing_type','concert').order('id').range(offset,offset+499);
-  if(page.error)throw new CloudFailure('internal');
-  publications.push(...page.data as ConcertPublication[]);if(page.data.length<500)break;
- }
- const candidates=proposeRecordLinks(publications).filter(link=>link.laterRecordId===current.id);
- if(!candidates.length)return;
- const recordRows=candidates.map(link=>({later_record_id:link.laterRecordId,earlier_record_id:link.earlierRecordId,link_kind:link.kind,
-  matching_method:link.method,status:'candidate',evidence:link.evidence}));
- const inserted=await c.db.from('concert_record_links').upsert(recordRows,{onConflict:'later_record_id,earlier_record_id',ignoreDuplicates:true});
- if(inserted.error)throw new CloudFailure('internal');
- const recordById=new Map(publications.map(row=>[row.id,row]));
- const relevant=new Set([current.id,...candidates.map(link=>link.earlierRecordId)]);
- const units=[];
- for(const id of relevant){
-  const result=await c.db.from('record_units').select('id,source_record_id,act_type,reses_code,provider_nif,service_code,observed_service_code,territory,origin_reference,period')
-   .eq('source_record_id',id).neq('unit_key','legacy');
-  if(result.error)throw new CloudFailure('internal');units.push(...result.data);
- }
- const forLink:ConcertUnitForLink[]=units.flatMap(unit=>{
-  const publication=recordById.get(unit.source_record_id);
-  return publication?[{id:unit.id,recordId:unit.source_record_id,recordTitle:publication.title,recordExternalId:publication.source_record_id,
-   publishedAt:publicationDate(publication),actType:unit.act_type,resesCode:unit.reses_code,providerNif:unit.provider_nif,
-   serviceCode:unit.service_code??unit.observed_service_code,territory:unit.territory,originReference:unit.origin_reference,period:unit.period}]:[];
- });
- const sourceByUnit=new Map(forLink.map(unit=>[unit.id,unit]));
- const links=proposeUnitLinks(forLink).filter(link=>sourceByUnit.get(link.laterUnitId)?.recordId===current.id);
- if(!links.length)return;
- const unitRows=links.map(link=>({later_unit_id:link.laterUnitId,earlier_unit_id:link.earlierUnitId,root_unit_id:link.earlierUnitId,
-  relation_kind:relationKind[sourceByUnit.get(link.laterUnitId)!.actType],matching_method:link.method,status:'candidate',evidence:link.evidence}));
- const saved=await c.db.from('concert_unit_links').upsert(unitRows,{onConflict:'later_unit_id,earlier_unit_id',ignoreDuplicates:true});
- if(saved.error)throw new CloudFailure('internal');
 }

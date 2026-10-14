@@ -21,11 +21,11 @@ export function concertActKind(row:ConcertPublication):ConcertLinkCandidate['kin
  const value=normalize(`${row.source_payload.event_type??''} ${row.title}`);
  if(/\b(esmena|rectificaci|correcci[oó])/.test(value))return 'amendment';
  if(/\bpr[oò]rroga/.test(value))return 'renewal';
- if(/\b(cessament|extinci[oó]|minoraci[oó])/.test(value))return 'termination';
+ if(/\b(cessament|extinci[oó])/.test(value))return 'termination';
  if(/\bcessi[oó]/.test(value))return 'cession';
  if(/\brecurs/.test(value))return 'appeal';
  if(/\bconvalidaci[oó]/.test(value))return 'validation';
- if(/\b(modificaci[oó]|ampliaci[oó])/.test(value))return 'modification';
+ if(/\b(modificaci[oó]|ampliaci[oó]|minoraci[oó])/.test(value))return 'modification';
  return null;
 }
 
