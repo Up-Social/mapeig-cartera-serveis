@@ -15,10 +15,11 @@ export type EconomicLink={id:string;later_unit_id:string;earlier_unit_id:string;
 export type EconomicPublication={id:string;title:string;job_id:string|null;job_status:string|null;official_url:string|null};
 export type MissingConcertLines={earlier_record_id:string;later_record_id:string;evidence:string};
 export type ConcertEvolutionData={missingLines?:MissingConcertLines[];units:EconomicUnit[];reviews:EconomicReview[];links:EconomicLink[];publications:EconomicPublication[]};
-export type EvolutionMovement={unitId:string;recordId:string;rootId:string|null;provider:string;operation:string;period:string;amountCents:number|null;
+export type EvolutionMovement={unitId:string;recordId:string;rootId:string|null;provider:string;operation:string;period:string;amountCents:number|null;amountKind:EconomicReview['amount_kind'];
  status:'reviewed'|'pending'|'excluded';issues:string[];effectiveAt:string|null;beforeCents?:number|null;afterCents?:number|null};
 export type EvolutionBalance={rootId:string;provider:string;service:string;territory:string;period:string;funder:string;amountCents:number|null;maximum:boolean;issues:string[]};
-export const ECONOMIC_RULES_VERSION='concert-economics-2024-v1';
+export const ECONOMIC_RULES_VERSION='concert-economics-2024-v2';
+export const ECONOMIC_AMOUNT_LABELS={exact:'Import documental',maximum:'Màxim autoritzat · no és despesa real',unknown:'Import no acreditat'};
 const name=(unit:EconomicUnit)=>unit.provider_name??unit.observed_provider_name??'Entitat pendent de contrast';
 const excluded=(u:EconomicUnit)=>['out_of_scope','pre_2024_origin_unavailable'].includes(u.horizon_state??'');
 const iso=(s:string|null):s is string=>!!s&&/^\d{4}-\d{2}-\d{2}$/.test(s)&&!Number.isNaN(Date.parse(s))&&new Date(`${s}T00:00:00Z`).toISOString().slice(0,10)===s;
@@ -65,15 +66,18 @@ export function concertEvolution(data:ConcertEvolutionData,cutoff:string){
   if(review?.effective_at&&review.effective_at>cutoff)continue;
   const period=review?.period_start&&review?.period_end?`${review.period_start}/${review.period_end}`:'Període pendent';
   const m:EvolutionMovement={unitId:u.id,recordId:u.source_record_id,rootId:c.root,provider:name(u),operation:review?.operation??'pending',period,
-   amountCents:review?.amount_cents??null,status:isExcluded?'excluded':'pending',issues,effectiveAt:review?.effective_at??null};
+   amountCents:review?.amount_cents??null,amountKind:review?.amount_kind??'unknown',status:isExcluded?'excluded':'pending',issues,effectiveAt:review?.effective_at??null};
   movements.push(m);if(isExcluded){issues.push('Exclòs de la foto des de 2024; no suma');continue;}
   if(c.issue)issues.push(c.issue);
   if(!review||review.status!=='approved')issues.push('Interpretació econòmica pendent de revisió');
   if(u.status!=='approved')issues.push('Línia pendent de validació');
   if(review&&review.source_fingerprint!==u.source_fingerprint)issues.push('La font ha canviat des de la revisió');
   const publication=publications.get(u.source_record_id);
-  if(review&&(publication?.job_id!==review.expected_job_id||!['approved','corrected'].includes(publication?.job_status??'')))issues.push('L’anàlisi vigent no coincideix amb la revisada');
-  if(!review||!iso(review.period_start)||!iso(review.period_end)||!iso(review.effective_at)||review.period_end<review.period_start||review.period_start<'2024-01-01'||!review.funder?.trim())issues.push('Període des de 2024, data d’efectes o finançador no acreditats');
+  if(review&&publication?.job_id!==review.expected_job_id)issues.push('L’anàlisi vigent no coincideix amb la revisada');
+  if(review&&!['approved','corrected'].includes(publication?.job_status??''))issues.push('L’anàlisi vigent està pendent de validació humana');
+  if(!review||!iso(review.period_start)||!iso(review.period_end)||review.period_end<review.period_start||review.period_start<'2024-01-01')issues.push('Període des de 2024 no acreditat');
+  if(!review||!iso(review.effective_at))issues.push('Data d’efectes no acreditada');
+  if(!review?.funder?.trim())issues.push('Finançador no acreditat');
   if(!u.storage_sha256||!u.storage_path||!u.page||!u.evidence_quote)issues.push('Font de la línia incompleta');
   if(!u.service_code||!u.territory)issues.push('Servei o territori pendent de validació');
   for(const ancestorId of c.path.slice(1)){

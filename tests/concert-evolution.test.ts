@@ -107,3 +107,14 @@ test('simultaneous sibling replacements cannot be ordered by arbitrary IDs',()=>
 test('a maximum reduction cannot be labelled as an exact or maximum resulting balance',()=>{
  const d=data([unit('a'),unit('b','termination')],[review('a'),{...review('b','delta',-10000),amount_kind:'maximum',effective_at:'2024-07-01'}],[link('b','a')]);assert.equal(projection(d).balances[0].amountCents,null);
 });
+
+test('pending human validation is distinguished from a superseded analysis',()=>{
+ const d=data();d.reviews[0].status='draft';d.publications[0].job_status='needs_review';
+ let p=projection(d);assert.equal(p.balances.length,0);assert.match(p.movements[0].issues.join(' '),/pendent de validació humana/);assert.doesNotMatch(p.movements[0].issues.join(' '),/no coincideix/);
+ d.publications[0].job_id='new-job';p=projection(d);assert.match(p.movements[0].issues.join(' '),/no coincideix/);
+});
+test('documented maxima remain marked in pending movements without inventing a balance',()=>{
+ const d=data([unit('a','modification')],[{...review('a','delta',-8166528),status:'draft',amount_kind:'maximum',effective_at:null}]);
+ const p=projection(d);assert.equal(p.balances.length,0);assert.equal(p.movements[0].amountKind,'maximum');assert.equal(p.movements[0].amountCents,-8166528);assert.match(p.movements[0].issues.join(' '),/Data d’efectes no acreditada/);assert.doesNotMatch(p.movements[0].issues.join(' '),/Finançador no acreditat|Període des de 2024 no acreditat/);
+ const missing=projection(data([unit('a')],[]));assert.equal(missing.movements[0].amountKind,'unknown');assert.equal(missing.movements[0].amountCents,null);
+});
