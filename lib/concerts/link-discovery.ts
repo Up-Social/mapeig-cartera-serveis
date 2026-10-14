@@ -1,6 +1,7 @@
 import type {SupabaseClient} from '@supabase/supabase-js';
 import {proposeRecordLinks,publicationDate,type ConcertPublication} from './record-linking';
 import {proposeUnitLinks,type ConcertUnitForLink} from './unit-linking';
+import {proposeDocumentRecordLinks,type ConcertLinkDocument} from './document-linking';
 
 /** Complete paginated search. A title mismatch must not hide a RESES/NIF match. */
 export async function discoverConcertLinks(db:SupabaseClient,recordId?:string){
@@ -11,6 +12,14 @@ export async function discoverConcertLinks(db:SupabaseClient,recordId?:string){
   publications.push(...page.data);if(page.data.length<500)break;
  }
  const byRecord=new Map(publications.map(row=>[row.id,row]));
+ const documents:ConcertLinkDocument[]=[];
+ for(let batch=0;batch<publications.length;batch+=40){
+  for(let offset=0;;offset+=100){
+   const page=await db.from('source_documents').select('id,source_record_id,status,mime_type,extraction_partial,extraction_method,quality_flags,storage_path,storage_sha256,extracted_text')
+    .in('source_record_id',publications.slice(batch,batch+40).map(r=>r.id)).eq('status','fetched').eq('mime_type','application/pdf').order('id').range(offset,offset+99);
+   if(page.error)throw page.error;documents.push(...page.data);if(page.data.length<100)break;
+  }
+ }
  const units:ConcertUnitForLink[]=[];
  for(let offset=0;;offset+=500){
   const page=await db.from('record_units').select('id,source_record_id,act_type,reses_code,provider_nif,service_code,observed_service_code,territory,origin_reference,period,evidence_quote')
@@ -26,7 +35,8 @@ export async function discoverConcertLinks(db:SupabaseClient,recordId?:string){
   if(page.data.length<500)break;
  }
  const byUnit=new Map(units.map(unit=>[unit.id,unit]));
- const recordCandidates=proposeRecordLinks(publications).filter(link=>!recordId||link.laterRecordId===recordId||link.earlierRecordId===recordId);
+ const recordCandidates=[...new Map([...proposeRecordLinks(publications),...proposeDocumentRecordLinks(publications,documents)]
+  .map(link=>[`${link.laterRecordId}:${link.earlierRecordId}`,link])).values()].filter(link=>!recordId||link.laterRecordId===recordId||link.earlierRecordId===recordId);
  const unitCandidates=proposeUnitLinks(units).filter(link=>!recordId||byUnit.get(link.laterUnitId)?.recordId===recordId||byUnit.get(link.earlierUnitId)?.recordId===recordId);
  return {recordCandidates,unitCandidates,byUnit};
 }

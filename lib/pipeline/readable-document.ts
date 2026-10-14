@@ -1,8 +1,9 @@
 /** Shared by local Poppler and the cloud sandbox; Markdown never repairs encoding. */
-export const EXTRACTION_VERSION = 'readable-markdown-v3';
+export const EXTRACTION_VERSION = 'readable-markdown-v4';
 // This is a persistence guard, not the amount of text sent to the model.
-// The former 250k limit rejected a complete, readable 47-page official annex.
-export const MAX_DOCUMENT_CHARS = 1_000_000;
+// Wide official annexes retain layout/provenance: an 83-page readable PDF
+// contains 1.5M characters, including 1.2M spaces. Keep a bounded persistence cap.
+export const MAX_DOCUMENT_CHARS = 2_000_000;
 export const MAX_OCR_PAGES = 25;
 export function textDefects(text: string): string[] {
   const value = text.trim();

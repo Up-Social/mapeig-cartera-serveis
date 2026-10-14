@@ -25,14 +25,14 @@ test('OCR cap cannot silently certify a partially recovered document',async()=>{
 test('a fully readable 328k-character official PDF is retained with all pages',async()=>{
  const document=good.repeat(Math.ceil(220_000/good.length)).slice(0,220_000);
  const result=await recoverPdfText(document,false,async()=>{throw Error('OCR must not run');},1);
- assert.equal(MAX_DOCUMENT_CHARS,1_000_000);
+ assert.equal(MAX_DOCUMENT_CHARS,2_000_000);
  assert.equal(result.partial,false);
  assert.equal(result.coverage.complete,true);
  assert.equal(result.text.length,document.trim().length+'## Pàgina 1\n\n'.length);
  const official=await recoverPdfText(document+'\f'+document,false,async()=>{throw Error('OCR must not run');},2);
  assert.equal(official.partial,false);
  assert.match(official.text,/## Pàgina 2/);
- const tooLong=await recoverPdfText(document.repeat(5),false,async()=>{throw Error('OCR must not run');},1);
+ const tooLong=await recoverPdfText(document.repeat(10),false,async()=>{throw Error('OCR must not run');},1);
  assert.equal(tooLong.partial,true);
 });
 test('normal Catalan, Spanish, legal tables and non-Latin names are preserved',()=>{
@@ -54,4 +54,16 @@ test('select a relevant annex beyond the former 96-fragment cutoff',()=>{
  const chunks=Array.from({length:150},(_,ordinal)=>({source_document_id:'doc',ordinal,content:ordinal===123?'Annex adjudicataris, servei 1.2.6.2.6, places concertades':good}));
  assert.ok(selectEvidenceWindow(chunks).some(c=>c.ordinal===123));
  assert.equal(selectEvidenceWindow(chunks).length,12);
+});
+
+test('complete wide 83-page annex fits without trimming layout or skipping pages',async()=>{
+ const page=Array.from({length:28},()=> 'Entitat social i servei acreditat amb import 1.234,56 €'.padEnd(620)).join('\n');
+ const raw=Array(83).fill(page).join('\f');
+ assert.ok(raw.length>1_000_000);
+ const result=await recoverPdfText(raw,false,async()=>{throw Error('Readable text needs no OCR');},83);
+ assert.equal(result.partial,false);assert.equal(result.coverage.pages.length,83);
+ assert.ok(result.text.endsWith('import 1.234,56 €'));
+ assert.match(result.text,/## Pàgina 83/);
+ const missing=await recoverPdfText(raw,false,async()=>'',84);
+ assert.equal(missing.partial,true);
 });
