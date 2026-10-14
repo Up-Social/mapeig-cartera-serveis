@@ -40,9 +40,18 @@ export default async function RecordPage({ params, searchParams }: PageProps<"/r
   const jobId = typeof query.job === "string" && isUuid(query.job) ? query.job : null;
   const record = jobId ? await getJobRecord(jobId) : await getSourceRecord(id);
   if (!record || record.id !== id) notFound();
-  const services = await createServerSupabase().from("eligible_official_services").select("service_code,service_name,target_population").order("service_code");
+  const db = createServerSupabase();
+  const services = await db.from("eligible_official_services").select("service_code,service_name,target_population").order("service_code");
   const cloudBlock = await getCloudResourceBlock();
   if (services.error) throw services.error;
+  let concertServices = (services.data ?? []).map(service => ({ code: service.service_code, name: service.service_name }));
+  if (record.financingType === "concert") {
+    const active = await db.from("catalog_versions").select("id").eq("active", true).eq("validated", true).single();
+    if (active.error) throw active.error;
+    const official = await db.from("official_services").select("service_code,service_name").eq("version_id", active.data.id).eq("benefit_type", "service").order("service_code");
+    if (official.error) throw official.error;
+    concertServices = (official.data ?? []).map(service => ({ code: service.service_code, name: service.service_name }));
+  }
   let concertExportState: "ready" | "partial" | "pending" = "ready";
   if (record.financingType === "concert" && hasUnitSchema()) {
     const db = createServerSupabase();
@@ -92,6 +101,6 @@ export default async function RecordPage({ params, searchParams }: PageProps<"/r
     <DetailNavigation backHref={origin} backLabel="Tornar al llistat" previousHref={previous} nextHref={next}/>
     <div><p className="page-eyebrow">Estudi del cas · {record.sourceRecordId}{record.batchNumber ? ` · ${record.latestRunPurpose === 'record_operation' || record.latestRunPurpose === 'automated_single' ? 'Execució individual' : record.latestRunPurpose === 'automated_batch' || record.latestRunPurpose === 'automated_cloud' ? 'Lot' : 'Execució'} ${record.batchNumber}` : ""}</p><h1 className="detail-title max-w-[80ch] break-words">{record.title}</h1><p className="page-description">{recordReviewLabel(record)}</p></div>
     <CaseStudyNavigation showUnits={record.financingType==="concert"} />
-    <CaseStudy initialRecord={record} services={(services.data ?? []).map(service => ({ code: service.service_code, name: service.service_name, scope: service.target_population }))} origin={origin} next={next} issue={classifyIssue(record)} cloudBlocked={Boolean(cloudBlock)||executionMode()==='disabled'} concertExportState={concertExportState} />
+    <CaseStudy initialRecord={record} services={(services.data ?? []).map(service => ({ code: service.service_code, name: service.service_name, scope: service.target_population }))} concertServices={concertServices} origin={origin} next={next} issue={classifyIssue(record)} cloudBlocked={Boolean(cloudBlock)||executionMode()==='disabled'} concertExportState={concertExportState} />
   </section></main>;
 }
