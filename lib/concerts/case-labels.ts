@@ -1,5 +1,5 @@
 /** Sprint 1 annex: act types and overlapping attributes stay separate. */
-import {hasDefinitiveConcertAward,referencesConcertCallInTitle} from './no-award';
+import {hasCurrentConcertAward,referencesConcertCallInTitle} from './no-award';
 export type ConcertCaseKey='denial'|'termination'|'modification'|'proposal'|'call'|'appeal'|'amendment'|'unspecified'|'vacant'|'territorial'|'mixed'|'program_renewal'|'emergency'|'other_funder'|'spending'|'multiyear'|'cession'|'validation'|'award'|'renewal';
 export const concertCase:Record<ConcertCaseKey,{label:string;description:string;tone:'blue'|'amber'|'red'|'violet'}>={
  denial:{label:'Denegació',description:'La sol·licitud es denega; no acredita nou finançament.',tone:'red'},
@@ -26,7 +26,7 @@ export const concertCase:Record<ConcertCaseKey,{label:string;description:string;
 
 export function concertCaseKeys(title:string,unitActs:string[],documentText?:string|null):ConcertCaseKey[]{
  const t=title.toLocaleLowerCase('ca');let primary:ConcertCaseKey;
- if(documentText&&referencesConcertCallInTitle(title)&&hasDefinitiveConcertAward(documentText))primary='award';
+ if(hasCurrentConcertAward(title,documentText))primary='award';
  else if(/esmena|rectificaci[oó]/.test(t))primary='amendment';
  else if(/denegaci[oó]|denegad/.test(t))primary='denial';
  else if(/cessament|minoraci[oó]|resoluci[oó] anticipada/.test(t))primary='termination';

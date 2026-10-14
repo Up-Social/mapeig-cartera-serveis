@@ -1,5 +1,5 @@
 /** Conservative triage of a publication. This never creates financial rows. */
-import {hasDefinitiveConcertAward,referencesConcertCallInTitle} from './no-award';
+import {hasCurrentConcertAward} from './no-award';
 export type ConcertCase = 1|2|3|4|5|6|7|8|9|10|11|12|13|14|15|16|17|18;
 export type ConcertEffect = 'none'|'possible_award'|'possible_reduction'|'possible_delta'|'possible_new_period'|'possible_correction'|'possible_maximum'|'possible_allocation'|'provisional';
 export type ConcertAssessment = {
@@ -45,8 +45,8 @@ export function assessConcertAct(title:string, documentText?:string|null):Concer
   let primaryCase:ConcertCase|null=null;
   let effect:ConcertEffect='none';
   let reason='No es pot establir l’efecte econòmic sense llegir el document i les seves línies.';
-  if(document&&referencesConcertCallInTitle(title)&&hasDefinitiveConcertAward(document)){
-   primaryCase=overlappingCases.includes(16)?16:overlappingCases.includes(11)?11:overlappingCases.includes(14)?14:overlappingCases.includes(10)?10:null;
+  if(hasCurrentConcertAward(title,document)){
+   primaryCase=/places desertes/.test(t)?9:overlappingCases.includes(16)?16:overlappingCases.includes(11)?11:overlappingCases.includes(14)?14:overlappingCases.includes(10)?10:null;
    effect=overlappingCases.includes(16)?'possible_allocation':'possible_award';
    reason='El resolc assigna el servei a una entitat; cal desglossar i contrastar les línies abans de comptar l’import.';
   }

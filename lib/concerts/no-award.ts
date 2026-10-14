@@ -1,8 +1,19 @@
 /** A narrow, title-backed decision. Mixed and generic titles continue to PDF analysis. */
 export function hasDefinitiveConcertAward(documentText:string):boolean{
- const text=documentText.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/\s+/g,' ');
- const operative=text.match(/\bresolc\s*:\s*(?:1\s*[.)]\s*)?([^\n]{0,500})/);
- return !!operative&&/^(?:assignar|adjudicar|atorgar|aprovar la provisio)\b/.test(operative[1]);
+ const text=documentText.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+ const marker=text.match(/\bresolc\b\s*:?\s*/);
+ if(!marker)return false;
+ const operative=text.slice(marker.index!+marker[0].length).split(/\n\s*annex\b/)[0].replace(/\s+/g,' ').slice(0,6000);
+ // Look at operative clauses, including mixed award/denial decisions. A proposal
+ // or a negated verb does not match the start of an affirmative clause.
+ return /(?:^|\b\d+\s*[.)]\s*)(?:assignar|adjudicar|atorgar|aprovar la provisio)\b/.test(operative);
+}
+
+/** The current act may still be a correction/renewal even if it quotes an award. */
+export function hasCurrentConcertAward(title:string,documentText?:string|null):boolean{
+ const value=title.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+ return !!documentText&&!/\b(proposta|esmena|rectificaci|cessi[o]|cessament|convalidaci|recurs|prorrog|modificaci|ampliaci)/.test(value)
+  &&hasDefinitiveConcertAward(documentText);
 }
 
 export function referencesConcertCallInTitle(title:string):boolean{
@@ -12,7 +23,7 @@ export function referencesConcertCallInTitle(title:string):boolean{
 
 export function concertNoAwardTitle(title:string,documentText?:string|null):{kind:'denial'|'proposal'|'call'|'vacant'|'spending';explanation:string}|null{
  const value=title.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/\s+/g,' ').trim();
- if(documentText&&/\bconvocat[oò]ria\b/.test(value)&&!/\bproposta\b/.test(value)&&hasDefinitiveConcertAward(documentText))return null;
+ if(documentText&&!/\bproposta\b/.test(value)&&hasDefinitiveConcertAward(documentText))return null;
  // This form can name the call used by a later award, not the act being published.
  if(referencesConcertCallInTitle(title))return null;
  if(/\b(adjudic|provisi[oó] directa|assignaci[oó] de places|prorrog)/.test(value))return null;

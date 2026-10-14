@@ -113,8 +113,15 @@ export function extractEconomicAnnexRows(text:string):EconomicAnnexLine[]{
    if(active===7){if(explicitCode)serviceCode=explicitCode;}
    else{
     // The last digit of the official code is wrapped onto the monetary row.
-    const suffix=identity?line.slice(identity.index!+identity[0].length).match(/^\s+([12])\s+/)?.[1]:null;
-    if(suffix)serviceCode=`1.2.6.2.4.${suffix}`;
+    const suffix=identity?line.slice(identity.index!+identity[0].length).match(/^(\s+)(\d+)\s+/):null;
+    if(explicitCode)serviceCode=explicitCode;
+    else if(identity){
+     // Read the printed prefix in the same column; never invent a service family.
+     const column=suffix?identity.index!+identity[0].length+suffix[1].length:0;
+     const prefix=suffix?lines.slice(Math.max(previousRow+1,index-8),index).reverse()
+      .map(previous=>previous.slice(column).match(/^(\d+(?:\.\d+){2,}\.)\s+/)?.[1]).find(Boolean):null;
+     serviceCode=prefix&&suffix?`${prefix}${suffix[2]}`:null;
+    }
    }
    const resesCode=line.match(printedReses)![0];
    const tax=[...line.matchAll(/\d+%/g)].at(-1);

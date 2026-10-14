@@ -49,10 +49,10 @@ test('both official annex layouts cite a selected RESES line for every printed s
   const text=readFileSync(`tests/fixtures/official/${name}.txt`,'utf8');
   const rows=extractEconomicAnnexRows(text);
   const codes=[...new Set(rows.map(row=>row.observedServiceCode))].filter((code):code is string=>!!code);
-  const chunks=selectEvidenceWindow(splitText(text).map((content,ordinal)=>({content,ordinal,source_document_id:name})),24);
+  const chunks=selectEvidenceWindow(splitText(text).map((content,ordinal)=>({content,ordinal,source_document_id:name})),24,false,true);
   const ordinals=annexCandidateOrdinals(rows.map(row=>({observed_service_code:row.observedServiceCode,reses_code:row.resesCode})),codes,chunks);
   assert.ok(ordinals.every(ordinal=>ordinal>0),`${name}: missing cited service`);
-  assert.equal(codes.length,2);
+  assert.equal(codes.length,name.startsWith('dsi')?3:2);
  }
 });
 
@@ -61,7 +61,7 @@ test('complete DSI/1984 official annex retains its 60 monetary lines and total',
  assert.equal(rows.length,60);
  assert.equal(rows.reduce((sum,row)=>sum+row.amountCents,0),38881748);
  assert.ok(rows.every(row=>row.annex===6&&row.page>=17&&row.page<=24&&row.nif&&row.resesCode));
- assert.deepEqual(new Set(rows.map(row=>row.observedServiceCode)),new Set(['1.2.6.2.4.1','1.2.6.2.4.2']));
+ assert.deepEqual(new Set(rows.map(row=>row.observedServiceCode)),new Set(['1.2.6.2.4.1','1.2.6.2.4.2','1.2.6.2.1']));
 });
 
 test('a territorial provision and a program renewal retain overlapping case badges',()=>{
@@ -118,4 +118,35 @@ test('a cession with a changed NIF requires an explicit cited original',()=>{
  const cession:ConcertUnitForLink={...base,id:'cession',recordId:'change',publishedAt:'2024-09-01',actType:'cession',providerNif:'G99999999',originReference:null};
  assert.equal(proposeUnitLinks([base,cession]).length,0);
  assert.equal(proposeUnitLinks([base,{...cession,originReference:'DSO/4390/2023'}])[0].method,'explicit_resolution');
+});
+
+test('explicit resolution references survive a changed expediente and include other departments',()=>{
+ for(const prefix of ['DSO','DSI','IFE','TSF']){
+  const rows:ConcertPublication[]=[
+   {id:'original',title:`Resolució ${prefix}/1234/2024 exp. 24-000123-AP (Barcelona)`,source_record_id:'old',source_payload:{data_publicacio:'2024-05-01'}},
+   {id:'change',title:`Resolució de modificació de la Resolució ${prefix}/1234/2024 exp. 25-000999-AP (Barcelona)`,source_record_id:'new',source_payload:{data_publicacio:'2025-05-01'}},
+  ];
+  const links=proposeRecordLinks(rows);
+  assert.equal(links.length,1);
+  assert.equal(links[0].method,'explicit_resolution');
+  assert.equal(links[0].earlierRecordId,'original');
+  assert.equal(proposeRecordLinks([rows[0],{...rows[1],title:rows[1].title.replace('Barcelona','Lleida')}]).length,0);
+ }
+});
+
+test('wrapped codes come from the printed column, never a built-in service family',()=>{
+ const text=readFileSync('tests/fixtures/official/dsi-1984-2025-annex-6.txt','utf8');
+ const moved=text.replaceAll('1.2.6.2.4.','1.2.8.3.7.');
+ const rows=extractEconomicAnnexRows(moved);
+ assert.equal(rows.length,60);
+ assert.equal(rows.filter(row=>row.observedServiceCode?.startsWith('1.2.8.3.7.')).length,58);
+ assert.equal(rows.filter(row=>row.observedServiceCode==='1.2.6.2.1').length,2);
+ const missing=extractEconomicAnnexRows(text.replaceAll('1.2.6.2.4.','          '));
+ assert.equal(missing.filter(row=>row.observedServiceCode===null).length,58);
+ assert.equal(missing.filter(row=>row.observedServiceCode==='1.2.6.2.1').length,2);
+});
+test('mixed awards have the same operative interpretation in labels and processing',()=>{
+ const title='Resolució de places denegades i assignades';
+ const text='Resolc: 1. Denegar les peticions de l’annex 1. 2. Adjudicar les places de l’annex 2.';
+ assert.equal(concertCaseKeys(title,[],text)[0],'award');
 });

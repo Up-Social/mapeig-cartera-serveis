@@ -26,7 +26,7 @@ export async function prepareConcertObservations(c:Context,job:Job):Promise<bool
  const actKind=concertActKind(publication);
  const actType=actKind&&actKind!=='other'?actKind:'award';
  const period=publicationDate(publication).slice(0,4)||null;
- const prior=await c.db.from('record_units').select('id,unit_key,storage_path').eq('source_record_id',job.source_record_id).neq('unit_key','legacy');
+ const prior=await c.db.from('record_units').select('id,unit_key,storage_path,observed_service_code').eq('source_record_id',job.source_record_id).neq('unit_key','legacy');
  if(prior.error)throw new CloudFailure('internal');
  const existing=new Map((prior.data??[]).map(unit=>[unit.unit_key,unit]));
  let staged=0;
@@ -65,7 +65,13 @@ export async function prepareConcertObservations(c:Context,job:Job):Promise<bool
   }
   for(const row of rows){
    const unitKey=`official-annex:${document.storage_sha256}:${row.annex}:${row.row}`;
-   if(existing.get(unitKey)?.storage_path)continue;
+   const archived=existing.get(unitKey);
+   if(archived?.storage_path){
+    // A parser correction must not silently retain stale observations or overwrite a reviewed unit.
+    if(archived.observed_service_code!==row.observedServiceCode)
+     throw new CloudFailure('validation',5,{operation:'concert_observation_drift',code:'CONCERT_SOURCE_CODE_CHANGED'});
+    continue;
+   }
    const registered=registry.get(row.resesCode);
    const normalized=(value:string)=>value.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]/g,'');
    const officialMunicipality=registered?.municipality&&row.municipality&&

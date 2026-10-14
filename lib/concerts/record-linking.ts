@@ -1,6 +1,9 @@
 export type ConcertPublication={id:string;title:string;source_record_id:string;source_payload:Record<string,unknown>};
 export type ConcertLinkCandidate={laterRecordId:string;earlierRecordId:string;kind:'amendment'|'renewal'|'modification'|'termination'|'cession'|'appeal'|'validation'|'other';method:'explicit_resolution'|'expedient_territory';evidence:string};
 
+export function concertResolutionNumbers(text:string):string[]{
+ return [...new Set((text.toUpperCase().match(/\b[A-Z]{2,5}\s*\/\s*\d{1,5}\s*\/\s*20\d{2}\b/g)??[]).map(value=>value.replace(/\s/g,'')))];
+}
 const normalize=(value:string)=>value.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/\s+/g,' ');
 export function publicationDate(row:ConcertPublication):string{
  const value=row.source_payload.data_publicacio;
@@ -39,25 +42,31 @@ export function proposeRecordLinks(rows:ConcertPublication[]):ConcertLinkCandida
    if(territory&&earlierTerritory&&territory!==earlierTerritory)return false;
    const previousDate=publicationDate(earlier);
    if(!date||!previousDate||previousDate>=date)return false;
+   const originalNumber=concertResolutionNumbers(earlier.title)[0];
+   const explicit=Boolean(originalNumber&&concertResolutionNumbers(later.title).includes(originalNumber));
    const sharedExp=Boolean(exp&&concertExpedient(earlier.title)===exp);
    const reses=later.title.toUpperCase().match(/\bS\d{5}\b/)?.[0];
    const citedTitle=kind==='amendment'&&Boolean(reses&&earlier.title.toUpperCase().includes(reses)
     &&normalize(later.title).includes(normalize(earlier.title)));
-   return sharedExp||citedTitle;
+   return explicit||sharedExp||citedTitle;
   });
   for(const earlier of alternatives){
    const sameExp=Boolean(exp&&concertExpedient(earlier.title)===exp);
+   const originalNumber=concertResolutionNumbers(earlier.title)[0];
+   const explicit=Boolean(originalNumber&&concertResolutionNumbers(later.title).includes(originalNumber));
+   if(explicit){
+    result.push({laterRecordId:later.id,earlierRecordId:earlier.id,kind,method:'explicit_resolution',
+     evidence:`El títol cita ${originalNumber}; la referència preval encara que canviï l’expedient. Cal contrastar PDF, RESES, NIF i període de cada línia.`});
+    continue;
+   }
    if(!sameExp){
     const reses=later.title.toUpperCase().match(/\bS\d{5}\b/)?.[0];
     result.push({laterRecordId:later.id,earlierRecordId:earlier.id,kind,method:'explicit_resolution',
      evidence:`El títol de l’esmena cita l’acte anterior i comparteix RESES ${reses}; cal contrastar el PDF, el NIF i el període afectat.`});
     continue;
    }
-   const explicitNumber=later.title.match(/\b(?:DSO|DSI|TSF)\/\d{1,5}\/20\d{2}\b/i)?.[0];
-   const explicitlyNamed=Boolean(explicitNumber&&earlier.title.toUpperCase().includes(explicitNumber.toUpperCase()));
-   result.push({laterRecordId:later.id,earlierRecordId:earlier.id,kind,
-    method:explicitlyNamed?'explicit_resolution':'expedient_territory',
-    evidence:explicitlyNamed?`El títol cita ${explicitNumber}; expedient ${exp}. Cal contrastar PDF, RESES i NIF de cada línia.`:`Coincidència d’expedient ${exp}${territory?` i territori ${territory}`:''}; cal contrastar PDF, RESES i NIF de cada línia.`});
+   result.push({laterRecordId:later.id,earlierRecordId:earlier.id,kind,method:'expedient_territory',
+    evidence:`Coincidència d’expedient ${exp}${territory?` i territori ${territory}`:''}; cal contrastar PDF, RESES i NIF de cada línia.`});
   }
  }
  return result;

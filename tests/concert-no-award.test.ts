@@ -18,3 +18,16 @@ test('a call cited in the title does not discard the later final award',()=>{
  assert.equal(concertNoAwardTitle('Resolució DSI/3434/2024 de convocatòria anticipada per a la provisió de places')?.kind,'call');
  assert.equal(concertNoAwardTitle('Proposta de resolució per a la provisió de places','Resolc: 1. Assignar el servei a una entitat.')?.kind,'proposal');
 });
+
+test('operative clauses win over mixed title wording without relying on a case name',()=>{
+ for(const title of ['Resolució de places denegades i assignades','Resolució de convocatòria de serveis','Resolució de places desertes']){
+  for(const text of ['RESOLC\n1. Assignar els serveis a les entitats de l’annex.',
+   'Resolc: 1. Denegar les peticions de l’annex 1. 2. Adjudicar les places de l’annex 2.']){
+   assert.equal(concertNoAwardTitle(title,text),null);
+  }
+ }
+});
+test('negated or proposed awards cannot defeat a no-award decision',()=>{
+ for(const text of ['Resolc: 1. No adjudicar les places.','Resolc: 1. Proposar adjudicar les places.'])
+  assert.equal(concertNoAwardTitle('Resolució de places denegades',text)?.kind,'denial');
+});

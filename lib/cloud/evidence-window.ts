@@ -10,6 +10,7 @@ export function selectEvidenceWindow<T extends EvidenceChunk>(
   chunks: T[],
   limit = ANALYSIS_EVIDENCE_LIMIT,
   legacy = false,
+  coverDistinctCodes = false,
 ) {
   if (limit <= 0) return [];
   if (chunks.length <= limit) return [...chunks];
@@ -26,8 +27,17 @@ export function selectEvidenceWindow<T extends EvidenceChunk>(
     // Reserve at most a third of the window for explicit codes and annex rows.
     // The remaining slots preserve document coverage and beginning/end context.
     const score = (chunk:T) => (chunk.content?.match(/\b1(?:\.\d+){2,6}\b/g)?.length ?? 0)*5 + (chunk.content?.match(/annex|adjudicat|concert|pròrroga|places|destinatar/gi)?.length ?? 0);
-    const ranked=[...chunks].sort((a,b)=>score(b)-score(a));
-    for (const chunk of ranked.slice(0,Math.floor(limit/3))) if(score(chunk)>0)selected.add(chunk);
+    const remaining=[...chunks];
+    const coveredCodes=new Set<string>();
+    const codes=(chunk:T)=>new Set(chunk.content?.match(/\b1(?:\.\d+){2,6}\b/g)??[]);
+    for(let slot=0;slot<Math.floor(limit/3);slot++){
+      const rank=(chunk:T)=>score(chunk)+(coverDistinctCodes?[...codes(chunk)].filter(code=>!coveredCodes.has(code)).length*10000:0);
+      remaining.sort((a,b)=>rank(b)-rank(a));
+      const chunk=remaining.shift();
+      if(!chunk||score(chunk)<=0)break;
+      selected.add(chunk);
+      for(const code of codes(chunk))coveredCodes.add(code);
+    }
   }
   let depth = 0;
   let added = true;
