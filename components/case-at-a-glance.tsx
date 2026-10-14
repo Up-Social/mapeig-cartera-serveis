@@ -10,7 +10,10 @@ const EFFECT_LABELS:Record<ConcertEffect,string>={none:'sense nou finançament a
 
 export function CaseAtAGlance({record}:{record:SourceRecord}){
  const reconciledAnnex=record.financingType==='concert'&&record.analysis?.rules_version==='concert-reconciled-annex-v1';
- const assessment=record.financingType==='concert'&&!reconciledAnnex?assessConcertAct(record.title,record.sourceDocuments.find(d=>d.status==='fetched'&&d.extractedText&&!d.qualityFlags.some(flag=>['corrupt_text','incomplete_extraction'].includes(flag)))?.extractedText):null;
+ const officialText=record.sourceDocuments.filter(d=>d.status==='fetched'&&d.extractedText&&
+  !d.qualityFlags.some(flag=>['corrupt_text','incomplete_extraction'].includes(flag)))
+  .sort((left,right)=>(right.textLength??0)-(left.textLength??0))[0]?.extractedText;
+ const assessment=record.financingType==='concert'&&!reconciledAnnex?assessConcertAct(record.title,officialText):null;
  const extracted=record.externalEnrichment;
  const rows=[
   {label:'Entitat',original:record.providerName,official:extracted?.providerName},

@@ -64,7 +64,7 @@ export async function analyzeRecord(c:Context,job:{id:string;source_record_id:st
   const catalog=await loadOfficialCatalog(c.db,pinnedVersion??undefined);
   if(!pinnedVersion&&prior?.state==='received'&&catalog.version.provenance?.parser_version==='normative-fields-v2')throw new CloudFailure('validation',5,{operation:'catalog_recovery',code:'NEW_CATALOG_ANALYSIS_REQUIRED'});
   if(!pinnedVersion)await checkpoint(c,`catalog:${job.id}`,catalog.version.id);
-  const noAward=r.data.financing_type==='concert'?concertNoAwardTitle(r.data.title):null;
+  const noAward=r.data.financing_type==='concert'?concertNoAwardTitle(r.data.title,chunks.map(chunk=>chunk.content).join('\n')):null;
   if(noAward&&chunks.length){
    const evidenceOrdinal=Math.max(1,chunks.findIndex(chunk=>new RegExp(noAward.kind==='denial'?'deneg|desestim':noAward.kind==='proposal'?'proposta':noAward.kind==='call'?'convocat':noAward.kind==='vacant'?'desert':'despesa','i').test(chunk.content))+1);
    const result:AnalysisOutput&{rule_audit:Record<string,unknown>;model_conclusion:null}={

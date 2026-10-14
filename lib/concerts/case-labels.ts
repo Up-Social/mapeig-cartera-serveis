@@ -1,4 +1,5 @@
 /** Sprint 1 annex: act types and overlapping attributes stay separate. */
+import {hasDefinitiveConcertAward,referencesConcertCallInTitle} from './no-award';
 export type ConcertCaseKey='denial'|'termination'|'modification'|'proposal'|'call'|'appeal'|'amendment'|'unspecified'|'vacant'|'territorial'|'mixed'|'program_renewal'|'emergency'|'other_funder'|'spending'|'multiyear'|'cession'|'validation'|'award'|'renewal';
 export const concertCase:Record<ConcertCaseKey,{label:string;description:string;tone:'blue'|'amber'|'red'|'violet'}>={
  denial:{label:'Denegació',description:'La sol·licitud es denega; no acredita nou finançament.',tone:'red'},
@@ -23,15 +24,17 @@ export const concertCase:Record<ConcertCaseKey,{label:string;description:string;
  renewal:{label:'Pròrroga',description:'Allarga la vigència del concert. S’enllaça amb l’origen i es revisa el finançament del nou període.',tone:'violet'},
 };
 
-export function concertCaseKeys(title:string,unitActs:string[]):ConcertCaseKey[]{
+export function concertCaseKeys(title:string,unitActs:string[],documentText?:string|null):ConcertCaseKey[]{
  const t=title.toLocaleLowerCase('ca');let primary:ConcertCaseKey;
- if(/denegaci[oó]|denegad/.test(t))primary='denial';
+ if(documentText&&referencesConcertCallInTitle(title)&&hasDefinitiveConcertAward(documentText))primary='award';
+ else if(/esmena|rectificaci[oó]/.test(t))primary='amendment';
+ else if(/denegaci[oó]|denegad/.test(t))primary='denial';
  else if(/cessament|minoraci[oó]|resoluci[oó] anticipada/.test(t))primary='termination';
- else if(/cessi[oó] del concert|cessi[oó] de la/.test(t))primary='cession';
+ else if(/cessi[oó] (?:del|de la|d['’])/.test(t))primary='cession';
  else if(/convalid/.test(t))primary='validation';
  else if(/recurs de reposici[oó]|resoluci[oó] del recurs/.test(t))primary='appeal';
- else if(/esmena|rectificaci[oó]/.test(t))primary='amendment';
  else if(/proposta|acord de proposta/.test(t))primary='proposal';
+ else if(referencesConcertCallInTitle(title))primary='unspecified';
  else if(/convocat[oò]ria/.test(t)&&!/pr[oò]rroga/.test(t))primary='call';
  else if(/places desertes/.test(t))primary='vacant';
  else if(/autoritzaci[oó] de la despesa|autoritzaci[oó] de despesa/.test(t)&&!/pr[oò]rroga|provisi[oó]/.test(t))primary='spending';

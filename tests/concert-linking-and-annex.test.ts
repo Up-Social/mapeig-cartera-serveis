@@ -68,6 +68,15 @@ test('a territorial provision and a program renewal retain overlapping case badg
  assert.deepEqual(concertCaseKeys('Resolució de l’expedient 25-000163-AP (Barcelona) per a la provisió directa',[]),['award','territorial']);
  assert.deepEqual(concertCaseKeys('Resolució de pròrroga i autorització de la despesa del programa 317',[]),['renewal','program_renewal']);
 });
+test('an amendment of a termination and a service cession name the current act',()=>{
+ assert.deepEqual(concertCaseKeys('Resolució d’esmena de la Resolució relativa al cessament voluntari',[]),['amendment']);
+ assert.deepEqual(concertCaseKeys('RESOLUCIÓ per a la cessió del Servei de Pis assistit',[]),['cession']);
+});
+test('a definitive IFE award is not labelled as a call',()=>{
+ const title='Resolució de la convocatòria IFE/1632/2025_ Provisió de Serveis SIE Hospitalet 2025-2029';
+ assert.deepEqual(concertCaseKeys(title,[]),['unspecified','other_funder','multiyear']);
+ assert.deepEqual(concertCaseKeys(title,[],'Resolc: 1. Assignar el servei a l’entitat INTRESS.'),['award','other_funder','multiyear']);
+});
 
 test('a publication amendment is only a candidate; equal expediente across territories is not a link',()=>{
  const rows:ConcertPublication[]=[

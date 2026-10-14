@@ -62,7 +62,10 @@ export function ConcertUnits({record,services}:{record:SourceRecord;services:Arr
  const reconciled=reconciliations.find(item=>item.reconciled&&item.annex>0&&item.row_count===units.length);
  const bulkEligible=!!reconciled&&!record.isHistorical&&record.currentJobStatus==='needs_review'&&
   record.analysis?.rules_version==='concert-reconciled-annex-v1'&&units.every(unit=>unit.status==='draft'&&!!unit.storage_path&&unit.act_type==='award');
- const caseKeys=concertCaseKeys(record.title,units.map(unit=>unit.act_type));
+ const officialText=record.sourceDocuments.filter(document=>document.status==='fetched'&&document.extractedText&&
+  !document.qualityFlags.some(flag=>['corrupt_text','incomplete_extraction'].includes(flag)))
+  .sort((left,right)=>(right.textLength??0)-(left.textLength??0))[0]?.extractedText;
+ const caseKeys=concertCaseKeys(record.title,units.map(unit=>unit.act_type),officialText);
  const primary=caseKeys[0],attributes=caseKeys.slice(1);
  const visibleUnits=showAllUnits||units.length<=6?units:units.slice(0,6);
  const serviceGroups=new Map<string,{title:string;code:string|null;rows:Array<{unit:Unit;index:number}>}>();

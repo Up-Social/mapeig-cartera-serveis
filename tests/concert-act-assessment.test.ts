@@ -23,3 +23,10 @@ test('renewal with spending authorisation is still a potential new period',()=>{
  assert.equal(result.primaryCase,12);
  assert.equal(result.effect,'possible_new_period');
 });
+test('the operative award prevails over a referenced call in the publication title',()=>{
+ const result=assessConcertAct('Resolució de la convocatòria IFE/1632/2025_ Provisió de Serveis SIE Hospitalet 2025-2029',
+  'Resolució de provisió. Identificació de la convocatòria IFE/1632/2025. Resolc: 1. Assignar el Servei d’Intervenció Especialitzada a l’entitat INTRESS, amb NIF G08973224.');
+ assert.equal(result.primaryCase,16);
+ assert.equal(result.effect,'possible_allocation');
+ assert.equal(result.source,'document');
+});

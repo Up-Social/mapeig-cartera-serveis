@@ -1,4 +1,5 @@
 /** Conservative triage of a publication. This never creates financial rows. */
+import {hasDefinitiveConcertAward,referencesConcertCallInTitle} from './no-award';
 export type ConcertCase = 1|2|3|4|5|6|7|8|9|10|11|12|13|14|15|16|17|18;
 export type ConcertEffect = 'none'|'possible_award'|'possible_reduction'|'possible_delta'|'possible_new_period'|'possible_correction'|'possible_maximum'|'possible_allocation'|'provisional';
 export type ConcertAssessment = {
@@ -44,7 +45,12 @@ export function assessConcertAct(title:string, documentText?:string|null):Concer
   let primaryCase:ConcertCase|null=null;
   let effect:ConcertEffect='none';
   let reason='No es pot establir l’efecte econòmic sense llegir el document i les seves línies.';
-  if(has(text,/convalidaci[oó]|es convalida/)){primaryCase=18;reason='La convalidació remet a un acte anterior: cal comprovar si canvia cap dada.';}
+  if(document&&referencesConcertCallInTitle(title)&&hasDefinitiveConcertAward(document)){
+   primaryCase=overlappingCases.includes(16)?16:overlappingCases.includes(11)?11:overlappingCases.includes(14)?14:overlappingCases.includes(10)?10:null;
+   effect=overlappingCases.includes(16)?'possible_allocation':'possible_award';
+   reason='El resolc assigna el servei a una entitat; cal desglossar i contrastar les línies abans de comptar l’import.';
+  }
+  else if(has(text,/convalidaci[oó]|es convalida/)){primaryCase=18;reason='La convalidació remet a un acte anterior: cal comprovar si canvia cap dada.';}
   else if(has(text,/cessio del|cessio de|traspas a una altra entitat/)){primaryCase=17;reason='La cessió canvia el prestador; no acredita per si sola més finançament.';}
   else if(has(text,/rectificaci|esmena d|correccio d.errors/)){primaryCase=7;effect='possible_correction';reason='Cal vincular l’acte corregit i comparar camps abans de recalcular.';}
   else if(has(text,/recurs de reposicio|resolucio del recurs/)){primaryCase=6;effect=has(text,/s.estima|estima el recurs|estimar el recurs/) && has(text,/adjudic|atorg|provisio/) ? 'possible_award':has(text,/s.estima|estima el recurs/)?'possible_correction':'none';reason='El recurs només genera nova adjudicació si el resolc la concedeix; si rectifica, cal revisar l’acte original.';}
