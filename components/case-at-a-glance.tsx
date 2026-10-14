@@ -22,7 +22,9 @@ export function CaseAtAGlance({record}:{record:SourceRecord}){
   <p className="mt-2 text-sm text-muted-foreground">Dades de la font i camps extrets del document. Les diferències requereixen comprovació humana.</p>
   <dl className="mt-4 grid gap-3 text-sm lg:grid-cols-3">{rows.map(row=>{
     const compared=extracted&&row.official!=null;
-    const differs=compared&&row.original!=null&&display(row.original)!==display(row.official);
+    const sameConcertMechanism=record.financingType==='concert'&&row.label==='Mecanisme'&&
+     typeof row.original==='string'&&typeof row.official==='string'&&/concert/i.test(row.original)&&/concert/i.test(row.official);
+    const differs=compared&&row.original!=null&&!sameConcertMechanism&&display(row.original)!==display(row.official);
     const isAmount=row.label.includes('Import');
     return <div key={row.label} className="rounded-lg border p-3"><dt className="font-semibold">{row.label}</dt><dd className="mt-1">Font: {displayComparison(row.original,isAmount?'Import':row.label)}</dd>{compared&&<dd className={`mt-1 ${differs?'font-medium text-amber-800':''}`}>Document: {displayComparison(row.official,isAmount?'Import':row.label)}{differs?' · diferència pendent de revisar':''}</dd>}{isAmount&&record.financingType==='concert'&&<dd className="mt-1 text-xs text-muted-foreground">{reconciledAnnex?'Import extret de la capçalera. Pot ser sense IVA; el total acreditat de les línies consta al repartiment de l’annex.':'Import global extret; consulta les línies per saber què es pot atribuir a cada entitat.'}</dd>}</div>;
   })}</dl>
