@@ -9,7 +9,8 @@ function displayComparison(value:string|number|null|undefined,label:string){
 const EFFECT_LABELS:Record<ConcertEffect,string>={none:'sense nou finançament acreditat',possible_award:'possible adjudicació',possible_reduction:'possible reducció',possible_delta:'possible diferència',possible_new_period:'possible compromís d’un període nou',possible_correction:'possible correcció',possible_maximum:'possible import màxim',possible_allocation:'possible repartiment plurianual',provisional:'provisional'};
 
 export function CaseAtAGlance({record}:{record:SourceRecord}){
- const assessment=record.financingType==='concert'?assessConcertAct(record.title,record.sourceDocuments.find(d=>d.status==='fetched'&&d.extractedText&&!d.qualityFlags.some(flag=>['corrupt_text','incomplete_extraction'].includes(flag)))?.extractedText):null;
+ const reconciledAnnex=record.financingType==='concert'&&record.analysis?.rules_version==='concert-reconciled-annex-v1';
+ const assessment=record.financingType==='concert'&&!reconciledAnnex?assessConcertAct(record.title,record.sourceDocuments.find(d=>d.status==='fetched'&&d.extractedText&&!d.qualityFlags.some(flag=>['corrupt_text','incomplete_extraction'].includes(flag)))?.extractedText):null;
  const extracted=record.externalEnrichment;
  const rows=[
   {label:'Entitat',original:record.providerName,official:extracted?.providerName},
@@ -21,10 +22,15 @@ export function CaseAtAGlance({record}:{record:SourceRecord}){
   <p className="mt-2 text-sm text-muted-foreground">Dades de la font i camps extrets del document. Les diferències requereixen comprovació humana.</p>
   <dl className="mt-4 grid gap-3 text-sm lg:grid-cols-3">{rows.map(row=>{
     const compared=extracted&&row.official!=null;
-    const differs=compared&&display(row.original)!==display(row.official);
+    const differs=compared&&row.original!=null&&display(row.original)!==display(row.official);
     const isAmount=row.label.includes('Import');
-    return <div key={row.label} className="rounded-lg border p-3"><dt className="font-semibold">{row.label}</dt><dd className="mt-1">Font: {displayComparison(row.original,isAmount?'Import':row.label)}</dd>{compared&&<dd className={`mt-1 ${differs?'font-medium text-amber-800':''}`}>Document: {displayComparison(row.official,isAmount?'Import':row.label)}{differs?' · diferència pendent de revisar':''}</dd>}{isAmount&&record.financingType==='concert'&&<dd className="mt-1 text-xs text-muted-foreground">Import global extret; consulta les línies per saber què es pot atribuir a cada entitat.</dd>}</div>;
+    return <div key={row.label} className="rounded-lg border p-3"><dt className="font-semibold">{row.label}</dt><dd className="mt-1">Font: {displayComparison(row.original,isAmount?'Import':row.label)}</dd>{compared&&<dd className={`mt-1 ${differs?'font-medium text-amber-800':''}`}>Document: {displayComparison(row.official,isAmount?'Import':row.label)}{differs?' · diferència pendent de revisar':''}</dd>}{isAmount&&record.financingType==='concert'&&<dd className="mt-1 text-xs text-muted-foreground">{reconciledAnnex?'Import extret de la capçalera. Pot ser sense IVA; el total acreditat de les línies consta al repartiment de l’annex.':'Import global extret; consulta les línies per saber què es pot atribuir a cada entitat.'}</dd>}</div>;
   })}</dl>
+  {reconciledAnnex&&<div className="mt-4 rounded-lg border border-sky-200 bg-sky-50 p-4 text-sm text-slate-900" data-testid="concert-reconciled-summary">
+   <h3 className="font-semibold">Provisió amb annex econòmic conciliat</h3>
+   <p className="mt-2">Les línies i el seu total coincideixen amb l’annex oficial. Revisa cada entitat, servei i import abans de validar el conjunt.</p>
+   <a className="mt-2 inline-block text-xs font-semibold underline" href="#unitats">Veure entitats, serveis, imports i modificacions</a>
+  </div>}
   {assessment&&<div className="mt-4 rounded-lg border border-sky-200 bg-sky-50 p-4 text-sm text-slate-900" data-testid="concert-assessment" data-effect={assessment.effect}>
    <h3 className="font-semibold">Lectura inicial del concert</h3>
    <p className="mt-1">{assessment.primaryCase?CONCERT_CASE_LABELS[assessment.primaryCase]:'Tipus d’acte pendent d’identificar'}{assessment.overlappingCases.length?` · també ${assessment.overlappingCases.map(value=>`${value}. ${CONCERT_CASE_LABELS[value]}`).join(', ')}`:''}</p>
