@@ -2,7 +2,7 @@
 import {useEffect,useState} from 'react';
 import type {ConcertEvolutionData,EconomicUnit,EconomicReview} from '@/lib/concerts/evolution';
 import {euroCents,ECONOMIC_AMOUNT_LABELS,type concertEvolution} from '@/lib/concerts/evolution';
-import {concertUnitName,concertLineHref} from '@/lib/concerts/display-name';
+import {concertUnitName,concertLineHref,concertPredecessorIds} from '@/lib/concerts/display-name';
 import {DocumentViewer} from './document-viewer';
 type Result={data:ConcertEvolutionData;projection:ReturnType<typeof concertEvolution>};
 const money=(cents:number|null)=>cents===null?'No calculable':new Intl.NumberFormat('ca-ES',{style:'currency',currency:'EUR'}).format(cents/100);
@@ -79,21 +79,23 @@ export function ConcertEconomics({recordId}:{recordId:string}){
 }
 function EconomicForm({unit,review,data,busy,onSave}:{unit:EconomicUnit;review:EconomicReview|undefined;data:ConcertEvolutionData;busy:boolean;onSave:(value:Record<string,unknown>)=>void}){
  const [error,setError]=useState('');
- return <form className="mt-3 grid gap-3 rounded-lg border bg-white p-4 sm:grid-cols-2" onSubmit={e=>{
+ const [operation,setOperation]=useState(review?.operation??'');
+ const preceding=concertPredecessorIds(unit.id,data.links);
+ return <form className="mt-3 grid min-w-0 gap-3 rounded-lg border bg-white p-4 [&>label]:min-w-0 [&_select]:max-w-full sm:grid-cols-2" onSubmit={e=>{
   e.preventDefault();const form=e.currentTarget,values=Object.fromEntries(new FormData(form));
   const raw=String(values.amount??'').trim(),cents=euroCents(raw);if(raw&&cents===null){setError('Import no vàlid: màxim dos decimals.');return;}
   const annualities=[];
   for(const line of String(values.annualitiesText??'').split('\n').filter(l=>l.trim())){const m=line.trim().match(/^(\d{4}-\d{2}-\d{2})\/(\d{4}-\d{2}-\d{2})\s*=\s*(.+)$/);const amount=m?euroCents(m[3]):null;if(!m||amount===null){setError('Anualitat no vàlida: inici/final = euros, una per línia.');return;}annualities.push({start:m[1],end:m[2],amountCents:amount});}
   setError('');onSave({...values,annualities,amount_cents:cents,corrects_unit_id:values.corrects_unit_id||null});
  }}>
-  <h4 className="font-semibold sm:col-span-2">Significat de l’import · {concertUnitName(unit)}</h4>
-  <label>Operació<select name="operation" className="form-control mt-1 w-full" required defaultValue={review?.operation??''}><option value="">Selecciona l’efecte acreditat</option>{Object.entries(operations).map(([key,label])=><option key={key} value={key}>{label}</option>)}</select></label>
+  <h4 className="break-words font-semibold sm:col-span-2">Significat de l’import · {concertUnitName(unit)}</h4>
+  <label>Operació<select name="operation" className="form-control mt-1 w-full" required value={operation} onChange={e=>setOperation(e.target.value as typeof operation)}><option value="">Selecciona l’efecte acreditat</option>{Object.entries(operations).map(([key,label])=><option key={key} value={key}>{label}</option>)}</select></label>
   <label>Import del moviment (€)<input name="amount" type="text" inputMode="decimal" className="form-text mt-1 w-full" defaultValue={review?.amount_cents!=null?(review.amount_cents/100).toFixed(2):''}/><span className="text-xs">Negatiu per reduccions; en blanc si no consta. No introdueixis el total anterior com a increment.</span></label>
   <label>Tipus d’import<select name="amount_kind" defaultValue={review?.amount_kind??'unknown'} className="form-control mt-1 w-full"><option value="unknown">No acreditat</option><option value="exact">Import acreditat</option><option value="maximum">Màxim autoritzat</option></select></label>
   <label>Òrgan finançador<input name="funder" className="form-text mt-1 w-full" defaultValue={review?.funder??''}/></label>
   {([['period_start','Inici del període',review?.period_start],['period_end','Final del període',review?.period_end],['effective_at','Data d’efectes',review?.effective_at]] as const).map(([key,label,value])=><label key={key}>{label}<input type="date" name={key} className="form-text mt-1 w-full" defaultValue={value??''}/></label>)}
-  <label>Acte que rectifica (només esmenes)<select name="corrects_unit_id" defaultValue={review?.corrects_unit_id??''} className="form-control mt-1 w-full"><option value="">Cap</option>{data.units.filter(u=>u.id!==unit.id).map(u=><option key={u.id} value={u.id}>{concertUnitName(u)} · {u.reses_code} · {u.act_type} · {u.id.slice(0,8)}</option>)}</select></label>
-  <label className="sm:col-span-2">Anualitats explícites (opcional)<textarea name="annualitiesText" className="form-text mt-1 w-full" placeholder="2025-10-01/2025-12-31 = 110585.79" defaultValue={review?.annualities?.map(a=>`${a.start}/${a.end} = ${(a.amountCents/100).toFixed(2)}`).join('\n')??''}/><span className="text-xs">Només el desglossament acreditat al document. La suma ha de coincidir amb l’import total; sense desglossament no s’anualitza.</span></label>
+  {operation==='correction'&&<label>Acte anterior que rectifica<select name="corrects_unit_id" defaultValue={review?.corrects_unit_id??''} className="form-control mt-1 w-full"><option value="">Cap</option>{data.units.filter(u=>preceding.has(u.id)||u.id===review?.corrects_unit_id).map(u=><option key={u.id} value={u.id}>{concertUnitName(u)} · {u.reses_code} · {u.act_type} · {u.id.slice(0,8)}</option>)}</select><span className="text-xs">Només les línies de la cadena proposada o confirmada. Si falta l’acte, proposa primer el vincle.</span></label>}
+  {['award','renewal'].includes(operation)&&<label className="sm:col-span-2">Anualitats explícites (opcional)<textarea name="annualitiesText" className="form-text mt-1 w-full" placeholder="2025-10-01/2025-12-31 = 110585.79" defaultValue={review?.annualities?.map(a=>`${a.start}/${a.end} = ${(a.amountCents/100).toFixed(2)}`).join('\n')??''}/><span className="text-xs">Només el desglossament acreditat al document. La suma ha de coincidir amb l’import total; sense desglossament no s’anualitza.</span></label>}
   <label className="sm:col-span-2">Cita literal que acredita import, període i efecte<textarea name="evidence_quote" className="form-text mt-1 min-h-24 w-full" required minLength={20} defaultValue={review?.evidence_quote??unit.evidence_quote??''}/></label>
   <label className="sm:col-span-2">Justificació de la interpretació<textarea name="review_note" className="form-text mt-1 w-full" required minLength={10} defaultValue={review?.review_note??''}/></label>
   <label>Decisió<select name="status" className="form-control mt-1 w-full" defaultValue="draft"><option value="draft">Desar proposta pendent</option><option value="approved">Confirmar després del contrast</option><option value="excluded">Excloure de la foto (amb justificació)</option></select></label>

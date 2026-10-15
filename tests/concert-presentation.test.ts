@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {extractProgramAnnex} from '../lib/concerts/program-annex';
 import {recoverConcertDisplayNames} from '../lib/concerts/presentation';
-import {concertUnitName,concertLineHref} from '../lib/concerts/display-name';
+import {concertUnitName,concertLineHref,concertPredecessorIds} from '../lib/concerts/display-name';
 
 function splitHeaderTable(){
  const line=(cells:Array<[number,string]>)=>{let value='';for(const [position,text] of cells)value=value.padEnd(position)+text;return value;};
@@ -28,4 +28,10 @@ test('display recovery never infers names from another document, ambiguous rows 
   const u={...unit,...change};assert.deepEqual(recoverConcertDisplayNames([u],[{id:'doc',extracted_text:splitHeaderTable()}]),[u]);
  }
  const text=splitHeaderTable()+'\n'+splitHeaderTable();assert.deepEqual(recoverConcertDisplayNames([unit],[{id:'doc',extracted_text:text}]),[unit]);
+});
+
+test('rectification choices contain only predecessor chains, exclude rejected/unrelated rows and stop cycles',()=>{
+ const link=(later_unit_id:string,earlier_unit_id:string,status='candidate')=>({later_unit_id,earlier_unit_id,status});
+ const ids=concertPredecessorIds('change',[link('change','previous'),link('previous','original','confirmed'),link('original','change'),link('change','rejected','rejected'),link('change','pre2024','out_of_horizon'),link('unrelated','other')]);
+ assert.deepEqual([...ids],['previous','original']);
 });
