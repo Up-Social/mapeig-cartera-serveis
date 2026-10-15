@@ -56,6 +56,9 @@ export function ConcertUnits({record,services}:{record:SourceRecord;services:Arr
  const expected=Number(record.title.match(/\b(\d+)\s+serveis\b/i)?.[1]);
  const knownExpected=Number.isInteger(expected)&&expected>0?expected:null;
  const represented=units.reduce((total,unit)=>total+(unit.quantity??1),0);
+ const programRows=units.filter(unit=>unit.extraction_origin==='program-columns-v2');
+ const programPlaces=programRows.reduce((total,unit)=>total+(unit.quantity??0),0);
+ const programTypes=new Set(programRows.map(unit=>unit.service_code??unit.observed_service_code??unit.observed_service_name).filter(Boolean)).size;
  const reviewed=units.filter(unit=>unit.status==='approved').length;
  const uniqueProviders=new Set(units.map(unit=>unit.provider_nif??unit.provider_name??unit.observed_provider_name).filter(Boolean)).size;
  const identifiedAmount=units.filter(unit=>unit.amount!=null).reduce((sum,unit)=>sum+Number(unit.amount),0);
@@ -91,7 +94,7 @@ export function ConcertUnits({record,services}:{record:SourceRecord;services:Arr
   </div>
 
   <div className="grid gap-3 sm:grid-cols-3" data-testid="concert-coverage">
-   <div className="rounded-xl border bg-muted/20 p-4"><p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Línies de l’annex</p><p className="mt-1 text-2xl font-bold tabular-nums">{units.length}</p><p className="text-xs text-muted-foreground">{represented} serveis representats{knownExpected?` de ${knownExpected} anunciats`:''}</p></div>
+   <div className="rounded-xl border bg-muted/20 p-4"><p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Línies de l’annex</p><p className="mt-1 text-2xl font-bold tabular-nums">{units.length}</p><p className="text-xs text-muted-foreground">{programRows.length?`${programTypes} tipologies · ${programPlaces} places llegides`: `${represented} serveis representats${knownExpected?` de ${knownExpected} anunciats`:''}`}</p></div>
    <div className="rounded-xl border bg-muted/20 p-4"><p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Entitats identificades</p><p className="mt-1 text-2xl font-bold tabular-nums">{uniqueProviders}</p><p className="text-xs text-muted-foreground">Segons el NIF de cada línia; {reviewed} línies aprovades</p></div>
    <div className="rounded-xl border border-sky-200 bg-sky-50/60 p-4"><p className="text-xs font-semibold uppercase tracking-wide text-sky-900">Import de les línies identificades</p><p className="mt-1 text-2xl font-bold tabular-nums text-sky-950">{pricedLines?money(identifiedAmount):'No atribuïble'}</p><p className="text-xs text-sky-900">{pricedLines} de {units.length} línies amb import · encara no és el saldo vigent</p></div>
   </div>
@@ -127,7 +130,7 @@ export function ConcertUnits({record,services}:{record:SourceRecord;services:Arr
       </div>
       <div className="mt-4 flex flex-wrap items-center gap-2 border-t pt-3 text-xs text-muted-foreground">
        {act&&<ConcertCaseBadge kind={act}/>}<span className="rounded-full border px-2.5 py-1">{unit.status==='approved'?'Línia aprovada':unit.status==='rejected'?'Línia rebutjada':'Pendent de revisió'}</span>
-       {unit.provider_nif&&<span>NIF {unit.provider_nif}</span>}{unit.centre&&<span>Centre: {unit.centre}</span>}{(unit.municipality||unit.territory)&&<span>{unit.municipality??unit.territory}</span>}{unit.period&&<span>Període {unit.period}</span>}{unit.quantity_delta!=null&&<span>Canvi de places: {unit.quantity_delta>0?'+':''}{unit.quantity_delta}</span>}{unit.quantity&&<span>{unit.quantity} {unit.quantity===1?'servei':'serveis'}</span>}
+       {unit.provider_nif&&<span>NIF {unit.provider_nif}</span>}{unit.centre&&<span>Centre: {unit.centre}</span>}{(unit.municipality||unit.territory)&&<span>{unit.municipality??unit.territory}</span>}{unit.period&&<span>Període {unit.period}</span>}{unit.quantity_delta!=null&&<span>Canvi de places: {unit.quantity_delta>0?'+':''}{unit.quantity_delta}</span>}{unit.quantity&&<span>{unit.quantity} {unit.extraction_origin==='program-columns-v2'?(unit.quantity===1?'plaça':'places'):(unit.quantity===1?'servei':'serveis')}</span>}
       </div>
       <details className="mt-3 rounded-lg bg-muted/20 p-3 text-sm"><summary className="cursor-pointer font-medium" title="Mostra la cita de l’annex i la font arxivada">Evidència i traçabilitat · pàgina {unit.page??'pendent'}</summary>
        <blockquote className="mt-3 break-words whitespace-pre-wrap border-l-2 pl-3 leading-6">{unit.evidence_quote?.replace(/\s+/g,' ')??'Cita pendent'}</blockquote><p className="mt-2 break-all text-xs">ID de la línia: {unit.id}</p>
