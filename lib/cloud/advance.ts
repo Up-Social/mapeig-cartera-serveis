@@ -9,6 +9,7 @@ import {splitText,hash} from '../pipeline/chunks';
 import {analyzeRecord} from './analysis';
 import {documentQuality} from '../evidence-eligibility';
 import {prepareConcertObservations} from './concerts';
+import {recordDataStage} from '../record-stage-copy';
 export async function advance(task:string,workflow:string):Promise<{done:boolean;wait:number}>{
  const db=cloudDb();const owner=randomUUID();
  const generation=await rpc<number|null>(db,'cloud_claim',{p_task:task,p_owner:owner,p_version:CLOUD_VERSION});
@@ -74,8 +75,9 @@ export async function advance(task:string,workflow:string):Promise<{done:boolean
     await progress(c,'document_extraction',null,null,'Desglossant les línies de l’annex oficial',job.id);
     await rpc(db,'cloud_finish',{...lease(c),p_state:'pending'});return {done:false,wait:1};
    }
-   const r=await db.from('source_records').select('enrichment_status').eq('id',job.source_record_id).single();if(r.error)throw Error();
-   if(r.data.enrichment_status!=='completed'){await progress(c,'enrichment',0,1,'Contrastant les dades amb la font oficial',job.id);await analyzeRecord(c,job,'enrichment');await progress(c,'enrichment',1,1,'Dades oficials contrastades',job.id);}
+   const r=await db.from('source_records').select('enrichment_status,financing_type').eq('id',job.source_record_id).single();if(r.error)throw Error();
+   const dataStage=recordDataStage(r.data.financing_type);
+   if(r.data.enrichment_status!=='completed'){await progress(c,'enrichment',0,1,dataStage.progress,job.id);await analyzeRecord(c,job,'enrichment');await progress(c,'enrichment',1,1,dataStage.completed,job.id);}
    else if(t.data.task_type!=='enrich_record'){await progress(c,'matching',0,1,'Comprovant la correspondència amb la Cartera',job.id);await analyzeRecord(c,job,'matching');await progress(c,'closing',1,1,'Resultat guardat i pendent de revisió',job.id);}
    if(t.data.task_type==='enrich_record'){await rpc(db,'cloud_finish',{...lease(c),p_state:'completed'});return {done:true,wait:0};}
   }

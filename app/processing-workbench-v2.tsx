@@ -21,6 +21,7 @@ import {
   type RecordOperation,
 } from "@/lib/record-operation";
 import type {CloudResourceBlock} from '@/lib/batch-types';
+import {recordDataStage,recordDataStageDetail} from '@/lib/record-stage-copy';
 
 const processingLabels = {
   pending: "Pendent de processar",
@@ -332,6 +333,7 @@ export function RecordStages({
   const busy =
     pending || operation !== undefined || startingOperation !== undefined;
   const displayedOperation = operation ?? startingOperation;
+  const dataStage = recordDataStage(record.financingType);
   return (
     <section className="mt-5 rounded-xl border border-neutral-300 p-4">
       <p className="text-xs font-semibold uppercase tracking-wide text-neutral-500">
@@ -346,8 +348,8 @@ export function RecordStages({
         />
         <StageRow
           number="2"
-          title="Contrastar dades"
-          status={enrichmentStatusLabel(record.enrichmentStatus)}
+          title={dataStage.title}
+          status={record.enrichmentStatus === "pending" ? "Pendent" : dataStage[record.enrichmentStatus]}
           complete={record.enrichmentStatus === "completed"}
         />
         <StageRow
@@ -384,7 +386,7 @@ export function RecordStages({
         </StageRow>
       </div>
       {record.operationProgress && (
-        <OperationProgressCard progress={record.operationProgress} now={clock} />
+        <OperationProgressCard progress={record.operationProgress} now={clock} financingType={record.financingType} />
       )}
       {!record.analysis && !record.matchingCandidates.length && (
         <Button
@@ -430,9 +432,7 @@ export function RecordStages({
         </Button>
       )}
       <p className="mt-3 text-[13.2px] leading-5 text-neutral-500">
-        Preparar fonts no utilitza OpenAI. Contrastar dades utilitza IA per
-        estructurar només la font oficial, sense escollir cap servei. El registre
-        només es considera correcte després de la validació humana.
+        {dataStage.description}
       </p>
       {record.pipelineRunId && (record.reviewDecision === "approved" || record.reviewDecision === "corrected") && (
         <div className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-lg border bg-muted/30 p-3 text-xs">
@@ -483,33 +483,23 @@ function evidenceStatusLabel(value: SourceRecord["evidenceStatus"]) {
     } as const
   )[value];
 }
-function enrichmentStatusLabel(value: SourceRecord["enrichmentStatus"]) {
-  return (
-    {
-      pending: "Pendent",
-      processing: "Contrastant amb la font oficial",
-      completed: "Dades oficials contrastades",
-      error: "Errors de contrast",
-    } as const
-  )[value];
-}
-
 export function inferOperation(record: SourceRecord): RecordOperation | undefined {
   if (["incident", "finished"].includes(record.operationProgress?.state ?? "")) return undefined;
   if (["active", "waiting", "stalled"].includes(record.operationProgress?.state ?? "") || record.evidenceStatus === "preparing" || record.enrichmentStatus === "processing" || ["preparant", "processant"].includes(record.status)) return "process";
   return undefined;
 }
 
-function OperationProgressCard({progress,now}:{progress:NonNullable<SourceRecord["operationProgress"]>;now:number}) {
+function OperationProgressCard({progress,now,financingType}:{progress:NonNullable<SourceRecord["operationProgress"]>;now:number;financingType:SourceRecord['financingType']}) {
   const stateLabel={idle:"Pendent d’inici",waiting:"Esperant el pas següent",active:"Processant amb activitat",stalled:"Possible bloqueig",incident:"Incidència tècnica",finished:"Execució automàtica finalitzada"}[progress.state];
-  const stepLabel=progress.step?({document_discovery:"Localització de documents",document_extraction:"Lectura dels documents",ocr:"Reconeixement OCR",enrichment:"Contrast de dades",matching:"Correspondència amb la Cartera",closing:"Tancament de l’operació"} as const)[progress.step]:null;
+  const stepLabel=progress.step?({document_discovery:"Localització de documents",document_extraction:"Lectura dels documents",ocr:"Reconeixement OCR",enrichment:recordDataStage(financingType).title,matching:"Correspondència amb la Cartera",closing:"Tancament de l’operació"} as const)[progress.step]:null;
+  const detail=progress.step==='enrichment'?recordDataStageDetail(financingType,progress.detail):progress.detail;
   const elapsed=formatDuration(Math.max(0,(progress.finishedAt?Date.parse(progress.finishedAt):now)-Date.parse(progress.startedAt)));
   const activityAgo=formatDuration(Math.max(0,now-Date.parse(progress.lastActivityAt)));
   const determinate=progress.total!=null&&progress.total>0&&progress.completed!=null;
   const percentage=determinate?Math.min(100,Math.round((progress.completed!/progress.total!)*100)):null;
   return <div className={cn("mt-4 rounded-lg border p-3",progress.state==="stalled"||progress.state==="incident"?"border-neutral-900 bg-neutral-100":"border-neutral-200 bg-neutral-50")} role={progress.state==="stalled"||progress.state==="incident"?"alert":undefined}>
     <div className="flex flex-wrap items-center justify-between gap-2"><p className="text-sm font-semibold">{stateLabel}</p><span className="text-xs text-neutral-500">Temps transcorregut: {elapsed}</span></div>
-    {stepLabel&&<p className="mt-1 text-sm text-neutral-700">{progress.state==='incident'?'Pas interromput: ':''}{stepLabel}{progress.detail&&progress.state!=='incident'?` · ${progress.detail}`:""}</p>}
+    {stepLabel&&<p className="mt-1 text-sm text-neutral-700">{progress.state==='incident'?'Pas interromput: ':''}{stepLabel}{detail&&progress.state!=='incident'?` · ${detail}`:""}</p>}
     {determinate&&<div className="mt-3" aria-label={`${progress.completed} de ${progress.total}`}><div className="mb-1 flex justify-between text-xs text-neutral-500"><span>{progress.completed} de {progress.total}</span><span>{percentage}%</span></div><div className="h-2 overflow-hidden rounded-full bg-neutral-200"><div className="h-full rounded-full bg-neutral-900 transition-[width]" style={{width:`${percentage}%`}} /></div></div>}
     <p className="mt-2 text-xs text-neutral-500">{['incident','finished'].includes(progress.state) ? `Darrera activitat: ${new Intl.DateTimeFormat('ca-ES',{dateStyle:'short',timeStyle:'medium',timeZone:'Europe/Madrid'}).format(new Date(progress.lastActivityAt))}.` : `Darrera activitat fa ${activityAgo}.`}{progress.state==="stalled"?" No s’ha detectat activitat durant més de 10 minuts.":""}</p>
   </div>;
