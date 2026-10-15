@@ -38,6 +38,7 @@ export function DocumentedCorrectionForm({record,services,onSaved,unitId,documen
 export function HumanResolution({record,services,onSaved}:Props){
  const [reason,setReason]=useState(''),[missing,setMissing]=useState(''),[reviewer,setReviewer]=useState(''),[busy,setBusy]=useState(false),[error,setError]=useState('');
  const reservation=currentReservation(record),editable=canResolveManually(record);
+ if(!editable&&!reservation&&!record.corrections?.length&&!record.resolutionHistory?.length)return null;
  return <section id="resolucio-humana" className="surface space-y-4 p-5"><h2 className="section-title">Què falta per resoldre aquest cas?</h2><p className="text-sm">Completa els fets acreditats o registra una acceptació provisional. La decisió humana i l’anàlisi automàtica es conserven per separat.</p>
  {!!record.corrections?.length&&<ul className="space-y-2 text-sm">{record.corrections.map(c=><li key={c.id}><strong>{fields[c.field as keyof typeof fields]??c.field}: {c.value}</strong>{c.unit_id?' · Correcció d’una línia':''} · {c.valid?'Font vigent':'Font canviada: cal revisar de nou'} · pàgina {c.page} · {c.reviewer} (nom declarat)<p>{c.reason}</p><a className="underline" href={`/api/documents/${c.document_id}/open#page=${c.page}`} target="_blank" rel="noreferrer">Comprovar la font</a></li>)}</ul>}
  {!record.isHistorical&&<DocumentedCorrectionForm record={record} services={services} onSaved={onSaved}/>}
