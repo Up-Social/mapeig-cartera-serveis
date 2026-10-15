@@ -19,7 +19,7 @@ export function concertRoleReviewSchema(names:RoleName[],count:number){
   }}}}};
 }
 type ReviewCheck={role:RoleName;state:string;value:string|null;kind:string;evidence_ordinal:number};
-export type RoleReviewIssue={role:RoleName;code:'changed_fact'|'unverifiable_quote';ordinal:number};
+export type RoleReviewIssue={role:RoleName;code:'changed_fact'|'unverifiable_quote'|'inconsistent_unknown';ordinal:number};
 /** Strict validation remains available to callers that must reject the whole reply. */
 export function applyConcertRoleReview(roles:Partial<RoleFacts>|undefined,chunks:ReadonlyArray<{content:string}>,value:unknown){
  return applyRoleChecks(roles,chunks,value,false);
@@ -39,7 +39,12 @@ function applyRoleChecks(roles:Partial<RoleFacts>|undefined,chunks:ReadonlyArray
   const fact=roles?.[check.role];
   const unknown:RoleFact={...(fact??{value:null,kind:'unknown'}),state:'unknown',evidence_ordinals:[],quotes:[]};
   if(check.state==='unknown'){
-   if(check.evidence_ordinal!==0||check.value!==null||check.kind!=='unknown')throw Error('CONCERT_ROLE_REVIEW_INVALID');
+   if(check.evidence_ordinal!==0)throw Error('CONCERT_ROLE_REVIEW_INVALID');
+   if((check.value!==null&&typeof check.value!=='string')||!(check.kind==='unknown'||KINDS[check.role]?.includes(check.kind)))throw Error('CONCERT_ROLE_REVIEW_INVALID');
+   if(check.value!==null||check.kind!=='unknown'){
+    if(!diagnose)throw Error('CONCERT_ROLE_REVIEW_INVALID');
+    issues.push({role:check.role,code:'inconsistent_unknown',ordinal:0});
+   }
    aligned[check.role]=unknown;
   }else{
    const chunk=chunks[check.evidence_ordinal-1];

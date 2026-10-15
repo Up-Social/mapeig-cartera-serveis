@@ -70,3 +70,13 @@ test('diagnostic recovery does not replace a known fact or accept a malformed re
  assert.equal(checked.issues[0].code,'changed_fact');
  assert.throws(()=>applyConcertRoleReviewWithDiagnostics(roles,chunks,{checks:[{...known,evidence_ordinal:999}]}));
 });
+
+test('an explicitly unknown reply never supplies its uncited value as a fact',()=>{
+ const uncertain={...unknown,value:'servei sense cita',kind:'yes'};
+ const checked=applyConcertRoleReviewWithDiagnostics(roles,chunks,{checks:[uncertain]});
+ assert.equal(checked.roles.final_service?.state,'unknown');
+ assert.deepEqual(checked.roles.final_service?.evidence_ordinals,[]);
+ assert.deepEqual(checked.issues,[{role:'final_service',code:'inconsistent_unknown',ordinal:0}]);
+ assert.throws(()=>applyConcertRoleReview(roles,chunks,{checks:[uncertain]}));
+ for(const patch of [{evidence_ordinal:1},{value:{}},{kind:'foreign'}])assert.throws(()=>applyConcertRoleReviewWithDiagnostics(roles,chunks,{checks:[{...uncertain,...patch}]}));
+});

@@ -130,7 +130,7 @@ export async function analyzeRecord(c:Context,job:{id:string;source_record_id:st
     const checked=applyConcertRoleReviewWithDiagnostics(originalRoles,chunks,JSON.parse(extractOutputText(review)));aligned=checked;
     const fieldNames:Partial<Record<string,string>>={financed_object:'l’objecte finançat',final_population:'les persones destinatàries',final_service:'el servei prestat'};
     for(const issue of checked.issues){const chunk=chunks[issue.ordinal-1];roleReviewDiagnostics.push({code:`role_review_${issue.code}`,field:issue.role,documentId:chunk?.source_document_id,
-     message:`No s’ha acreditat ${fieldNames[issue.role]??issue.role}: la segona lectura ${issue.code==='changed_fact'?'ha canviat el fet anterior sense confirmar-lo':'ha proposat un text que no es pot verificar literalment al fragment citat'}. Cal comprovar aquest camp al document.`,action:'enrich',rule:CONCERT_ROLE_REPAIR_VERSION});}
+     message:`No s’ha acreditat ${fieldNames[issue.role]??issue.role}: la segona lectura ${issue.code==='changed_fact'?'ha canviat el fet anterior sense confirmar-lo':issue.code==='inconsistent_unknown'?'ha declarat el camp desconegut i ha retornat alhora un valor sense cita; aquest valor no s’ha acceptat':'ha proposat un text que no es pot verificar literalment al fragment citat'}. Cal comprovar aquest camp al document.`,action:'enrich',rule:CONCERT_ROLE_REPAIR_VERSION});}
    }
    catch {throw new CloudFailure('validation',5,{operation:'concert_role_review',code:'INVALID_ROLE_EVIDENCE'});}
   }

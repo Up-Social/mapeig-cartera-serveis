@@ -89,7 +89,8 @@ export function classifyIssue(record: SourceRecord): IssueRecord | null {
     if(record.evidenceStatus==='error')return issue(record,'document_error','evidence',record.evidenceError??'Error documental.','prepare');
     if(record.issueGroup==='source')return issue(record,'document_error','evidence',record.matchingError??'No s\'ha pogut preparar la font documental.','prepare');
     if(record.enrichmentStatus==='error')return issue(record,'enrichment_error','enrichment',record.enrichmentError??recordDataStage(record.financingType).error,'enrich');
-    return issue(record,'matching_error','matching',record.matchingError??'Error tècnic del treball vigent.','process');
+    const retry = record.evidenceStatus === 'ready' && record.enrichmentStatus === 'completed' ? 'match' : 'process';
+    return issue(record,'matching_error','matching',record.matchingError??'Error tècnic del treball vigent.',retry);
   }
   const classification=record.analysis?.reviewed_classification??record.analysis?.classification;
   if(classification==='discarded'||classification==='out_of_portfolio')return null;

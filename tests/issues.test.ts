@@ -45,6 +45,12 @@ test("classifies the current matching error", () => {
   assert.equal(issue?.retryOperation, "match");
 });
 
+test('a terminal matching failure can retry only matching when its sources and analysis are complete', () => {
+  assert.equal(classifyIssue({...record,currentJobStatus:'error'})?.retryOperation,'match');
+  assert.equal(classifyIssue({...record,currentJobStatus:'error',enrichmentStatus:'pending'})?.retryOperation,'process');
+  assert.equal(classifyIssue({...record,currentJobStatus:'error',evidenceStatus:'pending'})?.retryOperation,'process');
+});
+
 test('paused workers expose an incident even when the job still says matching', () => {
   const paused={...record,currentJobStatus:'matching',status:'preparat' as const,matchingError:null,operationProgress:{state:'incident' as const,step:'matching' as const,completed:0,total:1,detail:'private provider response must not be used',startedAt:'2026-09-30',lastActivityAt:'2026-09-30',finishedAt:null,attempts:1,failureKind:'provider_unknown'}};
   const result=classifyIssue(paused);
