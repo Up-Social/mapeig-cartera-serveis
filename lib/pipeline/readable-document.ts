@@ -28,13 +28,22 @@ export function pdfPages(text: string) {
   return pages;
 }
 export type ReadablePage = { page: number; method: 'text' | 'ocr'; text: string; defects: string[] };
-export async function recoverPdfText(raw: string, allowOcr: boolean, recognize: (page: number) => Promise<string>, pageCount?: number) {
+/** A targeted retry preserves previous OCR on every unselected page. */
+export function preserveUnselectedPdfPages(raw:string,previous:string|null,selected:number[],pageCount:number){
+ if(!selected.length||!previous)return raw;
+ const saved=new Map<number,string>();
+ for(const match of previous.matchAll(/^## Pàgina (\d+)\s*\n([\s\S]*?)(?=^## Pàgina \d+\s*$|$(?![\s\S]))/gm))saved.set(Number(match[1]),match[2].trim());
+ const fresh=pdfPages(raw);
+ return Array.from({length:pageCount},(_,i)=>selected.includes(i+1)?fresh[i]??'':saved.get(i+1)??fresh[i]??'').join('\f');
+}
+export async function recoverPdfText(raw: string, allowOcr: boolean, recognize: (page: number) => Promise<string>, pageCount?: number, forcedPages: number[] = []) {
   const originals = pdfPages(raw);
+  if(forcedPages.length>MAX_OCR_PAGES||forcedPages.some(p=>!Number.isInteger(p)||p<1||p>Math.max(originals.length,pageCount??0)))throw Error('Pàgines OCR no vàlides');
   const pages: ReadablePage[] = [];
   let usedOcr = 0;
   for (let index = 0; index < Math.max(originals.length, pageCount ?? 0); index++) {
     let text = originals[index] ?? ''; let method: ReadablePage['method'] = 'text';
-    if (needsOcr(text) && allowOcr && usedOcr < MAX_OCR_PAGES) {
+    if ((forcedPages.length?forcedPages.includes(index+1):needsOcr(text)) && allowOcr && usedOcr < MAX_OCR_PAGES) {
       text = await recognize(index + 1); method = 'ocr'; usedOcr++;
     }
     // Empty pages are retained in the coverage report and cannot prove a service.

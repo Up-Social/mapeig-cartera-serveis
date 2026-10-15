@@ -1,3 +1,5 @@
+import {diagnosticSummary} from './evidence-diagnostics';
+import {recordDataStage} from './record-stage-copy';
 import type { FinancingType } from "./financing-types";
 import type { RecordOperation } from "./record-operation";
 import type { SourceRecord } from "./workbench-types";
@@ -19,17 +21,17 @@ export const ISSUE_CATEGORY_LABELS: Record<IssueCategory, string> = {
   rejected: "No encaixa amb la Cartera",
   insufficient_evidence: "Evidència insuficient",
   matching_error: "Errors de correspondència",
-  enrichment_error: "Errors de contrast",
+  enrichment_error: "Errors d’anàlisi de dades",
   document_error: "Errors documentals",
   no_source: "Sense font documental",
   unsupported: "Format no compatible",
 };
 
-export function issuePhaseLabel(phase: IssueRecord["phase"]) {
+export function issuePhaseLabel(phase: IssueRecord["phase"], financingType?:FinancingType) {
   return ({
     review: "Revisió humana",
     matching: "Correspondència",
-    enrichment: "Contrast de dades",
+    enrichment: financingType?recordDataStage(financingType).title:"Contrast de dades",
     evidence: "Preparació documental",
   } as const)[phase];
 }
@@ -91,7 +93,7 @@ export function classifyIssue(record: SourceRecord): IssueRecord | null {
   }
   const classification=record.analysis?.reviewed_classification??record.analysis?.classification;
   if(classification==='discarded'||classification==='out_of_portfolio')return null;
-  if(classification==='insufficient_evidence')return issue(record,'insufficient_evidence','review',record.analysis?.review_notes??record.analysis?.explanation??'Falta evidència acreditada.',requiresPdfOcr(record)?'ocr':'process');
+  if(classification==='insufficient_evidence')return issue(record,'insufficient_evidence','review',record.analysis?.review_notes??(record.analysis?diagnosticSummary(record.analysis):'Falta evidència acreditada.'),requiresPdfOcr(record)?'ocr':'process');
   if (record.analysis?.reviewed_classification === 'out_of_portfolio') return null;
 
   if (record.reviewDecision === "rejected") {

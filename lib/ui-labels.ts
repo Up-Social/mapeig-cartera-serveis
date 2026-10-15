@@ -20,7 +20,9 @@ export function sourceDocumentStatusLabel(status: string) {
   }, status);
 }
 
-export function pipelineStageLabel(stage: string) {
+export function pipelineStageLabel(stage: string, financingType?:string) {
+  if(["enrichment","enriching"].includes(stage)&&financingType==="concert")return "Anàlisi de la resolució";
+  if(["enrichment","enriching"].includes(stage)&&financingType==="mixed")return "Anàlisi de resolucions / contrast de dades";
   return labelFrom({
     queued: "En espera",
     preparation: "Preparació de fonts",

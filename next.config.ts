@@ -5,6 +5,7 @@ const nextConfig: NextConfig = {
   distDir: process.env.WORKFLOW_TEST_E2E==='true'?'.cache/next-workflow-e2e':process.env.WORKFLOW_BUILD_ISOLATED==='true'?'.cache/next-workflow-build':'.next',
   // Keep local validation from spawning a worker per available CPU.
   ...(process.env.WORKFLOW_BUILD_ISOLATED==='true'?{experimental:{cpus:1}}:{}),
+  outputFileTracingIncludes:{"/api/pdf-worker":["./node_modules/pdfjs-dist/build/pdf.worker.min.mjs"],"/api/pdf-assets/*":["./node_modules/pdfjs-dist/cmaps/**","./node_modules/pdfjs-dist/standard_fonts/**","./node_modules/pdfjs-dist/wasm/**"]},
   allowedDevOrigins: ["127.0.0.1"],
   async headers() {
     return [{ source: "/(.*)", headers: [

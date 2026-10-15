@@ -31,8 +31,8 @@ test('correction of an initial amount replays later increases',()=>{
 test('unrelated correction is blocked rather than applied to another concert',()=>{
  const p=projection(data([unit('a'),unit('x'),unit('c','amendment')],[review('a'),review('x'),{...review('c','correction',90000),corrects_unit_id:'x'}],[link('c','a')]));assert.equal(p.balances.find(b=>b.rootId==='a')?.amountCents,null);
 });
-test('cession preserves money and historical provider, shows new party in its movement',()=>{
- const p=projection(data([unit('a'),{...unit('b','cession'),provider_name:'Entitat nova',provider_nif:'G87654321'}],[review('a'),{...review('b','nonfinancial'),amount_cents:null,effective_at:'2024-02-01'}],[link('b','a')]));assert.equal(p.balances[0].amountCents,100000);assert.equal(p.balances[0].provider,'Entitat original');assert.equal(p.movements[1].provider,'Entitat nova');
+test('cession preserves money and history while the current picture shows the new holder',()=>{
+ const p=projection(data([unit('a'),{...unit('b','cession'),provider_name:'Entitat nova',provider_nif:'G87654321'}],[review('a'),{...review('b','nonfinancial'),amount_cents:null,effective_at:'2024-02-01'}],[link('b','a')]));assert.equal(p.balances[0].amountCents,100000);assert.equal(p.balances[0].provider,'Entitat nova');assert.equal(p.movements[0].provider,'Entitat original');assert.equal(p.movements[1].provider,'Entitat nova');
 });
 test('no false zero for absent amount and no final balance for candidate child',()=>{
  const d=data([unit('a'),unit('b','modification')],[review('a'),{...review('b','delta'),status:'draft',amount_cents:null}],[link('b','a','candidate')]);const p=projection(d);assert.equal(p.balances[0].amountCents,null);assert.equal(p.movements[1].amountCents,null);
@@ -117,4 +117,15 @@ test('documented maxima remain marked in pending movements without inventing a b
  const d=data([unit('a','modification')],[{...review('a','delta',-8166528),status:'draft',amount_kind:'maximum',effective_at:null}]);
  const p=projection(d);assert.equal(p.balances.length,0);assert.equal(p.movements[0].amountKind,'maximum');assert.equal(p.movements[0].amountCents,-8166528);assert.match(p.movements[0].issues.join(' '),/Data d’efectes no acreditada/);assert.doesNotMatch(p.movements[0].issues.join(' '),/Finançador no acreditat|Període des de 2024 no acreditat/);
  const missing=projection(data([unit('a')],[]));assert.equal(missing.movements[0].amountKind,'unknown');assert.equal(missing.movements[0].amountCents,null);
+});
+
+test('the current picture consolidates NIF service territory while retaining distinct funders and periods',()=>{
+ const a=unit('a'),b=unit('b'),c=unit('c');
+ const d=data([a,b,c],[review('a'),review('b'),{...review('c'),funder:'Ajuntament'}]);
+ const p=projection(d);assert.equal(p.balances.length,2);assert.equal(p.balances.find(b=>b.funder==='Drets Socials')?.amountCents,200000);assert.deepEqual(p.balances.find(b=>b.funder==='Drets Socials')?.rootIds,['a','b']);
+});
+test('competing cessions block attribution and later cessions do not change an earlier cutoff',()=>{
+ const d=data([unit('a'),{...unit('b','cession'),provider_name:'Nova B',provider_nif:'G87654321'},{...unit('c','cession'),provider_name:'Nova C',provider_nif:'G87654322'}],[review('a'),{...review('b','nonfinancial'),amount_cents:null,effective_at:'2024-02-01'},{...review('c','nonfinancial'),amount_cents:null,effective_at:'2024-03-01'}],[link('b','a'),link('c','a')]);
+ assert.equal(projection(d).balances[0].amountCents,null);assert.match(projection(d).balances[0].issues.join(' '),/Cessions concurrents/);
+ assert.equal(concertEvolution(d,'2024-01-31').balances[0].provider,'Entitat original');
 });

@@ -8,7 +8,7 @@ export type CandidateOutput={code:string;score:number;rationale:string;evidence_
 export function analysisSchema(candidateSchema:Record<string,unknown>){return {classification:{type:'string',enum:CLASSIFICATIONS},reasons:{type:'array',items:{type:'string',enum:DISCARD_REASONS}},explanation:{type:'string',minLength:20},service_description:{type:'string'},target_population:{type:'string'},evidence_ordinals:{type:'array',items:{type:'integer',minimum:1}},population_verified:{type:'boolean'},social_service_verified:{type:'boolean'},candidates:candidateSchema};}
 export function validateAnalysis(value:AnalysisOutput,all:OfficialService[],chunkCount:number,complete=true,allowDocumentedConcertCode=false):AnalysisOutput {
  if(!CLASSIFICATIONS.includes(value.classification)||typeof value.explanation!=='string'||value.explanation.trim().length<20)throw Error('Resposta de classificació invàlida');
- if(!Array.isArray(value.candidates)||value.candidates.length>3||!Array.isArray(value.reasons)||value.reasons.some(r=>!DISCARD_REASONS.includes(r as typeof DISCARD_REASONS[number])))throw Error('Contracte de classificació invàlid');
+ if(!Array.isArray(value.candidates)||value.candidates.length>(allowDocumentedConcertCode?1000:3)||!Array.isArray(value.reasons)||value.reasons.some(r=>!DISCARD_REASONS.includes(r as typeof DISCARD_REASONS[number])))throw Error('Contracte de classificació invàlid');
  const ordinals=(items:number[])=>Array.isArray(items)&&items.length>0&&items.every(n=>Number.isInteger(n)&&n>0&&n<=chunkCount);
  if(!ordinals(value.evidence_ordinals))throw Error('Falta evidència de la classificació');
  if(value.classification==='discarded'&&!value.reasons.length)throw Error('Cal un motiu de descart');
@@ -24,4 +24,4 @@ export function validateAnalysis(value:AnalysisOutput,all:OfficialService[],chun
  const sorted=[...value.candidates].sort((a,b)=>b.score-a.score);
  return {...value,candidates:sorted.filter((c,i)=>sorted.findIndex(x=>x.code===c.code)===i)};
 }
-export type StoredAnalysis={id:string;classification:Classification;reasons:string[];explanation:string;service_description:string;target_population:string;catalog_version_id:string;rules_version:string;reviewed_classification:Classification|null;review_notes:string|null;evidence:Array<{content:string;url?:string}>;reliability_status?:'valid'|'invalidated';reliability_reasons?:string[];invalidated_at?:string|null};
+export type StoredAnalysis={rule_audit?:Record<string,unknown>;model_conclusion?:Partial<AnalysisOutput>|null;created_at?:string;id:string;classification:Classification;reasons:string[];explanation:string;service_description:string;target_population:string;catalog_version_id:string;rules_version:string;reviewed_classification:Classification|null;review_notes:string|null;evidence:Array<{content:string;url?:string}>;reliability_status?:'valid'|'invalidated';reliability_reasons?:string[];invalidated_at?:string|null};

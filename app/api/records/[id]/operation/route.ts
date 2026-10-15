@@ -1,3 +1,4 @@
+import {validateOcrRecovery,type OcrRecovery} from '@/lib/ocr-recovery';
 import {
   enrichRecordFromSources,
   matchPreparedRecord,
@@ -24,10 +25,11 @@ export async function POST(
     );
   }
 
+  let recovery:OcrRecovery|undefined;
   let operation: RecordOperation;
   let expectedJobId:string|undefined;
   try {
-    const body = (await request.json()) as { operation?: unknown;expectedJobId?:unknown };
+    const body = (await request.json()) as { operation?: unknown;expectedJobId?:unknown;ocrRecovery?:unknown };
     if(body.expectedJobId!==undefined){if(typeof body.expectedJobId!=='string'||!isUuid(body.expectedJobId))throw Error('Invalid job');expectedJobId=body.expectedJobId;}
     if (
       typeof body.operation !== "string" ||
@@ -36,12 +38,13 @@ export async function POST(
       return Response.json({ error: "Operació no vàlida." }, { status: 400 });
     }
     operation = body.operation as RecordOperation;
+    if(body.ocrRecovery!==undefined){if(operation!=='ocr')throw Error();recovery=validateOcrRecovery(body.ocrRecovery);}
   } catch {
     return Response.json({ error: "Cos JSON no vàlid." }, { status: 400 });
   }
 
   try {
-    const result = operation === "ocr"
+    const result = recovery ? await startRecordOperation(id,operation,expectedJobId,recovery) : operation === "ocr"
       ? await (expectedJobId?startRecordOperation(id,operation,expectedJobId):recoverRecordWithOcr(id))
       : expectedJobId ? await startRecordOperation(id,operation,expectedJobId)
       : operation === "process"

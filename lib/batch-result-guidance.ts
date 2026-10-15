@@ -1,3 +1,5 @@
+import {recordDataStage} from './record-stage-copy';
+import {diagnosticSummary} from './evidence-diagnostics';
 import type { Classification } from "./analysis-contract";
 import type { BatchJob } from "./batch-types";
 
@@ -27,7 +29,7 @@ export function batchResultGuidance(job: BatchJob): BatchResultGuidance {
       kind: "issue",
       label: insufficient ? "Incidència · evidència insuficient" : "Incidència · resultat no fiable",
       title: insufficient ? "No hi ha una proposta revisable amb prou evidència" : "Cal tornar a contrastar aquest resultat",
-      explanation: insufficient ? job.analysis?.explanation?.trim() || "La documentació no acredita prou bé els camps necessaris per classificar el servei." : "El resultat automàtic no és fiable i no es pot presentar com a proposta pendent de validació.",
+      explanation: insufficient ? (job.analysis?(diagnosticSummary(job.analysis)||job.analysis.explanation):null) || "La documentació no acredita prou bé els camps necessaris per classificar el servei." : "El resultat automàtic no és fiable i no es pot presentar com a proposta pendent de validació.",
       nextStep: insufficient ? "Obre el registre des d’Incidències, comprova les fonts i documenta la falta d’evidència o completa la informació abans de revisar-lo." : "Obre el registre des d’Incidències, comprova les fonts i reprèn l’anàlisi abans de validar cap proposta.",
       technicalDetail: null,
       phase: null,
@@ -43,7 +45,7 @@ export function batchResultGuidance(job: BatchJob): BatchResultGuidance {
         ? REVIEW_TITLES[classification]
         : "Cal validar el resultat automàtic",
       explanation:
-        job.analysis?.explanation?.trim() ||
+        (job.analysis?(diagnosticSummary(job.analysis)||job.analysis.explanation):null) ||
         "El procés automàtic ha acabat, però no hi ha prou informació registrada per donar el resultat per validat.",
       nextStep:
         classification === "insufficient_evidence"
@@ -61,7 +63,7 @@ export function batchResultGuidance(job: BatchJob): BatchResultGuidance {
       title: "Resultat validat",
       explanation:
         job.analysis?.review_notes?.trim() ||
-        job.analysis?.explanation?.trim() ||
+        (job.analysis?(diagnosticSummary(job.analysis)||job.analysis.explanation):null) ||
         "Aquest resultat ja ha estat revisat.",
       nextStep: "Pots consultar la decisió, la justificació i l’evidència conservada.",
       technicalDetail: null,
@@ -118,11 +120,11 @@ function technicalGuidance(job: BatchJob): BatchResultGuidance {
     };
   }
 
-  if (phase === "Contrast de dades") {
+  if (job.phases?.enrichment === "error" || job.enrichmentStatus === "error") {
     return {
       kind: "technical",
       label: "Errors tècnics",
-      title: "No s’ha pogut completar el contrast de dades",
+      title: `No s’ha pogut completar: ${recordDataStage(job.financingType).title.toLocaleLowerCase("ca")}`,
       explanation:
         "La font estava preparada, però el sistema no ha pogut estructurar o contrastar la informació necessària.",
       nextStep: "Obre la incidència per consultar el diagnòstic i reintentar el contrast.",
@@ -170,7 +172,7 @@ function failedPhase(job: BatchJob) {
     return "Preparació de fonts";
   }
   if (job.phases?.enrichment === "error" || job.enrichmentStatus === "error") {
-    return "Contrast de dades";
+    return recordDataStage(job.financingType).title;
   }
   if (job.phases?.matching === "error") return "Correspondència amb la Cartera";
   return null;
@@ -178,7 +180,7 @@ function failedPhase(job: BatchJob) {
 
 function blockedPhase(job: BatchJob) {
   if (job.phases?.preparation === "blocked") return "Preparació de fonts";
-  if (job.phases?.enrichment === "blocked") return "Contrast de dades";
+  if (job.phases?.enrichment === "blocked") return recordDataStage(job.financingType).title;
   if (job.phases?.matching === "blocked") return "Correspondència amb la Cartera";
   return null;
 }

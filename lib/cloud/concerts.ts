@@ -1,3 +1,4 @@
+import {prepareProgramObservations} from './program-observations';
 import {declaredEconomicAnnexTotal,extractConcertAnnexRows,extractEconomicAnnexRows,extractProgram317Rows,type EconomicAnnexLine} from '../concerts/annex-extraction';
 import {concertActKind,type ConcertPublication} from '../concerts/record-linking';
 import {extractConcertChangeRows,operativeConcertChange} from '../concerts/change-extraction';
@@ -11,7 +12,7 @@ const BATCH_SIZE=5;
 
 /** Each invocation stages at most five immutable source-backed drafts. */
 export async function prepareConcertObservations(c:Context,job:Job):Promise<boolean>{
- const key=`concert-observations:${job.id}:v1`;
+ const key=`concert-observations:${job.id}:v2`;
  if(await readCheckpoint(c,key))return true;
  const current=await c.db.from('source_records').select('id,title,source_record_id,source_payload,financing_type').eq('id',job.source_record_id).single();
  if(current.error)throw new CloudFailure('internal');
@@ -56,6 +57,9 @@ export async function prepareConcertObservations(c:Context,job:Job):Promise<bool
    // Changes retain their signed source amount, never become an award annex.
    continue;
   }
+  const program=await prepareProgramObservations(c,job,{id:document.id,storage_sha256:document.storage_sha256!,extracted_text:document.extracted_text!},actType);
+  if(program===false)return false;
+  if(program===true)continue;
   let rows:EconomicAnnexLine[]=extractEconomicAnnexRows(document.extracted_text!);
   if(!rows.length&&!(prior.data??[]).some(unit=>!unit.unit_key.startsWith('official-annex:'))){
    const raw=document.extracted_text!.replace(/^## Pàgina \d+\s*$/gm,'\f').replace(/^\f\s*/,'');

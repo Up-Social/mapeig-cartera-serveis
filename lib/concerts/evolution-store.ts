@@ -25,6 +25,13 @@ export async function loadConcertEvolution(db:SupabaseClient,recordId?:string):P
   const result=await db.from('concert_economic_reviews').select('*').in('unit_id',selectedUnits.slice(offset,offset+100).map(u=>u.id));
   if(result.error)throw result.error;reviews.push(...result.data);
  }
+ const documentIds=[...new Set(selectedUnits.map(u=>u.document_id).filter((id):id is string=>!!id))];
+ for(let offset=0;offset<documentIds.length;offset+=100){
+  const docs=await db.from('source_documents').select('id,extracted_text_hash,extraction_partial,status,quality_flags').in('id',documentIds.slice(offset,offset+100));
+  if(docs.error)throw docs.error;
+  for(const doc of docs.data){if(doc.status==='fetched'&&!doc.extraction_partial&&doc.extracted_text_hash&&!doc.quality_flags?.includes('corrupt_text'))
+   for(const unit of selectedUnits.filter(u=>u.document_id===doc.id))unit.document_identity=`text:${doc.extracted_text_hash}`;}
+ }
  const recordIds=[...new Set(selectedUnits.map(u=>u.source_record_id))];
  for(let offset=0;offset<recordIds.length;offset+=100){
   const ids=recordIds.slice(offset,offset+100);

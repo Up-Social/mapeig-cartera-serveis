@@ -1,5 +1,6 @@
 import {projectConcertBalances,type ConcertFinancialLine} from './financial-ledger';
 export type EconomicUnit={
+ document_identity?:string;
  id:string;source_record_id:string;unit_key:string;act_type:string;status:string;source_fingerprint:string;
  provider_name:string|null;observed_provider_name:string|null;provider_nif:string|null;reses_code:string|null;
  service_code:string|null;observed_service_code:string|null;territory:string|null;period:string|null;
@@ -17,8 +18,8 @@ export type MissingConcertLines={earlier_record_id:string;later_record_id:string
 export type ConcertEvolutionData={missingLines?:MissingConcertLines[];units:EconomicUnit[];reviews:EconomicReview[];links:EconomicLink[];publications:EconomicPublication[]};
 export type EvolutionMovement={unitId:string;recordId:string;rootId:string|null;provider:string;operation:string;period:string;amountCents:number|null;amountKind:EconomicReview['amount_kind'];
  status:'reviewed'|'pending'|'excluded';issues:string[];effectiveAt:string|null;beforeCents?:number|null;afterCents?:number|null};
-export type EvolutionBalance={rootId:string;provider:string;service:string;territory:string;period:string;funder:string;amountCents:number|null;maximum:boolean;issues:string[]};
-export const ECONOMIC_RULES_VERSION='concert-economics-2024-v2';
+export type EvolutionBalance={rootId:string;rootIds:string[];providerNif:string|null;provider:string;service:string;territory:string;period:string;funder:string;amountCents:number|null;maximum:boolean;issues:string[]};
+export const ECONOMIC_RULES_VERSION='concert-economics-2024-v3';
 export const ECONOMIC_AMOUNT_LABELS={exact:'Import documental',maximum:'Màxim autoritzat · no és despesa real',unknown:'Import no acreditat'};
 const name=(unit:EconomicUnit)=>unit.provider_name??unit.observed_provider_name??'Entitat pendent de contrast';
 const excluded=(u:EconomicUnit)=>['out_of_scope','pre_2024_origin_unavailable'].includes(u.horizon_state??'');
@@ -101,9 +102,9 @@ export function concertEvolution(data:ConcertEvolutionData,cutoff:string){
   if(issues.length||!c.root||!review){if(c.root)issues.forEach(issue=>block(c.root!,issue));continue;}
   const root=byId.get(c.root)!;
   // All units sharing the same archived source line share one agreement key.
-  const canonical=[root.storage_sha256,root.unit_key.startsWith('official-annex:')?root.unit_key.split(':').slice(2).join(':'):root.evidence_quote,root.page].join('|');
+  const canonical=[root.document_identity??root.storage_sha256,root.unit_key.startsWith('official-annex:')?root.unit_key.split(':').slice(2).join(':'):root.evidence_quote,root.page].join('|');
   const base:ConcertFinancialLine={id:u.id,agreementKey:canonical,transactionKey:canonical,serviceCode:u.service_code!,period,territory:u.territory!,funder:review.funder!,
-   documentHash:u.storage_sha256!,lineReference:u.unit_key.startsWith('official-annex:')?u.unit_key.split(':').slice(2).join(':'):`${u.page}:${u.evidence_quote}`,
+   documentHash:u.document_identity??u.storage_sha256!,lineReference:u.unit_key.startsWith('official-annex:')?u.unit_key.split(':').slice(2).join(':'):`${u.page}:${u.evidence_quote}`,
    effectiveAt:review.effective_at!,sequence:accepted.length,operation:review.operation==='correction'?'replacement':review.operation,
    amountCents:review.amount_cents,amountKind:review.amount_kind,status:'approved'};
   if(review.operation==='replacement'&&data.reviews.some(other=>other.unit_id!==u.id&&other.status==='approved'&&other.operation==='replacement'&&other.effective_at===review.effective_at&&other.period_start===review.period_start&&other.period_end===review.period_end&&chains.get(other.unit_id)?.root===c.root&&!c.path.includes(other.unit_id)&&!chains.get(other.unit_id)?.path.includes(u.id))){issues.push('Totals substitutius simultanis sense ordre acreditat');block(c.root,issues[0]);continue;}
@@ -140,12 +141,28 @@ export function concertEvolution(data:ConcertEvolutionData,cutoff:string){
   }
  }
  for(const missing of data.missingLines??[]){for(const u of data.units.filter(u=>u.source_record_id===missing.earlier_record_id)){const root=chains.get(u.id)?.root;if(root)block(root,'Hi ha una publicació relacionada sense línies contrastades');}}
- const balances:EvolutionBalance[]=projectConcertBalances(accepted).map(b=>{
-  const root=data.units.find(u=>u.act_type==='award'&&[u.storage_sha256,u.unit_key.startsWith('official-annex:')?u.unit_key.split(':').slice(2).join(':'):u.evidence_quote,u.page].join('|')===b.agreementKey)!;
+ const individualBalances:EvolutionBalance[]=projectConcertBalances(accepted).map(b=>{
+  const root=data.units.find(u=>u.act_type==='award'&&[u.document_identity??u.storage_sha256,u.unit_key.startsWith('official-annex:')?u.unit_key.split(':').slice(2).join(':'):u.evidence_quote,u.page].join('|')===b.agreementKey)!;
   const issues=[...new Set([...b.issues,...(affected.get(root.id)??[])])];
-  return {rootId:root.id,provider:name(root),service:b.serviceCode,territory:b.territory,period:b.period,funder:b.funder,
+  const cessions=movements.filter(m=>m.rootId===root.id&&m.status==='reviewed'&&byId.get(m.unitId)?.act_type==='cession'&&m.effectiveAt&&m.effectiveAt<=cutoff);
+  const current=cessions.filter(m=>!cessions.some(other=>other.unitId!==m.unitId&&chains.get(other.unitId)?.path.includes(m.unitId)));
+  if(current.length>1)issues.push('Cessions concurrents sense successor únic acreditat');
+  const holder=current.length===1?byId.get(current[0].unitId)!:root;
+  if(!holder.provider_nif)issues.push('NIF de l’entitat vigent no acreditat');
+  return {rootId:root.id,rootIds:[root.id],providerNif:holder.provider_nif,provider:name(holder),service:b.serviceCode,territory:b.territory,period:b.period,funder:b.funder,
    amountCents:issues.length?null:b.amountCents,maximum:b.maximum,issues};
  });
+ const grouped=new Map<string,EvolutionBalance>();
+ for(const balance of individualBalances){
+  const key=JSON.stringify([balance.providerNif??balance.rootId,balance.service,balance.territory,balance.period,balance.funder]);
+  const prior=grouped.get(key);
+  if(!prior){grouped.set(key,{...balance,rootIds:[...balance.rootIds],issues:[...balance.issues]});continue;}
+  prior.rootIds.push(...balance.rootIds);prior.maximum ||= balance.maximum;
+  prior.issues=[...new Set([...prior.issues,...balance.issues])];
+  prior.amountCents=prior.amountCents===null||balance.amountCents===null?null:prior.amountCents+balance.amountCents;
+  if(prior.amountCents!==null&&!Number.isSafeInteger(prior.amountCents)){prior.amountCents=null;prior.issues.push('Total fora de la precisió segura');}
+ }
+ const balances=[...grouped.values()];
  return {version:ECONOMIC_RULES_VERSION,cutoff,horizon:2024,movements,balances,pending:movements.filter(m=>m.status==='pending').length,
   excluded:movements.filter(m=>m.status==='excluded').length,missingLines:data.missingLines??[]};
 }

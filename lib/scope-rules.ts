@@ -28,8 +28,9 @@ export function applyScopeRules(original:AnalysisOutput,roles:Partial<RoleFacts>
    :['financed_object','direct_beneficiary','final_service']
   :original.classification==='insufficient_evidence'?[]:['financed_object','final_population','final_service'];
  if(!reason&&determinant.some(n=>!known(n)))rule='unknown_determinant_role';
+ const blocked_roles=determinant.filter(n=>!known(n)).map(role=>({role,reason:roles?.[role]?.state==='contradictory'?'contradictory':roles?.[role]?.state!=='known'?'missing_fact':'unverifiable_quote'}));
  const used=reason==='interadministrative_transfer'?['financier','economic_recipient','final_service','financial_instrument'] as RoleName[]:reason==='individual_grant'?['economic_recipient','direct_beneficiary','financial_instrument'] as RoleName[]:determinant;
  const evidence=[...new Set(used.flatMap(evidenceFor))];
  const result:AnalysisOutput=reason?{...original,classification:'discarded',reasons:[reason],candidates:[],evidence_ordinals:evidence,explanation:reason==='individual_grant'?'Ajuda directa acreditada a una persona física. Exclusió del projecte sustentada en els rols i fragments citats.':'Transferència acreditada entre administracions sense prestació final. Exclusió sustentada en els rols i fragments citats.'}:rule==='unknown_determinant_role'?{...original,classification:'insufficient_evidence',reasons:[],candidates:[],explanation:'No s’han pogut acreditar tots els rols determinants o hi ha contradiccions. Cal completar la documentació abans de classificar.'}:original;
- return {...result,rule_audit:{version:SCOPE_RULES_VERSION,rule,roles:roles??null,accredited_roles:Object.keys(accreditations).length?accreditations:null,evidence_ordinals:evidence},model_conclusion:original};
+ return {...result,rule_audit:{version:SCOPE_RULES_VERSION,rule,blocked_roles,roles:roles??null,accredited_roles:Object.keys(accreditations).length?accreditations:null,evidence_ordinals:evidence},model_conclusion:original};
 }

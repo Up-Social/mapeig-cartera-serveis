@@ -1,4 +1,5 @@
 "use client";
+import {DocumentViewer} from './document-viewer';
 import {useEffect,useMemo,useState} from 'react';
 import type {SourceRecord} from '@/lib/workbench-types';
 import {sourceDocumentTypeLabel} from '@/lib/ui-labels';
@@ -6,7 +7,7 @@ import {concertCaseKeys,type ConcertCaseKey} from '@/lib/concerts/case-labels';
 import {ConcertCaseBadge} from './concert-case-badge';
 import {ConcertEconomics} from './concert-economics';
 
-type Unit={id:string;pipeline_job_id:string|null;provider_name:string|null;observed_provider_name:string|null;provider_nif:string|null;centre:string|null;period:string|null;service_code:string|null;observed_service_code:string|null;observed_service_name:string|null;reses_code:string|null;territory:string|null;municipality:string|null;effective_start:string|null;effective_end:string|null;quantity:number|null;quantity_delta:number|null;amount:number|null;status:string;evidence_quote:string|null;review_note:string|null;page:number|null;act_type:string;storage_path:string|null;extraction_origin:string|null;horizon_state:string|null};
+type Unit={observation?:{amountBasis?:string;annualCostCents?:number;dispositionNumber?:string;position?:string;pendingRevision?:boolean};id:string;pipeline_job_id:string|null;provider_name:string|null;observed_provider_name:string|null;provider_nif:string|null;centre:string|null;period:string|null;service_code:string|null;observed_service_code:string|null;observed_service_name:string|null;reses_code:string|null;observed_establishment_code?:string|null;territory:string|null;municipality:string|null;effective_start:string|null;effective_end:string|null;quantity:number|null;quantity_delta:number|null;amount:number|null;status:string;evidence_quote:string|null;review_note:string|null;page:number|null;act_type:string;storage_path:string|null;extraction_origin:string|null;horizon_state:string|null};
 type Reconciliation={document_id:string;annex:number;row_count:number;sum_cents:number;declared_cents:number|null;reconciled:boolean};
 type LinkedRecord={id:string;title:string;sourceRecordId:string;officialUrl:string|null;publishedAt:string|null};
 type ConcertLink={id:string;direction:'anterior'|'posterior';kind:string;method:string;status:string;evidence:string;reviewNote:string|null;record:LinkedRecord|null};
@@ -60,9 +61,9 @@ export function ConcertUnits({record,services}:{record:SourceRecord;services:Arr
  const identifiedAmount=units.filter(unit=>unit.amount!=null).reduce((sum,unit)=>sum+Number(unit.amount),0);
  const pricedLines=units.filter(unit=>unit.amount!=null).length;
  const missingOlderOrigin=units.some(unit=>unit.horizon_state==='pre_2024_origin_unavailable');
- const reconciled=reconciliations.find(item=>item.reconciled&&item.annex>0&&item.row_count===units.length);
+ const reconciled=reconciliations.find(item=>item.reconciled&&item.row_count===units.length);
  const bulkEligible=!!reconciled&&!record.isHistorical&&record.currentJobStatus==='needs_review'&&
-  record.analysis?.rules_version==='concert-reconciled-annex-v1'&&units.every(unit=>unit.status==='draft'&&!!unit.storage_path&&unit.act_type==='award');
+  ['concert-reconciled-annex-v1','concert-program-lines-v2'].includes(record.analysis?.rules_version??'')&&units.every(unit=>unit.status==='draft'&&!!unit.storage_path&&!!unit.observed_service_code);
  const officialText=record.sourceDocuments.filter(document=>document.status==='fetched'&&document.extractedText&&
   !document.qualityFlags.some(flag=>['corrupt_text','incomplete_extraction'].includes(flag)))
   .sort((left,right)=>(right.textLength??0)-(left.textLength??0))[0]?.extractedText;
@@ -94,9 +95,9 @@ export function ConcertUnits({record,services}:{record:SourceRecord;services:Arr
    <div className="rounded-xl border bg-muted/20 p-4"><p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Entitats identificades</p><p className="mt-1 text-2xl font-bold tabular-nums">{uniqueProviders}</p><p className="text-xs text-muted-foreground">Segons el NIF de cada línia; {reviewed} línies aprovades</p></div>
    <div className="rounded-xl border border-sky-200 bg-sky-50/60 p-4"><p className="text-xs font-semibold uppercase tracking-wide text-sky-900">Import de les línies identificades</p><p className="mt-1 text-2xl font-bold tabular-nums text-sky-950">{pricedLines?money(identifiedAmount):'No atribuïble'}</p><p className="text-xs text-sky-900">{pricedLines} de {units.length} línies amb import · encara no és el saldo vigent</p></div>
   </div>
-  {missingOlderOrigin&&<p className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950">L’origen d’aquestes pròrrogues és anterior a 2024. Els imports repetits del document no s’atribueixen ni se sumen com a imports individuals.</p>}
+  {missingOlderOrigin&&<p className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950">Hi ha línies amb origen anterior a 2024. Es conserven els imports documentals, però no se sumen a la foto vigent sense un original dins de l’horitzó.</p>}
   {reconciliations.length>0&&<p role="status" className={`rounded-lg border p-3 text-sm ${reconciled?'border-emerald-300 bg-emerald-50 text-emerald-950':'border-amber-300 bg-amber-50 text-amber-950'}`}>
-   {reconciled?`Annex ${reconciled.annex} llegit complet: ${reconciled.row_count} línies i ${money(reconciled.sum_cents/100)}. La suma coincideix amb la resolució; pendent de validació humana.`:
+   {reconciled?`Annex ${reconciled.annex} llegit complet: ${reconciled.row_count} línies i ${money(reconciled.sum_cents/100)}. La suma coincideix amb la resolució; pendent de validació humana i de vincular els actes posteriors.`:
     'Hi ha línies documentals, però el total de l’annex encara no està conciliat. No es poden aprovar com a conjunt.'}
   </p>}
 
@@ -118,17 +119,20 @@ export function ConcertUnits({record,services}:{record:SourceRecord;services:Arr
         {entity&&!unit.provider_name&&<p className="mt-1 text-xs text-amber-800">Nom llegit a l’annex · pendent de validar</p>}
         {bulkEligible&&<label className="mt-2 block text-xs font-semibold">Nom que constarà al resultat<input className="form-text mt-1 w-full text-sm font-normal" value={editedNames[unit.id]??entity??''} onChange={event=>setEditedNames(value=>({...value,[unit.id]:event.target.value}))} minLength={3} maxLength={300} aria-label={`Nom de l’entitat de la línia ${index+1}`}/></label>}
         <p className="mt-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Servei</p><p className="mt-1 break-words text-base font-semibold">{service??'Nom del servei pendent de contrastar'}</p>
-        <p className="mt-1 text-sm text-muted-foreground">{code?`Codi de Cartera observat: ${code}`:'Codi de Cartera pendent'}{unit.reses_code?` · RESES ${unit.reses_code}`:''}</p>
+        <p className="mt-1 text-sm text-muted-foreground">{code?`Codi de Cartera observat: ${code}`:'Codi de Cartera pendent'}{unit.reses_code?` · RESES ${unit.reses_code}`:unit.observed_establishment_code?` · Codi del document ${unit.observed_establishment_code}`:''}</p>
+        {code&&services.some(s=>s.code.startsWith(`${code}.`))&&<p className="mt-1 text-xs text-amber-900">Nivell específic no indicat · es conserva el codi agrupador acreditat.</p>}
+        {unit.observation?.pendingRevision&&<p role="status" className="mt-2 text-sm text-amber-900">Hi ha una nova extracció pendent de revisar; es conserva la decisió humana anterior.</p>}
        </div>
-       <div className="rounded-lg border border-sky-200 bg-sky-50 p-4 lg:text-right"><p className="text-xs font-semibold uppercase tracking-wide text-sky-900">Import individual</p><p className="mt-1 break-words text-2xl font-bold tabular-nums text-sky-950">{unit.amount==null?'No acreditat':money(Number(unit.amount))}</p><p className="mt-1 text-xs leading-5 text-sky-900">{unit.amount==null?'El PDF no permet atribuir un import segur a aquesta línia.':'Import de la línia segons l’annex; pendent de revisió.'}</p></div>
+       <div className="rounded-lg border border-sky-200 bg-sky-50 p-4 lg:text-right"><p className="text-xs font-semibold uppercase tracking-wide text-sky-900">Import individual</p><p className="mt-1 break-words text-2xl font-bold tabular-nums text-sky-950">{unit.amount==null?'No acreditat':money(Number(unit.amount))}</p><p className="mt-1 text-xs leading-5 text-sky-900">{unit.amount==null?'L’extracció actual no acredita un import individual. Revisa el PDF o la conciliació.':unit.observation?.amountBasis==='allocated'?`Import repartit proporcionalment segons els costos anuals de la disposició ${unit.observation.dispositionNumber}, posició ${unit.observation.position}. Pendent de revisió.`:'Import de la línia segons l’annex; pendent de revisió.'}</p></div>
       </div>
       <div className="mt-4 flex flex-wrap items-center gap-2 border-t pt-3 text-xs text-muted-foreground">
        {act&&<ConcertCaseBadge kind={act}/>}<span className="rounded-full border px-2.5 py-1">{unit.status==='approved'?'Línia aprovada':unit.status==='rejected'?'Línia rebutjada':'Pendent de revisió'}</span>
        {unit.provider_nif&&<span>NIF {unit.provider_nif}</span>}{unit.centre&&<span>Centre: {unit.centre}</span>}{(unit.municipality||unit.territory)&&<span>{unit.municipality??unit.territory}</span>}{unit.period&&<span>Període {unit.period}</span>}{unit.quantity_delta!=null&&<span>Canvi de places: {unit.quantity_delta>0?'+':''}{unit.quantity_delta}</span>}{unit.quantity&&<span>{unit.quantity} {unit.quantity===1?'servei':'serveis'}</span>}
       </div>
       <details className="mt-3 rounded-lg bg-muted/20 p-3 text-sm"><summary className="cursor-pointer font-medium" title="Mostra la cita de l’annex i la font arxivada">Evidència i traçabilitat · pàgina {unit.page??'pendent'}</summary>
-       <blockquote className="mt-3 break-words whitespace-pre-wrap border-l-2 pl-3 leading-6">{unit.evidence_quote??'Cita pendent'}</blockquote><p className="mt-2 break-all text-xs">ID de la línia: {unit.id}</p>
+       <blockquote className="mt-3 break-words whitespace-pre-wrap border-l-2 pl-3 leading-6">{unit.evidence_quote?.replace(/\s+/g,' ')??'Cita pendent'}</blockquote><p className="mt-2 break-all text-xs">ID de la línia: {unit.id}</p>
        <p className="mt-2">{unit.storage_path?<a href={`${url}/${unit.id}/source`} target="_blank" rel="noopener noreferrer" className="underline" title="Obre el PDF oficial guardat per a aquesta línia">Obre la còpia arxivada</a>:'Font pendent d’arxivar a Storage'}</p>
+       {unit.storage_path&&<DocumentViewer url={`${url}/${unit.id}/source`} page={unit.page??1} label="Comprovar la pàgina del PDF aquí"/>}
        {unit.review_note&&<p className="mt-2">Revisió: {unit.review_note}</p>}
       </details>
       {allowed&&unit.status==='draft'&&unit.extraction_origin&&!unit.pipeline_job_id&&unit.observed_service_code&&<div className="mt-3"><button type="button" className="rounded border px-3 py-2 text-sm" title="Confirma el nom de l’entitat i el codi del servei abans de revisar la línia" onClick={()=>setEditingUnitId(editingUnitId===unit.id?null:unit.id)}>Completa la línia per revisar-la</button>

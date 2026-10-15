@@ -49,19 +49,24 @@ export async function advance(task:string,workflow:string):Promise<{done:boolean
    const usable=(doc:typeof docs.data[number])=>doc.status==='fetched'&&doc.chunk_count>0&&doc.extraction_version===EXTRACTION_VERSION&&
     Number(doc.quality_score)>0&&!doc.quality_flags?.some(flag=>['corrupt_text','incomplete_extraction','generic_portal','javascript_shell','short_text'].includes(flag));
    let completedDocuments=docs.data.filter(usable).length;
+   const run=await db.from('pipeline_runs').select('parameters').eq('id',t.data.run_id).maybeSingle();
+   if(run.error)throw Error();
+   const recovery=run.data?.parameters?.targeted_ocr;
    for(const doc of docs.data){
-    if(doc.status==='fetched'&&doc.chunk_count>0&&doc.extraction_version===EXTRACTION_VERSION)continue;
+    const forcePages=recovery?.documentId===doc.id?recovery.pages as number[]:[];
+    const forcedDone=forcePages.length?await readCheckpoint(c,`targeted-ocr:${job.id}:${doc.id}`):true;
+    if(doc.status==='fetched'&&doc.chunk_count>0&&doc.extraction_version===EXTRACTION_VERSION&&forcedDone)continue;
     if(await readCheckpoint(c,`document_failed:${doc.id}`))continue;
     await progress(c,'document_extraction',completedDocuments,docs.data.length,`Preparant el document ${Math.min(completedDocuments+1,docs.data.length)} de ${docs.data.length}`,job.id);
-    const run=await db.from('pipeline_runs').select('parameters').eq('id',t.data.run_id).maybeSingle();
     let result:Awaited<ReturnType<typeof extractDocument>>;
-    try {result=await extractDocument(c,job.id,doc.id,doc.url,run.data?.parameters?.ocr_recovery===true);if(result.partial){await commit(c,job.id,'document_failure',{id:doc.id,coverage:result.coverage,kind:'incomplete_extraction'});throw new CloudFailure('document');}}
+    try {result=await extractDocument(c,job.id,doc.id,doc.url,run.data?.parameters?.ocr_recovery===true,forcePages);if(result.partial){await commit(c,job.id,'document_failure',{id:doc.id,coverage:result.coverage,kind:'incomplete_extraction'});throw new CloudFailure('document');}}
     catch(error){const kind=documentIssueKind(error);if(kind){await commit(c,job.id,'document_failure',{id:doc.id,kind,...(kind==='document'?{}:{coverage:{complete:false,issue:kind}})});await checkpoint(c,`document_failed:${doc.id}`,{kind});processed=true;break;}throw error;}
     const textHash=hash(result.text);
     const duplicate=await db.from('source_documents').select('id').eq('source_record_id',job.source_record_id).eq('extracted_text_hash',textHash).neq('id',doc.id).limit(1);
     if(duplicate.error)throw Error();
     const quality=documentQuality(result.text,result.method,Boolean(duplicate.data?.length));
     await commit(c,job.id,'document',{...result,id:doc.id,text_hash:textHash,quality_score:quality.qualityScore,quality_flags:quality.qualityFlags,chunks:splitText(result.text).map((content,ordinal)=>({ordinal,content,hash:hash(content)}))});processed=true;completedDocuments+=1;
+    if(forcePages.length)await checkpoint(c,`targeted-ocr:${job.id}:${doc.id}`,true);
     await progress(c,'document_extraction',completedDocuments,docs.data.length,`${completedDocuments} de ${docs.data.length} documents preparats`,job.id);break;
    }
    if(!processed){

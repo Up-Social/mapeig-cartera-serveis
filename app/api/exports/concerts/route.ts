@@ -12,10 +12,10 @@ export async function GET(request:Request){
   const data=await loadConcertEvolution(createServerSupabase(),id),result=concertEvolution(data,cutoff);
   const book=new ExcelJS.Workbook();
   const note=book.addWorksheet('Criteris');
-  note.addRows([['Horitzó',2024],['Data de tall',cutoff],['Regles',result.version],['Ús','La foto és un saldo; els moviments són el seu historial. No s’han de sumar les dues pestanyes.'],['Pendents',result.pending],['Exclosos',result.excluded],['Import','Euros del període acreditat; màxims identificats. No és despesa real executada.'],['Entitat','La foto conserva l’entitat original; les cessions consten als moviments, sense reatribuir despesa històrica.']]);
+  note.addRows([['Horitzó',2024],['Data de tall',cutoff],['Regles',result.version],['Ús','La foto és un saldo; els moviments són el seu historial. No s’han de sumar les dues pestanyes.'],['Pendents',result.pending],['Exclosos',result.excluded],['Import','Euros del període acreditat; màxims identificats. No és despesa real executada.'],['Entitat','La foto mostra el titular vigent; l’historial conserva les entitats anteriors. La cessió no suma nou finançament.']]);
   const balances=book.addWorksheet('Foto consolidada');
-  balances.addRow(['Concert original','Entitat original','Servei','Territori','Període','Finançador','Import EUR','Màxim','Estat / impediments']);
-  result.balances.forEach(b=>balances.addRow([b.rootId,b.provider,b.service,b.territory,b.period,b.funder,b.amountCents===null?null:b.amountCents/100,b.maximum?'Sí':'No',b.issues.join(' · ')||'Revisat']));
+  balances.addRow(['Concerts originals','Entitat vigent','Servei','Territori','Període','Finançador','Import EUR','Màxim','Estat / impediments']);
+  result.balances.forEach(b=>balances.addRow([b.rootIds.join(" · "),b.provider,b.service,b.territory,b.period,b.funder,b.amountCents===null?null:b.amountCents/100,b.maximum?'Sí':'No',b.issues.join(' · ')||'Revisat']));
   const movements=book.addWorksheet('Moviments i pendents');
   movements.addRow(['Línia','Registre','Original','Entitat de l’acte','Operació','Període','Data efectes','Import documental EUR','Estat','Impediments','Enllaç fitxa','Tipus d’import']);
   result.movements.forEach(m=>movements.addRow([m.unitId,m.recordId,m.rootId,m.provider,m.operation,m.period,m.effectiveAt,m.amountCents===null?null:m.amountCents/100,m.status,m.issues.join(' · '),`${url.origin}/records/${m.recordId}#concert-economics`,m.operation==='nonfinancial'?'Sense nou import':ECONOMIC_AMOUNT_LABELS[m.amountKind]]));

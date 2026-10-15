@@ -1,3 +1,4 @@
+import {readPages} from '@/lib/read-pages';
 import {hasUnitSchema} from '@/lib/runtime-schema';
 import {createServerSupabase} from '@/lib/records-page';
 import {isUuid} from '@/lib/uuid';
@@ -6,12 +7,16 @@ export async function GET(_request:Request,{params}:{params:Promise<{id:string}>
  if(!hasUnitSchema())return Response.json({units:[],supported:false});
  const {id}=await params;if(!isUuid(id))return Response.json({error:'Registre no vàlid'},{status:400});
  const db=createServerSupabase();
- const [result,reconciliations]=await Promise.all([
-  db.from('record_units').select('*').eq('source_record_id',id).neq('unit_key','legacy').order('created_at'),
-  db.from('concert_annex_reconciliations').select('document_id,annex,row_count,sum_cents,declared_cents,reconciled').eq('source_record_id',id),
- ]);
- return result.error?Response.json({error:'No s’han pogut consultar les unitats'},{status:500}):
-  Response.json({units:result.data,reconciliations:reconciliations.error?[]:reconciliations.data});
+ try{
+  const [units,observations,reconciliations]=await Promise.all([
+   readPages((from,to)=>db.from('record_units').select('*').eq('source_record_id',id).neq('unit_key','legacy').order('created_at').order('id').range(from,to)),
+   readPages((from,to)=>db.from('concert_line_observations').select('unit_id,proposed_value,applied').eq('source_record_id',id).order('created_at',{ascending:false}).order('id').range(from,to)),
+   db.from('concert_annex_reconciliations').select('document_id,annex,row_count,sum_cents,declared_cents,reconciled').eq('source_record_id',id),
+  ]);
+  if(reconciliations.error)throw reconciliations.error;
+  return Response.json({units:units.map(unit=>{const history=observations.filter(row=>row.unit_id===unit.id),latest=history[0],applied=history.find(row=>row.applied);return {...unit,observed_establishment_code:applied?.proposed_value?.resesCode??null,observation:latest?{...applied?.proposed_value,pendingRevision:!latest.applied}:null};}),reconciliations:reconciliations.data});
+ }catch{return Response.json({error:'No s’han pogut consultar les unitats i les revisions'},{status:500});}
+
 }
 export async function POST(request:Request,{params}:{params:Promise<{id:string}>}) {
  if(!hasUnitSchema())return Response.json({error:'El desglossament d’unitats encara no està instal·lat en aquesta base de dades.'},{status:409});

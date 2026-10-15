@@ -1,4 +1,4 @@
-import {EXTRACTION_VERSION,recoverPdfText} from '../pipeline/readable-document';
+import {EXTRACTION_VERSION,recoverPdfText,preserveUnselectedPdfPages} from '../pipeline/readable-document';
 import {Sandbox} from '@vercel/sandbox';
 import {checkpoint,readCheckpoint,rpc,acquireResource,progress,type Context} from './context';
 import {CloudFailure,CloudYield} from './errors';
@@ -8,10 +8,12 @@ import {fetchOfficialDocument} from '../pipeline/official-resolution';
 import {archiveSource,readSource} from '../source-storage';
 type Extraction={text:string;method:string;hash:string;mime:string;partial:boolean;extraction_version:string;coverage?:unknown};
 const OCR_RENDER_DPI=300;
-export async function extractDocument(c:Context,job:string,id:string,url:string,ocr:boolean):Promise<Extraction>{
- const source=await c.db.from('source_documents').select('id,source_record_id,url,content_hash,storage_path,storage_sha256,mime_type').eq('id',id).single();
+export async function extractDocument(c:Context,job:string,id:string,url:string,ocr:boolean, forcedPages:number[]=[]):Promise<Extraction>{
+ const dpi=forcedPages.length?400:OCR_RENDER_DPI;
+ const extractionKey=`document:${id}:${EXTRACTION_VERSION}${forcedPages.length?`:targeted:${job}:${forcedPages.join('-')}`:''}`;
+ const source=await c.db.from('source_documents').select('id,source_record_id,url,content_hash,storage_path,storage_sha256,mime_type,extracted_text').eq('id',id).single();
  if(source.error||!source.data)throw new CloudFailure('internal');
- const cached=await readCheckpoint<Extraction>(c,`document:${id}:${EXTRACTION_VERSION}`);
+ const cached=await readCheckpoint<Extraction>(c,extractionKey);
  // A failed attempt can copy an incomplete extraction into a recovery task.
  // It must be recomputed with the new OCR setting instead of failing again.
  if(cached&&!cached.partial){await archiveSource(c.db,source.data);return cached;}
@@ -38,7 +40,7 @@ export async function extractDocument(c:Context,job:string,id:string,url:string,
  if(!pdf){
   if(!fetched.mimeType.includes('html')&&fetched.mimeType!=='text/plain')throw new CloudFailure('document');
   const result={text:cleanText(htmlToText(fetched.bytes.toString('utf8'))),method:'html-basic',hash:digest,mime:fetched.mimeType,partial:false,extraction_version:EXTRACTION_VERSION};
-  if(result.text.length<50)throw new CloudFailure('document');await checkpoint(c,`document:${id}:${EXTRACTION_VERSION}`,result);return result;
+  if(result.text.length<50)throw new CloudFailure('document');await checkpoint(c,extractionKey,result);return result;
  }
  if(!process.env.CLOUD_SANDBOX_SNAPSHOT)throw new CloudFailure('credentials');
  await acquireResource(c,'sandbox');
@@ -53,21 +55,22 @@ export async function extractDocument(c:Context,job:string,id:string,url:string,
   const info=(await sb.readFileToBuffer({path:'/tmp/info.txt'}))?.toString('utf8')??'';
   const pageCount=Number(info.match(/Pages:\s+(\d+)/)?.[1]);
   if(!pageCount)throw new CloudFailure('document');
-  const recovered=await recoverPdfText(rawText,ocr,async page=>{
+  const inputText=preserveUnselectedPdfPages(rawText,source.data.extracted_text,forcedPages,pageCount);
+  const recovered=await recoverPdfText(inputText,ocr,async page=>{
     await progress(c,'ocr',page-1,pageCount,`OCR de la pàgina ${page} de ${pageCount}`,job);
-    const key=`ocr:${digest}:${page}:dpi${OCR_RENDER_DPI}:${EXTRACTION_VERSION}`;
+    const key=`ocr:${digest}:${page}:dpi${dpi}:${EXTRACTION_VERSION}`;
     const cached=await readCheckpoint<{text:string}>(c,key);
     if(cached)return cached.text;
-    const render=await quietCommand(sb!,'pdftoppm',['-png','-r',String(OCR_RENDER_DPI),'-f',String(page),'-l',String(page),'-singlefile','/tmp/source.pdf','/tmp/page'],{timeoutMs:60_000});
+    const render=await quietCommand(sb!,'pdftoppm',['-png','-r',String(dpi),'-f',String(page),'-l',String(page),'-singlefile','/tmp/source.pdf','/tmp/page'],{timeoutMs:60_000});
     if(render.exitCode!==0)throw new CloudFailure('document');
     const recognize=await quietCommand(sb!,'tesseract',['/tmp/page.png','/tmp/page','-l','cat+spa'],{timeoutMs:120_000});
     if(recognize.exitCode!==0)throw new CloudFailure('document');
     const text=(await sb!.readFileToBuffer({path:'/tmp/page.txt'}))?.toString('utf8')??'';
     await checkpoint(c,key,{text});
     throw new CloudYield();
-  },pageCount);
-  const result={...recovered,coverage:recovered.method==='pdf-ocr-markdown-v2'?{...recovered.coverage,ocrEngine:'tesseract',ocrLanguages:['cat','spa'],ocrDpi:OCR_RENDER_DPI}:recovered.coverage,hash:digest,mime:'application/pdf'};
-  await checkpoint(c,`document:${id}:${EXTRACTION_VERSION}`,result);return result;
+  },pageCount,forcedPages);
+  const result={...recovered,coverage:recovered.method==='pdf-ocr-markdown-v2'?{...recovered.coverage,ocrEngine:'tesseract',ocrLanguages:['cat','spa'],ocrDpi:dpi,...(forcedPages.length?{requestedPages:forcedPages}:{})}:recovered.coverage,hash:digest,mime:'application/pdf'};
+  await checkpoint(c,extractionKey,result);return result;
  }catch(error){
   if(error instanceof CloudFailure||error instanceof CloudYield)throw error;
   const status=(error as {response?:Response}).response?.status;
