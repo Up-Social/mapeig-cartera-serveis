@@ -11,7 +11,7 @@ type Campaign={startedAt:string;accepted:Record<string,string>;done:string[];err
 class ActiveTaskError extends Error {}
 const emptyCampaign=():Campaign=>({startedAt:new Date().toISOString(),accepted:{},done:[],errors:{}});
 
-export function IssueReprocessor({targets,blocked,unavailable}:{targets:IssueReprocessTarget[];blocked:number;unavailable:boolean}){
+export function IssueReprocessor({targets,blocked,unavailable,filtered=false}:{filtered?:boolean;targets:IssueReprocessTarget[];blocked:number;unavailable:boolean}){
  const [campaign,setCampaign]=useState<Campaign|null>(null);
  const [running,setRunning]=useState(false);
  const [stopping,setStopping]=useState(false);
@@ -142,8 +142,8 @@ export function IssueReprocessor({targets,blocked,unavailable}:{targets:IssueRep
  const failedTargets=targets.filter(target=>!!campaign?.errors[target.id]);
  return <section className="surface p-4" aria-labelledby="issue-reprocess-title">
   <h2 id="issue-reprocess-title" className="font-semibold">Tornar a processar les incidències</h2>
-  <p className="mt-2 max-w-[85ch] text-sm leading-6">Cada cas torna a cercar els documents oficials, preparar-los, contrastar-los i proposar una correspondència. Es conserva l&apos;historial i cap resultat s&apos;aprova automàticament. Es processen fins a tres casos alhora per limitar la càrrega. El contrast i la correspondència poden tenir cost d&apos;IA.</p>
-  <p className="mt-2 text-sm">{targets.length} casos disponibles{blocked?` · ${blocked} operacions interrompudes excloses fins a conciliar el diagnòstic`:""}.</p>
+  <p className="mt-2 text-sm leading-6">Cada cas torna a cercar els documents oficials, preparar-los i proposar una correspondència. En concerts es repeteix l’anàlisi de la resolució; en les altres tipologies, el contrast de dades. Es conserva l&apos;historial i cap resultat s&apos;aprova automàticament. Es processen fins a tres casos alhora per limitar la càrrega. L’anàlisi i la correspondència poden tenir cost d&apos;IA.</p>
+  <p className="mt-2 text-sm">{targets.length} casos disponibles{filtered?" amb els filtres actuals":" en totes les tipologies"}{blocked?` · ${blocked} operacions interrompudes excloses fins a conciliar el diagnòstic`:""}.</p>
   {unavailable&&<p className="mt-2 text-sm">El processament no està disponible en aquest entorn. Obre la versió de producció per executar-lo.</p>}
   {campaign&&<p role="status" className="mt-2 text-sm tabular-nums">Seguiment d&apos;aquest navegador: {accepted} iniciats · {done} finalitzats · {errors} requereixen comprovació. {running?"Processament en curs.":""} Les operacions iniciades fora d&apos;aquest navegador no es compten aquí.</p>}
   <div className="mt-3 flex flex-wrap gap-2"><button type="button" disabled={running||unavailable||pending===0} onClick={()=>void start()} className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-50">{campaign?"Continuar el reprocessament":"Reprocessar els casos disponibles"}</button>{running&&<button type="button" disabled={stopping} onClick={()=>{stop.current=true;setStopping(true);}} className="rounded-md border px-4 py-2 text-sm">{stopping?"Aturant…":"Aturar després dels casos en curs"}</button>}</div>

@@ -5,8 +5,8 @@ import { Card } from "@/components/ui/card";
 const pipeline = [
   ["1", "Captació", "Importació del registre amb identificador, tipologia, font i contingut original."],
   ["2", "Preparació", "Localització de documents i annexos, comprovació de llegibilitat per pàgina, OCR quan cal i representació Markdown amb fragments auditables."],
-  ["3", "Contrast", "Extracció de dades únicament des de les fonts oficials, amb evidències citades."],
-  ["4", "Correspondència", "Proposta d’un servei principal i fins a dues alternatives de la Cartera, amb evidències, puntuació i justificació."],
+  ["3", "Anàlisi de dades", "Anàlisi de la resolució en concerts; contrast de dades en les altres tipologies. Només fonts oficials i evidències citades."],
+  ["4", "Correspondència", "Proposta de correspondència amb evidències, puntuació i justificació. Els concerts amb annexos conciliats poden identificar diversos serveis; en els altres casos es proposa un servei principal i fins a dues alternatives."],
   ["5", "Revisió", "Decisió humana: aprovar, corregir, descartar, declarar fora de cartera o indicar evidència insuficient."],
   ["6", "Resultat", "Creació de la provisió només després d’una aprovació o correcció."],
 ] as const;
@@ -15,19 +15,19 @@ const sections = [
   {
     name: "Registres",
     state: "Entrada i procés individual",
-    body: "Permet consultar, filtrar i processar un cas. Un error documental, de contrast o de correspondència l’envia automàticament a Incidències.",
+    body: "Permet consultar, filtrar i processar un cas. Un error documental, d’anàlisi o de correspondència l’envia automàticament a Incidències.",
     next: "Revisió o Incidències",
   },
   {
     name: "Lots",
     state: "Procés automàtic d’1 a 50 casos",
-    body: "Escull entre 1 i 50 registres. Executa preparació, contrast i correspondència. Un error documental o de resposta d’un registre permet continuar els altres; una incidència global de credencials, quota, pressupost o base de dades pausa el lot.",
+    body: "Escull entre 1 i 50 registres. Executa preparació, anàlisi i correspondència. Un error documental o de resposta d’un registre permet continuar els altres; una incidència global de credencials, quota, pressupost o base de dades pausa el lot.",
     next: "Revisió o Incidències",
   },
   {
     name: "Revisió",
     state: "Decisió humana obligatòria",
-    body: "Només es pot revisar quan hi ha un resultat guardat. Preparar les fonts i contrastar les dades no significa que la correspondència hagi acabat. Aprovar o corregir crea una provisió. Les altres decisions exigeixen una explicació i conserven la traçabilitat.",
+    body: "Només es pot revisar quan hi ha un resultat guardat. Preparar les fonts i analitzar les dades no significa que la correspondència hagi acabat. Aprovar o corregir crea una provisió. Les altres decisions exigeixen una explicació i conserven la traçabilitat.",
     next: "Resultats o Incidències",
   },
   {
@@ -95,7 +95,7 @@ export default function ProcessPage() {
           <div className="mt-4 grid gap-3 sm:grid-cols-3">
             <FlowRule icon={CheckCircle2} label="Decisió positiva" text="Aprovat o corregit → provisió vigent." />
             <FlowRule icon={CircleAlert} label="Altres decisions" text="Descartat o fora de cartera → Resultats. Evidència insuficient → Incidències." />
-            <FlowRule icon={FileSearch} label="Errors tècnics" text="Preparació, contrast o correspondència → Incidències." />
+            <FlowRule icon={FileSearch} label="Errors tècnics" text="Preparació, anàlisi o correspondència → Incidències." />
           </div>
         </section>
 
@@ -133,7 +133,7 @@ export default function ProcessPage() {
           <aside className="mt-4 rounded-xl bg-muted p-4 text-sm leading-6"><strong>RESES és una font auxiliar transversal.</strong> Ajuda a contrastar entitats, establiments, tipologies, territori i capacitat, però no demostra per si sola que una provisió financi un servei concret. BDNS continua pendent de connexió.</aside>
         </section>
 
-        <section className="surface mt-6 p-5 space-y-3"><h2 className="text-lg font-semibold">Concerts amb diverses transaccions</h2><p className="text-sm leading-6">Després de validar el registre, afegeix les unitats acreditades a l’annex: entitat, centre, codi oficial, període i tipus d’acte. Cada unitat requereix una cita literal i una decisió humana. L’Excel genera una línia per unitat aprovada; el total global no es replica. La provisió agregada anterior queda conservada i exclosa de les exportacions quan s’aprova el desglossament.</p><h2 className="text-lg font-semibold">Consum i recuperació</h2><p className="text-sm leading-6">La preparació no utilitza OpenAI, però el núvol i l’OCR consumeixen recursos. El contrast, la correspondència i les auditories consumeixen tokens. Revisa la selecció i el pressupost del lot abans de començar. Les estimacions no són una factura: la llargada dels documents, les auditories i els reintents poden variar el cost.</p><p className="text-sm leading-6">Una incidència tècnica atura l’indicador de processament i conserva el diagnòstic. Recuperar una resposta ja rebuda no ha de generar una nova petició ni tornar a comptar-ne el consum. Si canvien les fonts o el text extret, cal una anàlisi nova amb el resultat anterior conservat. Una resposta de proveïdor desconeguda requereix conciliació abans de repetir-la.</p></section>
+        <section className="surface mt-6 p-5 space-y-3"><h2 className="text-lg font-semibold">Concerts amb diverses transaccions</h2><p className="text-sm leading-6">Després de validar el registre, afegeix les unitats acreditades a l’annex: entitat, centre, codi oficial, període i tipus d’acte. Cada unitat requereix una cita literal i una decisió humana. L’Excel genera una línia per unitat aprovada; el total global no es replica. La provisió agregada anterior queda conservada i exclosa de les exportacions quan s’aprova el desglossament.</p><h2 className="text-lg font-semibold">Consum i recuperació</h2><p className="text-sm leading-6">La preparació no utilitza OpenAI, però el núvol i l’OCR consumeixen recursos. L’anàlisi, la correspondència i les auditories consumeixen tokens. Revisa la selecció i el pressupost del lot abans de començar. Les estimacions no són una factura: la llargada dels documents, les auditories i els reintents poden variar el cost.</p><p className="text-sm leading-6">Una incidència tècnica atura l’indicador de processament i conserva el diagnòstic. Recuperar una resposta ja rebuda no ha de generar una nova petició ni tornar a comptar-ne el consum. Si canvien les fonts o el text extret, cal una anàlisi nova amb el resultat anterior conservat. Una resposta de proveïdor desconeguda requereix conciliació abans de repetir-la.</p></section>
         <section className="mt-6 grid gap-4 md:grid-cols-2">
           <Card className="gap-0 p-5"><h2 className="font-semibold">Traçabilitat conservada</h2><p className="mt-3 text-sm leading-6 text-muted-foreground">Dataset, identificador original, fitxer o URL, full i fila, payload original, documents, fragments, dades contrastades, candidats, model, decisió, motiu i provisió final.</p></Card>
           <Card className="gap-0 p-5"><h2 className="font-semibold">Límits actuals</h2><p className="mt-3 text-sm leading-6 text-muted-foreground">Els documents sense text o amb text il·legible necessiten OCR habilitat. El límit és de 25 pàgines OCR per document i 200.000 caràcters; una extracció incompleta queda com a incidència, no com a evidència vàlida. La correspondència utilitza el catàleg normatiu oficial versionat. El Master és una referència auxiliar i les seves fórmules o provisions manuals no es tracten com a evidència.</p></Card>

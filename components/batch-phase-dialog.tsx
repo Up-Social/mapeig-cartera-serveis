@@ -1,5 +1,6 @@
 "use client";
 import Link from 'next/link';
+import {diagnosticSummary} from '@/lib/evidence-diagnostics';
 import {Dialog} from '@base-ui/react/dialog';
 import type {BatchSummary} from '@/lib/batch-types';
 import {FINANCING_TYPE_LABELS} from '@/lib/financing-types';
@@ -25,7 +26,7 @@ export function BatchPhaseDialog({batch,phase,title,number}:{batch:BatchSummary;
      return <section key={state} className="mt-4"><h3 className="font-semibold">{label} ({jobs.length})</h3><ul className="mt-2 space-y-2">
       {jobs.map(j=><li key={j.id} className="rounded border p-3 text-sm">
        <p>{j.externalId} · {FINANCING_TYPE_LABELS[j.financingType]}</p><p className="font-medium">{j.title}</p>
-       <p>{j.preparationMessage||j.enrichmentError||j.errorMessage||'Sense incidència registrada'}</p>
+       <p>{phase==='matching'&&j.analysis?.classification==='insufficient_evidence'?diagnosticSummary(j.analysis):phase==='preparation'?j.preparationMessage??'Sense incidència registrada':phase==='enrichment'?j.enrichmentError??'Sense incidència registrada':j.errorMessage??'Sense incidència registrada'}</p>
        <Link className={batchButtonVariants({size:'sm',className:'mt-2'})} href={`/review?state=all&batch=${batch.id}&record=${j.sourceRecordId}&job=${j.id}`}>Obrir resultat i evidència</Link>
        {j.isCurrent&&state==='error'&&!batch.isActive&&<RetryJob recordId={j.sourceRecordId} jobId={j.id} operation={phase==='preparation'?'prepare':phase==='enrichment'?'enrich':'match'}/>}
       </li>)}

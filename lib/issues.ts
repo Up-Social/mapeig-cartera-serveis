@@ -2,9 +2,12 @@ import "server-only";
 import {classifyIssue,type IssueFilters,type IssuePage} from './issue-types';
 import {createServerSupabase,mapRecord,RECORD_SELECT} from './records-page';
 export type IssueReprocessTarget={id:string;expectedJobId:string|null};
-export async function getIssueReprocessTargets():Promise<{eligible:IssueReprocessTarget[];blocked:number}>{
+export async function getIssueReprocessTargets(filters?:Pick<IssueFilters,"type"|"query">):Promise<{eligible:IssueReprocessTarget[];blocked:number}>{
  const db=createServerSupabase();
- const rows=await db.from('current_issue_results').select('id,job_id').eq('human_reviewed',false).order('id').limit(500);
+ let request=db.from('current_issue_results').select('id,job_id').eq('human_reviewed',false);
+ if(filters?.type&&filters.type!=='totes')request=request.eq('financing_type',filters.type);
+ if(filters?.query){const safe=filters.query.replaceAll(/[,%()]/g,' ').trim();request=request.or(`title.ilike.%${safe}%,source_record_id.ilike.%${safe}%,provider_name.ilike.%${safe}%`);}
+ const rows=await request.order('id').limit(500);
  if(rows.error)throw rows.error;
  const jobs=(rows.data??[]).map(row=>row.job_id).filter((id):id is string=>typeof id==='string');
  const tasks=jobs.length?await db.from('worker_tasks').select('pipeline_job_id,status,execution_state,failure_kind,created_at').in('pipeline_job_id',jobs).order('created_at',{ascending:false}).limit(1000):{data:[],error:null};

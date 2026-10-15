@@ -88,7 +88,7 @@ export function classifyIssue(record: SourceRecord): IssueRecord | null {
     if(record.evidenceStatus==='unsupported')return issue(record,'unsupported','evidence',record.evidenceError??'Format no compatible.',isOcrEligible(record)?'ocr':'prepare');
     if(record.evidenceStatus==='error')return issue(record,'document_error','evidence',record.evidenceError??'Error documental.','prepare');
     if(record.issueGroup==='source')return issue(record,'document_error','evidence',record.matchingError??'No s\'ha pogut preparar la font documental.','prepare');
-    if(record.enrichmentStatus==='error')return issue(record,'enrichment_error','enrichment',record.enrichmentError??'Error de contrast.','enrich');
+    if(record.enrichmentStatus==='error')return issue(record,'enrichment_error','enrichment',record.enrichmentError??recordDataStage(record.financingType).error,'enrich');
     return issue(record,'matching_error','matching',record.matchingError??'Error tècnic del treball vigent.','process');
   }
   const classification=record.analysis?.reviewed_classification??record.analysis?.classification;
@@ -112,7 +112,7 @@ export function classifyIssue(record: SourceRecord): IssueRecord | null {
     return issue(record, "document_error", "evidence", record.evidenceError ?? "No s'ha pogut preparar la font documental.", "prepare");
   }
   if (record.enrichmentStatus === "error") {
-    return issue(record, "enrichment_error", "enrichment", record.enrichmentError ?? "No s'han pogut contrastar les dades oficials.", "enrich");
+    return issue(record, "enrichment_error", "enrichment", record.enrichmentError ?? recordDataStage(record.financingType).error, "enrich");
   }
   if (record.matchingError || record.status === "error") {
     return issue(record, "matching_error", "matching", record.matchingError ?? "La correspondència no ha finalitzat correctament.", "match");
