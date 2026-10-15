@@ -19,6 +19,7 @@ const linkCase:Record<string,ConcertCaseKey>={...actCase};
 
 export function ConcertUnits({record,services,onSaved}:{record:SourceRecord;services:Array<{code:string;name:string}>;onSaved?:(record:SourceRecord)=>void}){
  const [supported,setSupported]=useState(true);
+ const [loaded,setLoaded]=useState(false);
  const [units,setUnits]=useState<Unit[]>([]);
  const [reconciliations,setReconciliations]=useState<Reconciliation[]>([]);
  const [links,setLinks]=useState<ConcertLink[]>([]);
@@ -35,7 +36,7 @@ export function ConcertUnits({record,services,onSaved}:{record:SourceRecord;serv
  useEffect(()=>{function focus(){const hash=window.location.hash;if(hash.startsWith('#concert-line-')){setActiveLine(hash.slice(14));setShowAllUnits(true);setFilter('');}}
   focus();window.addEventListener('hashchange',focus);return()=>window.removeEventListener('hashchange',focus);},[]);
 
- useEffect(()=>{const c=new AbortController();fetch(url,{signal:c.signal}).then(r=>r.json()).then(data=>{if(data.error)setError(data.error);else{setSupported(data.supported!==false);setUnits(data.units??[]);setReconciliations(data.reconciliations??[]);}}).catch(e=>{if(e.name!=='AbortError')setError('No s’han pogut carregar les unitats');});return()=>c.abort();},[url,record.corrections]);
+ useEffect(()=>{const c=new AbortController();fetch(url,{signal:c.signal}).then(r=>r.json()).then(data=>{if(data.error)setError(data.error);else{setLoaded(true);setSupported(data.supported!==false);setUnits(data.units??[]);setReconciliations(data.reconciliations??[]);}}).catch(e=>{if(e.name!=='AbortError')setError('No s’han pogut carregar les unitats');});return()=>c.abort();},[url,record.corrections]);
  useEffect(()=>{const c=new AbortController();fetch(`/api/records/${record.id}/concert-links`,{signal:c.signal,cache:'no-store'}).then(r=>r.json()).then(data=>{if(data.error)setError(data.error);else setLinks(data.links??[]);}).catch(e=>{if(e.name!=='AbortError')setError('No s’han pogut carregar els vincles');});return()=>c.abort();},[record.id]);
  async function submit(body:Record<string,unknown>){
   setBusy(true);setError('');
@@ -60,6 +61,7 @@ export function ConcertUnits({record,services,onSaved}:{record:SourceRecord;serv
  useEffect(()=>{if(activeLine&&units.length){const frame=requestAnimationFrame(()=>document.getElementById(`concert-line-${activeLine}`)?.scrollIntoView({block:'start'}));return()=>cancelAnimationFrame(frame);}},[activeLine,units]);
  const serviceByCode=useMemo(()=>new Map(services.map(service=>[service.code,service.name])),[services]);
  if(!supported)return <section id="unitats" className="surface p-5"><h2 className="section-title">Repartiment del concert</h2><p className="mt-2 text-sm">El desglossament per entitats està pendent d’activació en aquesta base de dades.</p></section>;
+ if(!loaded)return <section id="unitats" className="surface min-w-0 p-5"><h2 className="section-title">Repartiment del concert</h2>{error?<p role="alert" className="mt-2 text-sm">{error}</p>:<p role="status" className="mt-2 text-sm">Carregant les línies de l’annex…</p>}</section>;
  const allowed=!record.isHistorical&&['approved','corrected'].includes(record.currentJobStatus??'');
  const expected=Number(record.title.match(/\b(\d+)\s+serveis\b/i)?.[1]);
  const knownExpected=Number.isInteger(expected)&&expected>0?expected:null;
@@ -94,7 +96,7 @@ export function ConcertUnits({record,services,onSaved}:{record:SourceRecord;serv
  const orderedServiceGroups=[...serviceGroups.entries()].sort(([,left],[,right])=>
   Number(left.title==='Servei pendent de contrastar')-Number(right.title==='Servei pendent de contrastar')
  );
- return <section id="unitats" className="surface space-y-6 p-4 sm:p-6">
+ return <section id="unitats" className="surface min-w-0 space-y-6 p-4 [overflow-wrap:anywhere] sm:p-6">
   <div>
    <p className="page-eyebrow">Concert social · lectura de l’expedient</p>
    <h2 className="section-title mt-1">{units.length===1?"Entitat, servei i seguiment del concert":"Repartiment i seguiment del concert"}</h2>
@@ -169,10 +171,10 @@ export function ConcertUnits({record,services,onSaved}:{record:SourceRecord;serv
    {bulkEligible&&<div className="mt-5 rounded-xl border border-emerald-300 bg-emerald-50 p-4" data-testid="concert-bulk-review"><h4 className="font-semibold">Validar el repartiment complet</h4><p className="mt-1 text-sm">Comprova les {units.length} línies, els noms i els imports amb el PDF. Una única decisió aprovarà el conjunt; si falla una línia, no s’aprovarà cap.</p><label className="mt-3 block text-sm font-medium">Justificació de la validació<textarea className="form-text mt-1 w-full" rows={3} maxLength={1000} value={bulkNote} onChange={event=>setBulkNote(event.target.value)}/></label><button type="button" className="mt-3 rounded-md bg-emerald-900 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50" disabled={busy||!(showAllUnits||units.length<=6)||bulkNote.trim().length<10||units.some(unit=>!(editedNames[unit.id]??unit.provider_name??unit.observed_provider_name)?.trim())} onClick={()=>void reviewAll()}>{busy?'Validant…':`Aprovar les ${units.length} línies`}</button>{!showAllUnits&&units.length>6&&<p className="mt-2 text-xs">Mostra totes les línies abans de validar.</p>}</div>}
   </section>
 
-  <section id="concert-history" aria-labelledby="history-title" className="scroll-mt-32 rounded-xl border border-violet-200 bg-violet-50/30 p-4 sm:p-5" data-testid="concert-history">
+  <section id="concert-history" aria-labelledby="history-title" className="min-w-0 scroll-mt-32 rounded-xl border border-violet-200 bg-violet-50/30 p-4 sm:p-5" data-testid="concert-history">
    <p className="page-eyebrow">02 · Evolució</p><h3 id="history-title" className="text-xl font-semibold">Resolució original i modificacions</h3>
    <p className="mt-1 text-sm text-muted-foreground">Una resolució pot repartir finançament entre diverses entitats i, alhora, tenir actes posteriors. El vincle entre publicacions no confirma encara l’efecte sobre cada línia.</p>
-   {links.length?<div className="mt-4 grid gap-3">{links.map(link=><article key={link.id} className="rounded-lg border bg-white p-4 text-sm">
+   {links.length?<div className="mt-4 grid gap-3">{links.map(link=><article key={link.id} className="min-w-0 rounded-lg border bg-white p-4 text-sm">
     <div className="flex flex-wrap items-center gap-2"><span className="font-semibold">{link.direction==='anterior'?'Resolució anterior':'Canvi posterior'}</span>{linkCase[link.kind]&&<ConcertCaseBadge kind={linkCase[link.kind]}/>}<span className="rounded-full border border-amber-300 bg-amber-50 px-2 py-1 text-xs font-semibold text-amber-900">{link.status==='confirmed'?'Vincle confirmat':link.status==='candidate'?'Possible vincle · pendent de contrast':'Fora de la foto o descartat'}</span></div>
     {link.record&&<><a className="mt-2 block break-words font-medium underline" href={`/records/${link.record.id}#unitats`} title="Obre la fitxa de la resolució relacionada">{link.record.title}</a>{link.record.officialUrl&&<a className="mt-1 block break-all text-xs underline" href={link.record.officialUrl} target="_blank" rel="noopener noreferrer" title="Obre la publicació oficial relacionada">Publicació oficial · {link.record.sourceRecordId}</a>}</>}
     <p className="mt-2 text-xs text-muted-foreground">{link.evidence}</p>{link.reviewNote&&<p className="mt-1 text-xs">Revisió: {link.reviewNote}</p>}
