@@ -1,4 +1,4 @@
-import { AutoFilterForm } from "@/components/auto-filter-form";
+import { FilterForm } from "@/components/filter-form";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getReviewList } from "@/lib/review-list";
@@ -31,16 +31,16 @@ export default async function ReviewPage({ searchParams }: PageProps<"/review">)
   return <main className="page-shell"><section className="page-container space-y-5">
     <div><p className="page-eyebrow">Validació humana</p><h1 className="page-title">Revisió de correspondències</h1><p className="page-description">{result.total} casos en aquesta selecció. Obre un cas per estudiar les evidències i registrar la decisió.</p></div>
     {filters.batchId && <Link className="text-sm underline" href={`/batches/${filters.batchId}/results`}>Tornar al lot</Link>}
-    <AutoFilterForm className="surface grid gap-3 p-4 md:grid-cols-[minmax(0,1fr)_220px_180px_auto]">
+    <FilterForm className="surface grid gap-3 p-4 md:grid-cols-[minmax(0,1fr)_220px_180px_auto]">
       {filters.batchId && <input type="hidden" name="batch" value={filters.batchId} />}
       <input className="form-text" name="q" aria-label="Cercar casos" defaultValue={filters.query} placeholder="Títol, registre o entitat…" />
       <select className="form-control !h-10" name="type" aria-label="Tipologia" defaultValue={filters.type}><option value="totes">Totes les tipologies</option>{FINANCING_TYPES.map(type => <option key={type} value={type}>{FINANCING_TYPE_LABELS[type]}</option>)}</select>
       <select className="form-control !h-10" name="state" aria-label="Estat de revisió" defaultValue={filters.state}><option value="pending">Pendents</option><option value="all">Tots els resultats</option></select>
-      <button className="rounded-md bg-primary px-4 py-2 text-sm text-primary-foreground">Filtrar</button>
+      <button className="rounded-md bg-primary px-4 py-2 text-sm text-primary-foreground">Aplicar filtres</button>
       {(filters.query || filters.type !== "totes" || filters.state !== "pending") && <Link className="text-sm underline" href={filters.batchId ? `/review?batch=${filters.batchId}` : "/review"}>Netejar filtres</Link>}
-    </AutoFilterForm>
-    <WorkTable headings={["Cas", "Proposta", "Revisió", "Lot", "Acció"]} empty={result.rows.length ? undefined : "No hi ha casos amb aquests filtres."}>
-      {result.rows.map(row => { const href = caseHref(row.id, row.jobId); return <tr key={row.id}><td data-label="Cas"><Link className="font-semibold underline underline-offset-2" href={href}>{row.title}</Link><p className="mt-1 text-xs text-muted-foreground">{row.sourceId} · {row.provider ?? "Entitat no informada"} · {FINANCING_TYPE_LABELS[row.type as keyof typeof FINANCING_TYPE_LABELS] ?? row.type}</p></td><td data-label="Proposta">{CLASSIFICATION_LABELS[row.classification as Classification] ?? "Sense proposta"}</td><td data-label="Revisió"><span className={`table-status ${row.destination === "review" ? "status-warning" : "status-neutral"}`}>{row.destination === "review" ? "Pendent de revisió" : "Resultat disponible"}</span></td><td data-label="Lot">{row.batchNumber ?? "—"}</td><td data-label="Acció"><TableActionLink href={href} label={`Analitzar el cas ${row.title}`}>Analitzar</TableActionLink></td></tr>})}
+    </FilterForm>
+    <WorkTable profile="review" empty={result.rows.length ? undefined : "No hi ha casos amb aquests filtres."}>
+      {result.rows.map(row => { const href = caseHref(row.id, row.jobId); return <tr key={row.id}><td data-label="Cas"><Link className="font-semibold underline underline-offset-2" href={href}>{row.title}</Link><p className="mt-1 text-xs text-muted-foreground">{row.sourceId} · {row.provider ?? "Entitat no informada"} · {FINANCING_TYPE_LABELS[row.type as keyof typeof FINANCING_TYPE_LABELS] ?? row.type}</p></td><td data-label="Proposta">{CLASSIFICATION_LABELS[row.classification as Classification] ?? "Sense proposta"}</td><td data-label="Revisió"><span className={`table-status ${row.destination === "review" ? "status-warning" : "status-neutral"}`}>{row.destination === "review" ? "Pendent de revisió" : "Resultat disponible"}</span></td><td data-label="Lot">{row.batchNumber ?? "—"}</td><td data-label="Acció"><TableActionLink href={href} label={`Revisar el cas ${row.title}`}>Revisar</TableActionLink></td></tr>})}
     </WorkTable><WorkPager href={page => `/review?${new URLSearchParams({ ...Object.fromEntries(list), page: String(page) })}`} page={result.page} pageCount={result.pageCount} total={result.total} />
   </section></main>;
 }

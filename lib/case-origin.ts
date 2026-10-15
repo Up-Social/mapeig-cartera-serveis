@@ -1,4 +1,4 @@
-const RETURN_PATHS = new Set(["/", "/review", "/issues", "/approved", "/discarded", "/analysis"]);
+const RETURN_PATHS = new Set(["/", "/review", "/issues", "/approved", "/discarded", "/analysis", "/reserved"]);
 
 export function safeCaseOrigin(value: unknown): string {
   if (typeof value !== "string" || value.length > 1000 || !value.startsWith("/") || value.startsWith("//")) return "/review";

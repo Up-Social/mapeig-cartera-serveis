@@ -1,3 +1,4 @@
+import { FilterForm } from "@/components/filter-form";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -119,7 +120,7 @@ export default async function BatchResults({
 
       <section className="rounded-xl border p-4">
         <h3 className="text-sm font-semibold">Filtres avançats</h3>
-        <form className="mt-4 flex flex-wrap items-center gap-3">
+        <FilterForm className="mt-4">
           <input type="hidden" name="view" value={view} />
           <select
             name="classification"
@@ -143,13 +144,13 @@ export default async function BatchResults({
               <option key={value} value={value}>{label}</option>
             ))}
           </select>
-          <button className={batchButtonVariants()} type="submit">Aplicar</button>
+          <button className={batchButtonVariants()} type="submit">Aplicar filtres</button>
           {hasAdvancedFilters && (
             <Link className={batchButtonVariants()} href={`/batches/${id}/results?view=${view}`}>
               Netejar
             </Link>
           )}
-        </form>
+        </FilterForm>
       </section>
 
       <p className="text-sm text-muted-foreground">

@@ -1,9 +1,10 @@
 "use client";
+import { FilterForm } from "@/components/filter-form";
 
 import Link from "next/link";
 import {recordDataStage} from "@/lib/record-stage-copy";
 import { useRouter } from "next/navigation";
-import { useRef, useState, useTransition } from "react";
+import { useState, useTransition } from "react";
 import { AlertTriangle, ExternalLink, RefreshCw } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -17,8 +18,6 @@ import { sourceDocumentStatusLabel, sourceDocumentTypeLabel } from "@/lib/ui-lab
 import { cn } from "@/lib/utils";
 
 export function IssuesWorkbench({ result, filters }: { result: IssuePage; filters: IssueFilters }) {
-  const formRef = useRef<HTMLFormElement>(null);
-  const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   return <main className="page-shell"><section className="page-container">
     <div><p className="page-eyebrow">Seguiment i resolució</p><div className="mt-1 flex items-center gap-2"><h1 className="page-title !mt-0">Incidències</h1><Badge className="rounded-full px-2.5 tabular-nums">{result.metrics.total}</Badge></div><p className="page-description">Casos que no han generat una provisió aprovada: evidència insuficient i errors del procés. Els descartats tenen un apartat propi.</p></div>
     <div className="mt-6 grid grid-cols-2 gap-3 xl:grid-cols-4">
@@ -27,10 +26,10 @@ export function IssuesWorkbench({ result, filters }: { result: IssuePage; filter
       <Metric label="Errors tècnics" value={result.metrics.technical} />
       <Metric label="Problemes de font" value={result.metrics.source} />
     </div>
-    <form ref={formRef} className="surface mt-6 grid gap-3 p-4 md:grid-cols-[minmax(220px,1fr)_220px]">
-      <Input name="q" defaultValue={filters.query} placeholder="Cercar títol, registre, entitat o problema..." aria-label="Cercar incidències" onChange={() => { if (searchTimer.current) clearTimeout(searchTimer.current); searchTimer.current = setTimeout(() => formRef.current?.requestSubmit(), 350); }} />
-      <select name="type" defaultValue={filters.type} className="form-control" onChange={() => formRef.current?.requestSubmit()}><option value="totes">Totes les tipologies</option>{FINANCING_TYPES.map((type) => <option key={type} value={type}>{FINANCING_TYPE_LABELS[type]}</option>)}</select>
-    </form>
+    <FilterForm className="surface mt-6 grid gap-3 p-4 md:grid-cols-[minmax(220px,1fr)_220px]">
+      <Input name="q" defaultValue={filters.query} placeholder="Cercar títol, registre, entitat o problema..." aria-label="Cercar incidències" />
+      <select aria-label="Tipologia" name="type" defaultValue={filters.type} className="form-control"><option value="totes">Totes les tipologies</option>{FINANCING_TYPES.map((type) => <option key={type} value={type}>{FINANCING_TYPE_LABELS[type]}</option>)}</select>
+    <button className="rounded-md bg-primary px-4 py-2 text-sm text-primary-foreground">Aplicar filtres</button></FilterForm>
     <section className="surface mt-6 overflow-hidden"><div className="flex items-center justify-between gap-3 border-b p-4"><h2 className="font-semibold">Casos amb incidències ({result.total})</h2><span className="text-xs text-muted-foreground">Ordenats per activitat recent</span></div>
       {result.issues.length ? <StableAccordion stateKey="issues-list" className="divide-y">{result.issues.map((issue) => <IssueRow key={issue.record.id} issue={issue} />)}</StableAccordion> : <div className="p-10 text-center text-sm text-muted-foreground">No hi ha incidències amb aquests filtres.</div>}
       <Pagination result={result} filters={filters} />
@@ -40,7 +39,7 @@ export function IssuesWorkbench({ result, filters }: { result: IssuePage; filter
 
 function IssueRow({ issue }: { issue: IssueRecord }) {
   const { record } = issue;
-  return <AccordionItem value={record.id} className="px-4"><AccordionTrigger className="gap-4 py-4 hover:no-underline"><div className="min-w-0 flex-1 text-left"><div className="flex flex-wrap items-center gap-2"><Badge variant="outline" className="border-neutral-300 bg-neutral-50 text-neutral-950">{ISSUE_CATEGORY_LABELS[issue.category]}</Badge><span className="text-xs text-muted-foreground">{FINANCING_TYPE_LABELS[record.financingType]} · {SOURCE_LABELS[record.sourceDataset] ?? record.sourceDataset}</span>{record.batchNumber && <span className="text-xs text-muted-foreground">Lot {record.batchNumber}</span>}</div><p className="mt-2 font-medium leading-5">{record.title}</p><p className="mt-1 text-xs text-muted-foreground">{displaySourceIdentifier(record.sourceRecordId)}{record.providerName ? ` · ${record.providerName}` : ""}</p><p className="mt-2 line-clamp-2 text-sm text-neutral-900">{friendlyIssueMessage(issue)}</p></div></AccordionTrigger><AccordionContent className="border-t pb-5 pt-4"><IssueDetail issue={issue} /></AccordionContent></AccordionItem>;
+  return <AccordionItem value={record.id} className="px-4"><AccordionTrigger className="gap-4 py-4 hover:no-underline"><div className="min-w-0 flex-1 text-left"><div className="flex flex-wrap items-center gap-2"><Badge variant="outline" className="border-neutral-300 bg-neutral-50 text-neutral-950">{ISSUE_CATEGORY_LABELS[issue.category]}</Badge><span className="text-xs text-muted-foreground">{FINANCING_TYPE_LABELS[record.financingType]} · {SOURCE_LABELS[record.sourceDataset] ?? record.sourceDataset}</span>{record.batchNumber && <span className="text-xs text-muted-foreground">Lot {record.batchNumber}</span>}</div><p className="mt-2 font-medium leading-5">{record.title}</p><p className="mt-1 text-xs text-muted-foreground">{displaySourceIdentifier(record.sourceRecordId)}{record.providerName ? ` · ${record.providerName}` : ""}</p><p className="mt-2 text-sm text-neutral-900">{friendlyIssueMessage(issue)}</p></div></AccordionTrigger><AccordionContent className="border-t pb-5 pt-4"><IssueDetail issue={issue} /></AccordionContent></AccordionItem>;
 }
 
 function IssueDetail({ issue }: { issue: IssueRecord }) {

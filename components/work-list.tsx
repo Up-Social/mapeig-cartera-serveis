@@ -1,16 +1,30 @@
 import Link from "next/link";
 import { Eye } from "lucide-react";
-import type { ReactNode } from "react";
+import { Children, cloneElement, isValidElement, type ReactNode, type HTMLAttributes } from "react";
+import { WORK_TABLE_PROFILES, type WorkTableProfile } from "@/lib/work-table-profiles";
 
-export function WorkTable({ headings, children, empty, className = "" }: { headings: string[]; children: ReactNode; empty?: string; className?: string }) {
-  return <div className="surface overflow-hidden">
-    <div className="overflow-x-auto"><table className={`data-table responsive-table ${className}`}><thead><tr>{headings.map((heading) => <th key={heading} scope="col">{heading}</th>)}</tr></thead><tbody>{children}</tbody></table></div>
+export function WorkTable({ profile, children, empty, className = "" }: { profile: WorkTableProfile; children: ReactNode; empty?: string; className?: string }) {
+  const definition = WORK_TABLE_PROFILES[profile];
+  const rows = Children.map(children, row => {
+    if (!isValidElement<{ children?: ReactNode }>(row) || row.type !== "tr") return row;
+    return cloneElement(row, { role: "row", children: Children.map(row.props.children, (cell, index) => {
+      const column = definition.columns[index];
+      if (!column || !isValidElement<HTMLAttributes<HTMLTableCellElement>>(cell) || cell.type !== "td") return cell;
+      return cloneElement(cell, { role: "cell", "data-label": column.label, "data-column": column.id, "data-role": column.role } as HTMLAttributes<HTMLTableCellElement>);
+    }) } as HTMLAttributes<HTMLTableRowElement>);
+  });
+  return <div className="surface work-table-container" data-minimum={definition.minimum} data-profile={profile}>
+    <table role="table" className={`data-table work-table ${className}`}>
+      <caption className="sr-only">{definition.caption}</caption>
+      <colgroup>{definition.columns.map(column => <col key={column.id} style={{ width: `${column.width}%` }}/>)}</colgroup>
+      <thead role="rowgroup"><tr role="row">{definition.columns.map(column => <th key={column.id} scope="col" data-role={column.role}>{column.role === "selection" ? <span className="sr-only">{column.label}</span> : column.label}</th>)}</tr></thead><tbody role="rowgroup">{rows}</tbody>
+    </table>
     {empty && <p className="p-8 text-center text-sm text-muted-foreground">{empty}</p>}
   </div>;
 }
 
-export function TableActionLink({ href, label }: { href: string; label: string; children?: ReactNode }) {
-  return <Link aria-label={label} title={label} className="table-action" href={href}><Eye aria-hidden="true" className="size-4"/><span className="sr-only">{label}</span></Link>;
+export function TableActionLink({ href, label, children = "Obrir cas" }: { href: string; label: string; children?: ReactNode }) {
+  return <Link aria-label={label} title={label} className="table-action" href={href}><Eye aria-hidden="true" className="size-4 shrink-0"/><span>{children}</span></Link>;
 }
 
 export function WorkPager({ href, page, pageCount, total, pageSize = 25 }: { href: (page: number) => string; page: number; pageCount: number; total: number; pageSize?: number }) {

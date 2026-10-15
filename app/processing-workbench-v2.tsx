@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState, useTransition } from "react";
+import { FilterForm } from "@/components/filter-form";
+import { useEffect, useState, useTransition } from "react";
 import { TableActionLink, WorkTable } from "@/components/work-list";
 import type {
   SourceListPage,
@@ -53,8 +54,6 @@ export function ProcessingWorkbench({
 }) {
   const records = result.records;
   const metrics = result.metrics;
-  const filterFormRef = useRef<HTMLFormElement>(null);
-  const filterSearchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   return (
     <main className="page-shell">
@@ -81,23 +80,18 @@ export function ProcessingWorkbench({
                 Anar a Lots
               </Link>
             </div>
-            <form ref={filterFormRef} className="grid gap-3 border-b border-neutral-200 bg-neutral-50 p-4 sm:grid-cols-2 xl:grid-cols-[minmax(16rem,1fr)_repeat(4,minmax(10rem,13rem))]">
+            <FilterForm className="grid gap-3 border-b border-neutral-200 bg-neutral-50 p-4 sm:grid-cols-2 xl:grid-cols-3">
               <Input
                 name="q"
                 aria-label="Cercar registres"
                 defaultValue={filters.query}
                 placeholder="Cercar títol, ID o entitat..."
-                onChange={() => {
-                  if (filterSearchTimer.current) clearTimeout(filterSearchTimer.current);
-                  filterSearchTimer.current = setTimeout(() => filterFormRef.current?.requestSubmit(), 350);
-                }}
               />
               <select
                 name="type"
                 aria-label="Filtrar per tipologia"
                 defaultValue={filters.type}
                 className="form-control"
-                onChange={() => filterFormRef.current?.requestSubmit()}
               >
                 <option value="totes">Totes les tipologies</option>
                 {FINANCING_TYPES.map((type) => (
@@ -106,28 +100,30 @@ export function ProcessingWorkbench({
                   </option>
                 ))}
               </select>
-              <select name="processing" aria-label="Filtrar per processament" defaultValue={filters.processing} className="form-control" onChange={() => filterFormRef.current?.requestSubmit()}>
+              <select name="processing" aria-label="Filtrar per processament" defaultValue={filters.processing} className="form-control">
                 <option value="all">Tots els processos</option>
                 <option value="pending">Pendents de processar</option>
                 <option value="in_progress">En curs</option>
                 <option value="processed">Processats</option>
                 <option value="error">Errors de procés</option>
               </select>
-              <select name="execution" aria-label="Filtrar per tipus d’execució" defaultValue={filters.execution} className="form-control" onChange={() => filterFormRef.current?.requestSubmit()}>
+              <select name="execution" aria-label="Filtrar per tipus d’execució" defaultValue={filters.execution} className="form-control">
                 <option value="all">Totes les execucions</option>
                 <option value="none">Sense execucions</option>
                 <option value="batch">Amb lots</option>
                 <option value="individual">Amb execucions individuals</option>
                 <option value="other">Amb altres execucions</option>
               </select>
-              <select name="review" aria-label="Filtrar per revisió" defaultValue={filters.review} className="form-control" onChange={() => filterFormRef.current?.requestSubmit()}>
+              <select name="review" aria-label="Filtrar per revisió" defaultValue={filters.review} className="form-control">
                 <option value="all">Totes les revisions</option>
                 <option value="awaiting_review">Pendents de revisió</option>
                 <option value="reviewed">Revisats</option><option value="reserved">Acceptats amb reserves</option>
               </select>
-            </form>
-            <p className="border-b border-neutral-200 px-4 py-2 text-xs text-neutral-600">Pendent de processar = cap execució registrada. Processat = l’última execució ha acabat; la revisió humana es mostra a part. Les execucions compten intents, incloses les reanàlisis.</p>
-            <WorkTable className="records-table" headings={["Cas i font", "Entitat", "Tipologia", "Processament", "Revisió", "Execucions", "Acció"]} empty={records.length ? undefined : "No hi ha registres amb aquests filtres."}>
+              <button className="rounded-md bg-primary px-4 py-2 text-sm text-primary-foreground">Aplicar filtres</button>
+              {(filters.query || filters.type !== "totes" || filters.processing !== "all" || filters.execution !== "all" || filters.review !== "all") && <Link className="text-sm underline" href="/">Netejar filtres</Link>}
+            </FilterForm>
+            <details className="border-b border-neutral-200 px-4 py-3 text-sm"><summary className="cursor-pointer font-medium">Com funciona el processament</summary><p className="mt-2 text-muted-foreground">Pendent de processar = cap execució registrada. Processat = l’última execució ha acabat; la revisió humana es mostra a part. Les execucions compten intents, incloses les reanàlisis.</p></details>
+            <WorkTable className="records-table" profile="records" empty={records.length ? undefined : "No hi ha registres amb aquests filtres."}>
               {records.map(record => { const href = `/records/${record.id}?${new URLSearchParams({ from: `/?${new URLSearchParams({ q: filters.query, type: filters.type, processing: filters.processing, execution: filters.execution, review: filters.review, page: String(filters.page) })}` })}`; return <tr key={record.id}>
                 <td data-label="Cas i font"><Link href={href} className="font-semibold underline underline-offset-2">{record.title}</Link><p className="mt-1 break-words text-xs text-muted-foreground">{record.sourceRecordId} · {SOURCE_LABELS[record.sourceDataset] ?? record.sourceDataset}</p></td>
                 <td data-label="Entitat">{record.providerName ?? "No informada"}</td><td data-label="Tipologia">{FINANCING_TYPE_LABELS[record.financingType]}</td>

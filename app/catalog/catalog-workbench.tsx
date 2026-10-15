@@ -1,8 +1,8 @@
 "use client";
+import { FilterForm } from "@/components/filter-form";
 import { MasterReferenceData } from "@/components/master-reference-data";
 
 import Link from "next/link";
-import { useRef } from "react";
 import type {
   CatalogFilters,
   MasterService,
@@ -24,8 +24,6 @@ export function CatalogWorkbench({
   result: MasterServicePage;
   filters: CatalogFilters;
 }) {
-  const formRef = useRef<HTMLFormElement>(null);
-  const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   return (
     <main className="page-shell">
       <section className="page-container">
@@ -53,15 +51,14 @@ export function CatalogWorkbench({
 
         <div className="mt-6">
           <section className="surface overflow-hidden">
-            <form ref={formRef} className="border-b border-neutral-200 bg-neutral-50 p-4">
+            <FilterForm className="grid gap-3 border-b border-neutral-200 bg-neutral-50 p-4 sm:grid-cols-[minmax(0,1fr)_auto]">
               <Input
                 name="q"
                 defaultValue={filters.query}
                 placeholder="Cercar codi, nom o àmbit..."
                 aria-label="Cercar serveis"
-                onChange={() => { if (searchTimer.current) clearTimeout(searchTimer.current); searchTimer.current = setTimeout(() => formRef.current?.requestSubmit(), 350); }}
               />
-            </form>
+            <button className="rounded-md bg-primary px-4 py-2 text-sm text-primary-foreground">Aplicar filtres</button></FilterForm>
 
             {result.services.length === 0 ? (
               <p className="p-8 text-center text-sm text-neutral-500">

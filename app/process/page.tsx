@@ -1,3 +1,4 @@
+import { WorkTable } from "@/components/work-list";
 import { ArrowRight, CheckCircle2, CircleAlert, Database, FileSearch, GitCompareArrows, ListChecks } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
@@ -101,19 +102,9 @@ export default function ProcessPage() {
 
         <section className="surface mt-6 p-4 sm:p-6">
           <SectionHeading icon={ListChecks} title="2. Flux funcional i d’aprovacions" description="Cada apartat té una responsabilitat clara i un destí possible per al registre." />
-          <div className="mt-5 overflow-hidden rounded-xl border">
-            <div className="hidden grid-cols-[150px_220px_1fr_170px] gap-4 bg-muted/60 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground md:grid"><span>Apartat</span><span>Funció</span><span>Regla de decisió</span><span>Destí</span></div>
-            <div className="divide-y">
-              {sections.map((section) => (
-                <article key={section.name} className="grid gap-2 p-4 md:grid-cols-[150px_220px_1fr_170px] md:gap-4">
-                  <h3 className="font-semibold">{section.name}</h3>
-                  <p className="text-sm text-foreground">{section.state}</p>
-                  <p className="text-sm leading-6 text-muted-foreground">{section.body}</p>
-                  <div><Badge variant="secondary">{section.next}</Badge></div>
-                </article>
-              ))}
-            </div>
-          </div>
+          <div className="mt-5"><WorkTable profile="guide">{sections.map(section => <tr key={section.name}>
+            <td><h3 className="font-semibold">{section.name}</h3></td><td>{section.state}</td><td><p className="text-sm leading-6 text-muted-foreground">{section.body}</p></td><td><Badge variant="secondary">{section.next}</Badge></td>
+          </tr>)}</WorkTable></div>
           <p className="mt-4 text-sm leading-6 text-muted-foreground">Les decisions es conserven com a historial. Rectificar una decisió actualitza o retira la provisió vigent, però no elimina la traçabilitat anterior.</p>
         </section>
 

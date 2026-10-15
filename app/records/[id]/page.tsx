@@ -28,7 +28,7 @@ async function contextPage(path: string, p: URLSearchParams, page: number): Prom
     const result = await getApprovedPage({ page, query, type });
     return { rows: result.provisions.map(row => ({ id: row.sourceRecordId, provisionId: row.id })), pageCount: result.pageCount };
   }
-  const filters = { page, query, type, ...(path === "/discarded" ? { destination: "discarded", reason: p.get("reason") || undefined, batchNumber: /^\d+$/.test(p.get("batch") ?? "") ? Number(p.get("batch")) : undefined } : path === "/analysis" ? { classification: "out_of_portfolio" } : { destination: "issues" }) };
+  const filters = { page, query, type, ...(path === "/discarded" ? { destination: "discarded", reason: p.get("reason") || undefined, batchNumber: /^\d+$/.test(p.get("batch") ?? "") ? Number(p.get("batch")) : undefined } : path === "/reserved" ? { destination: "reserved" } : path === "/analysis" ? { classification: "out_of_portfolio" } : { destination: "issues" }) };
   const result = await getCurrentResults(filters);
   return { rows: result.rows.map(row => ({ id: row.id, jobId: row.job_id })), pageCount: result.pageCount };
 }
@@ -83,7 +83,7 @@ export default async function RecordPage({ params, searchParams }: PageProps<"/r
   } else {
     const originUrl = new URL(origin, "http://local.invalid");
     const path = originUrl.pathname;
-    if (["/", "/approved", "/discarded", "/analysis", "/issues"].includes(path)) {
+    if (["/", "/approved", "/discarded", "/analysis", "/issues", "/reserved"].includes(path)) {
       const p = originUrl.searchParams;
       const page = Math.max(1, Number.parseInt(p.get("page") ?? "1", 10) || 1);
       const list = await contextPage(path, p, page);
@@ -97,7 +97,7 @@ export default async function RecordPage({ params, searchParams }: PageProps<"/r
       }
     }
   }
-  return <main className="page-shell"><section className="page-container space-y-5">
+  return <main className="page-shell"><section className="page-container page-container-wide space-y-5">
     <DetailNavigation backHref={origin} backLabel="Tornar al llistat" previousHref={previous} nextHref={next}/>
     <div><p className="page-eyebrow">Estudi del cas · {record.sourceRecordId}{record.batchNumber ? ` · ${record.latestRunPurpose === 'record_operation' || record.latestRunPurpose === 'automated_single' ? 'Execució individual' : record.latestRunPurpose === 'automated_batch' || record.latestRunPurpose === 'automated_cloud' ? 'Lot' : 'Execució'} ${record.batchNumber}` : ""}</p><h1 className="detail-title break-words">{record.title}</h1><p className="page-description">{recordReviewLabel(record)}</p></div>
     <CaseStudyNavigation showUnits={record.financingType==="concert"} />

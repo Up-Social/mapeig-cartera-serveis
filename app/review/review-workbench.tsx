@@ -1,7 +1,8 @@
 "use client";
+import { FilterForm } from "@/components/filter-form";
 import Link from 'next/link';
 
-import { useRef, useState, useTransition } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import type { ReviewQueue, SourceRecord } from "@/lib/workbench-types";
 import { submitRecordReview } from "@/lib/review-client";
@@ -37,8 +38,6 @@ export function ReviewWorkbench({
   services: ServiceOption[];
 }) {
   const router = useRouter();
-  const formRef = useRef<HTMLFormElement>(null);
-  const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [records, setRecords] = useState(queue.records);
   const [refreshing, startRefresh] = useTransition();
   const reviewed = records.filter(
@@ -80,17 +79,16 @@ export function ReviewWorkbench({
           </Button>
         </div>
         {filters.batchId&&<Link className="back-link mt-4 w-fit" href={`/batches/${filters.batchId}/results`}>← Tornar al detall del lot</Link>}
-        <form ref={formRef} className="surface mt-5 grid gap-3 p-4 md:grid-cols-[minmax(220px,1fr)_220px]">
+        <FilterForm className="surface mt-5 grid gap-3 p-4 md:grid-cols-[minmax(0,1fr)_220px_auto]">
           <input type="hidden" name="batch" value={filters.batchId ?? ""} />
           <input type="hidden" name="state" value={filters.state} />
           <input type="hidden" name="record" value={focusedRecordId ?? ""} />
-          <Input name="q" defaultValue={filters.query} placeholder="Cercar títol, registre o entitat..." aria-label="Cercar registres analitzats" onChange={() => { if (searchTimer.current) clearTimeout(searchTimer.current); searchTimer.current = setTimeout(() => formRef.current?.requestSubmit(), 350); }} />
+          <Input name="q" defaultValue={filters.query} placeholder="Cercar títol, registre o entitat..." aria-label="Cercar registres analitzats" />
           <select
             aria-label="Tipologia"
             name="type"
             defaultValue={filters.type}
             className="form-control"
-            onChange={() => formRef.current?.requestSubmit()}
           >
             <option value="totes">Totes les tipologies</option>
             {FINANCING_TYPES.map((type) => (
@@ -99,7 +97,7 @@ export function ReviewWorkbench({
               </option>
             ))}
           </select>
-        </form>
+        <button className="rounded-md bg-primary px-4 py-2 text-sm text-primary-foreground">Aplicar filtres</button></FilterForm>
         <div className="mt-6">
           <section className="surface overflow-hidden">
             <div className="border-b p-4 font-semibold">
@@ -284,7 +282,7 @@ export function ReviewDetail({
                 )}
                 <DocumentProvenance document={document}/>
                 {document.textPreview && (
-                  <p className="mt-2 line-clamp-4 text-xs leading-5 text-neutral-600">
+                  <p className="mt-2 text-xs leading-5 text-neutral-600">
                     {document.textPreview}
                   </p>
                 )}
