@@ -1,5 +1,9 @@
 # Context del projecte
 
+## Política de branques (15/10/2026)
+
+La branca de treball per defecte i l'única que s'ha de mantenir és `main`, tant en local com al remot. No es poden crear branques de funcionalitat, correcció, tasca, agent o worktree sense preguntar abans a l'usuari i obtenir-ne autorització explícita per al nom i el motiu. Una petició d'implementar, corregir, provar o desplegar no autoritza a crear una branca nova. Treballar i publicar directament a `main` no elimina les comprovacions, la traçabilitat ni les autoritzacions de publicació aplicables.
+
 > Actualización 2026-09-12: el nuevo flujo normativo usa exclusivamente servicios hoja del catálogo oficial versionado, un servicio principal y cuatro categorías de análisis. Véase [NORMATIVE_MATCHING.md](NORMATIVE_MATCHING.md) para el contrato vigente y la instalación local. Las referencias al Master como destino del matching en el texto histórico siguiente ya no aplican al nuevo flujo.
 
 ## Producte

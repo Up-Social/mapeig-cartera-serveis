@@ -1,3 +1,4 @@
+import {effectiveJobs} from './effective-jobs';
 import {textDefects} from './pipeline/readable-document';
 import officialSnapshot from '../data/legal/cartera.json';
 import {eligibleServices,type OfficialService} from './official-catalog';
@@ -105,6 +106,7 @@ export async function getSourceRecord(id: string): Promise<SourceRecord | null> 
 }
 
 export function mapRecord(row: Record<string, unknown>): SourceRecord {
+  row={...row,pipeline_jobs:effectiveJobs(row.pipeline_jobs)};
   const jobs=Array.isArray(row.pipeline_jobs)?[...row.pipeline_jobs].sort((a,b)=>String(b.created_at).localeCompare(String(a.created_at))||String(b.id).localeCompare(String(a.id))):[];
   const reviews=Array.isArray(row.review_decisions)?row.review_decisions.filter(r=>r.pipeline_job_id===jobs[0]?.id):[];
   const analysis=latestAnalysis(row.pipeline_jobs);
@@ -189,7 +191,7 @@ export function mapLatestCandidates(value: unknown): SourceRecord["matchingCandi
   }).sort((a, b) => a.rank - b.rank);
 }
 
-export const RECORD_SELECT = "*,source_documents(id,url,resolution,document_type,source_fields,status,mime_type,storage_path,storage_sha256,active_extraction_id,extracted_text,text_preview,text_length,extraction_method,quality_score,quality_flags,chunk_count),record_enrichments(extracted_title,provider_name,provider_nif,mechanism,award_date,amount,contracting_body,target_population,summary,confidence,engine_version,record_enrichment_evidence(evidence_chunks(ordinal,content))),review_decisions(id,pipeline_job_id,classification,reasons,decision,reason,created_at),pipeline_jobs(id,run_id,status,error_message,created_at,analysis_results(*),pipeline_runs(batch_number,parameters),matching_candidates(id,pipeline_job_id,catalog_version_id,rank,target_code,target_name,score,rationale,engine_version,matching_candidate_evidence(explanation,evidence_chunks(ordinal,content))))";
+export const RECORD_SELECT = "*,source_documents(id,url,resolution,document_type,source_fields,status,mime_type,storage_path,storage_sha256,active_extraction_id,extracted_text,text_preview,text_length,extraction_method,quality_score,quality_flags,chunk_count),record_enrichments(extracted_title,provider_name,provider_nif,mechanism,award_date,amount,contracting_body,target_population,summary,confidence,engine_version,record_enrichment_evidence(evidence_chunks(ordinal,content))),review_decisions(id,pipeline_job_id,classification,reasons,decision,reason,created_at),pipeline_jobs(id,run_id,status,error_message,created_at,verification_only,analysis_results(*),pipeline_runs(batch_number,parameters),matching_candidates(id,pipeline_job_id,catalog_version_id,rank,target_code,target_name,score,rationale,engine_version,matching_candidate_evidence(explanation,evidence_chunks(ordinal,content))))";
 
 function mapLatestRun(value: unknown) {
   if (!Array.isArray(value) || !value.length) return null;
@@ -231,7 +233,7 @@ export async function getReviewQueue(input: { batchId?: string; type?: string; s
   for(let offset=0;offset<sourceIds.length;offset+=100){const r=await supabase.from('source_records').select(RECORD_SELECT).in('id',sourceIds.slice(offset,offset+100));if(r.error)throw r.error;rawRecords.push(...((r.data??[]) as Record<string,unknown>[]));}
   const rawById=new Map(rawRecords.map(raw=>[String(raw.id),raw]));
   const records:SourceRecord[]=[];
-  for(const job of jobs){const raw=rawById.get(job.source_record_id);if(!raw)continue;const allJobs=Array.isArray(raw.pipeline_jobs)?raw.pipeline_jobs as Record<string,unknown>[]:[];const selected=allJobs.find(item=>item.id===job.id);if(!selected)continue;const record=mapRecord({...raw,pipeline_jobs:[selected]});
+  for(const job of jobs){const raw=rawById.get(job.source_record_id);if(!raw)continue;const allJobs=Array.isArray(raw.pipeline_jobs)?raw.pipeline_jobs as Record<string,unknown>[]:[];const selected=allJobs.find(item=>item.id===job.id);if(!selected)continue;const record=mapRecord({...raw,pipeline_jobs:[{...selected,verification_only:false}]});
       if(input.type&&input.type!=='totes'&&record.financingType!==input.type)continue;
       if(input.query&&![record.title,record.sourceRecordId,record.providerName].join(' ').toLowerCase().includes(input.query.toLowerCase()))continue;
       records.push(record);
