@@ -30,4 +30,23 @@ export function normalizeAwardDate(value:string|null):string|null{
 }
 function nullableString() { return { anyOf: [{ type: "string" }, { type: "null" }] }; }
 export function sanitize(value: unknown) { if (!value || typeof value !== "object" || Array.isArray(value)) return {}; return Object.fromEntries(Object.entries(value as Record<string, unknown>).filter(([name, field]) => !name.startsWith("Fórmula ·") && !(typeof field === "string" && field.trim().startsWith("=")))); }
-export function extractOutputText(response: Record<string, unknown>) { if (typeof response.output_text === "string") return response.output_text; const output = Array.isArray(response.output) ? response.output : []; for (const item of output) if (item && typeof item === "object" && Array.isArray((item as { content?: unknown[] }).content)) for (const content of (item as { content: Array<Record<string, unknown>> }).content) if (content.type === "output_text" && typeof content.text === "string") return content.text; throw new Error("OpenAI no ha retornat text estructurat"); }
+/** Structured extraction must use the final assistant message, never its preamble. */
+export function extractOutputText(response: Record<string, unknown>): string {
+ if (response.status === 'incomplete' || response.status === 'failed') throw new Error('OpenAI ha retornat una resposta incompleta');
+ const output = Array.isArray(response.output) ? response.output : [];
+ const messages = output.filter((item): item is Record<string, unknown> => !!item && typeof item === 'object' && Array.isArray(item.content));
+ const finals = messages.filter(item => item.phase === 'final_answer');
+ const hasPhases = messages.some(item => item.phase != null);
+ if (finals.length > 1) throw new Error('OpenAI ha retornat respostes finals ambigües');
+ const selected = finals.length ? finals : hasPhases ? [] : messages;
+ for (const item of selected) {
+  if (item.status === 'incomplete') throw new Error('OpenAI ha retornat una resposta incompleta');
+  const content = item.content as Array<Record<string, unknown>>;
+  if (content.some(part => part.type === 'refusal')) throw new Error('OpenAI ha rebutjat la petició');
+  const texts = content.filter(part => part.type === 'output_text' && typeof part.text === 'string').map(part => part.text as string);
+  if (texts.length) return texts.join('');
+ }
+ // SDK-only legacy envelopes can have output_text without output messages.
+ if (!output.length && typeof response.output_text === 'string') return response.output_text;
+ throw new Error('OpenAI no ha retornat text estructurat final');
+}
