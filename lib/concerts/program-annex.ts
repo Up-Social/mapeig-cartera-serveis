@@ -16,7 +16,7 @@ export function programDocumentScope(text:string):string {
 export function extractProgramAnnex(text:string):ProgramLine[]{
  text=programDocumentScope(text);
  const markdown=/^## Pàgina \d+/m.test(text);const pages=markdown?text.split(/(?=^## Pàgina \d+\s*$)/m):text.split('\f');
- const result:ProgramLine[]=[];let identity:{nif:string;name:string|null;quoteStart:number}|null=null;let absolute=0;let disposition:string|null=null;let position='';
+ const result:ProgramLine[]=[];let identity:{nif:string;name:string|null;quoteStart:number;startRow:number}|null=null;let absolute=0;let disposition:string|null=null;let position='';
  for(const [pageIndex,page] of pages.entries()){
   const lines=page.split('\n');const h=lines.findIndex(l=>l.includes('NIF entitat')&&l.includes('Disposició')&&l.includes('Tipologia de servei'));
   if(h<0){identity=null;absolute+=page.length+(markdown?0:1);continue;}
@@ -50,6 +50,17 @@ export function extractProgramAnnex(text:string):ProgramLine[]{
   const cell=(line:string,label:string)=>{const i=cols.findIndex(c=>c.label===label);return i<0?'':line.slice(cols[i].start,cols[i+1]?.start).trim();};
   const wrapped=(from:number,to:number,label:string)=>lines.slice(from,to+1).filter(l=>!headerRows.includes(l)).map(l=>cell(l,label)).filter(s=>s&&!/^(GENERALITAT|NIF entitat|Nom entitat|Tipologia)/.test(s)).join(' ').replace(/\s+/g,' ').trim()||null;
   let previous=h;
+  // A merged entity cell can continue below the repeated header on the next page.
+  // Only carry it when the first data row has no new NIF; never join two entities.
+  const firstData=lines.findIndex((l,i)=>i>h&&/\b[SC]\d{5}\b/.test(l));
+  if(identity&&firstData>h&&!/\b[A-Z]\d{7}[0-9A-Z]\b/.test(lines[firstData])){
+   const continuation=wrapped(h+1,firstData,'Nom entitat');
+   if(continuation){
+    identity.name=[identity.name,continuation].filter(Boolean).join(' ');
+    const quote=text.slice(identity.quoteStart,absolute+lines.slice(0,firstData+1).join('\n').length).trim().replace(/\s+/g,' ');
+    for(const row of result.slice(identity.startRow)){row.observedProviderName=identity.name;row.quote=quote;}
+   }
+  }
   const carried=result.at(-1);
   if(carried?.observedServiceName?.endsWith('-')&&identity){
    const suffix:string[]=[];
@@ -73,7 +84,7 @@ export function extractProgramAnnex(text:string):ProgramLine[]{
    }
    const nifCell=cell(line,'NIF entitat'),nif=line.match(/\b[A-Z]\d{7}[0-9A-Z]\b/)?.[0];
    if(nifCell&&!nif){identity=null;previous=i;continue;}
-   if(nif){identity={nif,name:wrapped(previous+1,i,'Nom entitat'),quoteStart:absolute+lines.slice(0,previous+1).join('\n').length+1};disposition=null;}
+   if(nif){identity={nif,name:wrapped(previous+1,i,'Nom entitat'),startRow:result.length,quoteStart:absolute+lines.slice(0,previous+1).join('\n').length+1};disposition=null;}
    if(!identity){previous=i;continue;}
    const printedDisposition=line.match(/\b\d{10}\b/)?.[0];
    if(printedDisposition){disposition=printedDisposition;position='';}const printedPosition=cell(line,'Posició').match(/^\d+/)?.[0];if(printedPosition)position=printedPosition;

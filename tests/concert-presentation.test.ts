@@ -35,3 +35,13 @@ test('rectification choices contain only predecessor chains, exclude rejected/un
  const ids=concertPredecessorIds('change',[link('change','previous'),link('previous','original','confirmed'),link('original','change'),link('change','rejected','rejected'),link('change','pre2024','out_of_horizon'),link('unrelated','other')]);
  assert.deepEqual([...ids],['previous','original']);
 });
+
+test('a merged entity name continues across pages only when there is no new NIF',()=>{
+ const first=splitHeaderTable(),lines=first.split('\n');
+ const continuedRow=' '.repeat(197)+'S01235'+' '.repeat(110)+'100,01 €   100,01 €';
+ const page=['## Pàgina 9',lines[1],lines[5],' '.repeat(41)+'per a persones',continuedRow].join('\n');
+ const rows=extractProgramAnnex(first+'\n'+page);
+ assert.equal(rows.length,2);assert.ok(rows.every(r=>r.observedProviderName==='Fundació Privada del Nord per a persones'));
+ const other=first.replace('## Pàgina 8','## Pàgina 9').replace('G12345678','G87654321').replace('Fundació Privada','Associació Nova');
+ const separate=extractProgramAnnex(first+'\n'+other);assert.equal(separate[0].observedProviderName,'Fundació Privada del Nord');assert.equal(separate[1].observedProviderName,'Associació Nova del Nord');
+});
