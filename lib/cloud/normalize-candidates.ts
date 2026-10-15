@@ -18,3 +18,9 @@ export function normalizeCandidates(value:AnalysisOutput,all:OfficialService[],c
  if(value.candidates.length && (!candidates.length||value.population_verified===false||value.social_service_verified===false))return {...value,classification:'insufficient_evidence',candidates:[],reasons:[],explanation:[value.social_service_verified===false?'No s’ha acreditat el servei finançat.':null,value.population_verified===false?'No s’han acreditat els destinataris del servei.':null,!candidates.length?'Cap servei proposat té compatibilitat documental acreditada.':null].filter(Boolean).join(' ')};
  return {...value,candidates};
 }
+
+/** A positive label without any identified service is an unresolved correspondence. */
+export function insufficientWithoutCandidate(value:AnalysisOutput):AnalysisOutput|null {
+ if(value.classification!=='in_portfolio'||!Array.isArray(value.candidates)||value.candidates.length)return null;
+ return {...value,classification:'insufficient_evidence',reasons:[],explanation:'L’anàlisi ha indicat una activitat social, però no ha identificat cap codi de servei de la Cartera. Cal revisar la correspondència del servei concret amb el document; no es pot confirmar «En cartera» sense un servei proposat.'};
+}

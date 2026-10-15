@@ -18,33 +18,41 @@ export function concertRoleReviewSchema(names:RoleName[],count:number){
    evidence_ordinal:{type:'integer',minimum:0,maximum:count},
   }}}}};
 }
-/** Bind an independently reviewed fact to its exact source window; never approve a result. */
+type ReviewCheck={role:RoleName;state:string;value:string|null;kind:string;evidence_ordinal:number};
+export type RoleReviewIssue={role:RoleName;code:'changed_fact'|'unverifiable_quote';ordinal:number};
+/** Strict validation remains available to callers that must reject the whole reply. */
 export function applyConcertRoleReview(roles:Partial<RoleFacts>|undefined,chunks:ReadonlyArray<{content:string}>,value:unknown){
+ return applyRoleChecks(roles,chunks,value,false);
+}
+/** A well-formed but ungrounded proposal is missing evidence, not a broken process. */
+export function applyConcertRoleReviewWithDiagnostics(roles:Partial<RoleFacts>|undefined,chunks:ReadonlyArray<{content:string}>,value:unknown){
+ return applyRoleChecks(roles,chunks,value,true);
+}
+function applyRoleChecks(roles:Partial<RoleFacts>|undefined,chunks:ReadonlyArray<{content:string}>,value:unknown,diagnose:boolean){
  const names=concertRolesNeedingReview(roles,chunks);
- const checks=(value as {checks?:Array<{role:RoleName;state:string;value:string|null;kind:string;evidence_ordinal:number}>})?.checks;
+ const checks=(value as {checks?:ReviewCheck[]})?.checks;
  if(!Array.isArray(checks)||checks.length!==names.length||new Set(checks.map(check=>check?.role)).size!==names.length)
   throw Error('CONCERT_ROLE_REVIEW_INVALID');
- const aligned={...roles};
+ const aligned={...roles};const issues:RoleReviewIssue[]=[];
  for(const check of checks){
-  if(!check||!names.includes(check.role)||!['known','unknown'].includes(check.state)||!Number.isInteger(check.evidence_ordinal))
-   throw Error('CONCERT_ROLE_REVIEW_INVALID');
+  if(!check||!names.includes(check.role)||!['known','unknown'].includes(check.state)||!Number.isInteger(check.evidence_ordinal))throw Error('CONCERT_ROLE_REVIEW_INVALID');
   const fact=roles?.[check.role];
+  const unknown:RoleFact={...(fact??{value:null,kind:'unknown'}),state:'unknown',evidence_ordinals:[],quotes:[]};
   if(check.state==='unknown'){
    if(check.evidence_ordinal!==0||check.value!==null||check.kind!=='unknown')throw Error('CONCERT_ROLE_REVIEW_INVALID');
-   aligned[check.role]={...(fact??{value:null,kind:'unknown'}),state:'unknown',evidence_ordinals:[],quotes:[]};
+   aligned[check.role]=unknown;
   }else{
    const chunk=chunks[check.evidence_ordinal-1];
    if(!chunk?.content.trim()||chunk.content.trim().length<12||typeof check.value!=='string'||!check.value.trim()||!KINDS[check.role]?.includes(check.kind))throw Error('CONCERT_ROLE_REVIEW_INVALID');
    const known=fact?.state==='known'&&fact.kind!=='unknown'&&!!fact.value?.trim();
-   if(known){
-    if(check.kind!==fact.kind||normalized(check.value)!==normalized(fact.value!))throw Error('CONCERT_ROLE_REVIEW_CHANGED_FACT');
-   }else if(normalized(check.value).length<12||!normalized(chunk.content).includes(normalized(check.value))){
-    throw Error('CONCERT_ROLE_REVIEW_UNGROUNDED_FACT');
-   }
+   const changed=known&&(check.kind!==fact.kind||normalized(check.value)!==normalized(fact.value!));
+   const ungrounded=!known&&(normalized(check.value).length<12||!normalized(chunk.content).includes(normalized(check.value)));
    const next:RoleFact={state:'known',value:known?fact.value:check.value.trim(),kind:check.kind,evidence_ordinals:[check.evidence_ordinal],quotes:[chunk.content]};
-   if(!hasLiteralRoleEvidence(next,chunks))throw Error('CONCERT_ROLE_REVIEW_INVALID');
-   aligned[check.role]=next;
+   if(changed||ungrounded||!hasLiteralRoleEvidence(next,chunks)){
+    if(!diagnose)throw Error(changed?'CONCERT_ROLE_REVIEW_CHANGED_FACT':ungrounded?'CONCERT_ROLE_REVIEW_UNGROUNDED_FACT':'CONCERT_ROLE_REVIEW_INVALID');
+    aligned[check.role]=unknown;issues.push({role:check.role,code:changed?'changed_fact':'unverifiable_quote',ordinal:check.evidence_ordinal});
+   }else aligned[check.role]=next;
   }
  }
- return {roles:aligned,reviewed:names};
+ return {roles:aligned,reviewed:names,issues};
 }

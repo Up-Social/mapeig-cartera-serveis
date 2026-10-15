@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {applyConcertRoleReview,concertRolesNeedingReview,concertRoleReviewSchema} from '../lib/concerts/role-evidence';
+import {applyConcertRoleReview,applyConcertRoleReviewWithDiagnostics,concertRolesNeedingReview,concertRoleReviewSchema} from '../lib/concerts/role-evidence';
 import {applyScopeRules,hasLiteralRoleEvidence,type RoleFacts} from '../lib/scope-rules';
 import type {AnalysisOutput} from '../lib/analysis-contract';
 const chunks=[{content:'No s’adjudica el servei de pis assistit per a joves majors de 18 anys.'},
@@ -52,4 +52,21 @@ test('an intermediary or a contradiction does not supply a final population auto
 });
 test('v2 provider schema requires explicit value and kind',()=>{
  assert.deepEqual(concertRoleReviewSchema(['final_population'],2).properties.checks.items.required,['role','state','value','kind','evidence_ordinal']);
+});
+
+test('a nonliteral role reply becomes a field diagnosis without losing independently supported roles',()=>{
+ const missing={state:'unknown' as const,value:null,kind:'unknown',evidence_ordinals:[],quotes:[]};
+ const original={...roles,final_population:missing};
+ const checked=applyConcertRoleReviewWithDiagnostics(original,chunks,{checks:[known,{role:'final_population',state:'known',value:'persones destinatàries inventades',kind:'population',evidence_ordinal:2}]});
+ assert.equal(checked.roles.final_service?.state,'known');assert.equal(checked.roles.final_population?.state,'unknown');
+ assert.deepEqual(checked.issues,[{role:'final_population',code:'unverifiable_quote',ordinal:2}]);
+ assert.deepEqual(original.final_service,fact);assert.deepEqual(original.final_population,missing);
+ assert.throws(()=>applyConcertRoleReviewWithDiagnostics(original,chunks,{checks:[known,known]}));
+});
+
+test('diagnostic recovery does not replace a known fact or accept a malformed response',()=>{
+ const checked=applyConcertRoleReviewWithDiagnostics(roles,chunks,{checks:[{...known,value:'altre servei sense acreditar'}]});
+ assert.equal(checked.roles.final_service?.state,'unknown');assert.equal(checked.roles.final_service?.value,fact.value);
+ assert.equal(checked.issues[0].code,'changed_fact');
+ assert.throws(()=>applyConcertRoleReviewWithDiagnostics(roles,chunks,{checks:[{...known,evidence_ordinal:999}]}));
 });

@@ -1,3 +1,4 @@
+import {insufficientWithoutCandidate} from '../lib/cloud/normalize-candidates';
 import {test} from 'node:test';import assert from 'node:assert/strict';
 import {normalizeCandidates,insufficientForIneligibleCode} from '../lib/cloud/normalize-candidates';
 import {needsContractRepair,contractRepairSchema} from '../lib/cloud/repair-contract';
@@ -31,3 +32,9 @@ test('repair is restricted to incomplete nonpositive conclusions',()=>{
 });
 
 test('explicitly incompatible alternatives need no positive evidence ordinal',()=>{const result=normalizeCandidates({...base,candidates:[{...candidate('1.1',.9,false),evidence_ordinals:[]},candidate('1.2',.7)]},all,1);assert.deepEqual(result.candidates.map(c=>c.code),['1.2']);});
+
+test('a positive response without a service remains unresolved instead of a generic technical error',()=>{
+ const result=insufficientWithoutCandidate({classification:'in_portfolio',reasons:[],explanation:'Activitat social reconeguda però sense cap servei identificat.',service_description:'Servei de protecció',target_population:'Infants',evidence_ordinals:[1],population_verified:true,social_service_verified:true,candidates:[]});
+ assert.equal(result?.classification,'insufficient_evidence');assert.deepEqual(result?.candidates,[]);assert.match(result!.explanation,/cap codi de servei/);
+ assert.deepEqual(result?.evidence_ordinals,[1]);
+});
