@@ -51,11 +51,18 @@ export function portfolioStatusLabel(status: string) {
 
 export function entityValidationStatusLabel(status: string) {
   return labelFrom({
+    reses_verified: "Verificada al RESES",
+    source_verified: "Verificada a la font",
+    manually_verified: "Verificada manualment",
     verified_nif: "NIF verificat",
     verified: "Verificada",
     pending: "Pendent de verificació",
     unverified: "No verificada",
   }, status);
+}
+
+export function entityQualificationLabel(value: string | null | undefined) {
+  return value == null || !value.trim() || /^(null|undefined)$/i.test(value.trim()) ? "Qualificació no informada" : value;
 }
 
 export function catalogRelationTypeLabel(type: string) {
