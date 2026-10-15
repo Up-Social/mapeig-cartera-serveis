@@ -2,12 +2,13 @@
 import {useState} from 'react';
 import {validateOcrRecovery,type OcrRecovery} from '@/lib/ocr-recovery';
 import type {SourceRecord} from '@/lib/workbench-types';
-import {analysisDiagnostics} from '@/lib/evidence-diagnostics';
+import {analysisDiagnostics,sourceRecoveryDiagnostic} from '@/lib/evidence-diagnostics';
 import type {RecordOperation} from '@/lib/record-operation';
 import {DocumentViewer} from './document-viewer';
 export function EvidenceDiagnostics({record,onRetry,disabled=false}:{record:SourceRecord;onRetry?:(operation:RecordOperation,recovery?:OcrRecovery)=>void;disabled?:boolean}){
  const [pages,setPages]=useState(''),[selected,setSelected]=useState(''),[error,setError]=useState('');
- const diagnostics=record.analysis?analysisDiagnostics(record.analysis):[];
+ const sourceDiagnostic=sourceRecoveryDiagnostic(record);
+ const diagnostics=record.analysis?analysisDiagnostics(record.analysis):sourceDiagnostic?[sourceDiagnostic]:[];
  const pdfs=record.sourceDocuments.filter(d=>d.archived&&d.mimeType?.includes('pdf'));
  const document=pdfs.find(d=>d.id===selected)??pdfs.find(d=>diagnostics.some(issue=>issue.documentId===d.id))??pdfs[0];
  const actions=[...new Set(diagnostics.map(d=>d.action))];

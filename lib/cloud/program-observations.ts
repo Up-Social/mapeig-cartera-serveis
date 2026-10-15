@@ -1,7 +1,7 @@
 import {identifyPriorObservation} from '../concerts/observation-identity';
 import {readPages} from '../read-pages';
 import {createHash} from 'node:crypto';
-import {extractProgramAnnex,programCoverage} from '../concerts/program-annex';
+import {extractProgramAnnex,programCoverage,programDeclaredTotal} from '../concerts/program-annex';
 import {programServiceCode} from '../concerts/program-service';
 import {loadOfficialCatalog} from '../official-catalog';
 import {archiveUnitSource} from '../source-storage';
@@ -41,10 +41,9 @@ export async function prepareProgramObservations(c:Context,job:{id:string;source
   await archiveUnitSource(c.db,job.source_record_id,saved.data as string);
   if(++staged>=5)return false;
  }
- const declared=[...document.extracted_text.matchAll(/\bTotal\s+(?:general\s+)?([\d.]+,\d{2})\s*€/gi)].map(m=>Math.round(Number(m[1].replaceAll('.','').replace(',','.'))*100));
  const sum=rows.reduce((n,r)=>n+(r.amountCents??0),0);
  const checked=await c.db.rpc('cloud_finalize_program_observations',{...lease(c),p_job:job.id,p_document:document.id,
-  p_rows:rows.length,p_sum_cents:sum,p_declared_cents:declared.includes(sum)?sum:null,p_coverage:coverage});
+  p_rows:rows.length,p_sum_cents:sum,p_declared_cents:programDeclaredTotal(document.extracted_text,rows),p_coverage:coverage});
  if(checked.error)throw new CloudFailure('validation',5,{operation:'program_coverage',code:checked.error.code??'DATABASE_ERROR'});
  return true;
 }

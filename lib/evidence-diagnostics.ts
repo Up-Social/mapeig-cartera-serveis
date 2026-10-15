@@ -1,6 +1,12 @@
 import type {StoredAnalysis} from './analysis-contract';
+import type {SourceRecord} from './workbench-types';
 export type EvidenceDiagnostic={code:string;message:string;field?:string;documentId?:string;page?:number;action:'source'|'prepare'|'ocr'|'enrich'|'match'|'units'|'links';rule:string};
 const fields:Record<string,string>={financed_object:'l’objecte finançat',final_population:'les persones destinatàries',final_service:'el servei prestat'};
+export function sourceRecoveryDiagnostic(record:Pick<SourceRecord,'sourceDocuments'|'evidenceStatus'>):EvidenceDiagnostic|null{
+ const documents=record.sourceDocuments;
+ if(record.evidenceStatus==='ready'||!documents.length||!documents.every(d=>d.qualityFlags.includes('generic_portal')))return null;
+ return {code:'portal_without_document',documentId:documents[0].id,message:'Només s’ha recuperat la pàgina del portal de publicació; no s’ha obtingut la resolució o l’annex oficial. Cal recuperar el document abans d’analitzar-lo. Augmentar l’OCR no resol l’absència del fitxer.',action:'prepare',rule:'source_document_quality'};
+}
 export function analysisDiagnostics(analysis:Pick<StoredAnalysis,'classification'|'explanation'|'rule_audit'|'model_conclusion'>):EvidenceDiagnostic[]{
  const audit=analysis.rule_audit??{};
  const explicit=Array.isArray(audit.diagnostics)?audit.diagnostics.filter((d):d is EvidenceDiagnostic=>!!d&&typeof d==='object'&&typeof d.code==='string'&&typeof d.message==='string'&&typeof d.rule==='string'&&['source','prepare','ocr','enrich','match','units','links'].includes(d.action)):[];

@@ -94,3 +94,23 @@ export function programCoverage(text:string,rows:ProgramLine[]){
  const candidates=text.split('\n').filter(l=>/\b[SC]\d{5}\b/.test(l)&&/[\d.]+,\d{2}\s*€/.test(l)).length;
  return {candidateRows:candidates,extractedRows:rows.length,unresolvedRows:Math.max(0,candidates-rows.length),complete:candidates>0&&candidates===rows.length,missingAmounts:rows.filter(r=>r.amountCents===null).length};
 }
+
+/** Reconcile independent tables only when each printed total matches its own rows. */
+export function programDeclaredTotal(text:string,rows:ProgramLine[]):number|null{
+ const scoped=programDocumentScope(text);
+ const totals=[...scoped.matchAll(/\bTotal\s+(?:general\s+)?([\d.]+,\d{2})\s*€/gi)];
+ const sum=rows.reduce((n,r)=>n+(r.amountCents??0),0);
+ if(!rows.length||rows.some(r=>r.amountCents===null))return null;
+ const value=(match:RegExpMatchArray)=>Math.round(Number(match[1].replaceAll('.','').replace(',','.'))*100);
+ if(totals.some(match=>value(match)===sum))return sum;
+ if(totals.length<2)return null;
+ let offset=0,combined=0;const partitioned:ProgramLine[]=[];
+ for(const total of totals){
+  const section=scoped.slice(offset,total.index),part=extractProgramAnnex(section);
+  if(!part.length||!programCoverage(section,part).complete||part.some(r=>r.amountCents===null)||part.reduce((n,r)=>n+r.amountCents!,0)!==value(total))return null;
+  partitioned.push(...part);combined+=value(total);offset=total.index!+total[0].length;
+ }
+ const identity=(r:ProgramLine)=>[r.page,r.nif,r.resesCode,r.dispositionNumber,r.position,r.amountCents].join(':');
+ if(combined!==sum||partitioned.map(identity).sort().join('|')!==rows.map(identity).sort().join('|'))return null;
+ return combined;
+}

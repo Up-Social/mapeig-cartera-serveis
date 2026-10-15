@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {extractProgramAnnex,programCoverage} from '../lib/concerts/program-annex';
+import {extractProgramAnnex,programCoverage,programDeclaredTotal} from '../lib/concerts/program-annex';
 import {programServiceCode} from '../lib/concerts/program-service';
 import {analysisDiagnostics} from '../lib/evidence-diagnostics';
 import {normalizeCandidates} from '../lib/cloud/normalize-candidates';
@@ -20,6 +20,16 @@ function table(offset=0){
  const header=row(Object.fromEntries(headings.map(h=>[h,h])));
  return {row,header};
 }
+test('independent territorial totals reconcile only against their own complete tables',()=>{
+ const {row,header}=table();
+ const section=(page:number,code:string,amount:string)=>[`## Pàgina ${page}`,header,row({'NIF entitat':'G12345678','Nom entitat':'Entitat','Disposició':`260000000${page}`,'Codi S':code,'Import assignat':amount,'Cost anual':amount,'Cost anual amb IVA':amount}),`Total\ngeneral  ${amount}`].join('\n');
+ const first=section(1,'S01234','100,01 €'),second=section(2,'S01235','200,02 €');
+ const text=first+'\n'+second,rows=extractProgramAnnex(text);
+ assert.equal(programDeclaredTotal(text,rows),30003);
+ assert.equal(programDeclaredTotal(text.replace('general  100,01','general  200,02').replace(/general  200,02(?= €$)/,'general  100,01'),rows),null,'swapping totals must not reconcile by aggregate alone');
+ assert.equal(programDeclaredTotal(text+'\nTotal general 300,03 €',rows),30003);
+ assert.equal(programDeclaredTotal(text+'\n'+section(3,'S01236','1,00 €').split('Total')[0],extractProgramAnnex(text+'\n'+section(3,'S01236','1,00 €').split('Total')[0])),null,'unaccounted rows cannot disappear');
+});
 test('detected columns preserve wrapped names and allocate every cent using all tariff components',()=>{
  for(const offset of [0,9,37]){
   const {row,header}=table(offset);

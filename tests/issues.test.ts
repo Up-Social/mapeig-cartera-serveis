@@ -51,6 +51,14 @@ test('a terminal matching failure can retry only matching when its sources and a
   assert.equal(classifyIssue({...record,currentJobStatus:'error',evidenceStatus:'pending'})?.retryOperation,'process');
 });
 
+test('a portal without its official document is diagnosed before suggesting matching or OCR',()=>{
+ const portal:SourceRecord['sourceDocuments'][number]={id:'portal',url:'https://tauler.seu-e.cat/detall?idEdicte=1',documentType:'other',sourceFields:[],status:'fetched',mimeType:'text/html',textPreview:null,textLength:100,extractionMethod:'html',qualityScore:0,qualityFlags:['generic_portal'],chunkCount:0};
+ const missing={...record,currentJobStatus:'error',evidenceStatus:'pending' as const,sourceDocuments:[portal]};
+ const result=classifyIssue(missing);assert.equal(result?.retryOperation,'prepare');assert.match(result?.message??'',/no s’ha obtingut la resolució/);
+ assert.equal(classifyIssue({...missing,evidenceStatus:'ready'})?.retryOperation,'match');
+ assert.equal(classifyIssue({...missing,sourceDocuments:[portal,{...portal,id:'pdf',mimeType:'application/pdf',qualityFlags:[]}]})?.category,'matching_error');
+});
+
 test('paused workers expose an incident even when the job still says matching', () => {
   const paused={...record,currentJobStatus:'matching',status:'preparat' as const,matchingError:null,operationProgress:{state:'incident' as const,step:'matching' as const,completed:0,total:1,detail:'private provider response must not be used',startedAt:'2026-09-30',lastActivityAt:'2026-09-30',finishedAt:null,attempts:1,failureKind:'provider_unknown'}};
   const result=classifyIssue(paused);

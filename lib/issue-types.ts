@@ -1,4 +1,4 @@
-import {diagnosticSummary} from './evidence-diagnostics';
+import {diagnosticSummary,sourceRecoveryDiagnostic} from './evidence-diagnostics';
 import {recordDataStage} from './record-stage-copy';
 import type { FinancingType } from "./financing-types";
 import type { RecordOperation } from "./record-operation";
@@ -84,6 +84,8 @@ export function classifyIssue(record: SourceRecord): IssueRecord | null {
     );
   }
   if(record.currentJobStatus==='error'){
+    const sourceDiagnostic=sourceRecoveryDiagnostic(record);
+    if(sourceDiagnostic)return issue(record,'document_error','evidence',sourceDiagnostic.message,'prepare');
     if(record.evidenceStatus==='no_source')return issue(record,'no_source','evidence',record.evidenceError??'Sense font documental.','prepare');
     if(record.evidenceStatus==='unsupported')return issue(record,'unsupported','evidence',record.evidenceError??'Format no compatible.',isOcrEligible(record)?'ocr':'prepare');
     if(record.evidenceStatus==='error')return issue(record,'document_error','evidence',record.evidenceError??'Error documental.','prepare');
