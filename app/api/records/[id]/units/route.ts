@@ -1,3 +1,4 @@
+import {recoverConcertDisplayNames} from '@/lib/concerts/presentation';
 import {readPages} from '@/lib/read-pages';
 import {hasUnitSchema} from '@/lib/runtime-schema';
 import {createServerSupabase} from '@/lib/records-page';
@@ -8,14 +9,15 @@ export async function GET(_request:Request,{params}:{params:Promise<{id:string}>
  const {id}=await params;if(!isUuid(id))return Response.json({error:'Registre no vàlid'},{status:400});
  const db=createServerSupabase();
  try{
-  const [units,observations,reconciliations,corrections]=await Promise.all([
+  const [units,observations,reconciliations,corrections,documents]=await Promise.all([
    readPages((from,to)=>db.from('record_units').select('*').eq('source_record_id',id).neq('unit_key','legacy').order('created_at').order('id').range(from,to)),
    readPages((from,to)=>db.from('concert_line_observations').select('unit_id,proposed_value,applied').eq('source_record_id',id).order('created_at',{ascending:false}).order('id').range(from,to)),
    db.from('concert_annex_reconciliations').select('document_id,annex,row_count,sum_cents,declared_cents,reconciled').eq('source_record_id',id),
    db.from('current_documented_corrections').select('*').eq('source_record_id',id),
+   db.from('source_documents').select('id,extracted_text,quality_flags').eq('source_record_id',id).eq('status','fetched').eq('extraction_partial',false),
   ]);
-  if(reconciliations.error)throw reconciliations.error;if(corrections.error)throw corrections.error;
-  return Response.json({units:units.map(unit=>{const history=observations.filter(row=>row.unit_id===unit.id),latest=history[0],applied=history.find(row=>row.applied);return {...unit,effective_service_code:corrections.data.find(c=>c.valid&&c.unit_id===unit.id&&c.field==='service_code')?.value??unit.observed_service_code,effective_provider_name:corrections.data.find(c=>c.valid&&c.unit_id===unit.id&&c.field==='provider_name')?.value??unit.provider_name??unit.observed_provider_name,observed_establishment_code:applied?.proposed_value?.resesCode??null,observation:latest?{...applied?.proposed_value,pendingRevision:!latest.applied}:null};}),reconciliations:reconciliations.data});
+  if(reconciliations.error)throw reconciliations.error;if(corrections.error)throw corrections.error;if(documents.error)throw documents.error;
+  return Response.json({units:recoverConcertDisplayNames(units,documents.data.filter(d=>!d.quality_flags?.includes('corrupt_text'))).map(unit=>{const history=observations.filter(row=>row.unit_id===unit.id),latest=history[0],applied=history.find(row=>row.applied);return {...unit,effective_service_code:corrections.data.find(c=>c.valid&&c.unit_id===unit.id&&c.field==='service_code')?.value??unit.observed_service_code,effective_provider_name:corrections.data.find(c=>c.valid&&c.unit_id===unit.id&&c.field==='provider_name')?.value??unit.provider_name??unit.recovered_provider_name??unit.observed_provider_name,observed_establishment_code:applied?.proposed_value?.resesCode??null,observation:latest?{...applied?.proposed_value,pendingRevision:!latest.applied}:null};}),reconciliations:reconciliations.data});
  }catch{return Response.json({error:'No s’han pogut consultar les unitats i les revisions'},{status:500});}
 
 }

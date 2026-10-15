@@ -1,3 +1,4 @@
+import {recoverConcertDisplayNames} from './presentation';
 import type {SupabaseClient} from '@supabase/supabase-js';
 import type {ConcertEvolutionData,EconomicUnit,EconomicReview,EconomicLink,EconomicPublication} from './evolution';
 
@@ -25,10 +26,11 @@ export async function loadConcertEvolution(db:SupabaseClient,recordId?:string):P
   const result=await db.from('concert_economic_reviews').select('*').in('unit_id',selectedUnits.slice(offset,offset+100).map(u=>u.id));
   if(result.error)throw result.error;reviews.push(...result.data);
  }
+ const displayDocuments:Array<{id:string;extracted_text:string|null}>=[];
  const documentIds=[...new Set(selectedUnits.map(u=>u.document_id).filter((id):id is string=>!!id))];
  for(let offset=0;offset<documentIds.length;offset+=100){
-  const docs=await db.from('source_documents').select('id,extracted_text_hash,extraction_partial,status,quality_flags').in('id',documentIds.slice(offset,offset+100));
-  if(docs.error)throw docs.error;
+  const docs=await db.from('source_documents').select('id,extracted_text,extracted_text_hash,extraction_partial,status,quality_flags').in('id',documentIds.slice(offset,offset+100));
+  if(docs.error)throw docs.error;displayDocuments.push(...docs.data.filter(d=>d.status==='fetched'&&!d.extraction_partial&&!d.quality_flags?.includes('corrupt_text')));
   for(const doc of docs.data){if(doc.status==='fetched'&&!doc.extraction_partial&&doc.extracted_text_hash&&!doc.quality_flags?.includes('corrupt_text'))
    for(const unit of selectedUnits.filter(u=>u.document_id===doc.id))unit.document_identity=`text:${doc.extracted_text_hash}`;}
  }
@@ -45,5 +47,5 @@ export async function loadConcertEvolution(db:SupabaseClient,recordId?:string):P
   publications.push(...records.data.map(r=>({id:r.id,title:r.title,job_id:latest.get(r.id)?.id??null,job_status:latest.get(r.id)?.status??null,
    official_url:typeof r.source_payload?.record_url==='string'?r.source_payload.record_url:null})));
  }
- return {missingLines,units:selectedUnits,reviews,links:links.filter(l=>selected.has(l.later_unit_id)&&selected.has(l.earlier_unit_id)),publications};
+ return {missingLines,units:recoverConcertDisplayNames(selectedUnits,displayDocuments),reviews,links:links.filter(l=>selected.has(l.later_unit_id)&&selected.has(l.earlier_unit_id)),publications};
 }

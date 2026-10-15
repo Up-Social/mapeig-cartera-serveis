@@ -21,15 +21,34 @@ export function extractProgramAnnex(text:string):ProgramLine[]{
   const lines=page.split('\n');const h=lines.findIndex(l=>l.includes('NIF entitat')&&l.includes('Disposició')&&l.includes('Tipologia de servei'));
   if(h<0){identity=null;absolute+=page.length+(markdown?0:1);continue;}
   const header=lines[h];
+  // Some PDFs print the second header row several blank lines below the first.
+  // Read those labels too: otherwise the entity cell absorbs the GECAT reference.
+  const headerRows=lines.slice(Math.max(0,h-2),h+10).filter(l=>/GECAT/.test(l)&&/finalista/.test(l));
+
   const labels=['NIF entitat','Nom entitat','GECAT','Disposició','Posició','finalista','inici','fi','Import assignat','assignat DA','assignar DA','assignat','Partida pressupostària','jurídic','FUE','Codi S','Nom servei','Municipi','Tipologia de servei','IVA','mesos','servei','Places','Cost anual','Cost anual amb IVA'];
   const cols=labels.map(label=>({label,start:header.indexOf(label,label==='fi'?header.indexOf('inici')+5:label==='servei'?header.indexOf('Tipologia de servei')+19:0)})).filter((c,i,all)=>c.start>=0&&!all.some((other,j)=>j<i&&other.start>=0&&c.start>=other.start&&c.start<other.start+other.label.length)).sort((a,b)=>a.start-b.start);
+  for(const label of ['GECAT','finalista','inici','fi','jurídic','IVA']){
+   if(cols.some(c=>c.label===label))continue;
+   const row=headerRows.find(l=>l.includes(label));
+   if(row){const start=row.indexOf(label,label==='fi'?row.indexOf('inici')+5:0);if(start>=0)cols.push({label,start});}
+  }
+  // Headings may be centred over left-aligned cells. Use actual block starts,
+  // bounded around that heading, instead of cutting the first letters off.
+  for(const label of ['Nom entitat','GECAT','Nom servei','Municipi']){
+   const column=cols.find(c=>c.label===label);if(!column)continue;
+   const starts=lines.slice(h+1).filter(l=>!headerRows.includes(l)).flatMap(l=>
+    [...l.matchAll(/(?:^| {2,})(\S)/g)].map(m=>m.index!+m[0].length-1)
+     .filter(i=>i<=column.start&&i>=column.start-10));
+   if(starts.length)column.start=Math.min(...starts);
+  }
+  cols.sort((a,b)=>a.start-b.start);
   const serviceColumn=cols.find(c=>c.label==='Tipologia de servei');
   if(serviceColumn){
    const starts=lines.slice(h+1).flatMap(line=>[...line.matchAll(/(?:Servei|Suport|Llar|Centre|Residència)\b/g)].map(m=>m.index!).filter(i=>Math.abs(i-serviceColumn.start)<=12));
    if(starts.length)serviceColumn.start=Math.min(serviceColumn.start,...starts);
   }
   const cell=(line:string,label:string)=>{const i=cols.findIndex(c=>c.label===label);return i<0?'':line.slice(cols[i].start,cols[i+1]?.start).trim();};
-  const wrapped=(from:number,to:number,label:string)=>lines.slice(from,to+1).map(l=>cell(l,label)).filter(s=>s&&!/^(GENERALITAT|NIF entitat|Nom entitat|Tipologia)/.test(s)).join(' ').replace(/\s+/g,' ').trim()||null;
+  const wrapped=(from:number,to:number,label:string)=>lines.slice(from,to+1).filter(l=>!headerRows.includes(l)).map(l=>cell(l,label)).filter(s=>s&&!/^(GENERALITAT|NIF entitat|Nom entitat|Tipologia)/.test(s)).join(' ').replace(/\s+/g,' ').trim()||null;
   let previous=h;
   const carried=result.at(-1);
   if(carried?.observedServiceName?.endsWith('-')&&identity){

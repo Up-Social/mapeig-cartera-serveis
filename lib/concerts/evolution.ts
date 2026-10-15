@@ -1,6 +1,7 @@
+import {concertUnitName} from './display-name';
 import {projectConcertBalances,type ConcertFinancialLine} from './financial-ledger';
 export type EconomicUnit={
- document_identity?:string;
+ document_identity?:string;recovered_provider_name?:string|null;recovered_service_name?:string|null;
  id:string;source_record_id:string;unit_key:string;act_type:string;status:string;source_fingerprint:string;
  provider_name:string|null;observed_provider_name:string|null;provider_nif:string|null;reses_code:string|null;
  service_code:string|null;observed_service_code:string|null;territory:string|null;period:string|null;
@@ -21,7 +22,7 @@ export type EvolutionMovement={unitId:string;recordId:string;rootId:string|null;
 export type EvolutionBalance={rootId:string;rootIds:string[];providerNif:string|null;provider:string;service:string;territory:string;period:string;funder:string;amountCents:number|null;maximum:boolean;issues:string[]};
 export const ECONOMIC_RULES_VERSION='concert-economics-2024-v3';
 export const ECONOMIC_AMOUNT_LABELS={exact:'Import documental',maximum:'Màxim autoritzat · no és despesa real',unknown:'Import no acreditat'};
-const name=(unit:EconomicUnit)=>unit.provider_name??unit.observed_provider_name??'Entitat pendent de contrast';
+const name=concertUnitName;
 const excluded=(u:EconomicUnit)=>['out_of_scope','pre_2024_origin_unavailable'].includes(u.horizon_state??'');
 const iso=(s:string|null):s is string=>!!s&&/^\d{4}-\d{2}-\d{2}$/.test(s)&&!Number.isNaN(Date.parse(s))&&new Date(`${s}T00:00:00Z`).toISOString().slice(0,10)===s;
 /** Parse euros without binary multiplication or rounding away invalid precision. */
