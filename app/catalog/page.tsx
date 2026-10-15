@@ -1,3 +1,4 @@
+import { portfolioStatusLabel } from "@/lib/ui-labels";
 import { AutoFilterForm } from "@/components/auto-filter-form";
 import Link from "next/link";
 import { loadOfficialCatalog } from "@/lib/official-catalog";
@@ -15,7 +16,7 @@ export default async function CatalogPage({ searchParams }: PageProps<"/catalog"
   let total: number; let pageCount: number;
   if (master) {
     const result = await getMasterServicePage({ page, query });
-    rows = result.services.map(service => ({ id: service.id, code: service.serviceCode, name: service.serviceName, kind: service.portfolioStatus, description: service.sectorScope }));
+    rows = result.services.map(service => ({ id: service.id, code: service.serviceCode, name: service.serviceName, kind: portfolioStatusLabel(service.portfolioStatus), description: service.sectorScope }));
     total = result.total; pageCount = result.pageCount;
   } else {
     const catalog = await loadOfficialCatalog(createServerSupabase());

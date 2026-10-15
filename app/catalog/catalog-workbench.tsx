@@ -1,4 +1,5 @@
 "use client";
+import { MasterReferenceData } from "@/components/master-reference-data";
 
 import Link from "next/link";
 import { useRef } from "react";
@@ -148,10 +149,6 @@ function ServiceDetail({
         Selecciona uns altres filtres per veure serveis.
       </aside>
     );
-  const payload = Object.entries(service.sourcePayload).filter(
-    ([key, value]) =>
-      !key.startsWith("Fórmula ·") && value !== null && value !== "",
-  );
   return (
     <aside
       className={
@@ -219,25 +216,7 @@ function ServiceDetail({
         <EntityRelations title="Entitats confirmades" items={service.entityRelations.filter((item) => item.relationType === "confirmed")} empty="Cap provisió aprovada vinculada per NIF exacte." />
         <EntityRelations title="Compatibilitats RESES" items={service.entityRelations.filter((item) => item.relationType === "auxiliary")} empty="Cap compatibilitat auxiliar per tipologia exacta." />
       </section>
-      <section className="mt-5 rounded-xl border border-neutral-200 bg-neutral-50 p-4">
-        <h3 className="text-sm font-semibold">
-          Dades originals d&apos;auditoria
-        </h3>
-        <p className="mt-2 text-xs leading-5 text-neutral-500">
-          Metadades importades del catàleg. Les fórmules del llibre no es
-          mostren.
-        </p>
-        <dl className="mt-4 max-h-80 space-y-3 overflow-auto pr-2 text-xs">
-          {payload.map(([key, value]) => (
-            <div key={key}>
-              <dt className="font-semibold text-neutral-500">{key}</dt>
-              <dd className="mt-1 break-words leading-5 text-neutral-700">
-                {formatPayloadValue(value)}
-              </dd>
-            </div>
-          ))}
-        </dl>
-      </section>
+      <div className="mt-5"><MasterReferenceData payload={service.sourcePayload}/></div>
     </aside>
   );
 }
@@ -331,18 +310,6 @@ function statusLabel(status: string) {
 function formatConfidence(value: number | null) {
   if (value == null) return "No informada";
   return value <= 1 ? `${Math.round(value * 100)}%` : `${value}%`;
-}
-function formatPayloadValue(value: unknown) {
-  if (value === null || value === undefined || value === "")
-    return "No informat";
-  if (typeof value === "string") return value;
-  if (typeof value === "number" || typeof value === "boolean")
-    return String(value);
-  try {
-    return JSON.stringify(value);
-  } catch {
-    return String(value);
-  }
 }
 function formatMoney(value: number | null) {
   return value == null

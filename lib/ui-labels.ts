@@ -43,7 +43,9 @@ export function portfolioStatusLabel(status: string) {
   return labelFrom({
     Dentro: "Dins de la Cartera",
     "Fuera - candidato a entrar en Cartera": "Fora · candidat",
+    "Fuera - candidato a incorporar": "Fora · candidat a incorporar",
     "Fuera - no candidato a entrar en Cartera": "Fora · no candidat",
+    "Fuera - no candidato (mismo colectivo, vía subvención)": "Fora · no candidat (mateix col·lectiu, via subvenció)",
   }, status);
 }
 
