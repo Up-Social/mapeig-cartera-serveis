@@ -69,7 +69,7 @@ export async function getSourcePage(input: SourcePageFilters): Promise<SourceLis
       batchNumber:row.batch_number==null?null:String(row.batch_number).padStart(8,"0"),
       latestRunId:row.run_id,latestRunPurpose:row.latest_run_purpose,destination:row.destination,
       processingState:row.processing_state as "pending" | "in_progress" | "processed" | "error",
-      reviewState:row.review_state as "awaiting_review" | "reviewed" | "not_applicable",
+      reviewState:row.review_state as "awaiting_review" | "reviewed" | "reserved" | "not_applicable",
       executionCount:Number(row.execution_count),batchExecutionCount:Number(row.batch_execution_count),
       individualExecutionCount:Number(row.individual_execution_count),otherExecutionCount:Number(row.other_execution_count),
     })), total, page: input.page,
@@ -99,7 +99,9 @@ export async function getSourceRecord(id: string): Promise<SourceRecord | null> 
   ]);
   if(task.error)throw task.error;
   if(issueProjection.error)throw issueProjection.error;
-  return {...record,issueGroup:(issueProjection.data?.issue_group as SourceRecord['issueGroup'])??null,operationProgress:recordOperationProgress(task.data as ProgressTask|null)};
+  const [corrections,reservation,resolutionHistory]=await Promise.all([db.from('current_documented_corrections').select('*').eq('source_record_id',id),db.from('current_record_reservations').select('*').eq('source_record_id',id).maybeSingle(),db.from('record_reservation_events').select('*').eq('source_record_id',id).order('created_at',{ascending:false})]);
+  if(corrections.error)throw corrections.error;if(reservation.error)throw reservation.error;if(resolutionHistory.error)throw resolutionHistory.error;
+  return {...record,resolutionHistory:resolutionHistory.data,corrections:corrections.data,reservation:reservation.data,recoveryModel:process.env.OPENAI_MATCHING_MODEL??null,issueGroup:(issueProjection.data?.issue_group as SourceRecord['issueGroup'])??null,operationProgress:recordOperationProgress(task.data as ProgressTask|null)};
 }
 
 export function mapRecord(row: Record<string, unknown>): SourceRecord {
@@ -133,7 +135,7 @@ export function mapRecord(row: Record<string, unknown>): SourceRecord {
       const item = document as Record<string, unknown>;
       const defects=textDefects(String(item.extracted_text ?? item.text_preview ?? ""));
       return {
-        id: String(item.id), url: String(item.url), documentType: String(item.document_type),
+        revision:`${item.storage_sha256??''}:${item.active_extraction_id??''}`,id: String(item.id), url: String(item.url), documentType: String(item.document_type),
         archived: Boolean(item.storage_path),
         resolution: item.resolution as SourceRecord['sourceDocuments'][number]['resolution'],
         sourceFields: Array.isArray(item.source_fields) ? item.source_fields.map(String) : [],
@@ -187,7 +189,7 @@ export function mapLatestCandidates(value: unknown): SourceRecord["matchingCandi
   }).sort((a, b) => a.rank - b.rank);
 }
 
-export const RECORD_SELECT = "*,source_documents(id,url,resolution,document_type,source_fields,status,mime_type,storage_path,extracted_text,text_preview,text_length,extraction_method,quality_score,quality_flags,chunk_count),record_enrichments(extracted_title,provider_name,provider_nif,mechanism,award_date,amount,contracting_body,target_population,summary,confidence,engine_version,record_enrichment_evidence(evidence_chunks(ordinal,content))),review_decisions(id,pipeline_job_id,classification,reasons,decision,reason,created_at),pipeline_jobs(id,run_id,status,error_message,created_at,analysis_results(*),pipeline_runs(batch_number,parameters),matching_candidates(id,pipeline_job_id,catalog_version_id,rank,target_code,target_name,score,rationale,engine_version,matching_candidate_evidence(explanation,evidence_chunks(ordinal,content))))";
+export const RECORD_SELECT = "*,source_documents(id,url,resolution,document_type,source_fields,status,mime_type,storage_path,storage_sha256,active_extraction_id,extracted_text,text_preview,text_length,extraction_method,quality_score,quality_flags,chunk_count),record_enrichments(extracted_title,provider_name,provider_nif,mechanism,award_date,amount,contracting_body,target_population,summary,confidence,engine_version,record_enrichment_evidence(evidence_chunks(ordinal,content))),review_decisions(id,pipeline_job_id,classification,reasons,decision,reason,created_at),pipeline_jobs(id,run_id,status,error_message,created_at,analysis_results(*),pipeline_runs(batch_number,parameters),matching_candidates(id,pipeline_job_id,catalog_version_id,rank,target_code,target_name,score,rationale,engine_version,matching_candidate_evidence(explanation,evidence_chunks(ordinal,content))))";
 
 function mapLatestRun(value: unknown) {
   if (!Array.isArray(value) || !value.length) return null;

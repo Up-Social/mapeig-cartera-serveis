@@ -7,7 +7,7 @@ export async function getNavigationCounts():Promise<NavigationCounts>{
   db.rpc('navigation_counts'),
   db.from('source_records').select('id',{count:'exact',head:true}),
   db.from('pipeline_runs').select('id',{count:'exact',head:true}).or('parameters->>purpose.is.null,parameters->>purpose.neq.record_operation'),
-  db.from('current_record_results').select('id',{count:'exact',head:true}).eq('destination','outside'),
+  db.from('current_record_results').select('id',{count:'exact',head:true}).in('destination',['outside','reserved']),
  ]);
  for(const result of [navigation,records,batches,outside])if(result.error)throw result.error;
  const counts=(navigation.data??{}) as {review?:number;issues?:number;approved?:number;discarded?:number};

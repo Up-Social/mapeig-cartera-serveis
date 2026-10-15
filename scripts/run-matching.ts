@@ -4,7 +4,7 @@ import {classifyFailure,retryTransient} from '../lib/provider-failure';
 import {journaledProviderRequest} from '../lib/provider-journal';
 import {applyPositiveAudit,positiveAuditSchema,positiveAuditInput,POSITIVE_AUDIT_INSTRUCTIONS,POSITIVE_AUDIT_VERSION} from '../lib/cloud/positive-audit';
 import {buildNormativeInput,MATCHING_INSTRUCTIONS,scopeFactsSchema,validateScopeFacts,type ScopeFacts} from '../lib/normative-matching';
-import {analysisSchema,validateAnalysis,type AnalysisOutput} from '../lib/analysis-contract';
+import {applyFinancingClassification,analysisSchema,validateAnalysis,type AnalysisOutput} from '../lib/analysis-contract';
 import {applyScopeRules,ROLE_INSTRUCTIONS,type RoleAccreditations} from '../lib/scope-rules';
 import {loadOfficialCatalog,assertEligible} from '../lib/official-catalog';
 import {addNamedCandidates,bindExplicitCodeCandidates,findExplicitServiceEvidence} from '../lib/named-candidate';
@@ -58,7 +58,7 @@ async function processJob(job: { id: string; run_id: string; source_record_id: s
     if(lineage.error)throw lineage.error;
     await assertNotPreviouslySelected(job.source_record_id, job.id, allowPreviousSelection||Boolean(lineage.data.previous_job_id));
     const [{ data: record, error: recordError }, official] = await Promise.all([
-      supabase.from("source_records").select("id,source_dataset,source_record_id,mechanism,title,provider_name,amount,source_payload,record_enrichments(id,summary,provider_name,provider_nif,mechanism,award_date,amount,contracting_body,target_population,scope_facts),source_documents!inner(id,status,text_length,extraction_method,quality_flags)").eq("id", job.source_record_id).eq("source_documents.status", "fetched").single(),
+      supabase.from("source_records").select("id,financing_type,source_dataset,source_record_id,mechanism,title,provider_name,amount,source_payload,record_enrichments(id,summary,provider_name,provider_nif,mechanism,award_date,amount,contracting_body,target_population,scope_facts),source_documents!inner(id,status,text_length,extraction_method,quality_flags)").eq("id", job.source_record_id).eq("source_documents.status", "fetched").single(),
       loadOfficialCatalog(supabase),
     ]);
     if (recordError) throw recordError;
@@ -87,10 +87,11 @@ async function processJob(job: { id: string; run_id: string; source_record_id: s
         model,
         instructions: existingEnrichment ? matchingInstructions() : `${ROLE_INSTRUCTIONS} Primer extreu camps estructurats exclusivament dels fragments oficials; usa null si no hi consten. ${matchingInstructions()}`,
         input: buildNormativeInput({ ...record, verified_enrichment: existingEnrichment }, promptServices, official.all, official.version.general_context, chunks),
-        text: { format: { type: "json_schema", name: "matching_candidates", strict: true, schema: existingEnrichment ? candidatesOnlySchema(eligibleCodes) : combinedSchema(eligibleCodes) } },
+        text: { format: { type: "json_schema", name: "matching_candidates", strict: true, schema: existingEnrichment ? candidatesOnlySchema(eligibleCodes,record.financing_type) : combinedSchema(eligibleCodes,record.financing_type) } },
         max_output_tokens: 4000,
       }));
-    const providerResult=JSON.parse(extractOutputText(raw)) as AnalysisOutput & { enrichment?: EnrichmentOutput };
+    const received=JSON.parse(extractOutputText(raw)) as AnalysisOutput & { enrichment?: EnrichmentOutput };
+    const providerResult=applyFinancingClassification(received,record.financing_type);
     const parsed = bindExplicitCodeCandidates(addNamedCandidates(normalizeMissingScope(normalizeCandidates(providerResult,official.all,chunks.length)) as AnalysisOutput & { enrichment?: EnrichmentOutput },catalog,chunks),catalog,chunks);
     
     for (const candidate of parsed.candidates) assertEligible(candidate.code,official.all);
@@ -114,7 +115,7 @@ async function processJob(job: { id: string; run_id: string; source_record_id: s
     if(exactOfficialEvidence&&financedObject?.state==='known'&&financedObject.kind==='service_financing'){
       accreditations.financed_object={kind:'service_financing',evidence_ordinals:exactOrdinals,basis:'official_service_code_and_description'};
     }
-    const scoped=applyScopeRules(validated,enrichment?.scope_facts?.roles,chunks,accreditations);
+    const scoped=applyFinancingClassification({...applyScopeRules(validated,enrichment?.scope_facts?.roles,chunks,accreditations),...(record.financing_type==='concert'&&received.classification==='out_of_portfolio'?{classification:'out_of_portfolio' as const}:{})},record.financing_type);
     const analysis={...scoped,rule_audit:{...scoped.rule_audit,evidence_policy:{version:EVIDENCE_POLICY_VERSION,rejected:rejectedEvidence}},model_conclusion:providerResult};
     validateAnalysis(analysis,official.all,chunks.length);
     const candidates = analysis.candidates;
@@ -181,8 +182,8 @@ async function assertNotPreviouslySelected(sourceRecordId: string, currentJobId:
 }
 
 function candidatesSchema(eligibleCodes:string[]) { return { type: "array", maxItems: 3, items: { type: "object", additionalProperties: false, required: ["code","score","rationale","evidence_ordinals","evidence_explanation","population_compatible","legal_reference"], properties: { population_compatible: {type:"boolean"}, legal_reference:{type:"string"}, code: { type: "string", enum:eligibleCodes }, score: { type: "number", minimum: 0, maximum: 1 }, rationale: { type: "string", minLength: 60, maxLength: 1200 }, evidence_ordinals: { type: "array", items: { type: "integer", minimum: 1 } }, evidence_explanation: { type: "string", minLength: 20, maxLength: 450 } } } }; }
-function candidatesOnlySchema(eligibleCodes:string[]) { return { type: "object", additionalProperties: false, required: Object.keys(analysisSchema(candidatesSchema(eligibleCodes))), properties: analysisSchema(candidatesSchema(eligibleCodes)) }; }
-function combinedSchema(eligibleCodes:string[]) { return { type: "object", additionalProperties: false, required: ["enrichment",...Object.keys(analysisSchema(candidatesSchema(eligibleCodes)))], properties: { enrichment: { type: "object", additionalProperties: false, required: ["scope_facts","title","provider_name","provider_nif","mechanism","award_date","amount","contracting_body","target_population","summary","confidence","evidence_ordinals"], properties: { scope_facts:scopeFactsSchema, title: nullableString(), provider_name: nullableString(), provider_nif: nullableString(), mechanism: nullableString(), award_date: nullableString(), amount: { anyOf: [{ type: "number" }, { type: "null" }] }, contracting_body: nullableString(), target_population: nullableString(), summary: { type: "string" }, confidence: { type: "number", minimum: 0, maximum: 1 }, evidence_ordinals: { type: "array", items: { type: "integer", minimum: 1 } } }, }, ...analysisSchema(candidatesSchema(eligibleCodes)) } }; }
+function candidatesOnlySchema(eligibleCodes:string[],financingType?:string) { return { type: "object", additionalProperties: false, required: Object.keys(analysisSchema(candidatesSchema(eligibleCodes),financingType)), properties: analysisSchema(candidatesSchema(eligibleCodes),financingType) }; }
+function combinedSchema(eligibleCodes:string[],financingType?:string) { return { type: "object", additionalProperties: false, required: ["enrichment",...Object.keys(analysisSchema(candidatesSchema(eligibleCodes),financingType))], properties: { enrichment: { type: "object", additionalProperties: false, required: ["scope_facts","title","provider_name","provider_nif","mechanism","award_date","amount","contracting_body","target_population","summary","confidence","evidence_ordinals"], properties: { scope_facts:scopeFactsSchema, title: nullableString(), provider_name: nullableString(), provider_nif: nullableString(), mechanism: nullableString(), award_date: nullableString(), amount: { anyOf: [{ type: "number" }, { type: "null" }] }, contracting_body: nullableString(), target_population: nullableString(), summary: { type: "string" }, confidence: { type: "number", minimum: 0, maximum: 1 }, evidence_ordinals: { type: "array", items: { type: "integer", minimum: 1 } } }, }, ...analysisSchema(candidatesSchema(eligibleCodes),financingType) } }; }
 
 function extractOutputText(response: Record<string, unknown>) {
   if (typeof response.output_text === "string") return response.output_text;

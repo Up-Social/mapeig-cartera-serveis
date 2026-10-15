@@ -16,6 +16,10 @@ export type RecordOperationProgress = {
 };
 
 export type SourceRecord = {
+  corrections?:import('./human-resolution').DocumentedCorrection[];
+  reservation?:import('./human-resolution').Reservation|null;
+  resolutionHistory?:import('./human-resolution').Reservation[];
+  recoveryModel?:string|null;
   currentJobId?: string | null;
   currentJobStatus?: string | null;
   issueGroup?: "insufficient" | "source" | "technical" | null;
@@ -58,6 +62,7 @@ export type MatchingCandidate = {
   serviceDetail: { sectorScope: string | null; portfolioStatus: string | null } | null;
 };
 export type SourceDocument = {
+  revision?:string;
   resolution?: import('./pipeline/official-resolution').Resolution;
   id: string; url: string; documentType: string; sourceFields: string[];
   archived?: boolean;
@@ -71,7 +76,7 @@ export type SourcePage = {
 };
 export type SourceListRow = Pick<SourceRecord, "id" | "title" | "sourceDataset" | "sourceRecordId" | "providerName" | "financingType" | "batchNumber"> & {
   processingState: "pending" | "in_progress" | "processed" | "error";
-  reviewState: "awaiting_review" | "reviewed" | "not_applicable";
+  reviewState: "awaiting_review" | "reviewed" | "reserved" | "not_applicable";
   destination: string;
   executionCount: number;
   batchExecutionCount: number;

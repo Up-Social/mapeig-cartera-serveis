@@ -1,6 +1,6 @@
 import type {StoredAnalysis} from './analysis-contract';
 import type {SourceRecord} from './workbench-types';
-export type EvidenceDiagnostic={code:string;message:string;field?:string;documentId?:string;page?:number;action:'source'|'prepare'|'ocr'|'enrich'|'match'|'units'|'links';rule:string};
+export type EvidenceDiagnostic={code:string;message:string;field?:string;unitId?:string;documentId?:string;page?:number;action:'source'|'prepare'|'ocr'|'enrich'|'match'|'units'|'links';rule:string};
 const fields:Record<string,string>={financed_object:'l’objecte finançat',final_population:'les persones destinatàries',final_service:'el servei prestat'};
 export function sourceRecoveryDiagnostic(record:Pick<SourceRecord,'sourceDocuments'|'evidenceStatus'>):EvidenceDiagnostic|null{
  const documents=record.sourceDocuments;

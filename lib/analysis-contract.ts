@@ -5,7 +5,7 @@ export const DISCARD_REASONS=['not_social_service','incompatible_population','in
 export const CLASSIFICATION_LABELS:Record<Classification,string>={in_portfolio:'En cartera',out_of_portfolio:'Fora de cartera',discarded:'Descartat',insufficient_evidence:'Evidència insuficient'};
 export type AnalysisOutput={classification:Classification;reasons:string[];explanation:string;service_description:string;target_population:string; evidence_ordinals:number[];population_verified:boolean;social_service_verified:boolean;candidates:CandidateOutput[]};
 export type CandidateOutput={code:string;score:number;rationale:string;evidence_ordinals:number[];evidence_explanation:string;population_compatible:boolean;legal_reference:string};
-export function analysisSchema(candidateSchema:Record<string,unknown>){return {classification:{type:'string',enum:CLASSIFICATIONS},reasons:{type:'array',items:{type:'string',enum:DISCARD_REASONS}},explanation:{type:'string',minLength:20},service_description:{type:'string'},target_population:{type:'string'},evidence_ordinals:{type:'array',items:{type:'integer',minimum:1}},population_verified:{type:'boolean'},social_service_verified:{type:'boolean'},candidates:candidateSchema};}
+export function analysisSchema(candidateSchema:Record<string,unknown>,financingType?:string){return {classification:{type:'string',enum:financingType==='concert'?CLASSIFICATIONS.filter(value=>value!=='out_of_portfolio'):CLASSIFICATIONS},reasons:{type:'array',items:{type:'string',enum:DISCARD_REASONS}},explanation:{type:'string',minLength:20},service_description:{type:'string'},target_population:{type:'string'},evidence_ordinals:{type:'array',items:{type:'integer',minimum:1}},population_verified:{type:'boolean'},social_service_verified:{type:'boolean'},candidates:candidateSchema};}
 export function validateAnalysis(value:AnalysisOutput,all:OfficialService[],chunkCount:number,complete=true,allowDocumentedConcertCode=false):AnalysisOutput {
  if(!CLASSIFICATIONS.includes(value.classification)||typeof value.explanation!=='string'||value.explanation.trim().length<20)throw Error('Resposta de classificació invàlida');
  if(!Array.isArray(value.candidates)||value.candidates.length>(allowDocumentedConcertCode?1000:3)||!Array.isArray(value.reasons)||value.reasons.some(r=>!DISCARD_REASONS.includes(r as typeof DISCARD_REASONS[number])))throw Error('Contracte de classificació invàlid');
@@ -25,3 +25,11 @@ export function validateAnalysis(value:AnalysisOutput,all:OfficialService[],chun
  return {...value,candidates:sorted.filter((c,i)=>sorted.findIndex(x=>x.code===c.code)===i)};
 }
 export type StoredAnalysis={rule_audit?:Record<string,unknown>;model_conclusion?:Partial<AnalysisOutput>|null;created_at?:string;id:string;classification:Classification;reasons:string[];explanation:string;service_description:string;target_population:string;catalog_version_id:string;rules_version:string;reviewed_classification:Classification|null;review_notes:string|null;evidence:Array<{content:string;url?:string}>;reliability_status?:'valid'|'invalidated';reliability_reasons?:string[];invalidated_at?:string|null};
+
+/** Historic/replayed incompatible responses stay pending; never infer approval or discard. */
+export function applyFinancingClassification<T extends AnalysisOutput & {rule_audit?:Record<string,unknown>}>(value:T,financingType:string):T {
+ if(financingType!=='concert'||value.classification!=='out_of_portfolio')return value;
+ return {...value,classification:'insufficient_evidence',reasons:[],candidates:[],
+  explanation:'La resposta proposava «Fora de cartera», una categoria no vàlida per a concerts. Cal revisar l’acte i acreditar el servei o el motiu de descart.',
+  rule_audit:{...value.rule_audit,original_classification:value.classification,diagnostics:[{code:'concert_outside_not_allowed',message:'La classificació anterior no és vàlida per a concerts. Revisa la resolució; no s’ha aprovat ni descartat automàticament.',action:'match',rule:'concert_classification_policy'}]}};
+}

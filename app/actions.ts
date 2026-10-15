@@ -5,6 +5,7 @@ import {getAutomaticOcrEnabled} from "@/lib/admin-settings";
 import { revalidatePath } from "next/cache";
 import { createServerSupabase } from "@/lib/records-page";
 import {startRecordOperation} from "@/lib/start-record-operation";
+import {isReviewOutcomeAllowed} from '@/lib/review-contract';
 import { requireUuid } from "@/lib/uuid";
 
 export async function createProcessingBatch(recordIds: string[]) {
@@ -67,7 +68,11 @@ export async function reviewMatching(input: {
   outcome: "select" | "reject" | "insufficient" | "outside";
   notes?: string;
 }) {
-  const {error}=await createServerSupabase().rpc('review_analysis',{p_record:input.sourceRecordId,p_outcome:input.outcome,p_expected_job:input.expectedJobId,p_reasons:input.reasons,p_candidate:input.candidateId??null,p_code:input.serviceCode??null,p_notes:input.notes?.trim().slice(0,1000)??null});
+  const db=createServerSupabase();
+  const record=await db.from('source_records').select('financing_type').eq('id',input.sourceRecordId).single();
+  if(record.error)throw record.error;
+  if(!isReviewOutcomeAllowed(record.data.financing_type,input.outcome))throw new Error('Fora de cartera no és una decisió vàlida per a concerts.');
+  const {error}=await db.rpc('review_analysis',{p_record:input.sourceRecordId,p_outcome:input.outcome,p_expected_job:input.expectedJobId,p_reasons:input.reasons,p_candidate:input.candidateId??null,p_code:input.serviceCode??null,p_notes:input.notes?.trim().slice(0,1000)??null});
   if(error)throw error;
 
   revalidatePath("/");

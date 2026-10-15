@@ -7,3 +7,12 @@ export function reviewValidation(outcome:ReviewOutcome,notes:string,reasons:stri
  if(outcome==='reject'&&(!reasons.length||reasons.some(r=>!DISCARD_REASONS.includes(r as typeof DISCARD_REASONS[number]))))return 'Selecciona almenys un motiu de descart.';
  return null;
 }
+
+/** Shared policy: only concerts exclude the outside-portfolio decision. */
+export function reviewOptions(financingType:string) {
+ return (Object.keys(REVIEW_LABELS) as ReviewOutcome[]).filter(value=>financingType!=='concert'||value!=='outside')
+  .map(value=>({value,label:financingType==='concert'?({select:'Aprovar concert',reject:'Descartar concert',insufficient:'Pendent de completar · Evidència insuficient'} as Partial<Record<ReviewOutcome,string>>)[value]??REVIEW_LABELS[value]:REVIEW_LABELS[value]}));
+}
+export function isReviewOutcomeAllowed(financingType:string,outcome:string) {
+ return reviewOptions(financingType).some(option=>option.value===outcome);
+}

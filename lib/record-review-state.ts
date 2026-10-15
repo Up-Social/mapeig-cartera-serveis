@@ -1,3 +1,4 @@
+import {currentReservation} from './human-resolution';
 import type { SourceRecord } from './workbench-types';
 
 export function canReviewRecord(record: SourceRecord) {
@@ -9,6 +10,7 @@ export function canReviewRecord(record: SourceRecord) {
 
 export function recordReviewLabel(record: SourceRecord) {
   if (record.isHistorical) return 'Execució històrica · només lectura';
+  if (currentReservation(record)) return 'Acceptat amb reserves · fora dels totals definitius';
   if (record.reviewDecision) return 'Decisió humana registrada';
   if (record.analysis?.reliability_status === 'invalidated') return 'Resultat no fiable pendent de reanàlisi';
   if (canReviewRecord(record)) return 'Pendent de decisió humana';

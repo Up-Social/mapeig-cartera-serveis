@@ -30,6 +30,7 @@ const processingLabels = {
   error: "Error de procés",
 } as const;
 const outcomeLabels: Record<string,string> = {
+  reserved:"Acceptat amb reserves · no definitiu",
   approved:"Aprovat",discarded:"Descartat",outside:"Fora de cartera",
   issues:"Incidència",review:"Resultat per revisar",
 };
@@ -122,7 +123,7 @@ export function ProcessingWorkbench({
               <select name="review" aria-label="Filtrar per revisió" defaultValue={filters.review} className="form-control" onChange={() => filterFormRef.current?.requestSubmit()}>
                 <option value="all">Totes les revisions</option>
                 <option value="awaiting_review">Pendents de revisió</option>
-                <option value="reviewed">Revisats</option>
+                <option value="reviewed">Revisats</option><option value="reserved">Acceptats amb reserves</option>
               </select>
             </form>
             <p className="border-b border-neutral-200 px-4 py-2 text-xs text-neutral-600">Pendent de processar = cap execució registrada. Processat = l’última execució ha acabat; la revisió humana es mostra a part. Les execucions compten intents, incloses les reanàlisis.</p>
@@ -131,7 +132,7 @@ export function ProcessingWorkbench({
                 <td data-label="Cas i font"><Link href={href} className="font-semibold underline underline-offset-2">{record.title}</Link><p className="mt-1 break-words text-xs text-muted-foreground">{record.sourceRecordId} · {SOURCE_LABELS[record.sourceDataset] ?? record.sourceDataset}</p></td>
                 <td data-label="Entitat">{record.providerName ?? "No informada"}</td><td data-label="Tipologia">{FINANCING_TYPE_LABELS[record.financingType]}</td>
                 <td data-label="Processament"><span title="Indica si aquest registre té execucions i si l’última ha acabat o ha fallat." className={`table-status ${record.processingState === "error" ? "status-error" : record.processingState === "processed" ? "status-success" : record.processingState === "in_progress" ? "status-warning" : "status-neutral"}`}>{processingLabels[record.processingState]}</span>{outcomeLabels[record.destination] && <p className="mt-1 text-xs text-neutral-600">{record.processingState === "pending" && record.destination === "issues" ? "Incidència de font" : outcomeLabels[record.destination]}</p>}</td>
-                <td data-label="Revisió"><span title="La revisió humana és independent del processament automàtic." className={`table-status ${record.reviewState === "reviewed" ? "status-success" : record.reviewState === "awaiting_review" ? "status-warning" : "status-neutral"}`}>{record.reviewState === "reviewed" ? "Revisat" : record.reviewState === "awaiting_review" ? "Pendent de revisió" : record.processingState === "processed" ? "Sense revisió" : "Encara no"}</span></td>
+                <td data-label="Revisió"><span title="La revisió humana és independent del processament automàtic." className={`table-status ${record.reviewState === "reviewed" ? "status-success" : record.reviewState === "awaiting_review" ? "status-warning" : "status-neutral"}`}>{record.reviewState === "reserved" ? "Acceptat amb reserves" : record.reviewState === "reviewed" ? "Revisat" : record.reviewState === "awaiting_review" ? "Pendent de revisió" : record.processingState === "processed" ? "Sense revisió" : "Encara no"}</span></td>
                 <td data-label="Execucions"><strong>{record.executionCount}</strong> {record.executionCount === 1 ? "execució" : "execucions"}<p className="mt-1 text-xs text-neutral-600">{record.batchExecutionCount} en lot · {record.individualExecutionCount} {record.individualExecutionCount === 1 ? "individual" : "individuals"}{record.otherExecutionCount ? ` · ${record.otherExecutionCount} altres` : ""}</p>{record.latestRunId && <Link href={`/batches/${record.latestRunId}`} className="mt-1 inline-block text-xs underline underline-offset-2">Última #{record.batchNumber}</Link>}</td><td data-label="Acció"><TableActionLink href={href} label={`Obrir el cas ${record.title}`}/></td>
               </tr>; })}
             </WorkTable>

@@ -4,6 +4,7 @@ export type CurrentFilters={page:number;query?:string;type?:string;reason?:strin
 export async function getCurrentResults(filters:CurrentFilters,limit=25){
  let request=createServerSupabase().from('current_record_results').select('*',{count:'exact'});
  if(filters.destination)request=request.eq('destination',filters.destination);
+ if(filters.classification==='out_of_portfolio')request=request.neq('financing_type','concert');
  if(filters.classification)request=request.eq('classification',filters.classification);
  if(filters.type&&filters.type!=='totes')request=request.eq('financing_type',filters.type);
  if(filters.reason)request=request.contains('reasons',[filters.reason]);

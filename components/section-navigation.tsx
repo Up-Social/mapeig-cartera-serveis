@@ -40,6 +40,7 @@ export function SectionNavigation({
 
 export const RESULT_SECTIONS = [
   { href: "/approved", label: "Aprovats" },
+  { href: "/reserved", label: "Amb reserves" },
   { href: "/discarded", label: "Descartats" },
   { href: "/analysis", label: "Fora de cartera" },
 ] as const;

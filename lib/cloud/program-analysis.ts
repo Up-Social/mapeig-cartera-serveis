@@ -1,10 +1,11 @@
+import {effectiveUnitCode} from '../human-resolution';
 import {readPages} from '../read-pages';
 import type {AnalysisOutput} from '../analysis-contract';
 import type {OfficialService} from '../official-catalog';
 import type {Context} from './context';
 import {CloudFailure} from './errors';
 
-export async function programAnalysis(c:Context,recordId:string,catalog:OfficialService[],chunks:Array<{content:string;source_document_id:string}>){
+export async function programAnalysis(c:Pick<Context,'db'>,recordId:string,catalog:OfficialService[],chunks:Array<{content:string;source_document_id:string}>){
  const report=await c.db.from('concert_annex_reconciliations').select('*').eq('source_record_id',recordId).eq('extraction_version','program-columns-v2');
  if(report.error)throw new CloudFailure('internal');
  if(!report.data.length)return null;
@@ -14,9 +15,12 @@ export async function programAnalysis(c:Context,recordId:string,catalog:Official
   if(!r.coverage?.complete)diagnostics.push({code:'incomplete_annex',message:`Annex parcial: ${r.coverage?.extractedRows??r.row_count} línies llegides de ${r.coverage?.candidateRows??'nombre desconegut'}.`,documentId:r.document_id,action:'enrich',rule:'annex_coverage'});
   if(!r.reconciled)diagnostics.push({code:'unreconciled_amount',message:'La suma de les línies encara no està conciliada amb el total documental, o hi ha canvis pendents sobre línies revisades.',documentId:r.document_id,action:'units',rule:'annex_reconciliation'});
  }
+ const corrected=await c.db.from('current_documented_corrections').select('*').eq('source_record_id',recordId);
+ if(corrected.error)throw new CloudFailure('internal');
+ for(const correction of corrected.data.filter(row=>!row.valid))diagnostics.push({code:'correction_source_changed',message:'La font d’una correcció humana ha canviat. Cal revisar-la de nou.',unitId:correction.unit_id,documentId:correction.document_id,page:correction.page,action:'units',rule:'human_source_version'});
  const groups=new Map<string,{service:OfficialService;ordinals:Set<number>;units:string[]}>();
  for(const line of lines.data){
-  const service=catalog.find(s=>s.service_code===line.observed_service_code&&s.benefit_type==='service');
+  const service=catalog.find(s=>s.service_code===effectiveUnitCode(line,corrected.data)&&s.benefit_type==='service');
   const code=line.reses_code??line.unit_key.match(/:([SC]\d{5}):\d+$/)?.[1];
   const ordinals=chunks.flatMap((chunk,index)=>chunk.source_document_id===line.document_id&&code&&chunk.content.includes(code)?[index+1]:[]);
   if(!service||!ordinals.length||!line.storage_path){diagnostics.push({code:'unresolved_line',message:`Línia ${code??line.id}: ${!service?'la tipologia impresa no identifica un codi acreditat':!line.storage_path?'falta la còpia arxivada':'falta el fragment documental de la línia'}.`,documentId:line.document_id,page:line.page,unitId:line.id,action:'units',rule:'line_evidence'});continue;}

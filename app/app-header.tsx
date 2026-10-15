@@ -15,7 +15,7 @@ const links = [
   { href: "/batches", label: "Lots", icon: Layers3, count: "batches", active: ["/batches"] },
   { href: "/review", label: "Revisió", icon: CheckSquare, count: "review", active: ["/review"] },
   { href: "/issues", label: "Incidències", icon: TriangleAlert, count: "issues", active: ["/issues"] },
-  { href: "/approved", label: "Resultats", icon: FileCheck2, count: "results", active: ["/approved", "/discarded", "/analysis"] },
+  { href: "/approved", label: "Resultats", icon: FileCheck2, count: "results", active: ["/reserved", "/approved", "/discarded", "/analysis"] },
   { href: "/catalog", label: "Referència", icon: BookOpen, active: ["/catalog", "/entities"] },
 ] as const;
 

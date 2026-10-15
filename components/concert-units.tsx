@@ -1,4 +1,6 @@
 "use client";
+import {DocumentedCorrectionForm} from './human-resolution';
+import {currentReservation} from '@/lib/human-resolution';
 import {DocumentViewer} from './document-viewer';
 import {useEffect,useMemo,useState} from 'react';
 import type {SourceRecord} from '@/lib/workbench-types';
@@ -7,7 +9,7 @@ import {concertCaseKeys,type ConcertCaseKey} from '@/lib/concerts/case-labels';
 import {ConcertCaseBadge} from './concert-case-badge';
 import {ConcertEconomics} from './concert-economics';
 
-type Unit={observation?:{amountBasis?:string;annualCostCents?:number;dispositionNumber?:string;position?:string;pendingRevision?:boolean};id:string;pipeline_job_id:string|null;provider_name:string|null;observed_provider_name:string|null;provider_nif:string|null;centre:string|null;period:string|null;service_code:string|null;observed_service_code:string|null;observed_service_name:string|null;reses_code:string|null;observed_establishment_code?:string|null;territory:string|null;municipality:string|null;effective_start:string|null;effective_end:string|null;quantity:number|null;quantity_delta:number|null;amount:number|null;status:string;evidence_quote:string|null;review_note:string|null;page:number|null;act_type:string;storage_path:string|null;extraction_origin:string|null;horizon_state:string|null};
+type Unit={document_id?:string;effective_service_code?:string|null;effective_provider_name?:string|null;observation?:{amountBasis?:string;annualCostCents?:number;dispositionNumber?:string;position?:string;pendingRevision?:boolean};id:string;pipeline_job_id:string|null;provider_name:string|null;observed_provider_name:string|null;provider_nif:string|null;centre:string|null;period:string|null;service_code:string|null;observed_service_code:string|null;observed_service_name:string|null;reses_code:string|null;observed_establishment_code?:string|null;territory:string|null;municipality:string|null;effective_start:string|null;effective_end:string|null;quantity:number|null;quantity_delta:number|null;amount:number|null;status:string;evidence_quote:string|null;review_note:string|null;page:number|null;act_type:string;storage_path:string|null;extraction_origin:string|null;horizon_state:string|null};
 type Reconciliation={document_id:string;annex:number;row_count:number;sum_cents:number;declared_cents:number|null;reconciled:boolean};
 type LinkedRecord={id:string;title:string;sourceRecordId:string;officialUrl:string|null;publishedAt:string|null};
 type ConcertLink={id:string;direction:'anterior'|'posterior';kind:string;method:string;status:string;evidence:string;reviewNote:string|null;record:LinkedRecord|null};
@@ -15,7 +17,7 @@ const money=(value:number)=>new Intl.NumberFormat('ca-ES',{style:'currency',curr
 const actCase:Record<string,ConcertCaseKey>={award:'award',renewal:'renewal',amendment:'amendment',modification:'modification',termination:'termination',cession:'cession',appeal:'appeal',validation:'validation'};
 const linkCase:Record<string,ConcertCaseKey>={...actCase};
 
-export function ConcertUnits({record,services}:{record:SourceRecord;services:Array<{code:string;name:string}>}){
+export function ConcertUnits({record,services,onSaved}:{record:SourceRecord;services:Array<{code:string;name:string}>;onSaved?:(record:SourceRecord)=>void}){
  const [supported,setSupported]=useState(true);
  const [units,setUnits]=useState<Unit[]>([]);
  const [reconciliations,setReconciliations]=useState<Reconciliation[]>([]);
@@ -28,7 +30,7 @@ export function ConcertUnits({record,services}:{record:SourceRecord;services:Arr
  const [bulkNote,setBulkNote]=useState('');
  const [editedNames,setEditedNames]=useState<Record<string,string>>({});
  const url=`/api/records/${record.id}/units`;
- useEffect(()=>{const c=new AbortController();fetch(url,{signal:c.signal}).then(r=>r.json()).then(data=>{if(data.error)setError(data.error);else{setSupported(data.supported!==false);setUnits(data.units??[]);setReconciliations(data.reconciliations??[]);}}).catch(e=>{if(e.name!=='AbortError')setError('No s’han pogut carregar les unitats');});return()=>c.abort();},[url]);
+ useEffect(()=>{const c=new AbortController();fetch(url,{signal:c.signal}).then(r=>r.json()).then(data=>{if(data.error)setError(data.error);else{setSupported(data.supported!==false);setUnits(data.units??[]);setReconciliations(data.reconciliations??[]);}}).catch(e=>{if(e.name!=='AbortError')setError('No s’han pogut carregar les unitats');});return()=>c.abort();},[url,record.corrections]);
  useEffect(()=>{const c=new AbortController();fetch(`/api/records/${record.id}/concert-links`,{signal:c.signal,cache:'no-store'}).then(r=>r.json()).then(data=>{if(data.error)setError(data.error);else setLinks(data.links??[]);}).catch(e=>{if(e.name!=='AbortError')setError('No s’han pogut carregar els vincles');});return()=>c.abort();},[record.id]);
  async function submit(body:Record<string,unknown>){
   setBusy(true);setError('');
@@ -65,8 +67,8 @@ export function ConcertUnits({record,services}:{record:SourceRecord;services:Arr
  const pricedLines=units.filter(unit=>unit.amount!=null).length;
  const missingOlderOrigin=units.some(unit=>unit.horizon_state==='pre_2024_origin_unavailable');
  const reconciled=reconciliations.find(item=>item.reconciled&&item.row_count===units.length);
- const bulkEligible=!!reconciled&&!record.isHistorical&&record.currentJobStatus==='needs_review'&&
-  ['concert-reconciled-annex-v1','concert-program-lines-v2'].includes(record.analysis?.rules_version??'')&&units.every(unit=>unit.status==='draft'&&!!unit.storage_path&&!!unit.observed_service_code);
+ const bulkEligible=!currentReservation(record)&&!record.corrections?.some(c=>!c.valid)&&!!reconciled&&!record.isHistorical&&record.currentJobStatus==='needs_review'&&
+  ['concert-reconciled-annex-v1','concert-program-lines-v2'].includes(record.analysis?.rules_version??'')&&units.every(unit=>unit.status==='draft'&&!!unit.storage_path&&!!(unit.effective_service_code??unit.observed_service_code));
  const officialText=record.sourceDocuments.filter(document=>document.status==='fetched'&&document.extractedText&&
   !document.qualityFlags.some(flag=>['corrupt_text','incomplete_extraction'].includes(flag)))
   .sort((left,right)=>(right.textLength??0)-(left.textLength??0))[0]?.extractedText;
@@ -75,7 +77,7 @@ export function ConcertUnits({record,services}:{record:SourceRecord;services:Arr
  const visibleUnits=showAllUnits||units.length<=6?units:units.slice(0,6);
  const serviceGroups=new Map<string,{title:string;code:string|null;rows:Array<{unit:Unit;index:number}>}>();
  visibleUnits.forEach((unit,index)=>{
-  const code=unit.service_code??unit.observed_service_code;
+  const code=unit.service_code??unit.effective_service_code??unit.observed_service_code;
   const title=(code&&serviceByCode.get(code))??unit.observed_service_name??'Servei pendent de contrastar';
   const key=code??title;
   if(!serviceGroups.has(key))serviceGroups.set(key,{title,code,rows:[]});
@@ -112,8 +114,8 @@ export function ConcertUnits({record,services}:{record:SourceRecord;services:Arr
      <div className="flex flex-wrap items-end justify-between gap-2 border-b pb-3"><div><p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Servei de l’annex</p><h4 className="mt-1 break-words text-lg font-bold">{group.title}</h4>{group.code&&<p className="text-xs text-muted-foreground">Codi de Cartera observat: {group.code}</p>}</div><p className="text-xs text-muted-foreground">{group.rows.length} {group.rows.length===1?'línia visible':'línies visibles'}</p></div>
      <div className="mt-3 grid gap-3">
     {group.rows.map(({unit,index})=>{
-     const entity=unit.provider_name??unit.observed_provider_name;
-     const code=unit.service_code??unit.observed_service_code;
+     const entity=unit.effective_provider_name??unit.provider_name??unit.observed_provider_name;
+     const code=unit.service_code??unit.effective_service_code??unit.observed_service_code;
      const service=(code&&serviceByCode.get(code))??unit.observed_service_name;
      const act=actCase[unit.act_type];
      return <article key={unit.id} className="rounded-xl border border-neutral-200 bg-white p-4 shadow-sm sm:p-5" data-testid="concert-unit">
@@ -138,9 +140,11 @@ export function ConcertUnits({record,services}:{record:SourceRecord;services:Arr
        {unit.storage_path&&<DocumentViewer url={`${url}/${unit.id}/source`} page={unit.page??1} label="Comprovar la pàgina del PDF aquí"/>}
        {unit.review_note&&<p className="mt-2">Revisió: {unit.review_note}</p>}
       </details>
+      {unit.status==='draft'&&!unit.pipeline_job_id&&onSaved&&<DocumentedCorrectionForm record={record} services={services} unitId={unit.id} documentId={unit.document_id} initialPage={unit.page??1} onSaved={onSaved}/>}
       {allowed&&unit.status==='draft'&&unit.extraction_origin&&!unit.pipeline_job_id&&unit.observed_service_code&&<div className="mt-3"><button type="button" className="rounded border px-3 py-2 text-sm" title="Confirma el nom de l’entitat i el codi del servei abans de revisar la línia" onClick={()=>setEditingUnitId(editingUnitId===unit.id?null:unit.id)}>Completa la línia per revisar-la</button>
        {editingUnitId===unit.id&&<form className="mt-2 grid gap-2 rounded border p-3" onSubmit={e=>{e.preventDefault();const form=new FormData(e.currentTarget);void submit({prepareExtractedUnitId:unit.id,providerName:form.get('provider_name'),serviceCode:unit.observed_service_code});}}><label>Nom complet de l’entitat segons el PDF<input className="form-text mt-1 w-full" name="provider_name" defaultValue={unit.observed_provider_name??''} minLength={3} required/></label><p className="text-sm">NIF {unit.provider_nif} · RESES {unit.reses_code} · codi {unit.observed_service_code}. Confirma el nom abans d’aprovar.</p><button className="rounded border px-3 py-2" title="Desa el nom contrastat; no aprova la línia" disabled={busy}>Desar identificació de la línia</button></form>}
       </div>}
+      {unit.status==='draft'&&!unit.pipeline_job_id&&onSaved&&<DocumentedCorrectionForm record={record} services={services} unitId={unit.id} documentId={unit.document_id} initialPage={unit.page??1} onSaved={onSaved}/>}
       {allowed&&unit.status==='draft'&&(!unit.extraction_origin||unit.pipeline_job_id)&&<div className="mt-3 space-y-2"><label className="block">Justificació de la unitat<textarea className="form-text w-full" value={notes[unit.id]??''} onChange={e=>setNotes({...notes,[unit.id]:e.target.value})}/></label><div className="flex flex-wrap gap-2"><button disabled={busy||(notes[unit.id]?.trim().length??0)<10} className="rounded border px-3 py-2 disabled:opacity-50" title="Aprova només aquesta línia després de contrastar la font" onClick={()=>void submit({unitId:unit.id,approve:true,note:notes[unit.id]})}>Aprovar unitat</button><button disabled={busy||(notes[unit.id]?.trim().length??0)<10} className="rounded border px-3 py-2 disabled:opacity-50" title="Rebutja només aquesta línia i conserva la justificació" onClick={()=>void submit({unitId:unit.id,approve:false,note:notes[unit.id]})}>Rebutjar unitat</button></div></div>}
      </article>;
     })}

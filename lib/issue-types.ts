@@ -1,3 +1,4 @@
+import {currentReservation} from './human-resolution';
 import {diagnosticSummary,sourceRecoveryDiagnostic} from './evidence-diagnostics';
 import {recordDataStage} from './record-stage-copy';
 import type { FinancingType } from "./financing-types";
@@ -95,6 +96,8 @@ export function classifyIssue(record: SourceRecord): IssueRecord | null {
     return issue(record,'matching_error','matching',record.matchingError??'Error tècnic del treball vigent.',retry);
   }
   const classification=record.analysis?.reviewed_classification??record.analysis?.classification;
+  if(currentReservation(record)&&record.evidenceStatus!=='error'&&record.enrichmentStatus!=='error'&&!record.matchingError)return null;
+  if(record.financingType==='concert'&&classification==='out_of_portfolio')return issue(record,'insufficient_evidence','review','La classificació històrica Fora de cartera no és vàlida per a concerts; cal revisar la resolució.','match');
   if(classification==='discarded'||classification==='out_of_portfolio')return null;
   if(classification==='insufficient_evidence')return issue(record,'insufficient_evidence','review',record.analysis?.review_notes??(record.analysis?diagnosticSummary(record.analysis):'Falta evidència acreditada.'),requiresPdfOcr(record)?'ocr':'process');
   if (record.analysis?.reviewed_classification === 'out_of_portfolio') return null;
