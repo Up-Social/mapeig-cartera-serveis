@@ -33,7 +33,7 @@ export function OcrSetting({ initialSetting }: { initialSetting: AutomaticOcrSet
   return (
     <section className="surface mt-6 p-5" aria-labelledby="automatic-ocr-title">
       <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
-        <div className="max-w-2xl">
+        <div className="min-w-0 flex-1">
           <div className="flex items-center gap-3">
             <span className="flex size-10 items-center justify-center rounded-lg bg-muted">
               <ScanText className="size-5" aria-hidden="true" />

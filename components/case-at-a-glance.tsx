@@ -23,7 +23,7 @@ export function CaseAtAGlance({record}:{record:SourceRecord}){
  return <section id="resum" aria-label="Resum del cas" className="surface scroll-mt-32 p-5 sm:p-6">
   <p className="page-eyebrow">Lectura ràpida</p><h2 className="section-title mt-1">Resum del cas</h2>
   <p className="mt-2 text-sm text-muted-foreground">Dades de la font i camps extrets del document. Les diferències requereixen comprovació humana.</p>
-  <dl className="mt-4 grid gap-3 text-sm lg:grid-cols-3">{rows.map(row=>{
+  <dl className="card-fields mt-4 text-sm">{rows.map(row=>{
     const compared=extracted&&row.official!=null;
     const sameConcertMechanism=record.financingType==='concert'&&row.label==='Mecanisme'&&
      typeof row.original==='string'&&typeof row.official==='string'&&/concert/i.test(row.original)&&/concert/i.test(row.official);

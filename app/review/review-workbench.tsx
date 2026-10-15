@@ -300,7 +300,7 @@ export function ReviewDetail({
       <section id="dades" className="mt-5 border-t pt-5">
         <section><h3 className="text-sm font-semibold">Dades originals de l&apos;Excel ({excelFields.length} camps)</h3>
         <p className="mt-1 text-xs text-neutral-500">Informació importada, separada de les dades contrastades.</p>
-        <dl className="mt-3 grid gap-x-6 gap-y-3 text-sm md:grid-cols-2">{excelFields.map(([key, value]) => <div key={key}><dt className="font-semibold text-neutral-500">{sourcePayloadFieldLabel(key)}</dt><dd className="mt-1 whitespace-pre-wrap break-words leading-6">{sourcePayloadValue(key, value)}</dd></div>)}</dl>
+        <dl className="card-fields mt-3 text-sm">{excelFields.map(([key, value]) => <div key={key}><dt className="font-semibold text-neutral-500">{sourcePayloadFieldLabel(key)}</dt><dd className="mt-1 whitespace-pre-wrap break-words leading-6">{sourcePayloadValue(key, value)}</dd></div>)}</dl>
         </section>
       </section>
       {record.isHistorical&&<p role="status" className="mt-4 rounded border p-3 text-sm">Resultat històric de només lectura. {record.historicalDataUnavailable?'Hi ha dades originals que no es poden recuperar.':''}</p>}
@@ -369,7 +369,7 @@ function EnrichmentPanel({
         </span>
       </div>
       <p className="mt-2 text-sm leading-6">{enrichment.summary}</p>
-      <dl className="mt-3 grid gap-3 text-xs md:grid-cols-2">
+      <dl className="card-fields mt-3 text-xs">
         {fields
           .filter(([, value]) => value !== null && value !== "")
           .map(([label, value]) => (
@@ -391,7 +391,7 @@ function EnrichmentPanel({
                 key={item.ordinal}
                 className="border-l-2 pl-3 text-xs leading-5"
               >
-                {item.content}
+                {item.content.replace(/\s+/g,' ').trim()}
               </blockquote>
             ))}
           </div>

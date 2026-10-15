@@ -127,7 +127,7 @@ textarea:focus-visible {
 
 @layer components {
   .page-shell {
-    @apply min-h-0 flex-1 bg-background text-foreground;
+    @apply min-h-0 min-w-0 flex-1 bg-background text-foreground;
   }
   .page-container {
     @apply mx-auto w-full max-w-none px-4 py-4 sm:px-6 sm:py-5 lg:px-8;
@@ -139,13 +139,34 @@ textarea:focus-visible {
     @apply mt-1 text-2xl font-semibold leading-tight tracking-tight;
   }
   .detail-title {
-    @apply mt-1 max-w-[80ch] text-xl font-semibold leading-snug tracking-tight;
+    @apply mt-1 w-full min-w-0 text-xl font-semibold leading-snug tracking-tight;
   }
   .page-description {
-    @apply mt-1 max-w-3xl text-sm leading-6 text-muted-foreground;
+    @apply mt-1 w-full min-w-0 text-sm leading-6 text-muted-foreground;
   }
   .surface {
-    @apply rounded-xl bg-card text-card-foreground ring-1 ring-foreground/10;
+    @apply min-w-0 rounded-xl bg-card text-card-foreground ring-1 ring-foreground/10;
+  }
+  .surface :where(h1, h2, h3, h4, h5, h6, p, blockquote, dt, dd) {
+    overflow-wrap: anywhere;
+  }
+  /* Layout follows the available card width, including narrow side panels. */
+  .card-facts,
+  .card-fields,
+  .card-panels {
+    display: grid;
+    gap: 0.75rem;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
+  }
+  .card-panels {
+    gap: 1.25rem;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 28rem), 1fr));
+  }
+  .card-facts > *,
+  .card-fields > *,
+  .card-panels > * {
+    min-width: 0;
+    overflow-wrap: anywhere;
   }
   .section-title {
     @apply text-lg font-semibold leading-snug tracking-tight;
@@ -186,7 +207,7 @@ textarea:focus-visible {
   .status-success { @apply border-green-300 bg-green-50 text-green-900; }
   .status-neutral { @apply border-border bg-muted/50 text-foreground; }
   .table-status {
-    @apply inline-flex max-w-full items-center whitespace-nowrap rounded-md border px-2 py-1 text-xs leading-4;
+    @apply inline-flex max-w-full items-center whitespace-normal rounded-md border px-2 py-1 text-xs leading-4;
   }
   .table-action {
     @apply inline-flex size-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2;

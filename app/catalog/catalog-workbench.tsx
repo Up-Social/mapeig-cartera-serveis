@@ -36,7 +36,7 @@ export function CatalogWorkbench({
             <h2 className="page-title">
               Catàleg de serveis
             </h2>
-            <p className="mt-1 max-w-2xl text-sm leading-6 text-neutral-600">
+            <p className="mt-1 w-full text-sm leading-6 text-neutral-600">
               Consulta les files importades del catàleg mestre. Aquest catàleg està
               separat de la cua i no autoritza el seu ús per establir correspondències.
             </p>
