@@ -7,28 +7,30 @@ const PAGE_SIZE = 25;
 export async function getEntityPage(filters: EntityFilters): Promise<EntityPage> {
   const db = createServerSupabase();
   const q = filters.query.replaceAll(/[,%()]/g, " ").trim();
-  let countQuery = db.from("entities").select("id", { count: "exact", head: true });
-  let query = db.from("entities").select("id,legal_name,nif,qualification,validation_status,active");
+  let countQuery = db.from("entities").select("id", { count: "exact", head: true }).eq("active", true);
+  let query = db.from("entities").select("id,legal_name,nif,qualification,validation_status,active").eq("active", true);
   if (q) { countQuery = countQuery.or(`legal_name.ilike.%${q}%,nif.ilike.%${q}%`); query = query.or(`legal_name.ilike.%${q}%,nif.ilike.%${q}%`); }
   if (filters.qualification !== "totes") { countQuery = countQuery.eq("qualification", filters.qualification); query = query.eq("qualification", filters.qualification); }
   if (filters.county !== "totes") {
     const ids = await db.from("reses_services").select("entity_id").eq("county", filters.county);
     if (ids.error) throw ids.error;
-    const entityIds = [...new Set((ids.data ?? []).map((r) => r.entity_id))];
+    const entityIds = [...new Set((ids.data ?? []).map((r) => r.entity_id).filter(Boolean))];
     const filteredIds = entityIds.length ? entityIds : ["00000000-0000-0000-0000-000000000000"];
     countQuery = countQuery.in("id", filteredIds);
     query = query.in("id", filteredIds);
   }
-  const [{ count, error: countError }, facets, resesCount, linkedCount, confirmedCount, pendingCount] = await Promise.all([
+  const [{ count, error: countError }, facets, resesCount, linkedCount, confirmedCount, pendingCount, pendingHolders] = await Promise.all([
     countQuery,
     db.rpc("entity_directory_facets"),
     db.from("reses_services").select("registry_number", { count: "exact", head: true }),
     db.from("source_record_entities").select("source_record_id", { count: "exact", head: true }),
-    db.from("entity_catalog_relations").select("entity_id", { count: "exact", head: true }).eq("relation_type", "confirmed"),
+    db.from("entity_catalog_relations").select("entity_id", { count: "exact", head: true }).eq("relation_type", "confirmed").is("retired_at", null),
     db.from("entity_mentions").select("id", { count: "exact", head: true }).eq("resolution_status", "unresolved"),
+    db.from("reses_services").select("registry_number", { count: "exact", head: true }).is("entity_id", null),
   ]);
   if (countError) throw countError;
   if (facets.error) throw facets.error;
+  if (pendingHolders.error) throw pendingHolders.error;
   const rawTotal = count ?? 0;
   const pageCount = Math.max(1, Math.ceil(rawTotal / PAGE_SIZE));
   const page = Math.min(filters.page, pageCount);
@@ -40,7 +42,7 @@ export async function getEntityPage(filters: EntityFilters): Promise<EntityPage>
   const [aliases, services, relations, links, provisions] = ids.length ? await Promise.all([
     db.from("entity_aliases").select("entity_id,alias,source").in("entity_id", ids),
     db.from("reses_services").select("entity_id,registry_number,service_name,service_type,capacity,address,municipality,postal_code,county,active").in("entity_id", ids).order("service_name"),
-    db.from("entity_catalog_relations").select("entity_id,service_code,relation_type,source_type,master_services(service_name),official_services(service_name)").in("entity_id", ids),
+    db.from("entity_catalog_relations").select("entity_id,service_code,relation_type,source_type,master_services(service_name),official_services(service_name)").in("entity_id", ids).is("retired_at", null),
     db.from("source_record_entities").select("entity_id").in("entity_id", ids),
     activeProvisions,
   ]) : [{ data: [] }, { data: [] }, { data: [] }, { data: [] }, { data: [] }];
@@ -55,5 +57,5 @@ export async function getEntityPage(filters: EntityFilters): Promise<EntityPage>
   const facetData = (facets.data ?? {}) as { qualifications?: string[]; counties?: string[] };
   const qualifications = facetData.qualifications ?? [];
   const counties = facetData.counties ?? [];
-  return { entities, total: rawTotal, page, pageCount, pageSize: PAGE_SIZE, qualifications, counties, metrics: { total: rawTotal, withReses: resesCount.count ?? 0, linkedRecords: linkedCount.count ?? 0, confirmed: confirmedCount.count ?? 0, pendingMentions: pendingCount.count ?? 0 } };
+  return { entities, total: rawTotal, page, pageCount, pageSize: PAGE_SIZE, qualifications, counties, metrics: { total: rawTotal, withReses: resesCount.count ?? 0, linkedRecords: linkedCount.count ?? 0, confirmed: confirmedCount.count ?? 0, pendingMentions: pendingCount.count ?? 0, pendingHolders: pendingHolders.count ?? 0 } };
 }

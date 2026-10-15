@@ -2,12 +2,13 @@ import { createHash } from "node:crypto";
 import { mkdir, writeFile } from "node:fs/promises";
 import { createClient } from "@supabase/supabase-js";
 import WebSocket from "ws";
+import { isResesService, normalizeResesNif, resesHolder } from "../lib/reses-identity";
 
 const API = "https://analisi.transparenciacatalunya.cat/resource/ivft-vegh.json";
 const PAGE = 1000;
 type Raw = Record<string, string | undefined>;
 
-const normalizeNif = (value = "") => value.toUpperCase().replace(/[^A-Z0-9]/g, "");
+const normalizeNif = normalizeResesNif;
 const normalize = (value = "") => value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
 const hash = (value: unknown) => createHash("sha256").update(JSON.stringify(value)).digest("hex");
 const chunks = <T>(items: T[], size = 400) => Array.from({ length: Math.ceil(items.length / size) }, (_, i) => items.slice(i * size, (i + 1) * size));
@@ -18,10 +19,10 @@ const chunks = <T>(items: T[], size = 400) => Array.from({ length: Math.ceil(ite
 async function readEntityIndex(db: ReturnType<typeof createClient<any>>) {
   const result: Array<{ id: string; nif: string }> = [];
   for (let from = 0; ; from += PAGE) {
-    const response = await db.from("entities").select("id,nif").not("nif", "is", null).range(from, from + PAGE - 1);
+    const response = await db.from("entities").select("id,nif,legal_name").eq("active", true).not("nif", "is", null).range(from, from + PAGE - 1);
     if (response.error) throw response.error;
-    const page = (response.data ?? []) as Array<{ id: string; nif: string }>;
-    result.push(...page);
+    const page = (response.data ?? []) as Array<{ id: string; nif: string; legal_name: string }>;
+    result.push(...page.filter(e => resesHolder({nif: e.nif, entitat_titular: e.legal_name})));
     if (page.length < PAGE) break;
   }
   return result;
@@ -75,6 +76,12 @@ async function rebuildAuxiliaryRelations(db: ReturnType<typeof createClient<any>
   for (const [serviceType, serviceCode] of mappings) {
     const r = await db.from("reses_typology_catalog_mappings").upsert({ service_type: serviceType, service_code: serviceCode, method: "exact_name", review_status: "auxiliary", updated_at: new Date().toISOString() }, { onConflict: "service_type,service_code" }); if (r.error) throw r.error;
   }
+  const observations = rows.flatMap(row => {
+    const code = row.tipologia ? mappings.get(row.tipologia) : null;
+    return code ? [{registry_number: row.registre!, service_code: code, source_payload_hash: hash(row), evidence: `Tipologia RESES exacta: ${row.tipologia}`}] : [];
+  });
+  // Keep earlier observations; a changed source hash is explicitly shown as needing review.
+  for (const part of chunks(observations)) { const r = await db.from("reses_catalog_observations").upsert(part, {onConflict: "registry_number,service_code", ignoreDuplicates: true}); if(r.error) throw r.error; }
   const relations = rows.flatMap((row) => {
     const code = row.tipologia ? mappings.get(row.tipologia) : null;
     const entityId = entityIds.get(normalizeNif(row.nif));
@@ -101,13 +108,14 @@ async function fetchAll() {
 
 async function main() {
   const rows = await fetchAll();
-  const valid = rows.filter((r) => r.registre && r.nif && r.entitat_titular && r.nom);
+  const valid = rows.filter(isResesService);
+  const identified = valid.filter(r => resesHolder(r));
   const registries = new Set(valid.map((r) => r.registre));
-  const nifs = new Set(valid.map((r) => normalizeNif(r.nif)));
+  const nifs = new Set(identified.map((r) => normalizeNif(r.nif)));
   const report = {
     source: API, retrievedAt: new Date().toISOString(), rows: rows.length,
     validRows: valid.length, uniqueRegistries: registries.size, uniqueNifs: nifs.size,
-    missingRequired: rows.length - valid.length, duplicateRegistries: valid.length - registries.size,
+    missingRequired: rows.length - valid.length, pendingHolders: valid.length - identified.length, duplicateRegistries: valid.length - registries.size,
     responseHash: hash(rows),
   };
   await mkdir("tmp", { recursive: true });
@@ -132,22 +140,23 @@ async function main() {
   if (started.error) throw started.error;
   try {
     const byNif = new Map<string, Raw[]>();
-    for (const row of valid) {
+    for (const row of identified) {
       const nif = normalizeNif(row.nif);
       byNif.set(nif, [...(byNif.get(nif) ?? []), row]);
     }
     const current = await readEntityIndex(db);
     const ids = new Map(current.map((e) => [String(e.nif), String(e.id)]));
-    const missing = [...byNif].filter(([nif]) => !ids.has(nif)).map(([nif, group]) => ({
-      nif, legal_name: group[0].entitat_titular!, normalized_name: normalize(group[0].entitat_titular), qualification: group[0].qualificacio ?? null,
-      validation_status: "reses_verified", active: true,
-    }));
-    for (const part of chunks(missing)) { const r = await db.from("entities").insert(part); if (r.error) throw r.error; }
+    const missing = [...byNif].filter(([nif]) => !ids.has(nif));
+    for (const [nif, group] of missing) {
+      const ensured = await db.rpc("ensure_reses_entity", {p_nif: nif, p_name: resesHolder(group[0])!.name, p_qualification: group[0].qualificacio ?? null});
+      if (ensured.error) throw ensured.error;
+    }
     // Avoid a very long PostgREST URL: the local project may already contain
     // entities from an interrupted/idempotent run, so read the compact index.
     const refreshed = await readEntityIndex(db);
     for (const e of refreshed) ids.set(String(e.nif), String(e.id));
     const aliases = [...byNif].flatMap(([nif, group]) => {
+      if (!ids.has(nif)) return [];
       const unique = new Map(group.map((r) => [normalize(r.entitat_titular), r.entitat_titular!]));
       return [...unique].map(([normalizedAlias, alias]) => ({ entity_id: ids.get(nif)!, alias, normalized_alias: normalizedAlias, source: "reses", last_seen_at: report.retrievedAt }));
     });
@@ -155,7 +164,7 @@ async function main() {
     for (const part of chunks(aliases)) { const r = await db.from("entity_aliases").upsert(part, { onConflict: "entity_id,normalized_alias,source" }); if (r.error) throw r.error; }
     const deactivate = await db.from("reses_services").update({ active: false }).eq("active", true); if (deactivate.error) throw deactivate.error;
     const services = valid.map((r) => ({
-      registry_number: r.registre!, entity_id: ids.get(normalizeNif(r.nif))!, service_name: r.nom!, service_type: r.tipologia ?? "No informada",
+      registry_number: r.registre!, entity_id: resesHolder(r) ? ids.get(normalizeNif(r.nif)) ?? null : null, service_name: r.nom!, service_type: r.tipologia ?? "No informada",
       registration_date: r.inscripcio?.slice(0, 10) || null, capacity: r.capacitat && /^\d+$/.test(r.capacitat) ? Number(r.capacitat) : null,
       address: r.adreca ?? null, municipality: r.municipi ?? null, postal_code: r.cp ?? null, county: r.comarca ?? null,
       active: true, source_payload: r, source_payload_hash: hash(r), retrieved_at: report.retrievedAt, updated_at: report.retrievedAt,

@@ -103,3 +103,10 @@ En les altres tipologies, la comparació mostra camps d'origen i document, coinc
 Els llistats i pantalles generals tenen una amplada màxima de 1.600 px. Els detalls amb visor documental poden utilitzar tota l’amplada disponible. Els títols i noms es mostren complets, sense el·lipsis ni límits de línies. Les taules utilitzen perfils de columnes identificades i es transformen en fitxes segons l’amplada real del contenidor, també amb el menú lateral plegat. No s’oculten camps en mòbil.
 
 Els formularis de cerca i filtres s’envien explícitament amb «Aplicar filtres» i reinicien la paginació. Les pestanyes de navegació continuen sent immediates. Les accions mostren text visible i nom accessible; no es converteix tota la fila en una acció. Les guies generals es poden desplegar, però els errors concrets, les mancances i els avisos de cost o d’abast no s’oculten.
+
+
+## Titularitat RESES absent (15/10/2026)
+
+Un servei RESES amb codi i nom vàlids es conserva encara que la font no identifiqui el titular. `null`, `undefined`, blancs i NIF amb format invàlid no creen entitats canòniques. Els serveis sense titular es consulten a `/entities/pending`, amb fitxa per codi, font, historial i CSV. Un NIF amb format correcte no acredita per si sol la titularitat ni el dígit de control.
+
+Les assignacions i els canvis de font queden a `reses_holder_history`. Les correccions administratives selectives conserven captures abans/després a `reses_identity_operations`. Les relacions auxiliars retirades no s’atribueixen a entitats vigents; les observacions del servei es conserven separadament a `reses_catalog_observations`, sense acreditar finançament. No s’esborren entitats històriques ni dades originals per reparar una atribució incorrecta. La reversió verifica que el conjunt afectat no tingui canvis posteriors i conserva l’historial.

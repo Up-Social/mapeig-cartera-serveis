@@ -24,7 +24,7 @@ export async function getMasterServicePage(filters: CatalogFilters): Promise<Mas
   const page = Math.min(filters.page, pageCount);
   const from = (page - 1) * MASTER_PAGE_SIZE;
 
-  let request = supabase.from("master_services").select(schemaSelect("id,service_code,service_name,sector_scope,portfolio_status,general_confidence,source_file,source_sheet,source_row,source_payload,service_provisions(id,superseded_at,source_id,call_url,regulatory_basis_url,provider_name,provider_nif,mechanism,award_date,amount,contracting_body,target_population,source_reference),entity_catalog_relations(entity_id,relation_type,source_reference,entities(id,legal_name,nif))"));
+  let request = supabase.from("master_services").select(schemaSelect("id,service_code,service_name,sector_scope,portfolio_status,general_confidence,source_file,source_sheet,source_row,source_payload,service_provisions(id,superseded_at,source_id,call_url,regulatory_basis_url,provider_name,provider_nif,mechanism,award_date,amount,contracting_body,target_population,source_reference),entity_catalog_relations(entity_id,relation_type,source_reference,retired_at,entities(id,legal_name,nif))"));
   if (safeQuery) request = request.or(`service_code.ilike.%${safeQuery}%,service_name.ilike.%${safeQuery}%,sector_scope.ilike.%${safeQuery}%`);
 
   const { data, error } = await request
@@ -66,7 +66,7 @@ function mapMasterService(row: Record<string, unknown>): MasterService {
     sourceSheet: row.source_sheet == null ? null : String(row.source_sheet),
     sourceRow: row.source_row == null ? null : Number(row.source_row),
     sourcePayload: (row.source_payload ?? {}) as Record<string, unknown>,
-    entityRelations: Array.isArray(row.entity_catalog_relations) ? row.entity_catalog_relations.map((relation) => {
+    entityRelations: Array.isArray(row.entity_catalog_relations) ? row.entity_catalog_relations.filter(relation => !(relation as Record<string, unknown>).retired_at).map((relation) => {
       const item = relation as Record<string, unknown>;
       const rawEntity = item.entities;
       const entity = (Array.isArray(rawEntity) ? rawEntity[0] : rawEntity) as Record<string, unknown> | undefined;
