@@ -1,3 +1,4 @@
+import {responseModel} from '../lib/openai-model';
 import {readEvidenceChunks} from '../lib/pipeline/evidence-reader';
 import {ROLE_INSTRUCTIONS} from '../lib/scope-rules';
 import {journaledProviderRequest} from '../lib/provider-journal';
@@ -12,7 +13,7 @@ const recordId = option("--source-record-id");
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const key = process.env.SUPABASE_SECRET_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY;
 const openaiKey = process.env.OPENAI_API_KEY;
-const model = process.env.OPENAI_MATCHING_MODEL;
+const model = process.env.OPENAI_MATCHING_MODEL ?? '';
 if (!recordId || !url || !key || !openaiKey || !model) throw new Error("Falta el registre o la configuració de Supabase/OpenAI");
 const supabase = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false }, realtime: { transport: WebSocket as never } });
 
@@ -45,7 +46,7 @@ async function main() {
     const enrichment = bindEnrichmentRoles(JSON.parse(extractOutputText(raw)) as Enrichment,chunks);
     validateScopeFacts(enrichment.scope_facts,chunks.length);
     const awardDate = enrichment.award_date && /^\d{4}-\d{2}-\d{2}$/.test(enrichment.award_date) ? enrichment.award_date : null;
-    const { data: stored, error: storedError } = await supabase.from("record_enrichments").upsert({ source_record_id: record.id, extracted_title: enrichment.title, provider_name: enrichment.provider_name, provider_nif: enrichment.provider_nif, mechanism: enrichment.mechanism, award_date: awardDate, amount: enrichment.amount, contracting_body: enrichment.contracting_body, target_population: enrichment.target_population, scope_facts:enrichment.scope_facts, summary: enrichment.summary, confidence: enrichment.confidence, engine: "openai-responses-enrichment", engine_version: model, updated_at: new Date().toISOString() }, { onConflict: "source_record_id" }).select("id").single();
+    const { data: stored, error: storedError } = await supabase.from("record_enrichments").upsert({ source_record_id: record.id, extracted_title: enrichment.title, provider_name: enrichment.provider_name, provider_nif: enrichment.provider_nif, mechanism: enrichment.mechanism, award_date: awardDate, amount: enrichment.amount, contracting_body: enrichment.contracting_body, target_population: enrichment.target_population, scope_facts:enrichment.scope_facts, summary: enrichment.summary, confidence: enrichment.confidence, engine: "openai-responses-enrichment", engine_version: responseModel(raw,model), updated_at: new Date().toISOString() }, { onConflict: "source_record_id" }).select("id").single();
     if (storedError) throw storedError;
     await supabase.from("record_enrichment_evidence").delete().eq("enrichment_id", stored.id);
     const citedEvidence = [...new Set(enrichment.evidence_ordinals)].map((ordinal) => chunks[ordinal - 1]).filter(Boolean);

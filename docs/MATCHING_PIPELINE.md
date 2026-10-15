@@ -5,7 +5,7 @@
 El matching s'executa de manera controlada sobre els registres preparats d'un lot. Abans de processar-lo, `npm run matching:ready` comprova cinc precondicions:
 
 1. `OPENAI_API_KEY` configurada només al servidor.
-2. `OPENAI_MATCHING_MODEL` definit explícitament.
+2. `OPENAI_MATCHING_MODEL=gpt-6-luna` definit explícitament per a noves crides (Responses API, `reasoning.effort=none`, tarifa estàndard).
 3. Documents extrets i fragments d'evidència disponibles.
 4. Catàleg objectiu autoritzat.
 5. Treballs persistents en cua.

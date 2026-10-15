@@ -12,6 +12,8 @@ La campanya té un límit preventiu de 4 USD d’IA. Abans de cada petició es r
 
 Referència de tarifes de text (consulta 2026-09-15): [OpenAI GPT-4o mini](https://developers.openai.com/api/docs/models/gpt-4o-mini), 0,15/0,60 USD per milió de tokens d’entrada/sortida. Revisar aquesta configuració abans d’utilitzar altres models o tarifes.
 
+**Actualització 15/10/2026:** el paràgraf anterior descriu les reserves històriques. Les noves crides utilitzen GPT-6 Luna amb tarifa estàndard: 0,10 USD d'entrada, 0,01 USD de lectura de memòria cau, 0,125 USD d'escriptura de memòria cau i 0,50 USD de sortida per milió de tokens. Per sobre de 272.000 tokens d'entrada s'apliquen els multiplicadors publicats (entrada ×2, sortida ×1,5). La reserva nova incorpora el màxim d'escriptura de memòria cau i una cota d'entrada calculada a partir de la petició de text. La liquidació utilitza l'ús real i el model desat. Els costos anteriors no es recalculen ni es repeteixen crides ja rebudes. Vegeu [configuració i desplegament](PRODUCCION_Y_DESPLIEGUE.md#model-openai).
+
 ## Validació
 
 Proves amb fixtures sintètiques i transacció revertida en `cartera_cloud_test_*`: més de 50 registres, doble arrencada, exclusió de decisions i classificacions existents, conservació de candidats, revisió concurrent, reserves idempotents, liquidació, límit i model desconegut. Les comprovacions de producció i els seus recomptes es conserven fora del repositori.

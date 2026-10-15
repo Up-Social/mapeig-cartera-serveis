@@ -63,6 +63,21 @@ No executis `supabase db reset` sense autorització explícita: elimina les dade
 
 No versionis `.env.local`, claus, contrasenyes ni fitxers amb dades. Cap secret pot portar el prefix `NEXT_PUBLIC_`.
 
+### Model OpenAI
+
+Des del 15/10/2026, configura `OPENAI_MATCHING_MODEL=gpt-6-luna` als executors locals i als entorns Vercel Production i Preview. En l'executor cloud actual, les crides es fan als workflows de Vercel: calen `OPENAI_API_KEY` i `OPENAI_MATCHING_MODEL` també a Vercel. No hi ha Edge Functions de Supabase que consumeixin OpenAI.
+
+Les crides passen per Responses API amb JSON Schema estricte, `reasoning.effort=none` i `service_tier=default`. Es mantenen els prompts i els límits de sortida. Abans de publicar el codi, aplica la migració `openai_luna_pricing`: admet el model nou, reserva el pressupost amb una cota conservadora de l'entrada i desa la tarifa utilitzada. Conserva les reserves i els costos històrics; no reprocessa registres.
+
+```bash
+vercel env update OPENAI_MATCHING_MODEL production --value gpt-6-luna --scope upsocial --project mapeig-cartera-serveis --yes
+vercel env update OPENAI_MATCHING_MODEL preview --value gpt-6-luna --scope upsocial --project mapeig-cartera-serveis --yes
+```
+
+Els canvis de variables requereixen un desplegament complet posterior. No canviïs secrets de Supabase per aquesta migració: la base només calcula reserves i costos. La reversió compatible consisteix a tornar a la versió anterior del codi i a la configuració anterior del model, conservant la migració additiva i els rebuts. La retirada de GPT-4o mini està anunciada per al 14/01/2027; no s'ha de considerar una alternativa després d'aquesta data.
+
+Fonts oficials: [model i tarifes de GPT-6 Luna](https://developers.openai.com/api/docs/models/gpt-6-luna), [retirada de models](https://developers.openai.com/api/docs/deprecations). Els imports interns són USD i la pantalla de costos manté la conversió a EUR existent.
+
 ## Accés a la web
 
 `APP_ACCESS_PASSWORD` és obligatòria. La protecció cobreix pàgines, APIs i accions de servidor; només queden públiques la pantalla i l'endpoint d'accés. La sessió dura set dies en el mateix navegador i es desa en una cookie `HttpOnly`, `SameSite=Strict` i `Secure` en producció.

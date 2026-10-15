@@ -1,3 +1,4 @@
+import {prepareOpenAIRequest} from '../lib/openai-model';
 import { createClient } from "@supabase/supabase-js";
 import WebSocket from "ws";
 
@@ -46,13 +47,13 @@ async function explain(job: Job): Promise<Explanation[]> {
   const response = await fetch("https://api.openai.com/v1/responses", {
     method: "POST",
     headers: { Authorization: `Bearer ${openaiKey}`, "Content-Type": "application/json" },
-    body: JSON.stringify({
+    body: JSON.stringify(prepareOpenAIRequest({
       model,
       instructions: "Redacta explicacions de matching en català professional, breus, precises i auditables. No recalculis codis, ordre ni puntuacions. Per a cada candidat: (1) fit ha d'unir un fet concret de la prestació amb la funció del servei candidat; (2) differentiation ha d'explicar per què és més o menys específic que els altres candidats; (3) limitation ha d'identificar una diferència o dada absent real; (4) official_evidence ha de citar o parafrasejar en una o dues frases l'objecte, les actuacions, la població o la modalitat descrits a la font i explicar com sustenten l'encaix. No utilitzis import, pressupost, CPV ni òrgan de contractació com a evidència principal, tret que siguin realment determinants per distingir el servei. Evita frases genèriques, repeticions, anglicismes i afirmacions no presents a les dades.",
       input: JSON.stringify({ record: job.source_records, candidates: candidates.map((candidate) => ({ id: candidate.id, rank: candidate.rank, code: candidate.target_code, name: candidate.target_name, score: candidate.score, current_rationale: candidate.rationale, cited_sources: candidate.matching_candidate_evidence.flatMap((link) => link.evidence_chunks?.content ? [link.evidence_chunks.content] : []) })) }),
       text: { format: { type: "json_schema", name: "matching_explanations", strict: true, schema: schema(candidates.map((candidate) => candidate.id)) } },
       max_output_tokens: 1800,
-    }),
+    })),
   });
   const raw = await response.json() as Record<string, unknown>;
   if (!response.ok) throw new Error(`OpenAI ${response.status}: ${JSON.stringify(raw)}`);

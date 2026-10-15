@@ -1,5 +1,6 @@
 import {checkpoint,readCheckpoint,rpc,lease,acquireResource,type Context} from './context';
 import {CloudFailure} from './errors';
+import {prepareOpenAIRequest,openAIInputTokenCeiling,OPENAI_MIGRATION_MODEL} from '../openai-model';
 type Journal={state:'sending'|'received'|'retry'|'rejected';response?:Record<string,unknown>;attempt:number};
 // The journal is private in Supabase; never return it from a workflow step.
 export async function providerRequest(c:Context,key:string,body:unknown){
@@ -11,13 +12,14 @@ export async function providerRequest(c:Context,key:string,body:unknown){
  await acquireResource(c,'ai');
  let block:string|null=null;
  try {
-  const request=body as {model?:string;max_output_tokens?:number};
-  if(!await rpc<boolean>(c.db,'cloud_budget_reserve',{...lease(c),p_key:key,p_model:request.model??null,p_output:request.max_output_tokens??null}))throw new CloudFailure('budget');
+  const request=prepareOpenAIRequest(body as Record<string,unknown>);
+  const inputBound=request.model===OPENAI_MIGRATION_MODEL?openAIInputTokenCeiling(request):null;
+  if(!await rpc<boolean>(c.db,'cloud_budget_reserve',{...lease(c),p_key:key,p_model:request.model??null,p_output:request.max_output_tokens??null,...(inputBound===null?{}:{p_input_tokens:inputBound})}))throw new CloudFailure('budget');
   const attempt=(saved?.attempt??0)+1;
   if(attempt>3)throw new CloudFailure('validation');
   await checkpoint(c,key,{state:'sending',attempt});
   let response:Response;
-  try {response=await fetch('https://api.openai.com/v1/responses',{method:'POST',headers:{Authorization:`Bearer ${process.env.OPENAI_API_KEY}`,'Content-Type':'application/json'},body:JSON.stringify(body),signal:AbortSignal.timeout(150_000)});}
+  try {response=await fetch('https://api.openai.com/v1/responses',{method:'POST',headers:{Authorization:`Bearer ${process.env.OPENAI_API_KEY}`,'Content-Type':'application/json'},body:JSON.stringify(request),signal:AbortSignal.timeout(150_000)});}
   catch {throw new CloudFailure('provider_unknown');}
   let raw:Record<string,unknown>;
   try {raw=await response.json();}catch {throw new CloudFailure('provider_unknown');}

@@ -45,6 +45,8 @@ npm run worker:run -- --once
 
 La preparació documental s'executa sense OpenAI. L'enriquiment i el matching requereixen `OPENAI_API_KEY`, `OPENAI_MATCHING_MODEL` i l'autorització explícita del catàleg a `.env.local`.
 
+El model configurat per a noves crides és `gpt-6-luna`, amb Responses API, sortida JSON estructurada, `reasoning.effort=none` i tarifa estàndard (`service_tier=default`). Els resultats ja rebuts conserven el model original i no es tornen a facturar en reprendre. La migració SQL de tarifes s'ha d'aplicar abans d'activar el model; consulta [la guia de desplegament](docs/PRODUCCION_Y_DESPLIEGUE.md#model-openai).
+
 Qualsevol execució amb `NODE_ENV=production` utilitza la cua. En altres entorns es pot forçar explícitament amb `WORKER_EXECUTION_MODE=queue`.
 
 ## Flux disponible

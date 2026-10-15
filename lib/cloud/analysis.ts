@@ -1,3 +1,4 @@
+import {responseModel} from '../openai-model';
 import {analysisDiagnostics,type EvidenceDiagnostic} from '../evidence-diagnostics';
 import {programAnalysis} from './program-analysis';
 import {readEvidenceChunks} from '../pipeline/evidence-reader';
@@ -62,7 +63,7 @@ export async function analyzeRecord(c:Context,job:{id:string;source_record_id:st
    if(new Set((units.data??[]).map(unit=>unit.provider_nif).filter(Boolean)).size>1)
     result={...result,provider_name:null,provider_nif:null};
   }
-  await commit(c,job.id,'enrichment',{enrichment:result,model,usage:raw.usage,evidence:[...new Set(result.evidence_ordinals)].map(n=>chunks[n-1])});
+  await commit(c,job.id,'enrichment',{enrichment:result,model:responseModel(raw,model),usage:raw.usage,evidence:[...new Set(result.evidence_ordinals)].map(n=>chunks[n-1])});
  }else{
   const pinnedVersion=await readCheckpoint<string>(c,`catalog:${job.id}`);
   const catalog=await loadOfficialCatalog(c.db,pinnedVersion??undefined);
@@ -198,7 +199,7 @@ export async function analyzeRecord(c:Context,job:{id:string;source_record_id:st
   const scoped=applyScopeRules(result,aligned.roles,chunks,accreditations);
   const ruled={...scoped,rule_audit:{...scoped.rule_audit,...(roleReviewDiagnostics.length&&scoped.classification==='insufficient_evidence'?{diagnostics:[...roleReviewDiagnostics,...analysisDiagnostics(scoped).filter(d=>!roleReviewDiagnostics.some(r=>r.field===d.field))]}:{}),...(aligned.reviewed.length?{role_review:{version:CONCERT_ROLE_REPAIR_VERSION,roles:aligned.reviewed}}:{}),...(modelEvidenceIssue?{model_evidence_issue:modelEvidenceIssue}:{}),evidence_policy:{version:EVIDENCE_POLICY_VERSION,total_chunks:assessed.length,selected_chunks:chunks.length,selection_complete:chunks.length===assessed.filter(chunk=>chunk.eligible).length,rejected:rejectedEvidence}},model_conclusion:JSON.parse(extractOutputText(raw))};
   validateAnalysis(ruled,catalog.all,chunks.length,true,documentedCodes.size>0);
-  await commit(c,job.id,'analysis',{version:catalog.version.id,result:ruled,usage:raw.usage,candidates:ruled.candidates.map(candidate=>({...candidate,model,metadata:{response_id:raw.id,usage:raw.usage,positive_audit_version:auditVersion,normalization_version:'catalog-binding-v1'},evidence:candidate.evidence_ordinals.map(n=>chunks[n-1])})),evidence:ruled.evidence_ordinals.map(n=>chunks[n-1])});
+  await commit(c,job.id,'analysis',{version:catalog.version.id,result:ruled,usage:raw.usage,candidates:ruled.candidates.map(candidate=>({...candidate,model:responseModel(raw,model),metadata:{response_id:raw.id,usage:raw.usage,positive_audit_version:auditVersion,normalization_version:'catalog-binding-v1'},evidence:candidate.evidence_ordinals.map(n=>chunks[n-1])})),evidence:ruled.evidence_ordinals.map(n=>chunks[n-1])});
  }
  await checkpoint(c,`${job.id}:${phase}`,{complete:true});
 }

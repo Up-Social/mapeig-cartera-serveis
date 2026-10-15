@@ -1,3 +1,4 @@
+import {responseModel} from '../lib/openai-model';
 import {readEvidenceChunks} from '../lib/pipeline/evidence-reader';
 import {classifyFailure,retryTransient} from '../lib/provider-failure';
 import {journaledProviderRequest} from '../lib/provider-journal';
@@ -132,9 +133,9 @@ async function processJob(job: { id: string; run_id: string; source_record_id: s
       );
     }
 
-    if (parsed.enrichment) await persistEnrichment(record.id, parsed.enrichment, chunks);
+    if (parsed.enrichment) await persistEnrichment(record.id, parsed.enrichment, chunks, responseModel(raw,model!));
 
-    const saved=await supabase.rpc('persist_analysis',{p_job:job.id,p_version:official.version.id,p_result:analysis,p_candidates:candidatesWithEvidence.map(({candidate,evidence})=>({...candidate,evidence,model,metadata:{response_id:raw.id,usage:raw.usage,positive_audit_version:auditVersion,normalization_version:'catalog-binding-v1'}})),p_evidence:analysis.evidence_ordinals.map(n=>chunks[n-1])});
+    const saved=await supabase.rpc('persist_analysis',{p_job:job.id,p_version:official.version.id,p_result:analysis,p_candidates:candidatesWithEvidence.map(({candidate,evidence})=>({...candidate,evidence,model:responseModel(raw,model!),metadata:{response_id:raw.id,usage:raw.usage,positive_audit_version:auditVersion,normalization_version:'catalog-binding-v1'}})),p_evidence:analysis.evidence_ordinals.map(n=>chunks[n-1])});
     if(saved.error)throw saved.error;
     await addUsage(job.run_id, raw.usage);
     await finishRunIfDone(job.run_id);
@@ -193,10 +194,10 @@ function extractOutputText(response: Record<string, unknown>) {
 function nullableString() { return { anyOf: [{ type: "string" }, { type: "null" }] }; }
 function matchingInstructions() {return MATCHING_INSTRUCTIONS;}
 
-async function persistEnrichment(sourceRecordId: string, enrichment: EnrichmentOutput, chunks: Array<{ id: string }>) {
+async function persistEnrichment(sourceRecordId: string, enrichment: EnrichmentOutput, chunks: Array<{ id: string }>, actualModel: string) {
   validateScopeFacts(enrichment.scope_facts,chunks.length);
   const awardDate = enrichment.award_date && /^\d{4}-\d{2}-\d{2}$/.test(enrichment.award_date) ? enrichment.award_date : null;
-  const { data, error } = await supabase.from("record_enrichments").upsert({ source_record_id: sourceRecordId, extracted_title: enrichment.title, provider_name: enrichment.provider_name, provider_nif: enrichment.provider_nif, mechanism: enrichment.mechanism, award_date: awardDate, amount: enrichment.amount, contracting_body: enrichment.contracting_body, target_population: enrichment.target_population, scope_facts:enrichment.scope_facts, summary: enrichment.summary, confidence: enrichment.confidence, engine: "openai-responses", engine_version: model, updated_at: new Date().toISOString() }, { onConflict: "source_record_id" }).select("id").single();
+  const { data, error } = await supabase.from("record_enrichments").upsert({ source_record_id: sourceRecordId, extracted_title: enrichment.title, provider_name: enrichment.provider_name, provider_nif: enrichment.provider_nif, mechanism: enrichment.mechanism, award_date: awardDate, amount: enrichment.amount, contracting_body: enrichment.contracting_body, target_population: enrichment.target_population, scope_facts:enrichment.scope_facts, summary: enrichment.summary, confidence: enrichment.confidence, engine: "openai-responses", engine_version: actualModel, updated_at: new Date().toISOString() }, { onConflict: "source_record_id" }).select("id").single();
   if (error) throw error;
   const { error: deleteError } = await supabase.from("record_enrichment_evidence").delete().eq("enrichment_id", data.id);
   if (deleteError) throw deleteError;
