@@ -1,4 +1,10 @@
 .action {
+  max-width: 100%;
+  height: auto;
+  min-height: 2rem;
+  padding-block: 0.5rem;
+  white-space: normal;
+  overflow-wrap: anywhere;
   border-color: #555555 !important;
   background-color: #ffffff !important;
   color: #111111 !important;
