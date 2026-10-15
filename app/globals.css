@@ -74,7 +74,7 @@ html {
 
 body {
   margin: 0;
-  min-width: 320px;
+  min-width: 0;
 }
 
 button,
@@ -233,6 +233,7 @@ textarea:focus-visible {
 .work-table td[data-role="primary"] > a { text-decoration: none; }
 .work-table td[data-role="primary"] > a:hover, .work-table td[data-role="primary"] > a:focus-visible { text-decoration: underline; }
 .work-table td[data-role="number"], .work-table td[data-role="amount"] { font-variant-numeric: tabular-nums; }
+.work-table td[data-column="batch"] { white-space: nowrap; padding-inline: .375rem; }
 @container (min-width: 30rem) { .work-table tbody tr { grid-template-columns: repeat(2,minmax(0,1fr)); } }
 @container (min-width: 48rem) {
   .work-table-container[data-minimum="48"] .work-table { display: table; }
