@@ -62,7 +62,15 @@ export function entityValidationStatusLabel(status: string) {
 }
 
 export function entityQualificationLabel(value: string | null | undefined) {
-  return value == null || !value.trim() || /^(null|undefined)$/i.test(value.trim()) ? "Qualificació no informada" : value;
+  return referenceTextLabel(value, "Qualificació no informada");
+}
+
+export function referenceTextLabel(value: string | null | undefined, missing = "No informat") {
+  return hasReferenceText(value) ? value : missing;
+}
+
+export function hasReferenceText(value: string | null | undefined): value is string {
+  return value != null && !!value.trim() && !/^(null|undefined)$/i.test(value.trim());
 }
 
 export function catalogRelationTypeLabel(type: string) {

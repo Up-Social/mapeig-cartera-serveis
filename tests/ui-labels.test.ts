@@ -5,6 +5,8 @@ import {
   catalogRelationTypeLabel,
   entityValidationStatusLabel,
   entityQualificationLabel,
+  referenceTextLabel,
+  hasReferenceText,
   pipelineStageLabel,
   portfolioStatusLabel,
   sourceDocumentStatusLabel,
@@ -36,4 +38,13 @@ test("tradueix tipus i estats d'altres entitats", () => {
 test("la qualificació absent no es mostra com un valor literal null", () => {
   for (const value of [null, undefined, "null", "undefined", "  "]) assert.equal(entityQualificationLabel(value), "Qualificació no informada");
   assert.equal(entityQualificationLabel("Entitat privada d'iniciativa social"), "Entitat privada d'iniciativa social");
+});
+
+test("identitats amb marcadors null continuen pendents, sense inventar nom o NIF", () => {
+  for (const value of [null, undefined, "null", "NULL", "undefined", "  "]) {
+    assert.equal(hasReferenceText(value), false);
+    assert.equal(referenceTextLabel(value, "Entitat pendent d’identificar"), "Entitat pendent d’identificar");
+  }
+  assert.equal(referenceTextLabel("Fundació Exemple"), "Fundació Exemple");
+  assert.equal(referenceTextLabel("G12345678"), "G12345678");
 });
