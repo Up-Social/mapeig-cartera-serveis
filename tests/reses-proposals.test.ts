@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import {resesProposalArchivePath,resesProposalStatus,type ResesProposal} from "../lib/reses-proposals";
+import {resesProposalArchivePath,resesProposalRole,resesProposalStatus,type ResesProposal} from "../lib/reses-proposals";
 import {resesCsv} from "../lib/reses-csv";
 
 const digest="a".repeat(64);
@@ -31,4 +31,10 @@ test("CSV retains one service per row and separates proposed identities from cur
   assert.match(csv,/NIF proposat/); assert.match(csv,/no confirmada/); assert.match(csv,/Només prova de proveïdor/);
   assert.equal((csv.match(/Titular pendent d’identificar/g)??[]).length,2);
   assert.match(csv,/pàgina 2/);
+});
+test("proposal roles distinguish management and program relationships from providers and holders",()=>{
+  assert.equal(resesProposalRole("documented_manager"),"Gestor documentat");
+  assert.equal(resesProposalRole("program_association"),"Entitat vinculada a un programa");
+  assert.equal(resesProposalRole("documented_provider"),"Proveïdor documentat");
+  assert.equal(resesProposalRole("public_responsibility"),"Ens públic responsable");
 });

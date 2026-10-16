@@ -2,14 +2,19 @@ export type ResesProposal = {
   id: string; registry_number: string; recorded_by: string; created_at: string; withdrawn: boolean;
   payload: {
     source_payload_hash: string; proposed_name: string; proposed_nif: string;
-    role: "documented_provider" | "public_responsibility";
+    role: "documented_provider" | "documented_manager" | "program_association" | "public_responsibility";
     supported_from: string | null; supported_to: string | null; limitations: string;
     evidence: Array<{url: string; description: string; document_date: string | null; consulted_at: string;
       page?: number; format: "pdf" | "html"; sha256: string; storage_path: string}>;
   };
 };
 export function resesProposalRole(role: ResesProposal["payload"]["role"]) {
-  return role === "documented_provider" ? "Proveïdor documentat" : "Ens públic responsable";
+  switch (role) {
+    case "documented_provider": return "Proveïdor documentat";
+    case "documented_manager": return "Gestor documentat";
+    case "program_association": return "Entitat vinculada a un programa";
+    case "public_responsibility": return "Ens públic responsable";
+  }
 }
 export function resesProposalStatus(proposal: ResesProposal, sourceHash: string) {
   if (proposal.withdrawn) return "Proposta retirada · historial conservat";

@@ -8,7 +8,7 @@ begin
  select jsonb_agg(to_jsonb(s) order by registry_number) into before_services from reses_services s;
  select count(*) into n from reses_holder_history;
  select jsonb_agg(jsonb_build_object('registry_number',registry_number,'source_payload_hash',source_payload_hash,
-  'proposed_name','Entitat sintètica','proposed_nif','G12345678','role','documented_provider',
+  'proposed_name','Entitat sintètica','proposed_nif','G12345678','role',case when registry_number='S99003' then 'documented_manager' else 'program_association' end,
   'supported_from','2024-01-01','supported_to','2024-12-31','limitations','Només proveïdor històric; titularitat actual no confirmada.',
   'evidence',jsonb_build_array(jsonb_build_object('url','https://example.org/prova.pdf','description','Resolució sintètica amb codi i NIF',
     'consulted_at','2026-10-15','page',2,'format','pdf','sha256',repeat('a',64),
@@ -34,6 +34,8 @@ begin
  exception when raise_exception then if sqlerrm like 'TEST:%' then raise;end if;end;
  result:=record_reses_identity_proposals('test-reses-proposals',manifest,'Prova autoritzada');
  if result->>'status'<>'applied' or (select count(*) from reses_identity_proposals)<>2 or (select count(*) from reses_identity_proposal_events)<>2 then raise exception 'Proposals/history missing';end if;
+ if (select payload->>'role' from reses_identity_proposals where registry_number='S99003')<>'documented_manager'
+  or (select payload->>'role' from reses_identity_proposals where registry_number='S99004')<>'program_association' then raise exception 'Documented relationship types were not preserved';end if;
  result:=record_reses_identity_proposals('test-reses-proposals',jsonb_build_array(manifest->1,manifest->0),'Prova autoritzada');
  if result->>'status'<>'already_applied' or (select count(*) from reses_identity_proposal_events)<>2 then raise exception 'Retry duplicates proposals/history';end if;
  begin
