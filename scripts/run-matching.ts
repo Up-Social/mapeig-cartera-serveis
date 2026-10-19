@@ -1,3 +1,4 @@
+import {processConveni} from '../lib/convenis/process';
 import {responseModel} from '../lib/openai-model';
 import {readEvidenceChunks} from '../lib/pipeline/evidence-reader';
 import {classifyFailure,retryTransient} from '../lib/provider-failure';
@@ -19,7 +20,7 @@ const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const key = process.env.SUPABASE_SECRET_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY;
 const openaiKey = process.env.OPENAI_API_KEY;
 const model = process.env.OPENAI_MATCHING_MODEL;
-if (!url || !key || !openaiKey || !model) throw new Error("Falten variables de Supabase o OpenAI");
+if (!url || !key ) throw new Error("Falten variables de Supabase o OpenAI");
 if (process.env.MATCHING_CATALOG_SOURCE !== "official") throw new Error("Cal seleccionar el catàleg oficial");
 
 const supabase = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false }, realtime: { transport: WebSocket as never } });
@@ -54,6 +55,8 @@ async function processJob(job: { id: string; run_id: string; source_record_id: s
     const previous=await supabase.from('analysis_results').select('id').eq('pipeline_job_id',job.id).maybeSingle();
     if(previous.error)throw previous.error;
     if(previous.data){await supabase.from('pipeline_jobs').update({status:'needs_review'}).eq('id',job.id);return;}
+    if(await processConveni(supabase,job,body=>journaledProviderRequest(supabase,job.id,'conveni',body)))return;
+    if(!openaiKey||!model)throw Error('Falta la configuració OpenAI');
     const lineage=await supabase.from('pipeline_jobs').select('previous_job_id').eq('id',job.id).single();
     if(lineage.error)throw lineage.error;
     await assertNotPreviouslySelected(job.source_record_id, job.id, allowPreviousSelection||Boolean(lineage.data.previous_job_id));

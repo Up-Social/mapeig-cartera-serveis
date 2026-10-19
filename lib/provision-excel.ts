@@ -36,14 +36,17 @@ export async function createProvisionExcel(rows: ProvisionExcelRow[], options: {
     row.getCell(7).numFmt = "yyyy-mm-dd";
     row.getCell(8).numFmt = "#,##0.00";
   }
-  if (options.reviewWarnings?.length) {
+  const reviewWarnings=[...(options.reviewWarnings??[])];
+  if(rows.some(r=>r.mechanism==='Conveni'))reviewWarnings.push('Convenios: aportación pública prevista revisada, no pagos. Las condiciones por anualidad se detallan en Detall_Registres.');
+  if(new Set(rows.map(r=>r.mechanism)).size>1)reviewWarnings.push('Total combinado de mecanismos potencialmente solapado. No se ha conciliado con RAISC.');
+  if (reviewWarnings.length) {
     const review = workbook.addWorksheet("Estado_Revision");
     review.columns = [
       { header: "Estado de la exportación", key: "warning", width: 105 },
     ];
     review.getRow(1).font = { bold: true };
     review.addRow({ warning: "Exportación parcial: solo incluye las líneas aprobadas; las pendientes no representan un importe cero." });
-    for (const warning of options.reviewWarnings) review.addRow({ warning });
+    for (const warning of reviewWarnings) review.addRow({ warning });
   }
   const output = await workbook.xlsx.writeBuffer(); return new Uint8Array(output);
 }

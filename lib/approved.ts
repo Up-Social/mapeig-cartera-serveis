@@ -8,7 +8,7 @@ const SELECT = "id,catalog_version_id,source_record_id,source_id,unit_id,centre,
 
 export async function getApprovedPage(filters: ApprovedFilters): Promise<ApprovedPage> {
   const db = createServerSupabase();
-  let request = db.from("service_provisions").select(schemaSelect(SELECT), { count: "exact" }).eq("source_records.processing_status", "completat");
+  let request = db.from("conveni_reviewed_provisions").select(schemaSelect(SELECT), { count: "exact" }).or('processing_status.eq.completat,financing_type.eq.conveni',{referencedTable:'source_records'});
   if (hasUnitSchema()) request=request.is("superseded_at",null);
   if (filters.type !== "totes") request = request.eq("source_records.financing_type", filters.type);
   if (filters.query) { const q = filters.query.replaceAll(/[,%()]/g, " ").trim(); const expression = `provider_name.ilike.%${q}%,provider_nif.ilike.%${q}%,source_id.ilike.%${q}%,service_code.ilike.%${q}%`; request = request.or(expression); }

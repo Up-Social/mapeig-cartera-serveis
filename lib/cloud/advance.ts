@@ -1,3 +1,4 @@
+import {preflightConveni} from '../convenis/process';
 import {EXTRACTION_VERSION} from '../pipeline/readable-document';
 import {randomUUID} from 'node:crypto';
 import {cloudDb,CLOUD_VERSION,rpc,lease,checkpoint,readCheckpoint,commit,progress,type Context} from './context';
@@ -29,6 +30,7 @@ export async function advance(task:string,workflow:string):Promise<{done:boolean
   const job=jobs.data?.[0];
   if(!job){await progress(c,'closing',1,1,'Execució automàtica finalitzada');await rpc(db,'cloud_finish',{...lease(c),p_state:'completed'});if(t.data.run_id)await rpc(db,'refresh_pipeline_run',{p_run_id:t.data.run_id});return {done:true,wait:0};}
   currentJob=job.id;
+  if(await preflightConveni(db,job.id)){await rpc(db,'cloud_finish',{...lease(c),p_state:'pending'});return {done:false,wait:1};}
   const complete=await readCheckpoint(c,`${job.id}:complete`);
   if(job.analysis_results?.length){await db.from('pipeline_jobs').update({status:'needs_review'}).eq('id',job.id);await rpc(db,'cloud_finish',{...lease(c),p_state:'pending'});return {done:false,wait:1};}
   if(complete)throw new CloudFailure('validation');

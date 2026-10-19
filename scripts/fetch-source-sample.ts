@@ -82,7 +82,7 @@ async function main() {
 
 async function selectStratifiedSample(limit: number) {
   if (runId) {
-    const { data: jobs, error: jobsError } = await supabase.from("pipeline_jobs").select("source_record_id").eq("run_id", runId).match(process.env.WORKFLOW_JOB_ID?{id:process.env.WORKFLOW_JOB_ID}:{});
+    const { data: jobs, error: jobsError } = await supabase.from("pipeline_jobs").select("source_record_id").eq("run_id", runId).match(process.env.WORKFLOW_JOB_ID?{id:process.env.WORKFLOW_JOB_ID}:{}).not("status","in","(rejected,approved,corrected,needs_review,insufficient_evidence)");
     if (jobsError) throw jobsError;
     const recordIds = (jobs ?? []).map((job) => job.source_record_id);
     if (!recordIds.length) return [];

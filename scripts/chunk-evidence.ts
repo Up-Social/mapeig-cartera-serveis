@@ -18,7 +18,7 @@ async function main() {
   if (!Number.isInteger(limit) || limit < 1 || limit > 1000) throw new Error("--limit ha de ser entre 1 i 1000");
   let recordIds: string[] | undefined;
   if (runId) {
-    const { data: jobs, error: jobsError } = await supabase.from("pipeline_jobs").select("source_record_id").eq("run_id", runId).match(process.env.WORKFLOW_JOB_ID?{id:process.env.WORKFLOW_JOB_ID}:{});
+    const { data: jobs, error: jobsError } = await supabase.from("pipeline_jobs").select("source_record_id").eq("run_id", runId).match(process.env.WORKFLOW_JOB_ID?{id:process.env.WORKFLOW_JOB_ID}:{}).not("status","in","(rejected,approved,corrected,needs_review,insufficient_evidence)");
     if (jobsError) throw jobsError;
     recordIds = (jobs ?? []).map((job) => job.source_record_id);
     if (!recordIds.length) return;

@@ -32,7 +32,7 @@ export async function GET(
     );
   const recordIds = jobs.map((job) => job.source_record_id);
   let query = supabase
-    .from("service_provisions")
+    .from("conveni_reviewed_provisions")
     .select(
       schemaSelect("id,source_id,unit_id,centre,period,act_type,annex_reference,call_url,regulatory_basis_url,provider_name,provider_nif,mechanism,award_date,amount,contracting_body,target_population,source_reference,service_code,master_services(service_name),official_services(service_name)"),
     )

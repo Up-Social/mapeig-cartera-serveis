@@ -1,3 +1,4 @@
+import {normalizeConveni} from '../lib/convenis/contract';
 import { createHash } from "node:crypto";
 import { access,readFile } from "node:fs/promises";
 import path from "node:path";
@@ -44,7 +45,7 @@ const specs: SourceSpec[] = [
     provider: (row) => nullableText(row["Altres Organismes Signants"])
       || nullableText(row["Organismes signants ens locals"])
       || nullableText(row["Organismes signants per part de la Generalitat"]),
-    amount: (row) => firstNumber(row["Sumatori aportacions totals previstes"]),
+    amount: (row) => { const value=normalizeConveni(row).publicCents; return value===null?null:value/100; },
   },
   {
     file: "Subvenciones. RAISC Consolidado 2024-2026.xlsx", sheets: ["CCAA", "Local"],

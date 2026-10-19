@@ -14,7 +14,7 @@ export async function GET() {
     );
   const supabase = createServerSupabase();
   let query = supabase
-    .from("service_provisions")
+    .from("conveni_reviewed_provisions")
     .select(
       schemaSelect("source_id,unit_id,centre,period,act_type,annex_reference,call_url,regulatory_basis_url,provider_name,provider_nif,mechanism,award_date,amount,contracting_body,target_population,source_reference,service_code,official_services(service_name),master_services(service_name)"),
     )
@@ -63,6 +63,11 @@ export async function GET() {
     });
     row.getCell(7).numFmt = "yyyy-mm-dd";
     row.getCell(8).numFmt = "#,##0.00";
+  }
+  if(data.some(item=>item.mechanism==='Conveni')){
+    const notes=workbook.getWorksheet('Estat_Exportacio')??workbook.addWorksheet('Estat_Exportacio');
+    notes.addRow(['Convenis: aportació pública prevista revisada, no pagaments. Consulta Detall_Registres per a les condicions de cada anualitat.']);
+    notes.addRow(['Total combinat de mecanismes potencialment solapat. No s’ha conciliat amb RAISC. Només inclou unitats aprovades vigents; els pendents no són zero.']);
   }
   workbook.calcProperties.fullCalcOnLoad = true;
   const output = await workbook.xlsx.writeBuffer();

@@ -21,7 +21,7 @@ const resolution = {
 
 /** Labels only: the persisted phase remains enrichment for historical compatibility. */
 export function recordDataStage(financingType:FinancingType){
- return financingType==='concert'?resolution:contrast;
+ return financingType==='conveni'?{...contrast,title:'Anàlisi del conveni',progress:'Analitzant beneficiaris, imports i serveis del conveni',completed:'Propostes del conveni preparades',description:'Primer s’apliquen les exclusions de l’abast. L’Excel aporta els camps estructurats i el document acredita NIF, població, servei i desglossaments. Cal revisar cada entitat.'}:financingType==='concert'?resolution:contrast;
 }
 
 /** Historical progress receipts retain their original text; adapt only known labels. */

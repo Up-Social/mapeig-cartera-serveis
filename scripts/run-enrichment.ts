@@ -1,3 +1,4 @@
+import {processConveni} from '../lib/convenis/process';
 import {responseModel} from '../lib/openai-model';
 import {readEvidenceChunks} from '../lib/pipeline/evidence-reader';
 import {ROLE_INSTRUCTIONS} from '../lib/scope-rules';
@@ -14,12 +15,17 @@ const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const key = process.env.SUPABASE_SECRET_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY;
 const openaiKey = process.env.OPENAI_API_KEY;
 const model = process.env.OPENAI_MATCHING_MODEL ?? '';
-if (!recordId || !url || !key || !openaiKey || !model) throw new Error("Falta el registre o la configuració de Supabase/OpenAI");
+if (!recordId || !url || !key ) throw new Error("Falta el registre o la configuració de Supabase/OpenAI");
 const supabase = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false }, realtime: { transport: WebSocket as never } });
 
 
 async function main() {
   try {
+    let jq=supabase.from('pipeline_jobs').select('id,source_record_id').eq('source_record_id',recordId).order('created_at',{ascending:false}).order('id',{ascending:false}).limit(1);
+    if(process.env.WORKFLOW_JOB_ID)jq=jq.eq('id',process.env.WORKFLOW_JOB_ID);
+    const current=await jq.single();if(current.error)throw current.error;
+    if(await processConveni(supabase,current.data,body=>journaledProviderRequest(supabase,current.data.id,'conveni',body)))return;
+    if(!openaiKey||!model)throw Error('Falta la configuració OpenAI');
     const { data: record, error: recordError } = await supabase.from("source_records").select("id,source_dataset,source_record_id,mechanism,title,provider_name,amount,source_payload,source_documents!inner(id,status,text_length,extraction_method,quality_flags)").eq("id", recordId).eq("source_documents.status", "fetched").single();
     if (recordError) throw recordError;
     const documents = new Map(record.source_documents.map((document: { id: string; text_length:number|null; extraction_method:string|null; quality_flags:string[]|null }) => [document.id, document]));

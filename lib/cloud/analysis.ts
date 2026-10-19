@@ -1,3 +1,5 @@
+import {processConveni,ConveniFailure} from '../convenis/process';
+import {createHash} from 'node:crypto';
 import {responseModel} from '../openai-model';
 import {analysisDiagnostics,type EvidenceDiagnostic} from '../evidence-diagnostics';
 import {programAnalysis} from './program-analysis';
@@ -22,6 +24,16 @@ import {concertNoAwardTitle} from '../concerts/no-award';
 import {reconciledConcertAnalysis} from './concert-analysis';
 import {applyConcertRoleReviewWithDiagnostics,concertRolesNeedingReview,concertRoleReviewSchema,CONCERT_ROLE_REPAIR_INSTRUCTIONS,CONCERT_ROLE_REPAIR_VERSION} from '../concerts/role-evidence';
 export async function analyzeRecord(c:Context,job:{id:string;source_record_id:string},phase:'enrichment'|'matching'){
+ try {if(await processConveni(c.db,job,async body=>{
+  if(!process.env.OPENAI_MATCHING_MODEL||!process.env.OPENAI_API_KEY)throw new CloudFailure('credentials');
+  const hash=createHash('sha256').update(JSON.stringify(body)).digest('hex');
+  const prior=await readCheckpoint<string>(c,`conveni-input:${job.id}`);
+  if(prior&&prior!==hash)throw new CloudFailure('validation',5,{operation:'conveni_input',code:'NEW_ANALYSIS_REQUIRED'});
+  if(!prior)await checkpoint(c,`conveni-input:${job.id}`,hash);
+  const response=await providerRequest(c,`ai:${job.id}:conveni`,body);
+  await rpc(c.db,'cloud_provider_usage',{...lease(c),p_key:`usage:${job.id}:conveni`,p_usage:response.usage??{}});
+  return response;
+ }))return;}catch(e){if(e instanceof ConveniFailure)throw new CloudFailure(e.kind,5,{operation:'conveni_analysis',code:e.code,message:e.message,details:e.diagnostics??e.diagnostic});throw e;}
  const model=process.env.OPENAI_MATCHING_MODEL;
  if(!model||!process.env.OPENAI_API_KEY)throw new CloudFailure('credentials');
  const r=await c.db.from('source_records').select('*,record_enrichments(*)').eq('id',job.source_record_id).single();

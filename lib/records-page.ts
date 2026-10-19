@@ -1,3 +1,4 @@
+import {normalizeConveni} from './convenis/contract';
 import {effectiveJobs} from './effective-jobs';
 import {textDefects} from './pipeline/readable-document';
 import officialSnapshot from '../data/legal/cartera.json';
@@ -120,7 +121,7 @@ export function mapRecord(row: Record<string, unknown>): SourceRecord {
     id: String(row.id), sourceDataset: String(row.source_dataset), financingType: row.financing_type as SourceRecord["financingType"], sourceRecordId: String(row.source_record_id),
     mechanism: String(row.mechanism), title: String(row.title),
     providerName: row.provider_name == null ? null : String(row.provider_name),
-    amount: row.amount == null ? null : Number(row.amount), status: row.processing_status as ProcessingStatus,
+    amount: row.financing_type==='conveni' ? ((v)=>v===null?null:v/100)(normalizeConveni((row.source_payload??{}) as Record<string,unknown>).publicCents) : row.amount == null ? null : Number(row.amount), status: row.processing_status as ProcessingStatus,
     carteraCode: row.cartera_code == null ? null : String(row.cartera_code),
     carteraName: row.cartera_name == null ? null : String(row.cartera_name),
     confidence: row.confidence == null ? null : Number(row.confidence),

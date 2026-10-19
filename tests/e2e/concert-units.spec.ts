@@ -50,7 +50,8 @@ test.afterAll(async()=>{
 test('review two annex rows in the UI and download the actual two-row Excel',async({page})=>{
  await page.request.post('/api/access/login',{form:{password:'local-workflow-fixture-only',next:'/batches'}});
  await page.goto(`/records/${recordId}`);
- const section=page.locator('#unitats');await expect(section.getByRole('heading',{name:'Unitats del concert · detall de l’annex'})).toBeVisible();
+ const section=page.locator('#unitats');await expect(section.getByRole('heading',{name:'Repartiment i seguiment del concert'})).toBeVisible();
+ await section.locator('summary').filter({hasText:'Afegir una línia de l’annex'}).click();
  for(let i=0;i<2;i++){
   const entity=`Entitat de prova ${i?'B':'A'}`;
   await section.getByLabel('Entitat beneficiària',{exact:true}).fill(entity);
@@ -64,6 +65,7 @@ test('review two annex rows in the UI and download the actual two-row Excel',asy
   await section.getByRole('button',{name:'Afegir unitat pendent de revisió'}).click();
   const unit=section.getByRole('article').filter({has:page.getByRole('heading',{name:new RegExp(entity)})});
   await expect(unit).toBeVisible({timeout:30_000});
+  await unit.getByRole('button',{name:'Revisar línia',exact:true}).click();
   await expect(unit.getByRole('link',{name:'Obre la còpia arxivada'})).toBeVisible();
   const row=await db.from('record_units').select('id,storage_path,storage_sha256,document_id').eq('source_record_id',recordId).eq('provider_name',entity).single();if(row.error)throw row.error;
   expect(row.data.storage_path).toMatch(new RegExp(`^cases/${recordId}/items/${row.data.id}/documents/${docId}/[a-f0-9]{64}\\.html$`));
@@ -82,9 +84,9 @@ test('review two annex rows in the UI and download the actual two-row Excel',asy
   }
   await unit.getByLabel('Justificació de la unitat').fill('Validació humana de la fila acreditada de l’annex');
   await unit.getByRole('button',{name:'Aprovar unitat',exact:true}).click();
-  await expect(unit).toContainText('Aprovada',{timeout:30_000});
+  await expect(unit).toContainText('Línia aprovada',{timeout:30_000});
  }
- await expect(section.getByRole('article')).toHaveCount(2);
+ await expect(section.getByTestId('concert-unit')).toHaveCount(2);
  const provisions=await db.from('service_provisions').select('id,amount').eq('source_record_id',recordId).is('superseded_at',null);if(provisions.error)throw provisions.error;
  expect(provisions.data).toHaveLength(2);
  const response=await page.request.post('/api/exports/approved',{data:{provisionIds:provisions.data.map(p=>p.id)}});expect(response.status()).toBe(200);

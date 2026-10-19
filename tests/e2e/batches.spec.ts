@@ -80,7 +80,8 @@ test.afterAll(async()=>{
 async function login(page:Page){
  const password='local-workflow-fixture-only';
  await page.goto('/batches');
- await page.locator('[data-app-ready="true"]').waitFor();
+ // Login is a native HTML form; application hydration is required after login.
+ await expect(page.getByRole('textbox',{name:'Contrasenya'})).toBeEditable();
  await page.getByRole('textbox',{name:'Contrasenya'}).fill(password);
  await Promise.all([page.waitForURL('**/batches'),page.getByRole('button',{name:'Entrar'}).click()]);
  await page.locator('[data-app-ready="true"]').waitFor();
@@ -133,22 +134,24 @@ test('technical incidence finishes the record spinner and retains explanation',a
  await expect(page.getByRole('button',{name:'Processant...',exact:true})).toHaveCount(0);
  await expect(page.getByText('Interromput durant la correspondència')).toBeVisible();
  await expect(page.getByText(/Encara no hi ha cap resultat de correspondència guardat/)).toBeVisible();
- await expect(page.getByText(/La revisió encara no està disponible/)).toBeVisible();
+ await expect(page.locator('#decisio').getByText(/La revisió encara no està disponible/)).toBeVisible();
  await expect(page.getByRole('button',{name:'Desar decisió',exact:true})).toHaveCount(0);
  await expect(page.locator('details')).toHaveCount(0);
 });
-test('batch results link to a visible review and keep the return context',async({page})=>{
+test('batch results link to insufficient evidence and keep the return context',async({page})=>{
  await login(page);await page.goto(`/batches/${diagnosticRun}/results`);
  await expect(page.getByRole('heading',{name:'Errors tècnics'})).toBeVisible();
  const technical=page.getByRole('article').filter({hasText:'Subvenció amb document tècnic fictici'});
  await expect(technical).toContainText('Document no processable.');
  await expect(page.locator('details')).toHaveCount(0);
- await page.getByRole('link',{name:'Revisar ara'}).click();
+ const insufficient=page.getByRole('article').filter({hasText:'Conveni pendent de revisió fictici'});
+ await expect(insufficient).toContainText('Incidència · evidència insuficient');
+ await insufficient.getByRole('link',{name:'Veure incidència',exact:true}).click();
  await expect(page).toHaveURL(new RegExp(`/records/${reviewRecord}`));
  await expect(page.getByRole('heading',{name:'Resultat de l’anàlisi'})).toBeVisible();
- await expect(page.getByText('Evidència de l’expedient',{exact:true})).toBeVisible();
+ await expect(page.getByRole('heading',{name:'Evidències i fonts oficials',exact:true})).toBeVisible();
  await expect(page.getByRole('link',{name:'Tornar al llistat'})).toHaveAttribute('href',new RegExp(`/batches/${diagnosticRun}/results`));
- await expect(page.locator('details')).toHaveCount(0);
+ await expect(page.getByText('No consta la població destinatària del servei en la documentació disponible.',{exact:true}).first()).toBeVisible();
 });
 test('catalog groups explain hierarchy and SAD retains complete normative functions',async({page})=>{
  await login(page);await page.goto('/catalog/1.1.2');

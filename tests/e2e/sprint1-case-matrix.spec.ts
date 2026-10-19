@@ -4,6 +4,7 @@ import {createHash,randomUUID} from 'node:crypto';
 import {resolve} from 'node:path';
 import {readFileSync} from 'node:fs';
 import {createClient,type SupabaseClient} from '@supabase/supabase-js';
+import {CONCERT_CASE_LABELS} from '../../lib/concerts/act-assessment';
 import {SPRINT1_CONCERT_CASES} from '../fixtures/sprint1-concert-cases';
 import {readSource,sha256,SOURCE_BUCKET,SourceContentChangedError} from '../../lib/source-storage';
 
@@ -68,7 +69,7 @@ for(const example of SPRINT1_CONCERT_CASES){
   await page.goto(`/records/${ids.get(example.caseNo)}`);
   await expect(page.getByRole('heading',{name:'Resum del cas'})).toBeVisible();
   const assessment=page.getByTestId('concert-assessment');
-  await expect(assessment).toContainText(`cas ${example.caseNo}`);
+  await expect(assessment).toContainText(CONCERT_CASE_LABELS[example.caseNo]);
   await expect(assessment).toHaveAttribute('data-effect',example.effect);
   await expect(assessment).toContainText('Sempre pendent de revisió. No genera cap import automàtic.');
   const provisions=await db.from('service_provisions').select('id',{count:'exact',head:true}).eq('source_record_id',ids.get(example.caseNo)!);
@@ -81,7 +82,7 @@ test('official 8-page PDF from e-Tauler: 2025 award and full evidence remain vis
  await page.request.post('/api/access/login',{form:{password:'local-workflow-fixture-only',next:'/batches'}});
  await page.goto(`/records/${officialId}`);
  const assessment=page.getByTestId('concert-assessment');
- await expect(assessment).toContainText('cas 10');
+ await expect(assessment).toContainText(CONCERT_CASE_LABELS[10]);
  await expect(assessment).toHaveAttribute('data-effect','possible_award');
  await expect(assessment).toContainText('text del document');
  await expect(page.getByText('113.340,81', {exact:false})).toHaveCount(0);
@@ -107,7 +108,10 @@ for(const dataset of ['convenis','raisc_local','contractacions'] as const){
   expect(opened.headers()['content-type']).toContain(source.data.mime_type);
   expect(bytes.toString()).toContain(`Font transversal de prova ${dataset}`);
   await expect(page.getByRole('heading',{name:'Resum del cas'})).toBeVisible();
-  await expect(page.getByText('Font: 1250.25')).toBeVisible();
+  if(dataset==='convenis'){
+   const publicAmount=page.locator('#conveni dl > div').filter({has:page.locator('dt').filter({hasText:'Aportació pública prevista'})});
+   await expect(publicAmount.locator('dd')).toHaveText('Pendent');
+  }else await expect(page.getByText(/Font: 1\.250,25\s*€/)).toBeVisible();
   await expect(page.getByTestId('concert-assessment')).toHaveCount(0);
   await expect(page.getByText('valor original de prova')).toHaveCount(0);
   await page.getByRole('button',{name:'Mostra totes les dades originals'}).click();

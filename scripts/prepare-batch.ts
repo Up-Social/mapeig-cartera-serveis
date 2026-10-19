@@ -1,3 +1,4 @@
+import {preflightConveni} from '../lib/convenis/process';
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { createClient } from "@supabase/supabase-js";
@@ -14,6 +15,9 @@ async function main() {
   try {
     const { data: pipelineRun, error: runError } = await supabase.from("pipeline_runs").select("parameters").eq("id", runId).single();
     if (runError) throw runError;
+    const pending=await supabase.from('pipeline_jobs').select('id').eq('run_id',runId).match(process.env.WORKFLOW_JOB_ID?{id:process.env.WORKFLOW_JOB_ID}:{}).in('status',['selected','error','queued','ready','preparing']);
+    if(pending.error)throw pending.error;
+    for(const job of pending.data)await preflightConveni(supabase,job.id);
     const useOcr = pipelineRun.parameters?.ocr_recovery === true;
     await supabase.from("pipeline_jobs").update({ status: "preparing", preparation_status: "discovering", preparation_message: null }).eq("run_id", runId).match(process.env.WORKFLOW_JOB_ID?{id:process.env.WORKFLOW_JOB_ID}:{}).in("status", ["selected", "error"]);
     await run("sources:discover", ["--run-id", runId!]);

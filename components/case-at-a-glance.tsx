@@ -14,15 +14,15 @@ export function CaseAtAGlance({record}:{record:SourceRecord}){
   !d.qualityFlags.some(flag=>['corrupt_text','incomplete_extraction'].includes(flag)))
   .sort((left,right)=>(right.textLength??0)-(left.textLength??0))[0]?.extractedText;
  const assessment=record.financingType==='concert'&&!reconciledAnnex?assessConcertAct(record.title,officialText):null;
- const extracted=record.externalEnrichment;
+ const extracted=record.financingType==='conveni'?null:record.externalEnrichment;
  const rows=[
-  {label:'Entitat',original:record.providerName,official:extracted?.providerName},
-  {label:record.financingType==='concert'?'Import global del document':'Import',original:record.amount,official:extracted?.amount},
+  {label:record.financingType==='conveni'?'Signants d’origen (no acredita receptors)':'Entitat',original:record.providerName,official:extracted?.providerName},
+  {label:record.financingType==='concert'?'Import global del document':record.financingType==='conveni'?'Import públic previst del conveni':'Import',original:record.amount,official:extracted?.amount},
   {label:'Mecanisme',original:record.mechanism,official:extracted?.mechanism},
  ].filter(row=>row.original!=null||row.official!=null);
  return <section id="resum" aria-label="Resum del cas" className="surface scroll-mt-32 p-5 sm:p-6">
   <p className="page-eyebrow">Lectura ràpida</p><h2 className="section-title mt-1">Resum del cas</h2>
-  <p className="mt-2 text-sm text-muted-foreground">Dades de la font i camps extrets del document. Les diferències requereixen comprovació humana.</p>
+  <p className="mt-2 text-sm text-muted-foreground">{record.financingType==='conveni'?'Dades de l’Excel. Revisa els receptors, els imports atribuïbles i les anualitats a les unitats del conveni. No són pagaments.':'Dades de la font i camps extrets del document. Les diferències requereixen comprovació humana.'}</p>
   <dl className="card-fields mt-4 text-sm">{rows.map(row=>{
     const compared=extracted&&row.official!=null;
     const sameConcertMechanism=record.financingType==='concert'&&row.label==='Mecanisme'&&
