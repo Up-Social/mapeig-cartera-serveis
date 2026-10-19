@@ -73,6 +73,8 @@ test('review by recipient, concurrent protection and both exports use 1,000 publ
 test('excluded amendment explains scope and can be reopened without a model call',async({page})=>{
  await page.request.post('/api/access/login',{form:{password:'local-workflow-fixture-only',next:'/batches'}});
  await page.goto(`/records/${excludedId}`);const section=page.locator('#conveni');
+ await expect(page.getByText('Decisió automàtica registrada',{exact:true})).toBeVisible();
+ await expect(page.getByText('Decisió humana registrada',{exact:true})).toHaveCount(0);
  await expect(section).toContainText('Fora de l’abast del Sprint 2');await expect(section).toContainText('Descart automàtic auditable');
  await section.getByLabel('Motiu per reobrir').fill('Reobertura sintètica per verificar el circuit de revisió.');
  await section.getByRole('button',{name:'Reobrir per revisar'}).click();await expect(section.locator('li')).toContainText('Reobertura');

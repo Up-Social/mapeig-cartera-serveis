@@ -32,7 +32,7 @@ begin
  select unit_id into uid from conveni_unit_proposals where job_id=job;
  begin
   perform review_conveni_unit(sid,gen_random_uuid(),uid,gen_random_uuid(),null,'select',code,'Aprovació obsoleta',true);raise exception 'TEST: stale approved';
- exception when no_data_found or serialization_failure then null;end;
+ exception when no_data_found or sqlstate 'PT409' then null;end;
  begin
   perform review_conveni_unit(sid,job,uid,event,null,'select',code,'Aprovació sense còpia',true);raise exception 'TEST: unarchived approved';
  exception when raise_exception then if sqlerrm like 'TEST:%' then raise;end if;end;
@@ -52,7 +52,7 @@ begin
  if not exists(select 1 from conveni_reviewed_provisions where unit_id=uid and superseded_at is null) then raise exception 'TEST: reviewed amount not exportable';end if;
  begin
   perform review_conveni_unit(sid,job,uid,gen_random_uuid(),null,'reject',null,'Revisió concurrent');raise exception 'TEST: concurrent accepted';
- exception when serialization_failure then null;end;
+ exception when sqlstate 'PT409' then null;end;
  update source_documents set storage_sha256=repeat('b',64) where id=doc;
  if exists(select 1 from conveni_reviewed_provisions where unit_id=uid) then raise exception 'TEST: stale evidence exported';end if;
  update source_documents set storage_sha256=sha where id=doc;
@@ -73,7 +73,7 @@ begin
  perform screen_conveni(job);
  if (select automatic from conveni_analyses where job_id=job) then raise exception 'TEST: human decision overwritten automatically';end if;
  select id into prior_review from review_decisions where source_record_id=sid order by created_at desc,id desc limit 1;
- begin perform confirm_conveni_exclusion(sid,job,gen_random_uuid(),null,'Confirmació concurrent no vàlida');raise exception 'TEST: stale exclusion review accepted';exception when serialization_failure then null;end;
+ begin perform confirm_conveni_exclusion(sid,job,gen_random_uuid(),null,'Confirmació concurrent no vàlida');raise exception 'TEST: stale exclusion review accepted';exception when sqlstate 'PT409' then null;end;
  perform confirm_conveni_exclusion(sid,job,gen_random_uuid(),prior_review,'Exclusió d’abast confirmada amb revisió humana');
  if (select status from pipeline_jobs where id=job)<>'rejected' then raise exception 'TEST: exclusion not confirmed';end if;
  -- Automatic exclusions need no document and reopening preserves their original audit.

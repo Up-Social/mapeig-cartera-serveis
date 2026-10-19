@@ -241,7 +241,7 @@ export function ReviewDetail({
       </div>
       <section id="resultat" className="mt-5 border-t pt-5">
         <h4 className="section-title">Resultat de l’anàlisi</h4>
-        <div className="mt-3 space-y-3"><AnalysisResult analysis={record.analysis} candidates={record.matchingCandidates}/></div>
+        <div className="mt-3 space-y-3"><AnalysisResult reviewActor={record.reviewActor} analysis={record.analysis} candidates={record.matchingCandidates}/></div>
       </section>
       <section className="mt-5 border-t pt-5">
         <h4 className="text-sm font-semibold">

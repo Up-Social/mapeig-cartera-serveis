@@ -48,7 +48,7 @@ export async function processConveni(db:SupabaseClient,job:{id:string;source_rec
  try {analysis=validateConveni(resolveConveniServices(resolveConveniCitations(JSON.parse(extractOutputText(raw)),indexed.spans),catalog.eligible),r.data.source_payload,documents,new Set(catalog.eligible.map(s=>s.service_code)),{requireSemanticAssessment:true});}
  catch(e){throw new ConveniFailure(e instanceof Error?e.message:'Proposta de conveni invàlida','validation',e instanceof ConveniValidationError?e.diagnostic.code:'INVALID_CONVENI_PROPOSAL',e instanceof ConveniValidationError?e.diagnostic:undefined,e instanceof ConveniValidationError?e.diagnostics:undefined);}
  const saved=await db.rpc('persist_conveni',{p_job:job.id,p_version:catalog.version.id,p_payload:analysis,p_source_hash:hash.data,p_revisions:Object.fromEntries(documents.map(d=>[d.id,`${d.storage_sha256}:${d.active_extraction_id??''}`]))});
- if(saved.error){if(saved.error.code==='40001'||saved.error.code==='P0001')throw new ConveniFailure(saved.error.message,'validation','STALE_OR_INVALID_CONVENI');throw Error(saved.error.message);}
+ if(saved.error){if(['40001','PT409','P0001'].includes(saved.error.code))throw new ConveniFailure(saved.error.message,'validation','STALE_OR_INVALID_CONVENI');throw Error(saved.error.message);}
  return true;
 }
 export {CONVENI_VERSION};

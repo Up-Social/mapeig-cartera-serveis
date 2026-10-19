@@ -143,3 +143,11 @@ test('a paused or failed job needs attention rather than counting as a completed
  assert.equal(recordOperationNeedsAttention(withRecord({currentJobStatus:'error'})),true);
  assert.equal(recordOperationNeedsAttention(withRecord({currentJobStatus:'insufficient_evidence',operationProgress:{...paused.operationProgress!,state:'finished'}})),false);
 });
+
+// A deterministic exclusion is an audited system decision, not human approval.
+test('review labels preserve system, human and unknown decision origins',()=>{
+ const reviewed=withRecord({reviewDecision:'rejected'});
+ assert.equal(recordReviewLabel({...reviewed,reviewActor:'system:convenis-sprint2-v1'}),'Decisió automàtica registrada');
+ assert.equal(recordReviewLabel({...reviewed,reviewActor:'local_user'}),'Decisió humana registrada');
+ assert.equal(recordReviewLabel(reviewed),'Decisió registrada');
+});

@@ -42,6 +42,7 @@ export type SourceRecord = {
   analysis?:StoredAnalysis|null; matchingCandidates: MatchingCandidate[];
   matchingError: string | null;
   reviewDecision: "approved" | "corrected" | "rejected" | "insufficient_evidence" | null;
+  reviewActor?: string | null;
   reviewReason?: string | null;
   reviewedAt?: string | null;
   updatedAt?: string | null;
