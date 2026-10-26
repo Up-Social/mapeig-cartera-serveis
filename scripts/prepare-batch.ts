@@ -1,3 +1,4 @@
+import {assertProcessingEnabled,isProcessingPaused,pauseLocalProcessing,PROCESSING_PAUSE_EXIT_CODE} from '../lib/processing-control';
 import {preflightConveni} from '../lib/convenis/process';
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
@@ -12,6 +13,7 @@ if (!runId || !url || !key) throw new Error("Falta --run-id o la configuració d
 const supabase = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false }, realtime: { transport: WebSocket as never } });
 
 async function main() {
+  await assertProcessingEnabled(supabase);
   try {
     const { data: pipelineRun, error: runError } = await supabase.from("pipeline_runs").select("parameters").eq("id", runId).single();
     if (runError) throw runError;
@@ -61,6 +63,7 @@ async function main() {
     const { error: refreshError } = await supabase.rpc("refresh_pipeline_run", { p_run_id: runId });
     if (refreshError) throw refreshError;
   } catch (error) {
+    if(isProcessingPaused(error))throw error;
     await supabase.from("pipeline_runs").update({ status: "preparation_error", error_count: 1 }).eq("id", runId);
     const message = error instanceof Error ? error.message.slice(0, 1000) : String(error).slice(0, 1000);
     const { data: jobs } = await supabase.from("pipeline_jobs").select("source_record_id").eq("run_id", runId).match(process.env.WORKFLOW_JOB_ID?{id:process.env.WORKFLOW_JOB_ID}:{});
@@ -83,4 +86,4 @@ async function estimateTokens(id: string) {
 
 async function run(script: string, args: string[]) { await execFileAsync("npm", ["run", script, "--", ...args], { cwd: process.cwd(), env: process.env, maxBuffer: 10 * 1024 * 1024 }); }
 function option(name: string) { const index = process.argv.indexOf(name); return index >= 0 ? process.argv[index + 1] : undefined; }
-void main().catch((error: unknown) => { console.error("Preparació fallida:", error); process.exitCode = 1; });
+void main().catch(async (error: unknown) => { if(isProcessingPaused(error)){await pauseLocalProcessing(supabase,{runId});console.error("PROCESSING_DISABLED");process.exitCode=PROCESSING_PAUSE_EXIT_CODE;return;}console.error("Preparació fallida:", error); process.exitCode = 1; });

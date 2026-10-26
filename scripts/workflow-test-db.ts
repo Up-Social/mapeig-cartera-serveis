@@ -17,6 +17,8 @@ for(const file of readdirSync('supabase/migrations').filter(f=>f.endsWith('.sql'
   sql(`begin;\n${readFileSync(`supabase/migrations/${file}`,'utf8')}\ninsert into public.workflow_test_migrations values ('${file.replaceAll("'","''")}');\ncommit;`);
   console.log(`Applied ${file}`);
 }
+// Explicit opt-in only in the independently named, asserted test database.
+sql("update public.app_settings set enabled=true,reason='isolated_test_fixture',updated_at=clock_timestamp() where key='processing_enabled';");
 sql("NOTIFY pgrst, 'reload schema';");
 // This isolated CLI image uses a Storage API that inserts with ON CONFLICT(bucket_id,name),
 // while its newer database schema only has partial/versioned uniqueness. Keep the

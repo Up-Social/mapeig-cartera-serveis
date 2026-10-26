@@ -1,5 +1,6 @@
 "use server";
 
+import { assertProcessingEnabled } from "@/lib/processing-control";
 import { executionMode } from "@/lib/pipeline/execution-mode";
 import { cloudDb, rpc } from "@/lib/cloud/context";
 import { launchRun } from "@/lib/cloud/enqueue";
@@ -8,6 +9,7 @@ import { dispatchWorkerTask } from "@/lib/worker-dispatch";
 
 export async function createAutomatedBatch(size: number) {
   if (executionMode() === "disabled") throw new Error("Execució desactivada en aquest entorn.");
+  await assertProcessingEnabled(createServerSupabase());
   if (!Number.isInteger(size) || size < 1 || size > 50) throw new Error("La mida del lot ha de ser un enter entre 1 i 50.");
   if (executionMode() === "vercel_workflow") {
     const id = await rpc<string>(cloudDb(), "cloud_create_automated", { p_size: size });

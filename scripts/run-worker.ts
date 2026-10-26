@@ -1,3 +1,5 @@
+import {getProcessingSetting,isProcessingPaused,pauseLocalProcessing} from '../lib/processing-control';
+import {executionMode} from '../lib/pipeline/execution-mode';
 import {classifyFailure,retryDelay} from '../lib/provider-failure';
 import { execFile } from "node:child_process";
 import { hostname } from "node:os";
@@ -56,6 +58,7 @@ async function main() {
 }
 
 async function claimTask(): Promise<Task | null> {
+  if (executionMode() === 'disabled' || !(await getProcessingSetting(db)).enabled) return null;
   const { data, error } = await db.rpc("claim_worker_task", { p_worker_id: workerId });
   if (error) throw error;
   return (data?.[0] as Task | undefined) ?? null;
@@ -83,6 +86,7 @@ async function executeTask(task: Task) {
     if (error) throw error;
     console.log(`${task.id}: completada`);
   } catch (error) {
+    if(isProcessingPaused(error)){await pauseLocalProcessing(db,{runId:task.run_id,taskId:task.id,jobId:task.pipeline_job_id});console.log(`${task.id}: processament pausat; dades conservades.`);return;}
     const message = formatError(error).slice(0, 2000);
     await markDomainFailure(task, message);
     const willRetry = task.task_type === "process_run" && task.attempts < 3 && classifyFailure(message).retryable;

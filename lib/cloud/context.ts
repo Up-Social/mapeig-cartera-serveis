@@ -1,3 +1,4 @@
+import {assertProcessingEnabled,ProcessingDisabledError} from '../processing-control';
 import {CloudFailure} from './errors';
 import {createClient} from '@supabase/supabase-js';
 import {executionMode} from '../pipeline/execution-mode';
@@ -14,6 +15,7 @@ export type Context={db:CloudDb;task:string;owner:string;generation:number};
 export async function rpc<T=unknown>(db:CloudDb,name:string,args:Record<string,unknown>):Promise<T>{
  const r=await db.rpc(name,args);
  if(r.error){
+  if(r.error.message.includes('PROCESSING_DISABLED'))throw new ProcessingDisabledError();
   if(r.error.message.includes('CLOUD_RESOURCE_BLOCKED:vercel_quota'))throw new Error('La quota de Vercel està esgotada. No es poden iniciar més processos fins que es recuperi el servei.');
   if(r.error.message.includes('CLOUD_RESOURCE_BLOCKED:'))throw new Error('L’execució al núvol està bloquejada temporalment.');
   throw new CloudFailure('internal',5,{operation:name,code:r.error.message==='Invalid usage key'?'INVALID_USAGE_KEY':r.error.code??'DATABASE_ERROR'});
@@ -33,10 +35,14 @@ export async function progress(c:Context,step:'document_discovery'|'document_ext
 
 export async function acquireResource(c:Context,name:'ai'|'sandbox'){
  const {CloudFailure,CloudYield}=await import('./errors');
+ await assertProcessingEnabled(c.db);
  const acquired=await rpc<boolean>(c.db,'cloud_resource',{p_name:name,p_owner:c.owner});
  if(acquired)return;
  const r=await c.db.from('cloud_resources').select('blocked_kind').eq('name',name).single();
  if(r.error)throw new CloudFailure('internal');
- if(r.data.blocked_kind)throw new CloudFailure(name==='ai'?(r.data.blocked_kind==='credentials'?'credentials':'openai_quota'):'vercel_quota');
+ if(r.data.blocked_kind){
+  const kind=r.data.blocked_kind;
+  throw new CloudFailure(kind==='credentials'?'credentials':kind==='vercel_quota'?'vercel_quota':kind==='openai_quota'?'openai_quota':'internal',5,{operation:'acquire_resource',code:'RESOURCE_BLOCKED'});
+ }
  throw new CloudYield(30);
 }

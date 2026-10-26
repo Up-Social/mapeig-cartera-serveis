@@ -36,17 +36,20 @@ async function verifyStoredObject(db:SupabaseClient,path:string,expectedHash:str
  return bytes;
 }
 
-/** Durable source bytes are written before a document is marked fetched. A retry is idempotent. */
-export async function archiveSource(db:SupabaseClient,document:Source,input?:Bytes){
+/** Reuse the bytes read for integrity verification; do not download the same object again to serve it. */
+async function archiveAndReadSource(db:SupabaseClient,document:Source,input?:Bytes){
  if(document.storage_path&&document.storage_sha256&&validSourcePath(document)){
   if(await objectExists(db,document.storage_path)){
-   await verifyStoredObject(db,document.storage_path,document.storage_sha256);
-   return {path:document.storage_path,sha256:document.storage_sha256,mimeType:document.mime_type??mimeForPath(document.storage_path)};
+   const bytes=await verifyStoredObject(db,document.storage_path,document.storage_sha256);
+   return {path:document.storage_path,sha256:document.storage_sha256,mimeType:document.mime_type??mimeForPath(document.storage_path),bytes};
   }
  }
  const fetched=input??await fetchOfficialDocument(document.url);
  const bytes=fetched.bytes;
  const digest=sha256(bytes);
+ // A missing archived object may be recovered, but its original byte identity must not change.
+ if(validSourcePath(document)&&digest!==document.storage_sha256)
+  throw new SourceContentChangedError('La font ha canviat respecte de la còpia arxivada; cal tornar-la a processar');
  // Historical pipelines used both a byte hash and a base64-text hash.
  if(document.content_hash&&document.content_hash!==digest&&document.content_hash!==sha256(Buffer.from(bytes.toString('base64'))))
   throw new SourceContentChangedError('La font ha canviat des de l’extracció; cal tornar-la a processar');
@@ -55,18 +58,22 @@ export async function archiveSource(db:SupabaseClient,document:Source,input?:Byt
   const uploaded=await db.storage.from(SOURCE_BUCKET).upload(path,bytes,{contentType:fetched.mimeType,upsert:false});
   if(uploaded.error&&!await objectExists(db,path))throw uploaded.error;
  }
- await verifyStoredObject(db,path,digest);
+ const storedBytes=await verifyStoredObject(db,path,digest);
  const updated=await db.from('source_documents').update({storage_path:path,storage_sha256:digest,storage_captured_at:new Date().toISOString(),mime_type:fetched.mimeType,byte_size:bytes.length})
   .eq('id',document.id).eq('source_record_id',document.source_record_id).select('id').single();
  if(updated.error)throw updated.error;
- return {path,sha256:digest,mimeType:fetched.mimeType};
+ return {path,sha256:digest,mimeType:fetched.mimeType,bytes:storedBytes};
+}
+
+/** Durable source bytes are written before a document is marked fetched. A retry is idempotent. */
+export async function archiveSource(db:SupabaseClient,document:Source,input?:Bytes){
+ const {path,sha256,mimeType}=await archiveAndReadSource(db,document,input);
+ return {path,sha256,mimeType};
 }
 
 /** Download a case source only after it is archived, and verify the bytes being served. */
 export async function readSource(db:SupabaseClient,document:Source,input?:Bytes){
- const archived=await archiveSource(db,document,input);
- const bytes=await verifyStoredObject(db,archived.path,archived.sha256);
- return {...archived,bytes};
+ return archiveAndReadSource(db,document,input);
 }
 
 /** Every generated unit gets its own immutable object and a DB pointer to it. */

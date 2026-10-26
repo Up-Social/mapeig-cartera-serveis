@@ -1,3 +1,4 @@
+import {assertProcessingEnabled,ProcessingDisabledError} from './processing-control';
 import {createHash} from 'node:crypto';
 import type {SupabaseClient} from '@supabase/supabase-js';
 import {prepareOpenAIRequest} from './openai-model';
@@ -16,7 +17,7 @@ export async function journaledProviderRequest(db:SupabaseClient,jobId:string,ph
  body=prepareOpenAIRequest(body as Record<string,unknown>);
  const hash=createHash('sha256').update(JSON.stringify(body)).digest('hex');
  return executeJournaledCall({
-  async claim(){const r=await db.rpc('claim_provider_call',{p_job:jobId,p_phase:phase,p_hash:hash});if(r.error)throw Error(r.error.message.includes('PROVIDER_UNKNOWN')?'PROVIDER_UNKNOWN':'Provider request cannot be resumed');return r.data as Claim;},
+  async claim(){await assertProcessingEnabled(db);const r=await db.rpc('claim_provider_call',{p_job:jobId,p_phase:phase,p_hash:hash});if(r.error){if(r.error.message.includes('PROCESSING_DISABLED'))throw new ProcessingDisabledError();throw Error(r.error.message.includes('PROVIDER_UNKNOWN')?'PROVIDER_UNKNOWN':'Provider request cannot be resumed');}return r.data as Claim;},
   async save(id,state,response){const r=await db.from('provider_calls').update({state,response,received_at:new Date().toISOString()}).eq('id',id).eq('state','sending').select('id').single();if(r.error||!r.data)throw Error('PROVIDER_UNKNOWN');},
  },async()=>{const response=await fetch('https://api.openai.com/v1/responses',{method:'POST',headers:{Authorization:`Bearer ${process.env.OPENAI_API_KEY}`,'Content-Type':'application/json'},body:JSON.stringify(body),signal:AbortSignal.timeout(150_000)});const text=await response.text();let data:Record<string,unknown>;try{data=JSON.parse(text);}catch{data={raw_text:text};}return {status:response.status,body:data};});
 }

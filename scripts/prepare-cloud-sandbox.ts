@@ -1,7 +1,8 @@
 import {Sandbox} from '@vercel/sandbox';
 // Run once with Vercel credentials; no application/AI keys enter the VM.
 async function main(){
- const sb=await Sandbox.create({resources:{vcpus:1},timeout:600_000});
+ const sandbox=await Sandbox.create({resources:{vcpus:1},timeout:600_000,persistent:false,snapshotExpiration:3_600_000});
+ const sb=sandbox.currentSession();
  try {
   const install=await sb.runCommand({cmd:'sudo',args:['sh','-c','apt-get update -qq && apt-get install -y -qq poppler-utils tesseract-ocr tesseract-ocr-cat tesseract-ocr-spa'],});
   if(install.exitCode!==0)throw new Error('SANDBOX_INSTALL');
@@ -11,6 +12,9 @@ async function main(){
   console.log(await versions.stdout());
   const snapshot=await sb.snapshot({expiration:0});
   console.log('CLOUD_SANDBOX_SNAPSHOT='+snapshot.snapshotId);
- }finally {try{await sb.stop();}catch{}}
+ }finally {
+  const result=await sb.stop({signal:AbortSignal.timeout(15_000)});
+  if(result.session.status!=='stopped')throw new Error('SANDBOX_BASE_STOP_UNCONFIRMED');
+ }
 }
 main().catch((e:unknown)=>{console.error('SANDBOX_PREPARATION_FAILED',{status:(e as {status?:number}).status,code:(e as {code?:string}).code});process.exitCode=1});

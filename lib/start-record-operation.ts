@@ -1,3 +1,4 @@
+import {assertProcessingEnabled} from './processing-control';
 import {validateOcrRecovery,type OcrRecovery} from './ocr-recovery';
 import 'server-only';
 import {spawn} from 'node:child_process';
@@ -11,6 +12,7 @@ export async function startRecordOperation(recordId:string,operation:RecordOpera
  const mode=executionMode();const mock=process.env.PIPELINE_PROVIDER==='mock';if(mock)assertTestEnvironment(process.env);else if(mode==='disabled')throw Error('Execució desactivada en aquest entorn.');
  const automaticOcr=operation==='process'?await getAutomaticOcrEnabled():null;
  const db=createServerSupabase();
+ await assertProcessingEnabled(db);
  if(recovery){validateOcrRecovery(recovery);if(operation!=='ocr'||mode!=='vercel_workflow')throw Error('OCR selectiu disponible en el processament cloud.');}
  const r=recovery?await db.rpc('begin_targeted_ocr',{p_record:recordId,p_expected_job:expectedJobId??null,p_executor:'vercel_workflow',p_document:recovery.documentId,p_pages:recovery.pages}):await db.rpc(expectedJobId?'retry_job_operation':'begin_record_operation',{p_record:requireUuid(recordId),p_operation:operation,p_executor:mode==='vercel_workflow'?'vercel_workflow':'local',...(expectedJobId?{p_expected_job:requireUuid(expectedJobId)}:{})});
  if(r.error)throw Error(r.error.message.includes('PROVIDER_UNKNOWN')?'Cal resoldre la petició de proveïdor de resultat desconegut.':r.error.message.includes('ACTIVE_TASK')?'ACTIVE_TASK':'No es pot iniciar: hi ha una tasca activa o falta preparar les dades.');

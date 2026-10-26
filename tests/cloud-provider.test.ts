@@ -5,7 +5,7 @@ import type {Context} from '../lib/cloud/context';
 import {openAIInputTokenCeiling} from '../lib/openai-model';
 function fakeContext(allowBudget=true){
  const journal=new Map<string,unknown>();
- const db={rpc:async(name:string,args:Record<string,unknown>)=>{if(name==='cloud_budget_reserve')return {data:allowBudget,error:null};if(name==='cloud_checkpoint')journal.set(String(args.p_key),args.p_value);return {data:true,error:null};},from:()=>{let key='';const query={select:()=>query,eq:(name:string,value:string)=>{if(name==='item_key')key=value;return query;},maybeSingle:async()=>({data:journal.has(key)?{value:journal.get(key)}:null,error:null})};return query;}};
+ const db={rpc:async(name:string,args:Record<string,unknown>)=>{if(name==='cloud_budget_reserve')return {data:allowBudget,error:null};if(name==='cloud_checkpoint')journal.set(String(args.p_key),args.p_value);return {data:true,error:null};},from:(table:string)=>{let key='';const query={select:()=>query,eq:(name:string,value:string)=>{if(name==='item_key')key=value;return query;},maybeSingle:async()=>({data:table==='app_settings'?{enabled:true,reason:null,updated_at:'2026-10-26T00:00:00Z'}:journal.has(key)?{value:journal.get(key)}:null,error:null})};return query;}};
  return {journal,c:{db,task:'test',owner:'owner',generation:1} as unknown as Context};
 }
 test('Luna request reserves its bounded input before sending and reuses its receipt',async()=>{

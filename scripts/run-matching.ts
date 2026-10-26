@@ -1,3 +1,4 @@
+import {assertProcessingEnabled,isProcessingPaused,pauseLocalProcessing,PROCESSING_PAUSE_EXIT_CODE} from '../lib/processing-control';
 import {processConveni} from '../lib/convenis/process';
 import {responseModel} from '../lib/openai-model';
 import {readEvidenceChunks} from '../lib/pipeline/evidence-reader';
@@ -34,6 +35,7 @@ if (!Number.isInteger(limit) || limit < 1 || limit > 50) throw new Error("--limi
 type EnrichmentOutput = { scope_facts:ScopeFacts; title: string | null; provider_name: string | null; provider_nif: string | null; mechanism: string | null; award_date: string | null; amount: number | null; contracting_body: string | null; target_population: string | null; summary: string; confidence: number; evidence_ordinals: number[] };
 
 async function main() {
+  await assertProcessingEnabled(supabase);
   let request = supabase.from("pipeline_jobs").select("id,run_id,source_record_id").eq("status", runId ? "ready" : "queued").order("created_at").limit(limit);
   if (runId) request = request.eq("run_id", runId);
   if (process.env.WORKFLOW_JOB_ID) request=request.eq('id',process.env.WORKFLOW_JOB_ID);
@@ -45,6 +47,7 @@ async function main() {
 }
 
 async function processJob(job: { id: string; run_id: string; source_record_id: string }) {
+  await assertProcessingEnabled(supabase);
   const claimedAt = new Date().toISOString();
   const { data: claimed, error: claimError } = await supabase.from("pipeline_jobs").update({ status: "matching", claimed_at: claimedAt, attempts: 1, error_message: null }).eq("id", job.id).in("status", ["queued", "ready"]).select("id").maybeSingle();
   if (claimError) throw claimError;
@@ -145,6 +148,7 @@ async function processJob(job: { id: string; run_id: string; source_record_id: s
     await finishRunIfDone(job.run_id);
     console.log(`${record.source_record_id}: ${candidates.length} candidats · revisió necessària`);
   } catch (error) {
+    if(isProcessingPaused(error)){await pauseLocalProcessing(supabase,{runId:job.run_id});throw error;}
     const message = formatError(error);
     const failure=classifyFailure(message);
     await supabase.from("pipeline_jobs").update({ status: "error", error_kind: failure.kind, error_message: message, completed_at: new Date().toISOString() }).eq("id", job.id);
@@ -242,4 +246,4 @@ function formatError(error: unknown) {
   return String(error);
 }
 
-void main().catch((error: unknown) => { console.error("Matching fallit:", formatError(error)); process.exitCode = 1; });
+void main().catch(async (error: unknown) => { if(isProcessingPaused(error)){await pauseLocalProcessing(supabase,{runId});console.error("PROCESSING_DISABLED");process.exitCode=PROCESSING_PAUSE_EXIT_CODE;return;}console.error("Matching fallit:", formatError(error)); process.exitCode = 1; });

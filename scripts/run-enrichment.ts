@@ -1,3 +1,4 @@
+import {assertProcessingEnabled,isProcessingPaused,pauseLocalProcessing,PROCESSING_PAUSE_EXIT_CODE} from '../lib/processing-control';
 import {processConveni} from '../lib/convenis/process';
 import {responseModel} from '../lib/openai-model';
 import {readEvidenceChunks} from '../lib/pipeline/evidence-reader';
@@ -20,6 +21,7 @@ const supabase = createClient(url, key, { auth: { persistSession: false, autoRef
 
 
 async function main() {
+  await assertProcessingEnabled(supabase);
   try {
     let jq=supabase.from('pipeline_jobs').select('id,source_record_id').eq('source_record_id',recordId).order('created_at',{ascending:false}).order('id',{ascending:false}).limit(1);
     if(process.env.WORKFLOW_JOB_ID)jq=jq.eq('id',process.env.WORKFLOW_JOB_ID);
@@ -60,6 +62,7 @@ async function main() {
     await supabase.from("source_records").update({ enrichment_status: "completed", enrichment_error: null, processing_status: "preparat", updated_at: new Date().toISOString() }).eq("id", record.id);
     console.log(`${record.source_record_id}: contrast oficial completat`);
   } catch (error) {
+    if(isProcessingPaused(error))throw error;
     const message = formatError(error);
     await supabase.from("source_records").update({ enrichment_status: "error", enrichment_error: message.slice(0, 1000), processing_status: "error", updated_at: new Date().toISOString() }).eq("id", recordId);
     throw new Error(message);
@@ -68,4 +71,4 @@ async function main() {
 
 function formatError(error: unknown) { if (error instanceof Error) return error.message; if (error && typeof error === "object") { const value = error as Record<string, unknown>; return [value.message,value.details,value.hint,value.code].filter(Boolean).join(" · ") || JSON.stringify(value); } return String(error); }
 function option(name: string) { const index = process.argv.indexOf(name); return index >= 0 ? process.argv[index + 1] : undefined; }
-void main().catch((error: unknown) => { console.error("Contrast fallit:", formatError(error)); process.exitCode = 1; });
+void main().catch(async (error: unknown) => { if(isProcessingPaused(error)){await pauseLocalProcessing(supabase,{jobId:process.env.WORKFLOW_JOB_ID});console.error("PROCESSING_DISABLED");process.exitCode=PROCESSING_PAUSE_EXIT_CODE;return;}console.error("Contrast fallit:", formatError(error)); process.exitCode = 1; });

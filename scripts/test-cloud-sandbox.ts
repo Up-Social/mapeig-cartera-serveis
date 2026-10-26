@@ -1,8 +1,9 @@
 import assert from 'node:assert/strict';
-import {Sandbox} from '@vercel/sandbox';
+import {createEphemeralSandbox} from '../lib/cloud/sandbox';
 async function main(){
  const snapshot=process.env.CLOUD_SANDBOX_SNAPSHOT;if(!snapshot)throw Error();
- const sb=await Sandbox.create({source:{type:'snapshot',snapshotId:snapshot},resources:{vcpus:1},networkPolicy:'deny-all',timeout:180_000});
+ const handle=await createEphemeralSandbox('synthetic',snapshot);
+ const sb=handle.session;
  try{
   const text='Document sintetic de prova. Servei social per a persones. Cap dada real.';
   const stream=`BT /F1 18 Tf 40 700 Td (${text}) Tj ET`;
@@ -16,6 +17,6 @@ async function main(){
   assert.equal((await sb.runCommand('tesseract',['/tmp/page.png','/tmp/ocr','-l','cat+spa'],{timeoutMs:120_000})).exitCode,0);
   assert.ok((await sb.readFileToBuffer({path:'/tmp/ocr.txt'}))?.toString().includes('Servei social'));
   console.log('Synthetic PDF extraction and Catalan/Spanish OCR passed in remote Sandbox.');
- }finally {await sb.stop();}
+ }finally {await handle.close();}
 }
 main().catch(()=>{console.error('SANDBOX_TEST_FAILED');process.exitCode=1});

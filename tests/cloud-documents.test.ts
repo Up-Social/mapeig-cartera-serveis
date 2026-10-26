@@ -6,15 +6,15 @@ import {sha256} from '../lib/source-storage';
 import type {Context} from '../lib/cloud/context';
 test('OCR resumes persisted pages after each Sandbox disappears',async()=>{
  const journal=new Map<string,unknown>([
-  ['original:doc',{path:'private/mock',mime:'application/pdf',hash:'mock'}],
+  ['original:doc',{path:'private/mock',mime:'application/pdf',hash:sha256(Buffer.from('%PDF-synthetic'))}],
   ['document:doc:readable-markdown-v2',{text:'## Pàgina 1\n\n',method:'pdf-text-markdown-v2',hash:'mock',mime:'application/pdf',partial:true,extraction_version:'readable-markdown-v2'}],
  ]);
  const archivedHash=sha256(Buffer.from('%PDF-synthetic'));
  const archivedName=`${archivedHash}.pdf`;
- const db={storage:{from:()=>({download:async()=>({data:new Blob(['%PDF-synthetic']),error:null}),list:async()=>({data:[{name:archivedName}],error:null})})},rpc:async(name:string,args:Record<string,unknown>)=>{if(name==='cloud_checkpoint')journal.set(String(args.p_key),args.p_value);return {data:true,error:null};},from:(table:string)=>{let key='';const q={select:()=>q,eq:(name:string,value:string)=>{if(name==='item_key')key=value;return q;},single:async()=>({data:table==='source_documents'?{id:'doc',source_record_id:'record',url:'https://unused.invalid',storage_path:`cases/record/documents/doc/${archivedName}`,storage_sha256:archivedHash}:null,error:null}),maybeSingle:async()=>({data:journal.has(key)?{value:journal.get(key)}:null,error:null})};return q;}};
+ const db={storage:{from:()=>({download:async()=>({data:new Blob(['%PDF-synthetic']),error:null}),list:async()=>({data:[{name:archivedName}],error:null})})},rpc:async(name:string,args:Record<string,unknown>)=>{if(name==='cloud_checkpoint')journal.set(String(args.p_key),args.p_value);return {data:true,error:null};},from:(table:string)=>{let key='';const q={select:()=>q,eq:(name:string,value:string)=>{if(name==='item_key')key=value;return q;},single:async()=>({data:table==='source_documents'?{id:'doc',source_record_id:'record',url:'https://unused.invalid',storage_path:`cases/record/documents/doc/${archivedName}`,storage_sha256:archivedHash}:null,error:null}),maybeSingle:async()=>({data:table==='app_settings'?{enabled:true,reason:null,updated_at:'2026-10-26T00:00:00Z'}:journal.has(key)?{value:journal.get(key)}:null,error:null})};return q;}};
  const c={db,task:'test',owner:'owner',generation:1} as unknown as Context;
  const create=Sandbox.create;const env=process.env.CLOUD_SANDBOX_SNAPSHOT;process.env.CLOUD_SANDBOX_SNAPSHOT='mock';let recognized=0,stopped=0;const renderDpis:string[]=[];
- Sandbox.create=async()=>({writeFiles:async()=>{},runCommand:async(_cmd:string,args:string[])=>{if(args[3]==='tesseract')recognized++;if(args[3]==='pdftoppm')renderDpis.push(args[args.indexOf('-r')+1]);return {exitCode:0};},readFileToBuffer:async({path}:{path:string})=>Buffer.from(path.endsWith('info.txt')?'Pages: 2':path.endsWith('page.txt')?'Text sintètic de prova amb prou longitud per comprovar la recuperació de cada pàgina.':''),stop:async()=>{stopped++;}}) as unknown as Awaited<ReturnType<typeof create>>;
+ Sandbox.create=async(options)=>({currentSession:()=>({sessionId:'synthetic-session',writeFiles:async()=>{},runCommand:async(_cmd:string,args:string[])=>{if(args[3]==='tesseract')recognized++;if(args[3]==='pdftoppm')renderDpis.push(args[args.indexOf('-r')+1]);return {exitCode:0};},readFileToBuffer:async({path}:{path:string})=>Buffer.from(path.endsWith('info.txt')?'Pages: 2':path.endsWith('page.txt')?'Text sintètic de prova amb prou longitud per comprovar la recuperació de cada pàgina.':''),stop:async()=>{stopped++;return {session:{status:'stopped'},snapshot:options?.persistent===false?undefined:{id:'unexpected-persistent-snapshot'}};}})}) as unknown as Awaited<ReturnType<typeof create>>;
  try {
   await assert.rejects(extractDocument(c,'job','doc','https://unused.invalid',true),/yield/);
   assert.equal(recognized,1);assert.equal(stopped,1);
@@ -42,7 +42,7 @@ test('a new execution reuses a verified archived source when the official URL is
    select:()=>q,
    eq:(name:string,value:string)=>{if(name==='item_key')key=value;return q;},
    single:async()=>({data:table==='source_documents'?{id:'doc',source_record_id:'record',url:'https://unused.invalid',storage_path:`cases/record/documents/doc/${name}`,storage_sha256:digest,mime_type:'text/html'}:null,error:null}),
-   maybeSingle:async()=>({data:journal.has(key)?{value:journal.get(key)}:null,error:null}),
+   maybeSingle:async()=>({data:table==='app_settings'?{enabled:true,reason:null,updated_at:'2026-10-26T00:00:00Z'}:journal.has(key)?{value:journal.get(key)}:null,error:null}),
   };return q;},
  };
  const context={db,task:'test',owner:'owner',generation:1} as unknown as Context;

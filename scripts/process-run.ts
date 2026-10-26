@@ -1,3 +1,4 @@
+import {assertProcessingEnabled,isProcessingPaused,pauseLocalProcessing,PROCESSING_PAUSE_EXIT_CODE} from '../lib/processing-control';
 import {classifyFailure,retryDelay} from '../lib/provider-failure';
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
@@ -12,6 +13,7 @@ if (!runId || !url || !key) throw new Error("Falta --run-id o la configuració d
 const db = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false }, realtime: { transport: WebSocket as never } });
 
 async function main() {
+  await assertProcessingEnabled(db);
   const { data: run, error } = await db.from("pipeline_runs").select("id,parameters,stage").eq("id", runId).single();
   if (error) throw error;
   if (run.parameters?.auto_process !== true) throw new Error("El lot no està configurat per al procés automàtic");
@@ -24,6 +26,7 @@ async function main() {
   await setRun("enriching", "enrichment");
   const jobs = await loadJobs();
   for (const job of jobs) {
+    await assertProcessingEnabled(db);
     if (job.analysis_results?.length || job.preparation_status !== "ready" || job.status === "error") continue;
     const source = sourceOf(job);
     if (source.enrichment_status !== "completed") {
@@ -35,6 +38,7 @@ async function main() {
           await runCommand("enrichment:run", ["--source-record-id", job.source_record_id]);
           completed = true;
         } catch (failure) {
+          if(isProcessingPaused(failure))throw failure;
           lastError = messageOf(failure);
           const info=classifyFailure(lastError);
           if(info.blocked){await db.from('pipeline_jobs').update({status:'error',error_kind:info.kind,error_message:lastError}).eq('id',job.id);await db.from('pipeline_runs').update({status:'paused',pause_reason:info.message,pause_kind:info.kind}).eq('id',runId);return;}
@@ -83,4 +87,4 @@ async function refresh() { const { error } = await db.rpc("refresh_pipeline_run"
 async function runCommand(script: string, args: string[]) { await execFileAsync("npm", ["run", script, "--", ...args], { cwd: process.cwd(), env: process.env, maxBuffer: 20 * 1024 * 1024 }); }
 function option(name: string) { const index = process.argv.indexOf(name); return index >= 0 ? process.argv[index + 1] : undefined; }
 function messageOf(error: unknown) { return error instanceof Error ? error.message.slice(0, 1000) : String(error).slice(0, 1000); }
-void main().catch(async (error: unknown) => { const message = messageOf(error); await db.from("pipeline_runs").update({ status: "processing_error", error_count: 1 }).eq("id", runId); console.error("Procés automàtic fallit:", message); process.exitCode = 1; });
+void main().catch(async (error: unknown) => { if(isProcessingPaused(error)){await pauseLocalProcessing(db,{runId});console.error("PROCESSING_DISABLED");process.exitCode=PROCESSING_PAUSE_EXIT_CODE;return;}const message = messageOf(error); await db.from("pipeline_runs").update({ status: "processing_error", error_count: 1 }).eq("id", runId); console.error("Procés automàtic fallit:", message); process.exitCode = 1; });

@@ -1,3 +1,4 @@
+import {assertProcessingEnabled} from '../processing-control';
 import 'server-only';
 import {getAutomaticOcrEnabled} from '../admin-settings';
 import {cloudDb,rpc} from './context';
@@ -7,18 +8,22 @@ export async function launchRun(runId:string){
  if(t.error)throw new Error('No s’ha pogut registrar l’execució.');await launchCloudTask(t.data.id);
 }
 export async function createCloudRun(records:string[],ocr?:boolean){
+ await assertProcessingEnabled(cloudDb());
  const useOcr=ocr??await getAutomaticOcrEnabled();
  const id=await rpc<string>(cloudDb(),'cloud_create_run',{p_records:records,p_ocr:useOcr});await launchRun(id);return id;
 }
 
 export async function startCloudPhase(run:string,type:'prepare_run'|'match_run'){
+ await assertProcessingEnabled(cloudDb());
  const task=await rpc<string>(cloudDb(),'cloud_start_phase',{p_run:run,p_type:type});await launchCloudTask(task);
 }
 export async function startCloudRecord(record:string,type:'prepare_run'|'enrich_record'|'match_run'){
+ await assertProcessingEnabled(cloudDb());
  const task=await rpc<string>(cloudDb(),'cloud_record_phase',{p_record:record,p_type:type});await launchCloudTask(task);
 }
 
 export async function reclassifyHistory(){
+ await assertProcessingEnabled(cloudDb());
  const id=await rpc<string|null>(cloudDb(),'cloud_reclassify_history',{});
  if(id){
   const task=await cloudDb().from('worker_tasks').select('id,dispatch_at').eq('run_id',id).eq('executor','vercel_workflow').single();

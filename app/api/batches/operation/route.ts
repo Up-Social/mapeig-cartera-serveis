@@ -1,3 +1,4 @@
+import {assertProcessingEnabled} from '@/lib/processing-control';
 import {reclassifyHistory} from '@/lib/cloud/enqueue';
 import {executionMode} from '@/lib/pipeline/execution-mode';
 import {cloudDb,rpc} from '@/lib/cloud/context';
@@ -10,6 +11,7 @@ import { publicErrorMessage } from "@/lib/public-error";
 export async function POST(request: Request) {
   try {
     const body = (await request.json()) as Record<string, unknown>;
+    await assertProcessingEnabled(createServerSupabase());
     let result: unknown;
     switch (body.operation) {
       case "reclassify_history": {

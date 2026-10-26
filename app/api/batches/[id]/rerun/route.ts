@@ -1,3 +1,4 @@
+import {assertProcessingEnabled} from '@/lib/processing-control';
 import {createServerSupabase} from '@/lib/records-page';
 import {isUuid} from '@/lib/uuid';
 import {executionMode} from '@/lib/pipeline/execution-mode';
@@ -15,7 +16,7 @@ export async function POST(request:Request,{params}:{params:Promise<{id:string}>
   const target=new URL(process.env.NEXT_PUBLIC_SUPABASE_URL!);
   if(!['127.0.0.1','localhost','[::1]'].includes(target.hostname)&&process.env.ALLOW_REMOTE_BATCH_RERUN!=='true')return Response.json({error:'Rerun remot pendent d’autorització explícita.'},{status:403});
   const mode=executionMode(),config=configuration();if(config.provider==='mock')assertTestEnvironment(process.env);else if(mode==='disabled'||config.model==='not-configured')throw Error('Execution disabled');
-  const db=createServerSupabase();const r=await db.rpc('create_batch_rerun',{p_origin:id,p_token:body.token,p_idempotency:body.idempotencyKey,p_provider:config.provider,p_model:config.model,p_executor:mode==='vercel_workflow'?'vercel_workflow':'local'});if(r.error)throw r.error;
+  const db=createServerSupabase();await assertProcessingEnabled(db);const r=await db.rpc('create_batch_rerun',{p_origin:id,p_token:body.token,p_idempotency:body.idempotencyKey,p_provider:config.provider,p_model:config.model,p_executor:mode==='vercel_workflow'?'vercel_workflow':'local'});if(r.error)throw r.error;
   // Persisted identifiers are returned even if dispatch fails; never create another batch to retry dispatch.
   let dispatch='queued';
   if(!r.data.reused){try{

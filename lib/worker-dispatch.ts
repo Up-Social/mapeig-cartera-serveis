@@ -1,3 +1,4 @@
+import {assertProcessingEnabled} from './processing-control';
 import "server-only";
 import {executionMode} from "./pipeline/execution-mode";
 
@@ -17,6 +18,7 @@ export async function dispatchWorkerTask(
 ) {
   const mode=executionMode();
   if(mode==='disabled')throw new Error('Execució desactivada en aquest entorn.');
+  await assertProcessingEnabled(createServerSupabase());
   if(mode==='vercel_workflow'){
     const db=createServerSupabase();
     const payload={task_type:task.type,run_id:'runId' in task?task.runId:null,source_record_id:'sourceRecordId' in task?task.sourceRecordId:null,executor:'vercel_workflow'};
