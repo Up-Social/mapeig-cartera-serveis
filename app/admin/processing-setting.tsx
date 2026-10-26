@@ -8,6 +8,7 @@ const reasons: Record<string, string> = {
   operator_pause: 'Aturat des d’Administració.',
   incident_recovery: 'Aturat preventivament durant la recuperació del servei.',
   vercel_storage_recovery: 'Aturat preventivament durant la recuperació del servei.',
+  SANDBOX_CREATION_UNCONFIRMED: 'No s’ha pogut confirmar si s’ha creat un entorn de processament. Cal revisar-lo abans de continuar.',
   SANDBOX_STOP_UNCONFIRMED: 'No s’ha pogut confirmar el tancament d’un entorn de processament.',
   SANDBOX_UNEXPECTED_SNAPSHOT: 'Vercel ha conservat una còpia inesperada. Cal revisar-la abans de continuar.',
   sandbox_inventory_unsafe: 'Cal revisar les còpies automàtiques o els entorns de processament de Vercel.',

@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { Sandbox, type Session } from '@vercel/sandbox';
-import { createEphemeralSandbox, stopEphemeralSession, SandboxLifecycleError } from '../lib/cloud/sandbox';
+import { APIError, Sandbox, type Session } from '@vercel/sandbox';
+import { createEphemeralSandbox, stopEphemeralSession, SandboxLifecycleError, sandboxFailureDiagnostic } from '../lib/cloud/sandbox';
 
 test('all processing sessions are ephemeral, bounded and never use implicit resume', async context => {
   const original = Sandbox.create;
@@ -48,7 +48,7 @@ test('all processing sessions are ephemeral, bounded and never use implicit resu
       await assert.rejects(handle.session.runCommand('true'), /stopped/);
       const options = optionsSeen.at(-1)!;
       assert.equal(options?.persistent, false);
-      assert.equal(options?.snapshotExpiration, 3_600_000);
+      assert.equal(options?.snapshotExpiration, 86_400_000);
       assert.equal(options?.timeout, expectedTimeout[purpose]);
       assert.deepEqual(options?.resources, { vcpus: 1 });
       assert.equal(options?.networkPolicy, 'deny-all');
@@ -90,4 +90,51 @@ test('cleanup has an independent 15-second deadline even if the API ignores canc
   await rejected;
   assert.equal(cleanupSignal?.aborted, true);
   context.mock.timers.reset();
+});
+
+
+test('sandbox diagnostics expose only a fixed phase, status and field vocabulary', async () => {
+  const secret = 'secret-token-url-and-document-content';
+  const error = new APIError(Response.json({}, {status:400}), {message:`snapshotExpiration is invalid: ${secret}`,json:{secret},text:secret});
+  assert.deepEqual(sandboxFailureDiagnostic('create', error), {phase:'create',category:'api',status:400,fields:['snapshotExpiration']});
+  const schema = new APIError(Response.json({}), {message:`Response JSON is not valid: currentSnapshotId ${secret}`});
+  assert.deepEqual(sandboxFailureDiagnostic('create', schema), {phase:'create',category:'response_schema',status:200,fields:['currentSnapshotId']});
+  await assert.rejects(stopEphemeralSession({sessionId:'synthetic',stop:async()=>{throw error;}}), caught => {
+    assert.ok(caught instanceof SandboxLifecycleError);
+    assert.deepEqual(caught.diagnostic, {phase:'stop',category:'api',status:400,fields:['snapshotExpiration']});
+    assert.ok(!JSON.stringify(caught).includes(secret));
+    return true;
+  });
+});
+
+
+test('the real SDK sends ephemeral creation parameters accepted by the documented retention contract', async () => {
+  const original = Sandbox.create;
+  const session = {id:'sbx_fixture',memory:2048,vcpus:1,region:'iad1',timeout:90000,status:'running',requestedAt:1,createdAt:1,updatedAt:1,cwd:'/vercel'};
+  const sandbox = {name:'fixture',persistent:false,createdAt:1,updatedAt:1,currentSessionId:session.id,status:'running'};
+  const calls: string[] = [];
+  const fakeFetch: typeof fetch = async (input, init) => {
+    const url = new URL(String(input));
+    calls.push(url.pathname);
+    if (url.pathname.endsWith('/v3/sandboxes')) {
+      const body = JSON.parse(String(init?.body));
+      // Official custom retention contract: one day minimum, or zero for no expiry.
+      if (body.snapshotExpiration !== 0 && (!Number.isInteger(body.snapshotExpiration) || body.snapshotExpiration < 86_400_000)) {
+        return Response.json({error:{code:'bad_request',message:'snapshotExpiration must be at least one day'}}, {status:400});
+      }
+      assert.equal(body.persistent, false);
+      assert.equal(body.source.type, 'snapshot');
+      assert.equal(body.resources.vcpus, 1);
+      assert.deepEqual(body.networkPolicy, {mode:'deny-all'});
+      return Response.json({session,sandbox,routes:[]});
+    }
+    assert.ok(url.pathname.endsWith('/v2/sandboxes/sessions/sbx_fixture/stop'));
+    return Response.json({session:{...session,status:'stopped'},sandbox:{...sandbox,status:'stopped'}});
+  };
+  Sandbox.create = options => original.call(Sandbox, {...options,teamId:'synthetic-team',projectId:'synthetic-project',token:'synthetic-token',fetch:fakeFetch});
+  try {
+    const handle = await createEphemeralSandbox('synthetic', 'manual-base');
+    await handle.close();
+    assert.equal(calls.length, 2);
+  } finally { Sandbox.create = original; }
 });

@@ -1,7 +1,8 @@
 import {Sandbox} from '@vercel/sandbox';
+import {SANDBOX_SNAPSHOT_EXPIRATION_MS} from '../lib/cloud/sandbox';
 // Run once with Vercel credentials; no application/AI keys enter the VM.
 async function main(){
- const sandbox=await Sandbox.create({resources:{vcpus:1},timeout:600_000,persistent:false,snapshotExpiration:3_600_000});
+ const sandbox=await Sandbox.create({resources:{vcpus:1},timeout:600_000,persistent:false,snapshotExpiration:SANDBOX_SNAPSHOT_EXPIRATION_MS});
  const sb=sandbox.currentSession();
  try {
   const install=await sb.runCommand({cmd:'sudo',args:['sh','-c','apt-get update -qq && apt-get install -y -qq poppler-utils tesseract-ocr tesseract-ocr-cat tesseract-ocr-spa'],});

@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { Sandbox } from '@vercel/sandbox';
+import { APIError, Sandbox } from '@vercel/sandbox';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { probeVercelAvailability } from '../lib/cloud/sandbox-probe';
 
@@ -154,6 +154,72 @@ for (const outcome of ['success', 'ocr-failed', 'timeout', 'cleanup-failed', 'sn
     } finally {
       Sandbox.create = original;
       for (const [key, value] of Object.entries(env)) { if (value === undefined) delete process.env[key]; else process.env[key] = value; }
+    }
+  });
+}
+
+
+for (const kind of [400, 401, 402, 403, 429, 200, 500, 'network', 'untrusted-400'] as const) {
+  test(`creation failure ${kind} preserves containment regardless of the last HTTP response`, async context => {
+    const fixture = database();
+    const env = { WORKER_EXECUTION_MODE: process.env.WORKER_EXECUTION_MODE, VERCEL_ENV: process.env.VERCEL_ENV, CLOUD_SANDBOX_SNAPSHOT: process.env.CLOUD_SANDBOX_SNAPSHOT };
+    Object.assign(process.env, { WORKER_EXECUTION_MODE: 'vercel_workflow', VERCEL_ENV: 'production', CLOUD_SANDBOX_SNAPSHOT: 'manual-base' });
+    const secret = 'secret-provider-content';
+    const status = typeof kind === 'number' ? kind : 500;
+    const error = kind === 'network' ? new TypeError('fetch failed') : kind === 'untrusted-400' ? Object.assign(new Error(secret), {response:{status:400}}) : new APIError(Response.json({}, {status}), {message:`snapshotExpiration ${secret}`, json:{secret}, text:secret});
+    const logs: unknown[][] = [];
+    context.mock.method(console, 'error', (...args: unknown[]) => { logs.push(args); });
+    context.mock.method(Sandbox, 'create', async () => { throw error; });
+    try {
+      const expected = kind === 402 ? /VERCEL_CHECK_QUOTA/ : [400, 401, 403].includes(Number(kind)) ? /VERCEL_CHECK_CONFIGURATION/ : /VERCEL_CHECK_UNAVAILABLE/;
+      await assert.rejects(probeVercelAvailability(fixture.db, {force:true,checkDocuments:true}), expected);
+      assert.equal(fixture.setting.enabled, false);
+      assert.equal(fixture.events.includes('unblock'), false);
+      assert.equal(fixture.resource.blocked_kind, 'internal');
+      assert.ok(fixture.resource.owner);
+      assert.ok(new Date(fixture.resource.lease_until!).getTime() > Date.now());
+      assert.equal(fixture.setting.reason, 'SANDBOX_CREATION_UNCONFIRMED');
+      assert.equal((logs[0]?.[1] as {phase:string}).phase, 'create');
+      assert.ok(!JSON.stringify(logs).includes(secret));
+    } finally {
+      for (const [key, value] of Object.entries(env)) { if (value === undefined) delete process.env[key]; else process.env[key] = value; }
+    }
+  });
+}
+
+for (const firstFailure of ['network', 'server-500'] as const) {
+  test(`real SDK creation retry ${firstFailure} then HTTP 400 retains the lease`, async context => {
+    const fixture = database();
+    const original = Sandbox.create;
+    const env = { WORKER_EXECUTION_MODE: process.env.WORKER_EXECUTION_MODE, VERCEL_ENV: process.env.VERCEL_ENV, CLOUD_SANDBOX_SNAPSHOT: process.env.CLOUD_SANDBOX_SNAPSHOT };
+    Object.assign(process.env, { WORKER_EXECUTION_MODE:'vercel_workflow', VERCEL_ENV:'production', CLOUD_SANDBOX_SNAPSHOT:'manual-base' });
+    let attempts = 0;
+    const fakeFetch: typeof fetch = async (input, options) => {
+      assert.ok(new URL(String(input)).pathname.endsWith('/v3/sandboxes'));
+      assert.equal(options?.method, 'POST');
+      attempts++;
+      if (attempts === 1) {
+        // A VM may exist even though its creation response was lost or failed.
+        if (firstFailure === 'network') throw new TypeError('fetch failed');
+        return Response.json({error:{message:'synthetic lost response'}}, {status:500});
+      }
+      return Response.json({error:{message:'snapshotExpiration synthetic rejection'}}, {status:400});
+    };
+    context.mock.method(Sandbox, 'create', (options: Parameters<typeof Sandbox.create>[0]) => original.call(Sandbox, {...options,teamId:'synthetic-team',projectId:'synthetic-project',token:'synthetic-token',fetch:fakeFetch}));
+    const logs: unknown[][] = [];
+    context.mock.method(console, 'error', (...args: unknown[]) => {logs.push(args);});
+    try {
+      await assert.rejects(probeVercelAvailability(fixture.db, {force:true}), /VERCEL_CHECK_CONFIGURATION/);
+      assert.equal(attempts, 2);
+      assert.equal(fixture.events.includes('unblock'), false);
+      assert.equal(fixture.setting.enabled, false);
+      assert.equal(fixture.setting.reason, 'SANDBOX_CREATION_UNCONFIRMED');
+      assert.equal(fixture.resource.blocked_kind, 'internal');
+      assert.ok(fixture.resource.owner);
+      assert.ok(new Date(fixture.resource.lease_until!).getTime() > Date.now());
+      assert.deepEqual(logs[0]?.[1], {phase:'create',category:'api',status:400,fields:['snapshotExpiration']});
+    } finally {
+      for (const [key, value] of Object.entries(env)) {if (value === undefined) delete process.env[key]; else process.env[key] = value;}
     }
   });
 }

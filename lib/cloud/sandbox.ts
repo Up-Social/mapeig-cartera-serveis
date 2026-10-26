@@ -1,9 +1,10 @@
-import { Sandbox, type Session } from '@vercel/sandbox';
+import { APIError, Sandbox, type Session } from '@vercel/sandbox';
 
 export const SANDBOX_SYNTHETIC_TIMEOUT_MS = 90_000;
 const TIMEOUTS = { document: 600_000, probe: 60_000, synthetic: SANDBOX_SYNTHETIC_TIMEOUT_MS } as const;
 export const SANDBOX_CLEANUP_TIMEOUT_MS = 15_000;
-export const SANDBOX_SNAPSHOT_EXPIRATION_MS = 3_600_000;
+// Vercel documents a minimum custom snapshot retention of one day.
+export const SANDBOX_SNAPSHOT_EXPIRATION_MS = 86_400_000;
 const CREATION_TIMEOUT_MS = 60_000;
 export type SandboxPurpose = keyof typeof TIMEOUTS;
 // Expose only a specific session. Sandbox methods can silently resume a new VM.
@@ -16,11 +17,34 @@ export type EphemeralSandbox = {
   close(): Promise<void>;
 };
 
+export type SandboxFailureDiagnostic = {
+  phase: 'create' | 'work' | 'stop';
+  category: 'api' | 'response_schema' | 'timeout' | 'network' | 'unknown';
+  status?: number;
+  fields?: string[];
+};
+
+/** Fixed vocabulary only: never log provider messages, payloads, headers or URLs. */
+export function sandboxFailureDiagnostic(phase: SandboxFailureDiagnostic['phase'], error: unknown): SandboxFailureDiagnostic {
+  if (error instanceof SandboxLifecycleError && error.diagnostic) return error.diagnostic;
+  if (error instanceof APIError) {
+    const status = error.response.status;
+    const category = status >= 200 && status < 300 ? 'response_schema' : 'api';
+    const fields = ['source', 'snapshotId', 'snapshotExpiration', 'persistent', 'timeout', 'resources', 'vcpus', 'memory', 'runtime', 'image', 'region', 'networkPolicy', 'projectId', 'session', 'sandbox', 'currentSessionId', 'currentSnapshotId']
+      .filter(field => new RegExp(`\\b${field}\\b`, 'u').test(error.message));
+    return { phase, category, status, ...(fields.length ? { fields } : {}) };
+  }
+  if (error instanceof Error && ['AbortError', 'TimeoutError'].includes(error.name)) return { phase, category: 'timeout' };
+  if (error instanceof TypeError && error.message === 'fetch failed') return { phase, category: 'network' };
+  return { phase, category: 'unknown' };
+}
+
 export class SandboxLifecycleError extends Error {
   constructor(
-    public code: 'SANDBOX_STOP_UNCONFIRMED' | 'SANDBOX_UNEXPECTED_SNAPSHOT',
+    public code: 'SANDBOX_CREATION_UNCONFIRMED' | 'SANDBOX_STOP_UNCONFIRMED' | 'SANDBOX_UNEXPECTED_SNAPSHOT',
     public sessionId: string,
     public snapshotId?: string,
+    public diagnostic?: SandboxFailureDiagnostic,
   ) { super(code); }
 }
 
@@ -76,7 +100,7 @@ export async function stopEphemeralSession(session: Pick<Session, 'stop' | 'sess
     if (result.session.status !== 'stopped') throw new SandboxLifecycleError('SANDBOX_STOP_UNCONFIRMED', session.sessionId);
   } catch (error) {
     if (error instanceof SandboxLifecycleError) throw error;
-    throw new SandboxLifecycleError('SANDBOX_STOP_UNCONFIRMED', session.sessionId);
+    throw new SandboxLifecycleError('SANDBOX_STOP_UNCONFIRMED', session.sessionId, undefined, sandboxFailureDiagnostic('stop', error));
   } finally {
     clearTimeout(timer);
   }

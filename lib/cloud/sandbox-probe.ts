@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { createEphemeralSandbox, SandboxLifecycleError, type EphemeralSandbox } from "./sandbox";
+import { createEphemeralSandbox, SandboxLifecycleError, sandboxFailureDiagnostic, type EphemeralSandbox, type SandboxFailureDiagnostic } from "./sandbox";
 import { verifySyntheticDocuments } from "./sandbox-synthetic";
 import { containSandboxIncident } from "./sandbox-incident";
 import { assertTestEnvironment } from "../test-environment";
@@ -50,6 +50,7 @@ export async function probeVercelAvailability(db: SupabaseClient, options: Verce
   let sandbox: EphemeralSandbox | undefined;
   let stopped = false;
   let creationUncertain = false;
+  let phase: SandboxFailureDiagnostic['phase'] = 'create';
   try {
     if (!isMockEnvironment()) {
       if (executionMode() !== "vercel_workflow") throw new Error("VERCEL_CHECK_DISABLED");
@@ -58,11 +59,13 @@ export async function probeVercelAvailability(db: SupabaseClient, options: Verce
       creationUncertain = true;
       sandbox = await createEphemeralSandbox(options.checkDocuments ? 'synthetic' : 'probe', snapshotId);
       creationUncertain = false;
+      phase = 'work';
       if (options.checkDocuments) await verifySyntheticDocuments(sandbox.session);
       else {
         const command = await sandbox.session.runCommand("sh", ["-c", "true"], { timeoutMs: 5_000 });
         if (command.exitCode !== 0) throw new Error("VERCEL_CHECK_COMMAND");
       }
+      phase = 'stop';
       await sandbox.close();
       stopped = true;
     }
@@ -76,15 +79,18 @@ export async function probeVercelAvailability(db: SupabaseClient, options: Verce
     if (cleared.error || !cleared.data) throw new Error("VERCEL_CHECK_DATABASE");
     return { status: "available" };
   } catch (caught) {
+    console.error('SANDBOX_OPERATION_FAILED', sandboxFailureDiagnostic(phase, caught));
     let error = caught;
     if (sandbox && !stopped) {
       try { await sandbox.close(); stopped = true; }
-      catch (cleanupError) { error = cleanupError; }
+      catch (cleanupError) {
+        if (cleanupError !== caught) console.error('SANDBOX_OPERATION_FAILED', sandboxFailureDiagnostic('stop', cleanupError));
+        error = cleanupError;
+      }
     }
-    const status = (error as { response?: { status?: number } }).response?.status;
-    if ([401, 402, 403, 429].includes(status ?? 0)) creationUncertain = false;
+    // The SDK retries creation: a final 4xx cannot rule out an earlier created VM.
     if (error instanceof SandboxLifecycleError || creationUncertain) {
-      const code = error instanceof SandboxLifecycleError ? error.code : 'SANDBOX_STOP_UNCONFIRMED';
+      const code = error instanceof SandboxLifecycleError ? error.code : 'SANDBOX_CREATION_UNCONFIRMED';
       try { await containSandboxIncident(db, owner, code); }
       catch { throw new Error("VERCEL_CHECK_DATABASE"); }
       console.error('SANDBOX_LIFECYCLE_INCIDENT', { code, sessionId: sandbox?.sessionId ?? 'unknown' });
@@ -115,6 +121,6 @@ function normalizeAvailabilityError(error: unknown) {
   if (status === 402 || /quota|usage_limit|limit_exceeded/iu.test(code)) {
     return new Error("VERCEL_CHECK_QUOTA");
   }
-  if (status === 401 || status === 403) return new Error("VERCEL_CHECK_CONFIGURATION");
+  if (status === 401 || status === 403 || sandboxFailureDiagnostic('create', error).status === 400) return new Error("VERCEL_CHECK_CONFIGURATION");
   return new Error("VERCEL_CHECK_UNAVAILABLE");
 }

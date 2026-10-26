@@ -87,15 +87,16 @@ export async function extractDocument(c:Context,job:string,id:string,url:string,
   if(error instanceof CloudFailure||error instanceof CloudYield)throw error;
   const status=(error as {response?:Response}).response?.status;
   const code=(error as {json?:{error?:{code?:string}}}).json?.error?.code;
-  if(code&&/quota|usage_limit|limit_exceeded/.test(code)){creationUncertain=false;blocked='vercel_quota';throw new CloudFailure('vercel_quota');}
-  if(status===429){creationUncertain=false;throw new CloudFailure('transient',30);}
-  if(status===402){creationUncertain=false;blocked='vercel_quota';throw new CloudFailure('vercel_quota');}
-  if(status===401||status===403){creationUncertain=false;throw new CloudFailure('credentials');}
+  // The SDK may already have created a VM before retrying and returning this error.
+  if(code&&/quota|usage_limit|limit_exceeded/.test(code)){blocked='vercel_quota';throw new CloudFailure('vercel_quota');}
+  if(status===429){throw new CloudFailure('transient',30);}
+  if(status===402){blocked='vercel_quota';throw new CloudFailure('vercel_quota');}
+  if(status===401||status===403){throw new CloudFailure('credentials');}
   // A VM/network/SDK failure does not establish that the original PDF is invalid.
   throw new CloudFailure('internal',5,{operation:'sandbox',code:status===410?'SANDBOX_SESSION_STOPPED':'SANDBOX_OPERATION_FAILED'});
  }finally{
   try {
-   if(creationUncertain)throw new SandboxLifecycleError('SANDBOX_STOP_UNCONFIRMED','unknown');
+   if(creationUncertain)throw new SandboxLifecycleError('SANDBOX_CREATION_UNCONFIRMED','unknown');
    await handle?.close();
   }catch(error){
    const diagnostic=error instanceof SandboxLifecycleError?{code:error.code,sessionId:error.sessionId,snapshotId:error.snapshotId}:{code:'SANDBOX_STOP_UNCONFIRMED'};

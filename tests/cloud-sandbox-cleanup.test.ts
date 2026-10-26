@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { Sandbox } from '@vercel/sandbox';
+import { APIError, Sandbox } from '@vercel/sandbox';
 import { extractDocument } from '../lib/cloud/documents';
 import { CloudFailure } from '../lib/cloud/errors';
 import type { Context } from '../lib/cloud/context';
@@ -76,9 +76,52 @@ for (const failure of ['stop_error', 'snapshot', 'stopping', 'creation_unknown']
       assert.equal(fixture.state.enabled, false);
       assert.equal(fixture.state.blocked_kind, 'internal');
       assert.equal(fixture.releases.length, 0);
+      if (failure === 'creation_unknown') assert.equal(fixture.state.reason, 'SANDBOX_CREATION_UNCONFIRMED');
       if (failure !== 'creation_unknown') assert.ok(fixture.checkpoints.has(`document:doc:${EXTRACTION_VERSION}`));
     } finally {
       Sandbox.create = original;
+      if (snapshot === undefined) delete process.env.CLOUD_SANDBOX_SNAPSHOT; else process.env.CLOUD_SANDBOX_SNAPSHOT = snapshot;
+    }
+  });
+}
+
+for (const failure of [401, 402, 403, 429, 'quota-code', 'network-then-402', '500-then-402'] as const) {
+  test(`document creation failure ${failure} retains the reservation and pauses processing`, async context => {
+    const original = Sandbox.create;
+    const snapshot = process.env.CLOUD_SANDBOX_SNAPSHOT;
+    process.env.CLOUD_SANDBOX_SNAPSHOT = 'manual-base';
+    const fixture = database();
+    const retries = failure === 'network-then-402' || failure === '500-then-402';
+    let attempts = 0;
+    const fakeFetch: typeof fetch = async (input, options) => {
+      assert.ok(new URL(String(input)).pathname.endsWith('/v3/sandboxes'));
+      assert.equal(options?.method, 'POST');
+      attempts++;
+      if (attempts === 1) {
+        if (failure === 'network-then-402') throw new TypeError('fetch failed');
+        return Response.json({error:{message:'synthetic lost response'}}, {status:500});
+      }
+      return Response.json({error:{message:'synthetic quota',code:'usage_limit'}}, {status:402});
+    };
+    context.mock.method(Sandbox, 'create', (options: Parameters<typeof Sandbox.create>[0]) => {
+      if (retries) return original.call(Sandbox, {...options,teamId:'synthetic-team',projectId:'synthetic-project',token:'synthetic-token',fetch:fakeFetch});
+      return Promise.reject(new APIError(Response.json({}, {status:typeof failure === 'number' ? failure : 400}), {json:{error:{code:failure === 'quota-code' ? 'usage_limit' : 'synthetic'}}}));
+    });
+    context.mock.method(console, 'error', () => {});
+    try {
+      await assert.rejects(extractDocument(fixture.c, 'job', 'doc', 'https://unused.invalid', false), error => {
+        assert.ok(error instanceof CloudFailure);
+        assert.equal(error.kind, 'internal');
+        assert.equal(error.diagnostic?.code, 'SANDBOX_CREATION_UNCONFIRMED');
+        return true;
+      });
+      if (retries) assert.equal(attempts, 2);
+      assert.equal(fixture.state.enabled, false);
+      assert.equal(fixture.state.reason, 'SANDBOX_CREATION_UNCONFIRMED');
+      assert.equal(fixture.state.blocked_kind, 'internal');
+      assert.equal(fixture.releases.length, 0);
+      assert.equal(fixture.checkpoints.has(`document:doc:${EXTRACTION_VERSION}`), false);
+    } finally {
       if (snapshot === undefined) delete process.env.CLOUD_SANDBOX_SNAPSHOT; else process.env.CLOUD_SANDBOX_SNAPSHOT = snapshot;
     }
   });
