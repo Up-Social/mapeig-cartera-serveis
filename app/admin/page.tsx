@@ -3,11 +3,17 @@ import { OcrSetting } from "./ocr-setting";
 import {ProcessingSetting} from './processing-setting';
 import {getProcessingSetting} from '@/lib/processing-control';
 import {createServerSupabase} from '@/lib/records-page';
+import {loadPausedTaskSummary} from '@/lib/cloud/paused-task-summary';
+import {PausedTasks} from './paused-tasks';
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminPage() {
-  const [setting, processing] = await Promise.all([getAutomaticOcrSetting(), getProcessingSetting(createServerSupabase())]);
+  const db = createServerSupabase();
+  const [setting, processing, pauses] = await Promise.all([
+    getAutomaticOcrSetting(), getProcessingSetting(db),
+    loadPausedTaskSummary(db).catch(() => null),
+  ]);
 
   return (
     <main className="page-shell">
@@ -20,6 +26,7 @@ export default async function AdminPage() {
           </p>
         </div>
         <ProcessingSetting initialSetting={processing} />
+        <PausedTasks summary={pauses} />
         <OcrSetting initialSetting={setting} />
       </section>
     </main>
