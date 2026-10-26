@@ -5,7 +5,7 @@ import { createEphemeralSandbox, stopEphemeralSession, SandboxLifecycleError } f
 
 test('all processing sessions are ephemeral, bounded and never use implicit resume', async context => {
   const original = Sandbox.create;
-  const expectedTimeout = { document: 600_000, probe: 60_000, synthetic: 180_000 } as const;
+  const expectedTimeout = { document: 600_000, probe: 60_000, synthetic: 90_000 } as const;
   let stopped = 0;
   let resumed = 0;
   const optionsSeen: Parameters<typeof Sandbox.create>[0][] = [];
@@ -55,7 +55,7 @@ test('all processing sessions are ephemeral, bounded and never use implicit resu
     }
     assert.equal(stopped, 3);
     assert.equal(resumed, 0);
-    assert.deepEqual(deadlines, [60_000, 600_000, 60_000, 60_000, 60_000, 180_000]);
+    assert.deepEqual(deadlines, [60_000, 600_000, 60_000, 60_000, 60_000, 90_000]);
     assert.ok(60_000 + Math.max(...Object.values(expectedTimeout)) + 15_000 < 12 * 60_000);
   } finally { Sandbox.create = original; }
 });

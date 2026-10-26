@@ -1,6 +1,7 @@
 import { Sandbox, type Session } from '@vercel/sandbox';
 
-const TIMEOUTS = { document: 600_000, probe: 60_000, synthetic: 180_000 } as const;
+export const SANDBOX_SYNTHETIC_TIMEOUT_MS = 90_000;
+const TIMEOUTS = { document: 600_000, probe: 60_000, synthetic: SANDBOX_SYNTHETIC_TIMEOUT_MS } as const;
 export const SANDBOX_CLEANUP_TIMEOUT_MS = 15_000;
 export const SANDBOX_SNAPSHOT_EXPIRATION_MS = 3_600_000;
 const CREATION_TIMEOUT_MS = 60_000;

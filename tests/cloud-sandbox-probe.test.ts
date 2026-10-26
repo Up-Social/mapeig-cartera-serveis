@@ -106,3 +106,54 @@ test('a same-owner lease renewal between read and claim cannot be stolen by a pr
   assert.equal(writes, 0);
   assert.equal(resource.owner, 'existing-owner');
 });
+
+for (const outcome of ['success', 'ocr-failed', 'timeout', 'cleanup-failed', 'snapshot'] as const) {
+  test(`document validation probe (${outcome}) closes before it can clear the block`, async () => {
+    const fixture = database();
+    const original = Sandbox.create;
+    const env = { WORKER_EXECUTION_MODE: process.env.WORKER_EXECUTION_MODE, VERCEL_ENV: process.env.VERCEL_ENV, CLOUD_SANDBOX_SNAPSHOT: process.env.CLOUD_SANDBOX_SNAPSHOT };
+    Object.assign(process.env, { WORKER_EXECUTION_MODE: 'vercel_workflow', VERCEL_ENV: 'production', CLOUD_SANDBOX_SNAPSHOT: 'manual-base' });
+    const text = 'Servei social per a persones. Servicio social para personas.';
+    Sandbox.create = async options => {
+      assert.equal(options?.timeout, 90_000);
+      assert.equal(options?.persistent, false);
+      return { currentSession: () => ({
+        sessionId: 'document-probe-session',
+        writeFiles: async () => {},
+        readFileToBuffer: async ({ path }: { path: string }) => {
+          if (path.endsWith('.jpg')) return Buffer.from([0xff, 0xd8, 0xff, 0xd9]);
+          if (path.endsWith('languages.txt')) return Buffer.from('cat\nspa\n');
+          if (path.endsWith('scanned.txt')) return Buffer.from('\f');
+          if (outcome === 'ocr-failed' && path.endsWith('ocr.txt')) return Buffer.from('');
+          return Buffer.from(text);
+        },
+        runCommand: async (command: string) => {
+          fixture.events.push(command);
+          if (outcome === 'timeout') throw new DOMException('The operation was aborted', 'TimeoutError');
+          return { exitCode: 0 };
+        },
+        stop: async () => {
+          fixture.events.push('stop');
+          if (outcome === 'cleanup-failed') throw new Error('provider details');
+          return { session: { status: 'stopped' }, ...(outcome === 'snapshot' ? { snapshot: { id: 'unexpected' } } : {}) };
+        },
+      }) } as unknown as Awaited<ReturnType<typeof original>>;
+    };
+    try {
+      if (outcome === 'success') {
+        assert.deepEqual(await probeVercelAvailability(fixture.db, { force: true, checkDocuments: true }), { status: 'available' });
+        assert.ok(fixture.events.includes('tesseract'));
+        assert.deepEqual(fixture.events.slice(-2), ['stop', 'unblock']);
+      } else {
+        await assert.rejects(probeVercelAvailability(fixture.db, { force: true, checkDocuments: true }), /VERCEL_CHECK_UNAVAILABLE/);
+        assert.ok(fixture.events.includes('stop'));
+        assert.equal(fixture.events.includes('unblock'), false);
+        assert.equal(fixture.resource.blocked_kind, ['cleanup-failed', 'snapshot'].includes(outcome) ? 'internal' : 'vercel_quota');
+      }
+      assert.equal(fixture.setting.enabled, false);
+    } finally {
+      Sandbox.create = original;
+      for (const [key, value] of Object.entries(env)) { if (value === undefined) delete process.env[key]; else process.env[key] = value; }
+    }
+  });
+}

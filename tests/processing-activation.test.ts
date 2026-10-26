@@ -54,7 +54,7 @@ test('concurrent shutdown during verification wins over activation',async()=>{
 
 test('activation checks inventory, probes, checks again, then performs a single CAS update',async()=>{
  const f=fixture();
- const result=await configureProcessing(f.db,true,{audit:async()=>{f.events.push('inventory');return {healthy:true,activeCount:0};},probe:async()=>{f.events.push('probe');}});
+ const result=await configureProcessing(f.db,true,{audit:async()=>{f.events.push('inventory');return {healthy:true,activeCount:0};},probe:async(options)=>{assert.deepEqual(options,{force:true,checkDocuments:true});f.events.push('probe');}});
  assert.equal(result.enabled,true);assert.deepEqual(f.events,['inventory','probe','inventory','enable']);
  // No worker task queries or updates occur: old paused tasks remain untouched.
 });

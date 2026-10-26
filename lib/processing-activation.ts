@@ -1,7 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import {getProcessingSetting, setProcessingEnabled} from './processing-control';
 
-type Checks = {audit: () => Promise<{healthy: boolean; activeCount: number}>; probe: () => Promise<unknown>};
+type Checks = {audit: () => Promise<{healthy: boolean; activeCount: number}>; probe: (options: {force: true; checkDocuments: true}) => Promise<unknown>};
 
 /** No task resumes here. A concurrent pause during verification invalidates activation. */
 export async function configureProcessing(db: SupabaseClient, enabled: boolean, checks: Checks) {
@@ -11,7 +11,7 @@ export async function configureProcessing(db: SupabaseClient, enabled: boolean, 
   if (previous.enabled) return previous;
   const before = await checks.audit();
   if (!before.healthy || before.activeCount !== 0) throw new Error('PROCESSING_INVENTORY_UNSAFE');
-  await checks.probe();
+  await checks.probe({force: true, checkDocuments: true});
   const after = await checks.audit();
   if (!after.healthy || after.activeCount !== 0) throw new Error('PROCESSING_INVENTORY_UNSAFE');
   return setProcessingEnabled(db, true, null, previous.updatedAt);

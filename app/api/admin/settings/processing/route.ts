@@ -22,7 +22,7 @@ export async function POST(request: Request) {
   try {
     const setting = await configureProcessing(db, body.enabled, {
       audit: () => auditSandboxInventory(db),
-      probe: () => checkVercelAvailability({force: true}),
+      probe: (options) => checkVercelAvailability(options),
     });
     return Response.json({setting});
   } catch {

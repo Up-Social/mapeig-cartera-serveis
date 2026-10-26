@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { createEphemeralSandbox, SandboxLifecycleError, type EphemeralSandbox } from "./sandbox";
+import { verifySyntheticDocuments } from "./sandbox-synthetic";
 import { containSandboxIncident } from "./sandbox-incident";
 import { assertTestEnvironment } from "../test-environment";
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -9,10 +10,12 @@ export type VercelAvailabilityResult = {
   status: "available" | "already_available";
 };
 
+export type VercelAvailabilityOptions = { force?: boolean; checkDocuments?: boolean };
+
 const RESOURCE = "sandbox";
 const EXPECTED_BLOCK = "vercel_quota";
 
-export async function probeVercelAvailability(db: SupabaseClient, options: { force?: boolean } = {}): Promise<VercelAvailabilityResult> {
+export async function probeVercelAvailability(db: SupabaseClient, options: VercelAvailabilityOptions = {}): Promise<VercelAvailabilityResult> {
   const current = await db
     .from("cloud_resources")
     .select("blocked_kind,owner,lease_until")
@@ -53,10 +56,13 @@ export async function probeVercelAvailability(db: SupabaseClient, options: { for
       const snapshotId = process.env.CLOUD_SANDBOX_SNAPSHOT;
       if (!snapshotId) throw new Error("VERCEL_CHECK_CONFIGURATION");
       creationUncertain = true;
-      sandbox = await createEphemeralSandbox('probe', snapshotId);
+      sandbox = await createEphemeralSandbox(options.checkDocuments ? 'synthetic' : 'probe', snapshotId);
       creationUncertain = false;
-      const command = await sandbox.session.runCommand("sh", ["-c", "true"], { timeoutMs: 5_000 });
-      if (command.exitCode !== 0) throw new Error("VERCEL_CHECK_COMMAND");
+      if (options.checkDocuments) await verifySyntheticDocuments(sandbox.session);
+      else {
+        const command = await sandbox.session.runCommand("sh", ["-c", "true"], { timeoutMs: 5_000 });
+        if (command.exitCode !== 0) throw new Error("VERCEL_CHECK_COMMAND");
+      }
       await sandbox.close();
       stopped = true;
     }
