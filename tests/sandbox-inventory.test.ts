@@ -41,7 +41,11 @@ for (const mode of ['complete', 'partial_failure', 'cancelled'] as const) {
     const fakeFetch: typeof fetch = async (input, init) => {
       const url = new URL(String(input));
       assert.equal(url.searchParams.get('project'), 'synthetic-project');
-      assert.equal(url.searchParams.get('limit'), '100');
+      // Exercise the provider's real request contract, not the implementation's chosen size.
+      const limit = Number(url.searchParams.get('limit'));
+      if (!Number.isInteger(limit) || limit < 1 || limit > 50) {
+        return Response.json({error:{code:'bad_request',message:'limit must be between 1 and 50'}},{status:400});
+      }
       assert.equal(init?.method, 'GET');
       assert.equal(init?.signal, controller.signal);
       const snapshots = url.pathname.endsWith('/snapshots');

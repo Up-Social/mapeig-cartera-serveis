@@ -64,9 +64,10 @@ async function inventoryCollection<T>(phase: InventoryDiagnostic['phase'], read:
 /** Full pagination, bounded by time. Partial/error results must never certify safety. */
 export async function readSandboxInventory(): Promise<SandboxInventory> {
   const signal = AbortSignal.timeout(45_000);
+  // Both REST list endpoints cap each page at 50 (Vercel OpenAPI); SDK types do not enforce it.
   const [snapshots, sandboxes] = await Promise.all([
-    inventoryCollection('snapshots', async () => (await Snapshot.list({limit: 100, signal})).toArray()),
-    inventoryCollection('sandboxes', async () => (await Sandbox.list({limit: 100, signal})).toArray()),
+    inventoryCollection('snapshots', async () => (await Snapshot.list({limit: 50, signal})).toArray()),
+    inventoryCollection('sandboxes', async () => (await Sandbox.list({limit: 50, signal})).toArray()),
   ]);
   return {capturedAt: new Date().toISOString(), snapshots, sandboxes};
 }
