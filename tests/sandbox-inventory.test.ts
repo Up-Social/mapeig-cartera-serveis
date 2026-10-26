@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {Sandbox, Snapshot} from '@vercel/sandbox';
-import {inspectSandboxInventory, readSandboxInventory, type SandboxInventory} from '../lib/cloud/sandbox-inventory';
+import {APIError, Sandbox, Snapshot} from '@vercel/sandbox';
+import {inspectSandboxInventory, readSandboxInventory, SandboxInventoryError, type SandboxInventory} from '../lib/cloud/sandbox-inventory';
 
 const inventory = (): SandboxInventory => ({capturedAt: new Date().toISOString(), sandboxes: [], snapshots: [
   {id:'base',sourceSessionId:'builder',status:'created',sizeBytes:800,createdAt:1,creationMethod:'manual'},
@@ -75,3 +75,34 @@ for (const mode of ['complete', 'partial_failure', 'cancelled'] as const) {
     } finally {Snapshot.list=originalSnapshots;Sandbox.list=originalSandboxes;}
   });
 }
+
+test('inventory diagnostics identify the failing collection without leaking provider data', async context => {
+  const secret = 'private-token-and-document-content';
+  const cases = [
+    {error:new APIError(Response.json({}, {status:403}), {message:secret,json:{error:{message:secret}},text:secret}),category:'api',status:403},
+    {error:new APIError(Response.json({}), {message:'Response JSON is not valid: '+JSON.stringify([{path:['snapshots',0,'expiresAt'],message:secret},{path:[secret],message:secret}]),json:{secret},text:secret}),category:'response_schema',status:200},
+    {error:Object.assign(new Error(secret),{name:'VercelOidcContextError'}),category:'credentials'},
+    {error:new DOMException(secret,'TimeoutError'),category:'timeout'},
+    {error:new TypeError('fetch failed'),category:'network'},
+    {error:new TypeError(secret),category:'unknown'},
+  ];
+  const logs: unknown[][] = [];
+  context.mock.method(console,'error',(...args:unknown[])=>{logs.push(args);});
+  context.mock.method(Sandbox,'list',async()=>({toArray:async()=>[]}));
+  for (const item of cases) {
+    const mock = context.mock.method(Snapshot,'list',async()=>{throw item.error;});
+    try {
+      await assert.rejects(readSandboxInventory(), error=>{
+        assert.ok(error instanceof SandboxInventoryError);
+        assert.equal(error.diagnostic.phase,'snapshots');
+        assert.equal(error.diagnostic.category,item.category);
+        assert.equal(error.diagnostic.status,item.status);
+        if(item.category==='response_schema')assert.deepEqual(error.diagnostic.fields,['snapshots.*.expiresAt','?']);
+        assert.ok(!JSON.stringify(error).includes(secret));
+        return true;
+      });
+    } finally {mock.mock.restore();}
+  }
+  assert.equal(logs.length,cases.length);
+  assert.ok(!JSON.stringify(logs).includes(secret));
+});

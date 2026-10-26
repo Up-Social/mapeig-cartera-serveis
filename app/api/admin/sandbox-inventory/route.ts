@@ -1,4 +1,4 @@
-import {readSandboxInventory, inspectSandboxInventory} from '@/lib/cloud/sandbox-inventory';
+import {readSandboxInventory, inspectSandboxInventory, SandboxInventoryError} from '@/lib/cloud/sandbox-inventory';
 
 export const maxDuration = 60;
 
@@ -14,7 +14,10 @@ export async function GET() {
       'Cache-Control': 'no-store',
       'Content-Disposition': 'attachment; filename="sandbox-inventory.json"',
     }});
-  } catch {
-    return Response.json({error: 'No s’ha pogut completar l’inventari de Vercel.'}, {status: 503});
+  } catch (error) {
+    return Response.json({
+      error: 'No s’ha pogut completar l’inventari de Vercel.',
+      diagnostic: error instanceof SandboxInventoryError ? error.diagnostic : undefined,
+    }, {status: 503, headers: {'Cache-Control':'no-store'}});
   }
 }
