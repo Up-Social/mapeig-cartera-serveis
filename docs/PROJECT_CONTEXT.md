@@ -4,9 +4,13 @@
 
 Per decisió de Carles, Supabase local queda fora d’ús. El projecte Docker original `mapeig-cartera-serveis` es conserva aturat, amb reinici automàtic desactivat, com a còpia local per a una possible recuperació futura. No està sincronitzat automàticament amb producció ni s’ha verificat aquí la data de la seva còpia. No iniciar-lo, descarregar-hi la base remota ni crear entorns Docker nous sense una nova instrucció expressa. Els contenidors auxiliars `cartera-workflow-test` i `cartera-convenis-pilot` s’han eliminat; els volums es conserven fora d’execució.
 
-La validació funcional de Concerts es farà a la web de producció després de preparar i autoritzar la versió concreta i les migracions. Es permeten comprovacions locals lleugeres de codi sense serveis ni connexió a dades. No publicar ni aplicar indiscriminadament les migracions candidates acumulades. La petició actual és preparar el paquet i avisar abans de publicar. Aquesta instrucció preval sobre les referències històriques a proves amb Supabase local.
+La validació funcional de Concerts es fa a la web de producció dins de l’abast autoritzat. Es permeten comprovacions locals lleugeres de codi sense serveis ni connexió a dades. No aplicar indiscriminadament les migracions candidates acumulades: les modificacions separades a la base de producció requereixen l’autorització corresponent. Aquesta instrucció preval sobre les referències històriques a proves amb Supabase local.
 
 > Revisió documental 28/10/2026: consulteu [l’estat i els límits actualitzats](ESTADO_ACTUAL_2026_10_28.md). Els resultats i recomptes datats d’aquest document són històrics; el codi i les migracions prevalen en cas de discrepància.
+
+## Commits i push (02/11/2026)
+
+Carles autoritza els commits i els push necessaris per al treball demanat en aquest projecte, sense demanar confirmació separada per a cadascun. Abans de fer-los cal revisar el contingut, els commits pendents i la branca de destinació, preservar els canvis aliens i comunicar el resultat. El push a `main` desplega producció: cal respectar qualsevol instrucció expressa de no publicar i les autoritzacions aplicables a migracions o altres canvis remots independents.
 
 ## Política de branques (15/10/2026)
 
