@@ -43,3 +43,7 @@ export function extractDiagnosticAnnex(text:string):EconomicAnnexLine[]{
  }
  return out;
 }
+
+export function safeDiagnosticTotal(rows:EconomicAnnexLine[]){
+ return rows.length&&rows.every(row=>row.amountCents!==null)?safeAnnexSum(rows.map(row=>row.amountCents)):null;
+}

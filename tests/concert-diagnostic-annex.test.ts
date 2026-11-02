@@ -35,3 +35,13 @@ test('incomplete, ambiguous or unreconciled tables yield no drafts',()=>{
   text.replace('ANNEX 2. ALTRES DADES','SENSE FINAL'),text+'\nANNEX 1 Serveis assignats\n',
  ])assert.deepEqual(extractDiagnosticAnnex(change),[]);
 });
+
+test('documentary totals require one complete current archived award document',async()=>{
+ const {diagnosticAwardReport}=await import('../lib/concerts/diagnostic-report');
+ const doc={id:'doc',status:'fetched',mimeType:'application/pdf',archived:true,currentTextConsistent:true,extractedText:text,extractionPartial:false,extractionMethod:'pdf-text-markdown-v2',extractionCoverage:{complete:true},qualityFlags:[]};
+ const record={financingType:'concert',isHistorical:false,title:'Resolució de provisió de serveis',sourceDocuments:[doc]} as unknown as Parameters<typeof diagnosticAwardReport>[0];
+ assert.equal(diagnosticAwardReport(record)?.totalCents,22000);
+ assert.equal(diagnosticAwardReport({...record,sourceDocuments:[{...record.sourceDocuments[0],currentTextConsistent:false}]}),null);
+ assert.equal(diagnosticAwardReport({...record,sourceDocuments:[...record.sourceDocuments,...record.sourceDocuments]}),null);
+ assert.equal(diagnosticAwardReport({...record,title:'Acord proposta de provisió'}),null);
+});
