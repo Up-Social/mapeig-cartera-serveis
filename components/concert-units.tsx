@@ -17,6 +17,7 @@ import {ConcertLineAward} from './concert-line-award';
 import {concertQuantityCoverage} from '@/lib/concerts/quantity-coverage';
 import {provisionalServiceHeadings} from '@/lib/concerts/provisional-headings';
 import {proposeConcertSupportCode} from '@/lib/concerts/support-code-proposal';
+import {concertDocumentaryFacts,type ConcertDocumentaryFacts} from '@/lib/concerts/documentary-facts';
 
 type Unit={service_code_correction?:{value:string;valid:boolean;reviewer?:string;reason?:string;page?:number;document_id?:string}|null;recovered_provider_name?:string|null;recovered_service_name?:string|null;printed_service_candidate?:{name:string;page:number};printed_support_candidate?:{value:string;page:number};document_id?:string;unit_key:string;effective_service_code?:string|null;effective_provider_name?:string|null;observation?:{amountBasis?:string;annualCostCents?:number;dispositionNumber?:string;position?:string;pendingRevision?:boolean};id:string;pipeline_job_id:string|null;provider_name:string|null;observed_provider_name:string|null;provider_nif:string|null;centre:string|null;period:string|null;service_code:string|null;observed_service_code:string|null;observed_service_name:string|null;reses_code:string|null;observed_establishment_code?:string|null;territory:string|null;municipality:string|null;effective_start:string|null;effective_end:string|null;quantity:number|null;quantity_delta:number|null;amount:number|null;status:string;evidence_quote:string|null;review_note:string|null;page:number|null;act_type:string;storage_path:string|null;storage_sha256:string|null;extraction_origin:string|null;horizon_state:string|null};
 type Reconciliation={document_id:string;document_sha256:string;annex:number;row_count:number;sum_cents:number;declared_cents:number|null;reconciled:boolean;coverage?:{declared_amount_kind?:string}|null};
@@ -26,9 +27,9 @@ const money=(value:number)=>new Intl.NumberFormat('ca-ES',{style:'currency',curr
 const actCase:Record<string,ConcertCaseKey>={award:'award',renewal:'renewal',amendment:'amendment',modification:'modification',termination:'termination',cession:'cession',appeal:'appeal',validation:'validation'};
 const linkCase:Record<string,ConcertCaseKey>={...actCase};
 
-export function ConcertUnits({record,services,onSaved}:{record:SourceRecord;services:Array<{code:string;name:string}>;onSaved?:(record:SourceRecord)=>void}){
+export function ConcertUnits({record,services,onSaved,onDocumentaryFacts}:{record:SourceRecord;services:Array<{code:string;name:string}>;onSaved?:(record:SourceRecord)=>void;onDocumentaryFacts?:(value:{recordId:string;jobId:string|null;facts:ConcertDocumentaryFacts|null})=>void}){
  const [supported,setSupported]=useState(true);
- const [loaded,setLoaded]=useState(false);
+ const [loadedScope,setLoadedScope]=useState<string|null>(null);
  const [units,setUnits]=useState<Unit[]>([]);
  const [reconciliations,setReconciliations]=useState<Reconciliation[]>([]);
  const [links,setLinks]=useState<ConcertLink[]>([]);
@@ -42,10 +43,13 @@ export function ConcertUnits({record,services,onSaved}:{record:SourceRecord;serv
  const [bulkNote,setBulkNote]=useState('');
  const [editedNames,setEditedNames]=useState<Record<string,string>>({});
  const url=`/api/records/${record.id}/units`;
+ const loadScope=JSON.stringify([url,record.currentJobId,record.corrections]);
+ const loaded=loadedScope===loadScope;
  useEffect(()=>{function focus(){const hash=window.location.hash;if(hash.startsWith('#concert-line-')){setActiveLine(hash.slice(14));setShowAllUnits(true);setFilter('');}}
   focus();window.addEventListener('hashchange',focus);return()=>window.removeEventListener('hashchange',focus);},[]);
 
- useEffect(()=>{const c=new AbortController();fetch(url,{signal:c.signal}).then(r=>r.json()).then(data=>{if(data.error)setError(data.error);else{setLoaded(true);setSupported(data.supported!==false);setUnits(data.units??[]);setReconciliations(data.reconciliations??[]);}}).catch(e=>{if(e.name!=='AbortError')setError('No s’han pogut carregar les unitats');});return()=>c.abort();},[url,record.corrections]);
+ useEffect(()=>{const c=new AbortController();fetch(url,{signal:c.signal,cache:'no-store'}).then(r=>r.json()).then(data=>{if(c.signal.aborted)return;if(data.error)setError(data.error);else{setLoadedScope(loadScope);setSupported(data.supported!==false);setUnits(data.units??[]);setReconciliations(data.reconciliations??[]);}}).catch(e=>{if(e.name!=='AbortError')setError('No s’han pogut carregar les unitats');});return()=>c.abort();},[url,loadScope]);
+ useEffect(()=>{onDocumentaryFacts?.({recordId:record.id,jobId:record.currentJobId??null,facts:loaded&&supported?concertDocumentaryFacts(record,units,reconciliations):null});},[record,loaded,supported,units,reconciliations,onDocumentaryFacts]);
  useEffect(()=>{const c=new AbortController();fetch(`/api/records/${record.id}/concert-links`,{signal:c.signal,cache:'no-store'}).then(r=>r.json()).then(data=>{if(data.error)setError(data.error);else setLinks(data.links??[]);}).catch(e=>{if(e.name!=='AbortError')setError('No s’han pogut carregar els vincles');});return()=>c.abort();},[record.id]);
  async function submit(body:Record<string,unknown>){
   setBusy(true);setError('');

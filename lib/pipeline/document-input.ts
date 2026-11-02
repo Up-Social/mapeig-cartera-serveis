@@ -3,14 +3,8 @@ import {isIP} from "node:net";
 import {request as httpRequest} from 'node:http';
 import {request as httpsRequest} from 'node:https';
 const MAX_BYTES=10*1024*1024,MAX_PDF_BYTES=16*1024*1024,MAX_TEXT=200_000,TIMEOUT_MS=20_000;
-export const HTML_COVERAGE_POLICY='html-text-coverage-v1';
-export function hasCurrentTextCoverage(method:string|null,coverage:unknown,mimeType:string|null=null,partial:boolean|null|undefined=undefined){
- if(partial===true||(typeof coverage==='object'&&coverage!==null&&'complete' in coverage&&coverage.complete===false))return false;
- const htmlOrText=method==='html-basic'||mimeType?.includes('html')||mimeType==='text/plain';
- if(htmlOrText)return typeof coverage==='object'&&coverage!==null&&'policy' in coverage&&coverage.policy===HTML_COVERAGE_POLICY&&'complete' in coverage&&coverage.complete===true;
- // Unknown historical metadata cannot certify that an HTML/text extraction was complete.
- return typeof method==='string'&&/^(?:pdf-(?:text|ocr)-markdown-v2|pdftotext(?:-layout)?|pdf-text)$/.test(method);
-}
+import {HTML_COVERAGE_POLICY} from './document-coverage';
+export {HTML_COVERAGE_POLICY,hasCurrentTextCoverage} from './document-coverage';
 export async function fetchWithLimits(initialUrl: string,options?:{allowedHosts:string[]}) {
   let current = new URL(initialUrl);
   for (let redirect = 0; redirect <= 5; redirect += 1) {

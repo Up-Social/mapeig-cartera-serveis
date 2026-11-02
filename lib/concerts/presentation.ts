@@ -1,7 +1,7 @@
 import {extractProgramAnnex,type ProgramLine} from './program-annex';
 import {extractConcertChangeRows} from './change-extraction';
 import {extractColumnAnnexRows,extractColumnSupportObservations,storedAmountCents} from './annex-extraction';
-import {hasCurrentTextCoverage} from '../pipeline/document-input';
+import {hasCurrentTextCoverage} from '../pipeline/document-coverage';
 
 type DisplayUnit={id:string;document_id:string|null;page:number|null;provider_nif:string|null;reses_code:string|null;provider_name:string|null;observed_provider_name:string|null;status:string;pipeline_job_id?:string|null;recovered_provider_name?:string|null;recovered_service_name?:string|null};
 /** Display-only recovery from the same document and exact documentary identity.

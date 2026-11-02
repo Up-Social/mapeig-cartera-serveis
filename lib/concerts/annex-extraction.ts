@@ -181,7 +181,19 @@ export function extractColumnSupportObservations(text:string):ColumnSupportObser
  return found.map(({line,value})=>({page:line.page,row:line.row,resesCode:line.resesCode,value}));
 }
 
-function extractColumnAnnexInternal(text:string,supportObservations?:Array<{line:EconomicAnnexLine;value:string}>):{rows:EconomicAnnexLine[];complete:boolean;unparsedRows:number;declaredQuantity:number|null}{
+/** Literal service cells, separate from catalogue names and unchanged row keys. */
+export function extractColumnServiceObservations(text:string):ColumnSupportObservation[]{
+ const found:Array<{line:EconomicAnnexLine;value:string}>=[];
+ extractColumnAnnexInternal(text,undefined,found);
+ return found.map(({line,value})=>({page:line.page,row:line.row,resesCode:line.resesCode,value}));
+}
+export function extractColumnManagerObservations(text:string):Array<{page:number;value:string}>{
+ const found:Array<{page:number;value:string}>=[];
+ extractColumnAnnexInternal(text,undefined,undefined,found);
+ return found;
+}
+
+function extractColumnAnnexInternal(text:string,supportObservations?:Array<{line:EconomicAnnexLine;value:string}>,serviceObservations?:Array<{line:EconomicAnnexLine;value:string}>,managerObservations?:Array<{page:number;value:string}>):{rows:EconomicAnnexLine[];complete:boolean;unparsedRows:number;declaredQuantity:number|null}{
  const rows:EconomicAnnexLine[]=[];
  // Previously archived keys include the row ordinal. Append incomplete-code
  // observations after fully recognised rows so adding one never renumbers an
@@ -193,6 +205,13 @@ function extractColumnAnnexInternal(text:string,supportObservations?:Array<{line
   const headerIndex=lines.findIndex((line,index)=>(/Nom entitat/i.test(line)||(/\bNIF entitat\b/i.test(line)&&/\bNom\b/i.test(lines[index-1]??'')))&&/tipologia/i.test(lines.slice(Math.max(0,index-3),index+1).join(' '))&&/Codi S/i.test(line)&&/Nom servei/i.test(line)&&/Municipi/i.test(line)&&/assignar/i.test(line));
   if(headerIndex<0)continue;
   const header=lines[headerIndex];
+  const managerStart=header.indexOf('gestor'),managerEnd=header.indexOf('FUE',managerStart);
+  if(managerObservations&&managerStart>=0&&managerEnd>managerStart&&/\bCentre\b/.test(lines.slice(Math.max(0,headerIndex-2),headerIndex+1).join(' '))){
+   for(const line of lines.slice(headerIndex+1)){
+    const value=line.slice(managerStart,managerEnd).trim();
+    if(/^[A-Z]{2}\d{4}$/.test(value))managerObservations.push({page:page.number,value});
+   }
+  }
   const supportHeadings=[...header.matchAll(/\bSuport\b/g)],resesHeadings=[...header.matchAll(/\bCodi S\b/g)];
   const supportStart=supportHeadings.length===1?supportHeadings[0].index:-1;
   const resesStart=resesHeadings.length===1?resesHeadings[0].index:-1;
@@ -252,6 +271,10 @@ function extractColumnAnnexInternal(text:string,supportObservations?:Array<{line
     observedServiceCode:serviceCode,resesCode:reses[0],municipality,quantity,amountCents,
     quote:lines.slice(quoteFrom,index+1).join('\n').trim().replace(/\s+/g,' ')};
    if(serviceCode){row.row=rows.length+1;rows.push(row);}else {unparsedRows++;incompleteCodeRows.push(row);}
+   if(serviceObservations&&codeEnd>=0&&supportStart>codeEnd&&resesStart>supportStart){
+    const value=lines.slice(from,index+1).map(part=>part.slice(codeEnd,supportStart).trim()).filter(Boolean).join(' ').replace(/\s+/g,' ').trim();
+    if(/^serveis?\b/i.test(value))serviceObservations.push({line:row,value});
+   }
    // The cell is read only on this row, with a single aligned RESES anchor.
    // Reject shifted, truncated or multi-token cells instead of guessing.
    if(supportObservations&&codeEnd>=0&&supportStart>codeEnd&&resesStart-supportStart>=6&&resesStart-supportStart<=16&&reses.index===resesStart&&
