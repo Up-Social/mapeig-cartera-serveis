@@ -273,3 +273,11 @@ test('a current individual award still needs a separate economic interpretation 
  const current={...unit('a'),line_award_state:'current' as const};const result=projection(data([current],[]));
  assert.equal(result.movements[0].status,'pending');assert.match(result.movements[0].issues.join(' '),/Interpretació econòmica pendent/);
 });
+test('a verified individual award allows reviewed economics for its current needs-review job only',()=>{
+ const current={...unit('a'),line_award_state:'current' as const};const d=data([current],[review('a')]);d.publications[0].job_status='needs_review';
+ assert.equal(projection(d).movements[0].status,'reviewed');
+ d.units[0]={...current,line_award_state:'stale'};assert.equal(projection(d).movements[0].status,'pending');
+ d.units[0]=unit('a');assert.equal(projection(d).movements[0].status,'pending');
+ d.units[0]=current;d.publications[0].job_status='error';assert.equal(projection(d).movements[0].status,'pending');
+ d.publications[0].job_status='needs_review';d.reviews[0].funder=null;assert.match(projection(d).movements[0].issues.join(' '),/Finançador no acreditat/);
+});

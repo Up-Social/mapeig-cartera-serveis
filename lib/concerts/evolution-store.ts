@@ -2,6 +2,7 @@ import {recoverConcertDisplayNames} from './presentation';
 import type {SupabaseClient} from '@supabase/supabase-js';
 import type {ConcertEvolutionData,EconomicUnit,EconomicReview,EconomicLink,EconomicPublication} from './evolution';
 import {lineReadersEnabled,requireConsistentLineReads} from './line-read-guard';
+import {applyVerifiedLineStates} from './line-evolution-state';
 
 export async function loadConcertEvolution(db:SupabaseClient,recordId?:string):Promise<ConcertEvolutionData>{
  await requireConsistentLineReads(db);
@@ -66,8 +67,8 @@ export async function loadConcertEvolution(db:SupabaseClient,recordId?:string):P
   for(let offset=0;offset<selectedUnits.length;offset+=100){
    const page=selectedUnits.slice(offset,offset+100);const result=await db.rpc('concert_line_evolution_states',{p_units:page.map(unit=>unit.id)});
    if(result.error)throw result.error;
-   const states=new Map<string,'current'|'stale'>((result.data??[]).map((item:{unit_id:string;state:'current'|'stale'})=>[item.unit_id,item.state]));
-   for(const unit of page){const state=states.get(unit.id);if(state)unit.line_award_state=state;}
+   const verified=applyVerifiedLineStates(page,result.data??[]);
+   for(let index=0;index<page.length;index++)Object.assign(page[index],verified[index]);
   }
  }
  for(let offset=0;offset<selectedUnits.length;offset+=100){

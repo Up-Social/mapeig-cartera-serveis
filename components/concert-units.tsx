@@ -32,7 +32,7 @@ const money=(value:number)=>new Intl.NumberFormat('ca-ES',{style:'currency',curr
 const actCase:Record<string,ConcertCaseKey>={award:'award',renewal:'renewal',amendment:'amendment',modification:'modification',termination:'termination',cession:'cession',appeal:'appeal',validation:'validation'};
 const linkCase:Record<string,ConcertCaseKey>={...actCase};
 
-export function ConcertUnits({record,services,onSaved,onDocumentaryFacts}:{record:SourceRecord;services:Array<{code:string;name:string}>;onSaved?:(record:SourceRecord)=>void;onDocumentaryFacts?:(value:{recordId:string;jobId:string|null;facts:ConcertDocumentaryFacts|null})=>void}){
+export function ConcertUnits({record,services,onSaved,onDocumentaryFacts,onDiagnosticRecognition}:{record:SourceRecord;services:Array<{code:string;name:string}>;onSaved?:(record:SourceRecord)=>void;onDocumentaryFacts?:(value:{recordId:string;jobId:string|null;facts:ConcertDocumentaryFacts|null})=>void;onDiagnosticRecognition?:(value:{recordId:string;jobId:string|null;recognized:boolean})=>void}){
  const [supported,setSupported]=useState(true);
  const [loadedScope,setLoadedScope]=useState<string|null>(null);
  const [units,setUnits]=useState<Unit[]>([]);
@@ -57,6 +57,7 @@ export function ConcertUnits({record,services,onSaved,onDocumentaryFacts}:{recor
 
  useEffect(()=>{const c=new AbortController();fetch(url,{signal:c.signal,cache:'no-store'}).then(r=>r.json()).then(data=>{if(c.signal.aborted)return;if(data.error)setError(data.error);else{setLoadedScope(loadScope);setSupported(data.supported!==false);setUnits(data.units??[]);setReconciliations(data.reconciliations??[]);setDiagnosticReceipt(parseDiagnosticReconciliation(data.diagnosticReconciliation));setDiagnosticReceiptStatus(data.diagnosticReconciliationStatus??'disabled');}}).catch(e=>{if(e.name!=='AbortError')setError('No s’han pogut carregar les unitats');});return()=>c.abort();},[url,loadScope]);
  useEffect(()=>{onDocumentaryFacts?.({recordId:record.id,jobId:record.currentJobId??null,facts:loaded&&supported?concertDocumentaryFacts(record,units,reconciliations):null});},[record,loaded,supported,units,reconciliations,onDocumentaryFacts]);
+ useEffect(()=>{if(loaded&&diagnosticReceiptStatus!=='unavailable')onDiagnosticRecognition?.({recordId:record.id,jobId:record.currentJobId??null,recognized:diagnosticReceiptStatus==='absent'||diagnosticReceiptStatus==='current'});},[loaded,record.id,record.currentJobId,diagnosticReceiptStatus,onDiagnosticRecognition]);
  useEffect(()=>{const c=new AbortController();fetch(`/api/records/${record.id}/concert-links`,{signal:c.signal,cache:'no-store'}).then(r=>r.json()).then(data=>{if(data.error)setError(data.error);else setLinks(data.links??[]);}).catch(e=>{if(e.name!=='AbortError')setError('No s’han pogut carregar els vincles');});return()=>c.abort();},[record.id]);
  async function submit(body:Record<string,unknown>){
   setBusy(true);setError('');

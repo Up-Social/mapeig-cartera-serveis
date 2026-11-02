@@ -79,7 +79,7 @@ export function concertEvolution(data:ConcertEvolutionData,cutoff:string){
   if(review&&review.source_fingerprint!==u.source_fingerprint)issues.push('La font ha canviat des de la revisió');
   const publication=publications.get(u.source_record_id);
   if(review&&publication?.job_id!==review.expected_job_id)issues.push('L’anàlisi vigent no coincideix amb la revisada');
-  if(review&&!['approved','corrected'].includes(publication?.job_status??''))issues.push('L’anàlisi vigent està pendent de validació humana');
+  if(review&&!['approved','corrected'].includes(publication?.job_status??'')&&!(u.line_award_state==='current'&&publication?.job_status==='needs_review'))issues.push('L’anàlisi vigent està pendent de validació humana');
   if(!review||!iso(review.period_start)||!iso(review.period_end)||review.period_end<review.period_start||review.period_start<'2024-01-01')issues.push('Període des de 2024 no acreditat');
   if(!review||!iso(review.effective_at))issues.push('Data d’efectes no acreditada');
   if(!review?.funder?.trim())issues.push('Finançador no acreditat');

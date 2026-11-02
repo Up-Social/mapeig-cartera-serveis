@@ -46,5 +46,7 @@ export async function POST(request:Request,{params}:{params:Promise<{id:string}>
  }
  if(body.action!=='economics'||!isUuid(body.expectedJobId)||!body.value||typeof body.value!=='object')return Response.json({error:'Revisió no vàlida'},{status:400});
  const result=await db.rpc('review_concert_economics',{p_unit:body.unitId,p_version:body.version,p_fingerprint:body.fingerprint,p_job:body.expectedJobId,p_value:body.value});
+ if(result.error?.code==='55P03')return Response.json({error:'Una altra operació està modificant aquest expedient. No s’ha desat la revisió; torna-ho a provar.'},{status:409});
+ if(result.error?.message==='CONCERT_INDIVIDUAL_AWARD_STALE')return Response.json({error:'La revisió individual de l’adjudicació ha quedat obsoleta. Torna a contrastar la línia abans de confirmar-ne l’efecte econòmic.'},{status:409});
  return result.error?Response.json({error:result.error.message},{status:409}):Response.json({version:result.data});
 }
