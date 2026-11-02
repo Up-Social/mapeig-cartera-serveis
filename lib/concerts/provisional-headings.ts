@@ -26,3 +26,26 @@ export function provisionalServiceHeadings(title:string,text:string):{heading:st
   return {heading:row[2].replace(/\s+/g,' ').trim(),page:pages.length?Number(pages[pages.length-1][1]):null};
  });
 }
+
+/** Bounded proposal annex totals, explicitly labelled with and without VAT.
+ * These are source observations, never awarded amounts or approved financing. */
+export function provisionalServiceAmounts(title:string,text:string):{heading:string;page:number;netCents:number;grossCents:number}[]|null{
+ const headings=provisionalServiceHeadings(title,text);
+ if(!headings.length)return null;
+ const end=text.search(/^[\t ]*ANNEX[\t ]+2\b/gim);
+ const rows:Array<{heading:string;page:number;netCents:number;grossCents:number}>=[];
+ for(let i=0;i<headings.length;i++){
+  const heading=headings[i],start=text.indexOf(heading.heading),next=i+1<headings.length?text.indexOf(headings[i+1].heading):end;
+  if(start<0||next<=start||!heading.page||text.indexOf(heading.heading,start+heading.heading.length)!==-1)return null;
+  const section=text.slice(start,next).split(/^##\s+Pàgina\s+\d+\s*$/m)[0];
+  if(!/sense\s+IVA/i.test(section)||!/amb\s+IVA\s*\(\s*10\s*%\s*\)/i.test(section))return null;
+  const totals=[...section.matchAll(/^[\t ]*Import\s+total[\t ]+((?:\d{1,3}(?:\.\d{3})+|\d+),\d{2})\s+euros[\t ]+((?:\d{1,3}(?:\.\d{3})+|\d+),\d{2})\s+euros[\t ]*$/gim)];
+  if(totals.length!==1)return null;
+  const cents=(s:string)=>{const [whole,decimal]=s.replaceAll('.','').split(',');return Number(whole)*100+Number(decimal);};
+  const netCents=cents(totals[0][1]),grossCents=cents(totals[0][2]);
+  if(!Number.isSafeInteger(netCents)||!Number.isSafeInteger(grossCents)||netCents<0||netCents>Math.floor(Number.MAX_SAFE_INTEGER/11)||Math.round(netCents*11/10)!==grossCents)return null;
+  rows.push({heading:heading.heading,page:heading.page,netCents,grossCents});
+ }
+ if(!Number.isSafeInteger(rows.reduce((sum,row)=>sum+row.grossCents,0)))return null;
+ return rows;
+}

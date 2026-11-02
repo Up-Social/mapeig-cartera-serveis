@@ -8,6 +8,7 @@ import {concertSignedAuthority,projectConcertDocumentaryFacts} from '../concerts
 import {extractColumnManagerObservations} from '../concerts/annex-extraction';
 import {concertLineAmountSummary} from '../concerts/line-summary';
 import {hasCurrentTextCoverage} from '../pipeline/document-coverage';
+import {provisionalServiceAmounts} from '../concerts/provisional-headings';
 
 /** Only three display facts are corrected, with document-level provenance.
  * The original model response, roles, money and review state remain untouched. */
@@ -15,6 +16,26 @@ export async function projectConcertEnrichment(db:CloudDb,recordId:string,result
  const unchanged={enrichment:result,evidence:[]};
  const reports=await db.from('concert_annex_reconciliations').select('document_id,document_sha256,annex,row_count,sum_cents,reconciled').eq('source_record_id',recordId).eq('reconciled',true);
  if(reports.error)throw new CloudFailure('internal',5,{operation:'concert_documentary_enrichment',code:'DOCUMENTARY_FACTS_QUERY_FAILED'});
+ if(!reports.data.length){
+  const [source,documents]=await Promise.all([
+   db.from('source_records').select('title').eq('id',recordId).maybeSingle(),
+   readPages((from,to)=>db.from('source_documents').select('id,status,mime_type,storage_path,storage_sha256,active_extraction_id,extracted_text,extracted_text_hash,extraction_method,extraction_partial,extraction_coverage,quality_flags').eq('source_record_id',recordId).eq('status','fetched').eq('mime_type','application/pdf').order('id').range(from,to)),
+  ]);
+  if(source.error)throw new CloudFailure('internal',5,{operation:'concert_documentary_enrichment',code:'DOCUMENTARY_FACTS_QUERY_FAILED'});
+  if(!source.data?.title||documents.length!==1)return unchanged;
+  const document=documents[0];
+  if(!currentDocumentTextConsistent(document)||document.extraction_partial!==false||document.quality_flags?.some((flag:string)=>['corrupt_text','incomplete_extraction'].includes(flag))||!hasCurrentTextCoverage(document.extraction_method,document.extraction_coverage,document.mime_type,document.extraction_partial))return unchanged;
+  const rows=provisionalServiceAmounts(source.data.title,document.extracted_text!);
+  if(!rows)return unchanged;
+  const chunks=await readEvidenceChunks(db,[document.id]);
+  const printable=(cents:number)=>(cents/100).toFixed(2).replace('.',',').replace(/\B(?=(\d{3})+(?!\d))/g,'.');
+  const evidence=chunks.filter(chunk=>/\bImport\s+total\b/i.test(chunk.content)&&rows.some(row=>chunk.content.includes(printable(row.grossCents))));
+  if(rows.some(row=>!evidence.some(chunk=>chunk.content.includes(printable(row.grossCents)))))return unchanged;
+  const scopeFacts={...result.scope_facts,provisional_document_amounts:{version:'concert-provisional-amounts-v1',document_id:document.id,
+   document_sha256:document.storage_sha256,extraction_id:document.active_extraction_id,extracted_text_hash:document.extracted_text_hash,
+   rows,total_cents:rows.reduce((sum,row)=>sum+row.grossCents,0),original_model_amount:result.amount,original_model_summary:result.summary}};
+  return {enrichment:{...result,amount:null,summary:`Proposta provisional amb ${rows.length} serveis descrits a l’annex; els imports són propostes pendents de revisar, no finançament adjudicat.`,scope_facts:scopeFacts},evidence};
+ }
  if(reports.data.length!==1)return unchanged;
  const [document,units]=await Promise.all([
   db.from('source_documents').select('id,url,document_type,status,mime_type,storage_path,storage_sha256,active_extraction_id,extracted_text,extracted_text_hash,extraction_method,extraction_partial,extraction_coverage,quality_flags').eq('source_record_id',recordId).eq('id',reports.data[0].document_id).maybeSingle(),

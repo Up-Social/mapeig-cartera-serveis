@@ -18,6 +18,7 @@ import {ConcertPopulationObservation} from './concert-population-observation';
 import {ConcertLineAward} from './concert-line-award';
 import {concertQuantityCoverage} from '@/lib/concerts/quantity-coverage';
 import {provisionalServiceHeadings} from '@/lib/concerts/provisional-headings';
+import {provisionalDocumentReport} from '@/lib/concerts/provisional-report';
 import {proposeConcertSupportCode} from '@/lib/concerts/support-code-proposal';
 import {concertDocumentaryFacts,type ConcertDocumentaryFacts} from '@/lib/concerts/documentary-facts';
 
@@ -93,6 +94,7 @@ export function ConcertUnits({record,services,onSaved,onDocumentaryFacts}:{recor
   !document.qualityFlags.some(flag=>['corrupt_text','incomplete_extraction'].includes(flag)))
   .sort((left,right)=>(right.textLength??0)-(left.textLength??0))[0]?.extractedText;
  const publications=record.sourceDocuments.filter(document=>document.documentType==='publication'&&document.status==='fetched');
+ const provisionalReport=provisionalDocumentReport(record);
  const proposalCandidates=publications.length!==1?[]:publications.filter(document=>document.currentTextConsistent===true&&document.extractedText&&document.extractionPartial===false&&typeof document.extractionCoverage==='object'&&document.extractionCoverage!==null&&'complete' in document.extractionCoverage&&document.extractionCoverage.complete===true&&!document.qualityFlags.some(flag=>['corrupt_text','incomplete_extraction'].includes(flag))).flatMap(document=>provisionalServiceHeadings(record.title,document.extractedText!).map(row=>({...row,documentId:document.id,archived:document.archived})));
  const proposalUnknownSource=proposalCandidates.length>0&&units.some(unit=>typeof unit.document_id!=='string'||unit.document_id.length===0);
  const proposalSameSource=proposalCandidates.length>0&&units.some(unit=>unit.document_id===proposalCandidates[0].documentId);
@@ -133,7 +135,7 @@ export function ConcertUnits({record,services,onSaved,onDocumentaryFacts}:{recor
    <h3 className="font-semibold">Serveis esmentats en la proposta provisional</h3>
    <p className="mt-1">Lectura dels encapçalaments de l’annex de la publicació. Cal comprovar que corresponen a l’acte actual, contrastar cada servei i cercar la resolució definitiva; aquestes observacions no són línies aprovades ni sumen finançament.</p>
    {units.length>0&&<p className="mt-1">Les línies mostrades procedeixen d’altres documents. Encara cal contrastar si estan relacionades amb aquests encapçalaments; no se n’ha deduït cap vinculació.</p>}
-   <ul className="mt-2 list-disc space-y-2 pl-5">{proposalSources.map((row,index)=><li key={`${row.documentId}-${index}`}>{row.heading}{row.page!==null&&<> · pàgina {row.page}</>}{row.archived&&<> · <a className="underline" href={`/api/documents/${row.documentId}/open${row.page!==null?`#page=${row.page}`:''}`}>Obre el document (versió actual)</a></>}</li>)}</ul>
+   <ul className="mt-2 list-disc space-y-2 pl-5">{proposalSources.map((row,index)=><li key={`${row.documentId}-${index}`}>{row.heading}{row.page!==null&&<> · pàgina {row.page}</>}{row.archived&&<> · <a className="underline" href={`/api/documents/${row.documentId}/open${row.page!==null?`#page=${row.page}`:''}`}>Obre el document (versió actual)</a></>}{provisionalReport?.documentId===row.documentId&&provisionalReport.rows.find(item=>item.heading===row.heading)&&<p className="mt-1">Import del servei en la proposta: {money(provisionalReport.rows.find(item=>item.heading===row.heading)!.grossCents/100)} amb IVA · pendent de revisió; no és una adjudicació.</p>}</li>)}</ul>{provisionalReport&&<p className="mt-2 font-semibold">Suma dels imports documentals amb IVA: {money(provisionalReport.totalCents/100)}. És una suma calculada, no un total declarat ni finançament adjudicat.</p>}
   </section>}
   {proposalUnknownSource&&<p className="rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950" role="status">No es mostren els encapçalaments provisionals perquè no s’ha identificat el document d’origen d’alguna línia. Revisa’n l’origen i contrasta’l amb la proposta; no es dedueix cap vinculació.</p>}
   {proposalSameSource&&<p className="rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950" role="status">No es mostren de nou els encapçalaments provisionals perquè hi ha línies vinculades al mateix document. Contrasta les línies amb la proposta; això no acredita una resolució definitiva.</p>}
