@@ -21,3 +21,29 @@ export function currentDocumentaryAuthority(record:Pick<SourceRecord,'financingT
   !Array.isArray(savedManagers)||savedManagers.length!==managers.length||managers.some((item,index)=>item.value!==savedManagers[index]?.value||item.page!==savedManagers[index]?.page))return null;
  return {authority,managerCodes:managers};
 }
+
+/** Manager codes printed in the first column of a program annex. The heading
+ * may be wrapped over two lines; never derive the signing authority from it. */
+export function programAnnexManagers(text:string):Array<{value:string;page:number}>{
+ const pages=text.split(/(?=^##\s+Pàgina\s+\d+\s*$)/m),found:Array<{value:string;page:number}>=[];
+ for(const page of pages){
+  const pageNumber=Number(page.match(/^##\s+Pàgina\s+(\d+)/m)?.[1]);
+  const lines=page.split('\n');
+  const header=lines.findIndex((line,i)=>/\bgestor\b/i.test(line)&&/\bNIF entitat\b/i.test(line)&&/\bcartera\b/i.test(line)&&/\bCodi S\b/i.test(line)&&/\bCentre\b/i.test(lines[i-1]??''));
+  if(!pageNumber||header<0)continue;
+  for(const line of lines.slice(header+1)){
+   const match=line.match(/^\s*(BE\d{4})\s*$/);
+   if(match)found.push({value:match[1],page:pageNumber});
+  }
+ }
+ return [...new Map(found.map(item=>[`${item.page}:${item.value}`,item])).values()];
+}
+
+export function currentProgramAnnexManagers(record:Pick<SourceRecord,'financingType'|'isHistorical'|'sourceDocuments'>){
+ if(record.financingType!=='concert'||record.isHistorical)return [];
+ const documents=record.sourceDocuments.filter(doc=>doc.status==='fetched'&&doc.mimeType?.includes('pdf'));
+ if(documents.length!==1)return [];
+ const doc=documents[0];
+ if(!doc.extractedText||doc.archived!==true||doc.currentTextConsistent!==true||doc.extractionPartial!==false||doc.qualityFlags.some(flag=>['corrupt_text','incomplete_extraction'].includes(flag))||!hasCurrentTextCoverage(doc.extractionMethod,doc.extractionCoverage,doc.mimeType,doc.extractionPartial))return [];
+ return programAnnexManagers(doc.extractedText).map(item=>({...item,documentId:doc.id}));
+}

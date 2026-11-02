@@ -39,3 +39,11 @@ test('stale source or unreconciled lines never override the model output',async(
  assert.equal((await projectConcertEnrichment(dbFor({...document,extraction_partial:true}),'record',original)).enrichment,original);
  assert.equal((await projectConcertEnrichment(dbFor(document,units.slice(0,2)),'record',original)).enrichment,original);
 });
+
+test('wrapped program header shows a literal manager code without inferring the signer',async()=>{
+ const {programAnnexManagers}=await import('../lib/concerts/documentary-authority');
+ const text='## Pàgina 4\nCentre    Nom                 Codi     Tipologia\ngestor    entitat  NIF entitat cartera servei Codi S Nom servei\nBE2193\nTarragona\n';
+ assert.deepEqual(programAnnexManagers(text),[{value:'BE2193',page:4}]);
+ assert.deepEqual(programAnnexManagers(text.replace('gestor','òrgan')),[]);
+ assert.deepEqual(programAnnexManagers(text.replace('BE2193','BE2193 altre text')),[]);
+});
