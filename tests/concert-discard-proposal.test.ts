@@ -4,7 +4,7 @@ import {readFileSync} from 'node:fs';
 import React from 'react';
 import {renderToStaticMarkup} from 'react-dom/server';
 import {concertDiscardProposal,concertVacantAmendmentProposal} from '../lib/concerts/discard-proposal';
-import {assessConcertAct} from '../lib/concerts/act-assessment';
+import {assessConcertAct,isConcertSpendingAuthorizationTitle} from '../lib/concerts/act-assessment';
 import {concertCaseKeys} from '../lib/concerts/case-labels';
 import {HumanDecisionReason} from '../components/human-decision-reason';
 import type {SourceRecord} from '../lib/workbench-types';
@@ -49,4 +49,7 @@ test('a documented call or spending authorization is only a reasoned proposal fo
  assert.equal(concertDiscardProposal({...record,title:'Resolució de la convocatòria per adjudicar places',sourceDocuments:[{...doc,extractedText:call}]}),null);
  assert.equal(assessConcertAct(spendingTitle,'Antecedents: una convocatòria anterior.\nRESOLC\nPrimer.- Autoritzar la despesa de places assignades.').primaryCase,15);
  assert.equal(concertCaseKeys(spendingTitle,[],spending)[0],'spending');
+ assert.equal(isConcertSpendingAuthorizationTitle(spendingTitle),true);
+ assert.equal(isConcertSpendingAuthorizationTitle('Resolució de pròrroga i autorització de la despesa'),false);
+ assert.equal(isConcertSpendingAuthorizationTitle(callTitle),false);
 });

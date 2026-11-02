@@ -22,6 +22,12 @@ export const CONCERT_CASE_LABELS:Record<ConcertCase,string>={
 
 function normalize(value:string){return value.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/\s+/g,' ');}
 const has=(value:string,re:RegExp)=>re.test(value);
+/** A preliminary model amount in this kind of act is not automatically a
+ * total of the authorized spending; retain it separately for comparison. */
+export function isConcertSpendingAuthorizationTitle(title:string){
+ const value=normalize(title);
+ return /^resolucio\s+d['’]autoritzacio de la despesa\b/.test(value)&&!/\bprorrog/.test(value);
+}
 
 /** A candidate only: the document, counterpart and economic basis still need human review. */
 export function assessConcertAct(title:string, documentText?:string|null):ConcertAssessment {
@@ -67,7 +73,7 @@ export function assessConcertAct(title:string, documentText?:string|null):Concer
   else if(has(text,/denegaci|denegar|places denegades|es denega/)){primaryCase=1;reason='La denegació no genera una nova provisió.';}
   else if(has(text,/cessament|minora(cio|cio)|resolucio anticipada|extincio anticipada/)){primaryCase=2;effect='possible_reduction';reason='La reducció requereix l’acord original, el període i l’import acreditat.';}
   else if(has(text,/proposta de resolucio|acord proposta|acord de proposta|acord del comite de provisio/)){primaryCase=4;effect='provisional';reason='Cal buscar una resolució definitiva abans de considerar cap provisional.';}
-  else if(/^resolucio\s+d['’]autoritzacio de la despesa\b/.test(t)&&(!document||/^primer\s*\.\s*-\s*autoritzar la despesa\b/.test(firstAct))){primaryCase=15;reason='L’autorització comptable sola no crea una adjudicació nova.';}
+  else if(isConcertSpendingAuthorizationTitle(title)&&(!document||/^primer\s*\.\s*-\s*autoritzar la despesa\b/.test(firstAct))){primaryCase=15;reason='L’autorització comptable sola no crea una adjudicació nova.';}
   else if(has(text,/convocatoria/) && !has(text,/adjudic|prorrog|provisio directa/)){primaryCase=5;reason='La convocatòria és una referència, sense adjudicació.';}
   else if(has(text,/places desertes|places desertes|places vacants/)){primaryCase=9;effect=has(text,/adjudic|atorga|proveir a favor/)?'possible_award':'none';reason='Cal comprovar si el resolc adjudica les places o només les declara desertes.';}
   else if(has(text,/\bprorrog(?:a|ues|ar|uem)\b/)){primaryCase=12;effect='possible_new_period';reason='La pròrroga pot comprometre un període nou; cal llegir DA, annex i acord base.';}

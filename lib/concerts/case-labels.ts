@@ -1,5 +1,6 @@
 /** Sprint 1 annex: act types and overlapping attributes stay separate. */
 import {hasCurrentConcertAward,referencesConcertCallInTitle} from './no-award';
+import {isConcertSpendingAuthorizationTitle} from './act-assessment';
 export type ConcertCaseKey='denial'|'termination'|'modification'|'proposal'|'call'|'appeal'|'amendment'|'unspecified'|'vacant'|'vacant_reference'|'territorial'|'mixed'|'program_renewal'|'emergency'|'other_funder'|'spending'|'multiyear'|'cession'|'validation'|'award'|'renewal';
 export const concertCase:Record<ConcertCaseKey,{label:string;description:string;tone:'blue'|'amber'|'red'|'violet'}>={
  denial:{label:'Denegació',description:'La sol·licitud es denega; no acredita nou finançament.',tone:'red'},
@@ -35,7 +36,7 @@ export function concertCaseKeys(title:string,unitActs:string[],documentText?:str
  else if(/convalid/.test(t))primary='validation';
  else if(/recurs de reposici[oó]|resoluci[oó] del recurs/.test(t))primary='appeal';
  else if(/proposta|acord de proposta/.test(t))primary='proposal';
- else if(/^resoluci[oó]\s+d['’]autoritzaci[oó] de la despesa\b/.test(t)&&!/pr[oò]rroga/.test(t))primary='spending';
+ else if(isConcertSpendingAuthorizationTitle(title))primary='spending';
  else if(referencesConcertCallInTitle(title))primary='unspecified';
  else if(/convocat[oò]ria/.test(t)&&!/pr[oò]rroga/.test(t))primary='call';
  else if(/places desertes/.test(t))primary='vacant';
