@@ -58,7 +58,7 @@ export type SourceRecord = {
 export type ExternalEnrichment = {
   title: string | null; providerName: string | null; providerNif: string | null; mechanism: string | null;
   awardDate: string | null; amount: number | null; contractingBody: string | null; targetPopulation: string | null;
-  summary: string; confidence: number | null; model: string; evidence: Array<{ ordinal: number; content: string }>;
+  documentaryAuthority?:unknown; summary: string; confidence: number | null; model: string; evidence: Array<{ ordinal: number; content: string }>;
 };
 export type MatchingCandidate = {
   legalReference?:string; catalogVersionId?:string;
@@ -72,6 +72,7 @@ export type UnverifiedCandidateObservation = {
 };
 export type SourceDocument = {
   currentTextConsistent?:boolean;
+  extractedTextHash?:string|null;
   revision?:string;
   resolution?: import('./pipeline/official-resolution').Resolution;
   id: string; url: string; documentType: string; sourceFields: string[];

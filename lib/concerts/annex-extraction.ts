@@ -205,7 +205,8 @@ function extractColumnAnnexInternal(text:string,supportObservations?:Array<{line
   const headerIndex=lines.findIndex((line,index)=>(/Nom entitat/i.test(line)||(/\bNIF entitat\b/i.test(line)&&/\bNom\b/i.test(lines[index-1]??'')))&&/tipologia/i.test(lines.slice(Math.max(0,index-3),index+1).join(' '))&&/Codi S/i.test(line)&&/Nom servei/i.test(line)&&/Municipi/i.test(line)&&/assignar/i.test(line));
   if(headerIndex<0)continue;
   const header=lines[headerIndex];
-  const managerStart=header.indexOf('gestor'),managerEnd=header.indexOf('FUE',managerStart);
+  const managerStart=header.indexOf('gestor'),fueStart=header.indexOf('FUE',managerStart),nameStartForManager=header.indexOf('Nom entitat',managerStart);
+  const managerEnd=fueStart>=0?fueStart:nameStartForManager;
   if(managerObservations&&managerStart>=0&&managerEnd>managerStart&&/\bCentre\b/.test(lines.slice(Math.max(0,headerIndex-2),headerIndex+1).join(' '))){
    for(const line of lines.slice(headerIndex+1)){
     const value=line.slice(managerStart,managerEnd).trim();

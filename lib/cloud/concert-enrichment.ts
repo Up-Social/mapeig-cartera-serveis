@@ -4,7 +4,10 @@ import type {Enrichment} from '../pipeline/enrichment-contract';
 import {readPages} from '../read-pages';
 import {readEvidenceChunks,type EvidenceRow} from '../pipeline/evidence-reader';
 import {currentDocumentTextConsistent} from '../concerts/document-text-integrity';
-import {projectConcertDocumentaryFacts} from '../concerts/documentary-facts';
+import {concertSignedAuthority,projectConcertDocumentaryFacts} from '../concerts/documentary-facts';
+import {extractColumnManagerObservations} from '../concerts/annex-extraction';
+import {concertLineAmountSummary} from '../concerts/line-summary';
+import {hasCurrentTextCoverage} from '../pipeline/document-coverage';
 
 /** Only three display facts are corrected, with document-level provenance.
  * The original model response, roles, money and review state remain untouched. */
@@ -27,7 +30,24 @@ export async function projectConcertEnrichment(db:CloudDb,recordId:string,result
   extractionMethod:d.extraction_method,extractionPartial:d.extraction_partial,extractionCoverage:d.extraction_coverage,
   qualityFlags:d.quality_flags??[],qualityScore:null,chunkCount:0,
  }],units,reports.data);
- if(!projection)return unchanged;
+ if(!projection){
+  // The signature and printed management centre do not depend on the optional
+  // support column. Preserve summary/population when line semantics are unclear.
+  const sum=concertLineAmountSummary(units,reports.data,true);
+  const sourceText=d.extracted_text!.replace(/\s+/g,' ').trim();
+  if(sum.reason!==null||!d.mime_type?.includes('pdf')||d.extraction_partial!==false||d.quality_flags?.some((flag:string)=>['corrupt_text','incomplete_extraction'].includes(flag))||!hasCurrentTextCoverage(d.extraction_method,d.extraction_coverage,d.mime_type,d.extraction_partial)||
+   units.some(unit=>!unit.evidence_quote||!sourceText.includes(unit.evidence_quote.replace(/\s+/g,' ').trim())))return unchanged;
+  const signer=concertSignedAuthority(d.extracted_text!);
+  const managers=extractColumnManagerObservations(d.extracted_text!);
+  if(!signer&&!managers.length)return unchanged;
+  const evidence=await readEvidenceChunks(db,[d.id]);
+  if(!evidence.length)throw new CloudFailure('validation',5,{operation:'concert_documentary_enrichment',code:'DOCUMENTARY_FACTS_EVIDENCE_MISSING'});
+  const scopeFacts={...result.scope_facts,documentary_authority:{
+   version:'concert-documentary-authority-v1',document_id:d.id,document_sha256:d.storage_sha256,extraction_id:d.active_extraction_id,
+   extracted_text_hash:d.extracted_text_hash,authority:signer,manager_codes:managers,
+  }};
+  return {enrichment:{...result,contracting_body:signer?.value??result.contracting_body,scope_facts:scopeFacts},evidence};
+ }
  const evidence=await readEvidenceChunks(db,[d.id]);
  if(!evidence.length)throw new CloudFailure('validation',5,{operation:'concert_documentary_enrichment',code:'DOCUMENTARY_FACTS_EVIDENCE_MISSING'});
  const scopeFacts={...result.scope_facts,documentary_projection:{
