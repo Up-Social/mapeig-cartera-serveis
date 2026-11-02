@@ -1,5 +1,5 @@
 import {createHmac} from 'node:crypto';
-import {handleAward} from '../../../lib/concerts/line-award-handler';
+import {handleAward,type AwardSnapshot} from '../../../lib/concerts/line-award-handler';
 
 type Fixture={record:string;job:string;unit:string;event:string;previous:string;code:string;quote:string};
 const input=JSON.parse(process.argv[2]) as Fixture;
@@ -18,9 +18,10 @@ let arrivals=0;let release!:()=>void;const gate=new Promise<void>(resolve=>{rele
 let released=false;const timeout=setTimeout(()=>{if(!released)release();},10000);
 const deps={
  snapshot:async(record:string,job:string,unit:string)=>rpc('concert_line_award_archive_snapshot',{p_record:record,p_job:job,p_unit:unit}),
- // This harness intentionally simulates the Storage byte check; it only tests
- // the real HTTP handler and PostgreSQL/PostgREST contracts.
- verify:async(path:string,hash:string)=>{if(!path.startsWith('cases/')||hash!=='a'.repeat(64))throw Error('MOCK_SOURCE_MISMATCH');},
+ // This older harness simulates byte verification and retention; its real SQL
+ // checks concern the predecessor and concurrent decision contract only.
+ capture:async(s:AwardSnapshot)=>{if(!s.document_path.startsWith('cases/')||!s.unit_path.startsWith('cases/')||s.document_sha256!=='a'.repeat(64))throw Error('MOCK_SOURCE_MISMATCH');return Buffer.from('synthetic fixture');},
+ retain:async()=>{},
  decide:async(values:Record<string,unknown>)=>{arrivals++;if(arrivals===2){released=true;release();}await gate;return rpc('concert_line_award_decide',values);},
 };
 async function main(){

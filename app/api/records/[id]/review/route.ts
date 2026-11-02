@@ -41,6 +41,8 @@ export async function POST(
     }
     return Response.json({ record });
   } catch (error) {
+    if(error&&typeof error==='object'&&'message' in error&&error.message==='DIAGNOSTIC_REVIEW_INDIVIDUAL_REQUIRED')return Response.json({error:'Aquest concert té diverses línies documentals. Revisa i aprova cada línia individualment; no s’ha registrat cap aprovació global.'},{status:409});
+    if(error&&typeof error==='object'&&'code' in error&&error.code==='55P03')return Response.json({error:'Una altra operació està modificant aquest expedient. No s’ha desat la revisió; torna-ho a provar.'},{status:409});
     return Response.json(
       {
         error:

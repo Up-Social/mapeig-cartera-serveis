@@ -18,7 +18,12 @@ export function extractDiagnosticAnnex(text:string):EconomicAnnexLine[]{
   const n=Number(page.match(/^##\s+Pàgina\s+(\d+)\s*$/m)?.[1]);
   const candidates=page.split('\n').filter(line=>/\bS\d{5}\b/.test(line));
   const identityRows=page.split('\n').filter(line=>/\b[A-Z]\d{7}[A-Z0-9]\b/.test(line));
-  if(!candidates.length){if(/\b[A-Z]\d{7}[A-Z0-9]\b/.test(page)&&/\bNIF\b/i.test(page))return [];continue;}
+  if(!candidates.length){
+   // An unrecognised table may still carry an economic subtotal. Never treat
+   // the other pages as complete while that additional amount is unaccounted.
+   if(/\bImport\s+total\b/i.test(page)||(/\b[A-Z]\d{7}[A-Z0-9]\b/.test(page)&&/\bNIF\b/i.test(page)))return [];
+   continue;
+  }
   if(!n||!/\bNIF\b/.test(page)||!/\bRESES\b/.test(page)||!/cartera/i.test(page)||!/sense IVA/i.test(page)||!/amb IVA/i.test(page))return [];
   const pattern=/\b([A-Z]\d{7}[A-Z0-9])\b[^\n]{0,160}?\b(S\d{5})\s+D\/[A-Z\d/]+\s+(\d(?:\.\d+){2,5})\s+([\d.]+,\d{2})\s*€\s+([\d.]+,\d{2})\s+euros\s+([\d.]+,\d{2})\s+euros/gi;
   const rows=[...page.matchAll(pattern)];

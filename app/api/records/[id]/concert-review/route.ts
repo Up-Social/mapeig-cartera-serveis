@@ -13,5 +13,7 @@ export async function POST(request:Request,{params}:{params:Promise<{id:string}>
  const result=await createServerSupabase().rpc('review_reconciled_concert',{
   p_record:id,p_expected_job:body.expectedJobId,p_note:body.note.trim(),p_names:names,
  });
+ if(result.error?.message==='DIAGNOSTIC_REVIEW_INDIVIDUAL_REQUIRED')return Response.json({error:'Aquest annex s’ha de revisar línia per línia. No s’ha desat cap aprovació del conjunt.'},{status:409});
+ if(result.error?.code==='55P03')return Response.json({error:'Una altra operació està modificant aquest expedient. No s’ha desat la revisió; torna-ho a provar.'},{status:409});
  return result.error?Response.json({error:result.error.message},{status:409}):Response.json({reviewedUnits:result.data});
 }

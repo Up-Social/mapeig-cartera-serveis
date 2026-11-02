@@ -6,6 +6,8 @@ import {ConcertAwardAvailability,readAwardAvailability} from '../components/conc
 
 test('availability distinguishes an explicit disabled feature from transport errors and malformed responses',async()=>{
  assert.deepEqual(await readAwardAvailability(Response.json({enabled:false})),{enabled:false,previousId:null});
+ assert.deepEqual(await readAwardAvailability(Response.json({enabled:false,paused:true,reason:'Manteniment'})),{enabled:false,previousId:null,paused:true,reason:'Manteniment'});
+ await assert.rejects(readAwardAvailability(Response.json({enabled:true,paused:true,previousId:null})));
  assert.deepEqual(await readAwardAvailability(Response.json({enabled:true,previousId:'decision'})),{enabled:true,previousId:'decision'});
  await assert.rejects(readAwardAvailability(Response.json({error:'private details'},{status:503})));
  await assert.rejects(readAwardAvailability(Response.json({enabled:'true'})));
@@ -14,7 +16,8 @@ test('availability distinguishes an explicit disabled feature from transport err
 });
 
 test('unavailable and uncertain availability explain the block separately',()=>{
- const html=(state:'loading'|'unavailable'|'error')=>renderToStaticMarkup(createElement(ConcertAwardAvailability,{state,onRetry:()=>{}}));
+ const html=(state:'loading'|'unavailable'|'paused'|'error')=>renderToStaticMarkup(createElement(ConcertAwardAvailability,{state,onRetry:()=>{}}));
+ assert.match(html('paused'),/temporalment aturades/);
  assert.match(html('loading'),/Comprovant/);
  assert.match(html('unavailable'),/encara no està disponible/);
  assert.doesNotMatch(html('unavailable'),/Torna a comprovar/);

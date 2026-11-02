@@ -9,6 +9,7 @@ import { TableActionLink, WorkTable } from "@/components/work-list";
 import { DISCARD_REASON_LABELS } from "@/lib/review-contract";
 import { FINANCING_TYPE_LABELS } from "@/lib/financing-types";
 import { isUuid } from "@/lib/uuid";
+import { isKnownDiscardRejection } from "@/lib/discard-rejection";
 
 export type SelectableDiscard = {
   id: string;
@@ -52,8 +53,7 @@ export function DiscardedSelection({ rows, origin }: { rows: SelectableDiscard[]
         const response = await fetch("/api/discarded/delete", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ selection: items.map(({ id, job_id, result_token }) => ({ id, job_id, result_token })), confirmedCount: items.length }) });
         const result = await response.json();
         if (!response.ok) {
-          const knownRejection = (response.status === 400 && result?.rejection === "invalid_selection") ||
-            (response.status === 409 && ["preserved_history", "population_history"].includes(result?.rejection));
+          const knownRejection = isKnownDiscardRejection(response.status,result?.rejection);
           if (!knownRejection || typeof result.error !== "string") { uncertain(); return; }
           setOpen(false);
           setMessage(result.error);

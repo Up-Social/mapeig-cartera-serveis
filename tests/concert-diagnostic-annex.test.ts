@@ -33,6 +33,7 @@ test('incomplete, ambiguous or unreconciled tables yield no drafts',()=>{
   text.replace('especialitat en Pediatria','especialitat en Medicina'),text.replace('S54321 D/227000700','S99999 D/227000700'),
   text.replace('G12345678 II titulat','NOIDENTIFICAT II titulat'),text.replace('S54321 D/227000700','NOIDENTIFICAT D/227000700'),
   text.replace('ANNEX 2. ALTRES DADES','SENSE FINAL'),text+'\nANNEX 1 Serveis assignats\n',
+  text.replace('## Pàgina 9\nANNEX 2','## Pàgina 9\nImport total 50,00 euros 55,00 euros\n## Pàgina 10\nANNEX 2'),
  ])assert.deepEqual(extractDiagnosticAnnex(change),[]);
 });
 

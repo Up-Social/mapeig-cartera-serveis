@@ -4,6 +4,7 @@ import {hasUnitSchema} from '@/lib/runtime-schema';
 import {createServerSupabase} from '@/lib/records-page';
 import {isUuid} from '@/lib/uuid';
 import {archiveUnitSource} from '@/lib/source-storage';
+import {parseDiagnosticReconciliationStatus} from '@/lib/concerts/diagnostic-reconciliation';
 export async function GET(_request:Request,{params}:{params:Promise<{id:string}>}) {
  if(!hasUnitSchema())return Response.json({units:[],supported:false});
  const {id}=await params;if(!isUuid(id))return Response.json({error:'Registre no vàlid'},{status:400});
@@ -17,8 +18,16 @@ export async function GET(_request:Request,{params}:{params:Promise<{id:string}>
    readPages((from,to)=>db.from('source_documents').select('id,extracted_text,quality_flags,storage_sha256,extraction_method,extraction_coverage,mime_type,extraction_partial').eq('source_record_id',id).eq('status','fetched').eq('extraction_partial',false).order('id').range(from,to)),
    readPages((from,to)=>db.from('current_concert_unit_geography').select('unit_id,municipality,county,province,page,evidence').eq('source_record_id',id).order('unit_id').range(from,to)),
   ]);
+  let diagnosticReconciliation=null;let diagnosticReconciliationStatus:'disabled'|'absent'|'current'|'unavailable'='disabled';
+  if(process.env.ENABLE_CONCERT_LINE_AWARDS==='true'&&process.env.CONCERT_LINE_READERS_READY==='true'){
+   try{
+    const result=await db.rpc('concert_diagnostic_reconciliation_status',{p_record:id});
+    if(result.error)diagnosticReconciliationStatus='unavailable';
+    else {const status=parseDiagnosticReconciliationStatus(result.data);diagnosticReconciliation=status.report;diagnosticReconciliationStatus=status.status;}
+   }catch{diagnosticReconciliationStatus='unavailable';}
+  }
   const withNames=recoverConcertDisplayNames(units,documents.filter(d=>!d.quality_flags?.includes('corrupt_text'))).map(unit=>({...unit,geography:geography.find(row=>row.unit_id===unit.id)??null}));
-  return Response.json({units:recoverPrintedSupportCandidates(recoverPrintedServiceCandidates(withNames,documents),documents).map(unit=>{const history=observations.filter(row=>row.unit_id===unit.id),latest=history[0],applied=history.find(row=>row.applied);const codeCorrection=corrections.find(c=>c.unit_id===unit.id&&c.field==='service_code');return {...unit,service_code_correction:codeCorrection?{value:codeCorrection.value,valid:codeCorrection.valid,reviewer:codeCorrection.reviewer,reason:codeCorrection.reason,page:codeCorrection.page,document_id:codeCorrection.document_id}:null,effective_service_code:codeCorrection?.valid?codeCorrection.value:unit.observed_service_code,effective_provider_name:corrections.find(c=>c.valid&&c.unit_id===unit.id&&c.field==='provider_name')?.value??unit.provider_name??unit.recovered_provider_name??unit.observed_provider_name,observed_establishment_code:applied?.proposed_value?.resesCode??null,observation:latest?{...applied?.proposed_value,pendingRevision:!latest.applied}:null};}),reconciliations});
+  return Response.json({units:recoverPrintedSupportCandidates(recoverPrintedServiceCandidates(withNames,documents),documents).map(unit=>{const history=observations.filter(row=>row.unit_id===unit.id),latest=history[0],applied=history.find(row=>row.applied);const codeCorrection=corrections.find(c=>c.unit_id===unit.id&&c.field==='service_code');return {...unit,service_code_correction:codeCorrection?{value:codeCorrection.value,valid:codeCorrection.valid,reviewer:codeCorrection.reviewer,reason:codeCorrection.reason,page:codeCorrection.page,document_id:codeCorrection.document_id}:null,effective_service_code:codeCorrection?.valid?codeCorrection.value:unit.observed_service_code,effective_provider_name:corrections.find(c=>c.valid&&c.unit_id===unit.id&&c.field==='provider_name')?.value??unit.provider_name??unit.recovered_provider_name??unit.observed_provider_name,observed_establishment_code:applied?.proposed_value?.resesCode??null,observation:latest?{...applied?.proposed_value,pendingRevision:!latest.applied}:null};}),reconciliations,diagnosticReconciliation,diagnosticReconciliationStatus});
  }catch{return Response.json({error:'No s’han pogut consultar les unitats i les revisions'},{status:500});}
 
 }
@@ -58,5 +67,7 @@ export async function POST(request:Request,{params}:{params:Promise<{id:string}>
   return Response.json({id:saved.data});
  }
  const result=await db.rpc('review_record_unit',{p_unit:body.unitId,p_expected_job:body.expectedJobId,p_approve:body.approve,p_note:body.note??''});
+ if(result.error?.message==='DIAGNOSTIC_REVIEW_INDIVIDUAL_REQUIRED')return Response.json({error:'Aquesta línia pertany a un annex que s’ha de conciliar i revisar individualment. Utilitza «Revisió econòmica de la línia»; no s’ha desat cap aprovació.'},{status:409});
+ if(result.error?.code==='55P03')return Response.json({error:'Una altra operació està modificant aquest expedient. No s’ha desat la revisió; torna-ho a provar.'},{status:409});
  return result.error?Response.json({error:result.error.message},{status:409}):Response.json({id:result.data});
 }

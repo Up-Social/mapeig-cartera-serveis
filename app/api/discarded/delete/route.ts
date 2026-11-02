@@ -13,6 +13,7 @@ export async function POST(request:Request){
  }catch(error){
   if(!purgeId&&error&&typeof error==='object'&&'message' in error&&error.message==='PRESERVED_HISTORY_EXISTS')return Response.json({rejection:'preserved_history',error:'No s’ha eliminat cap registre: la selecció inclou expedients amb revisions o comprovants que cal conservar.'},{status:409});
   if(!purgeId&&error&&typeof error==='object'&&'message' in error&&error.message==='POPULATION_HISTORY_EXISTS')return Response.json({rejection:'population_history',error:'No s’ha eliminat cap registre: hi ha observacions de població per línia que cal conservar fins que se’n defineixi la retenció.'},{status:409});
+  if(!purgeId&&error&&typeof error==='object'&&'message' in error&&error.message==='CONCERT_EVIDENCE_RETAINED')return Response.json({rejection:'concert_evidence_retained',error:'No s’ha eliminat cap registre: la selecció inclou evidència o conciliacions de Concerts que cal conservar.'},{status:409});
   return purgeId?Response.json({purgeId,pending:true,message:'Registres eliminats; neteja de fitxers pendent.'}):Response.json({uncertain:true,error:'No s’ha pogut confirmar el resultat de l’eliminació; pot continuar en curs. Actualitza la llista i revisa els registres i la neteja pendent abans de tornar-ho a intentar.'},{status:503});
  }
 }

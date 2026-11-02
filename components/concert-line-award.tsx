@@ -3,18 +3,21 @@ import {useEffect,useRef,useState} from 'react';
 import {ConcertPopulationObservation} from './concert-population-observation';
 
 type Props={recordId:string;unitId:string;jobId:string;serviceCode:string|null;quote:string|null;status:string;page:number|null;onSaved:()=>void};
-type Availability='loading'|'unavailable'|'error'|'ready';
+type Availability='loading'|'unavailable'|'paused'|'error'|'ready';
 /** Do not interpret a malformed response or an HTTP failure as a disabled feature. */
-export async function readAwardAvailability(response:Response):Promise<{enabled:boolean;previousId:string|null}>{
+export async function readAwardAvailability(response:Response):Promise<{enabled:boolean;previousId:string|null;paused?:true;reason?:string|null}>{
  if(!response.ok)throw Error('AVAILABILITY_UNAVAILABLE');
  const data:unknown=await response.json();
  if(!data||typeof data!=='object'||Array.isArray(data)||typeof (data as {enabled?:unknown}).enabled!=='boolean')throw Error('AVAILABILITY_INVALID');
- const value=data as {enabled:boolean;previousId?:unknown};
+ const value=data as {enabled:boolean;previousId?:unknown;paused?:unknown;reason?:unknown};
+ if(value.paused!==undefined&&value.paused!==true)throw Error('AVAILABILITY_INVALID');
+ if(value.paused===true){if(value.enabled||(value.reason!=null&&typeof value.reason!=='string'))throw Error('AVAILABILITY_INVALID');return {enabled:false,previousId:null,paused:true,reason:typeof value.reason==='string'?value.reason.slice(0,240):null};}
  if(value.enabled&&(!('previousId' in value)||(value.previousId!==null&&typeof value.previousId!=='string')))throw Error('AVAILABILITY_INVALID');
  return {enabled:value.enabled,previousId:value.enabled&&typeof value.previousId==='string'?value.previousId:null};
 }
-export function ConcertAwardAvailability({state,onRetry}:{state:Exclude<Availability,'ready'>;onRetry:()=>void}){
+export function ConcertAwardAvailability({state,onRetry,reason}:{state:Exclude<Availability,'ready'>;onRetry:()=>void;reason?:string|null}){
  if(state==='loading')return <p className="mt-3 text-sm" role="status">Comprovant si la revisió econòmica individual està disponible…</p>;
+ if(state==='paused')return <p className="mt-3 rounded border p-3 text-sm" role="status">Les revisions econòmiques de Concerts estan temporalment aturades.{reason&&<> Motiu: {reason}</>} Les dades i les decisions anteriors continuen disponibles per consultar-les.</p>;
  if(state==='unavailable')return <p className="mt-3 rounded border p-3 text-sm" role="status">La revisió econòmica individual encara no està disponible: cal verificar conjuntament les còpies documentals, les decisions i les exportacions d’aquest circuit. La situació i les dades de la línia es conserven.</p>;
  return <div className="mt-3 rounded border p-3 text-sm" role="alert"><p>No s’ha pogut comprovar si la revisió econòmica individual està disponible. Torna-ho a provar.</p><button type="button" className="mt-2 rounded border px-3 py-2" onClick={onRetry}>Torna a comprovar</button></div>;
 }
@@ -27,13 +30,14 @@ export function ConcertApprovedPopulation({recordId,unitId,jobId,page,enabled,pr
 export function ConcertLineAward({recordId,unitId,jobId,serviceCode,quote,status,page,onSaved}:Props){
  const [enabled,setEnabled]=useState<boolean|null>(null),[eventId,setEventId]=useState(''),[amount,setAmount]=useState(''),[citation,setCitation]=useState(quote??''),[reason,setReason]=useState(''),[reviewer,setReviewer]=useState('');
  const [availability,setAvailability]=useState<Availability>('loading'),[availabilityAttempt,setAvailabilityAttempt]=useState(0);
+ const [pauseReason,setPauseReason]=useState<string|null>(null);
  const [previousId,setPreviousId]=useState<string|null>(null);
  const [award,setAward]=useState(false),[recipient,setRecipient]=useState(false),[allocation,setAllocation]=useState(false),[busy,setBusy]=useState(false),[error,setError]=useState(''),[uncertain,setUncertain]=useState(false);
  const attempt=useRef<{signature:string;id:string}|null>(null);const url=`/api/records/${recordId}/units/${unitId}/award`;
- useEffect(()=>{const c=new AbortController();fetch(`${url}?job=${encodeURIComponent(jobId)}`,{signal:AbortSignal.any([c.signal,AbortSignal.timeout(15000)]),cache:'no-store'}).then(readAwardAvailability).then(data=>{if(c.signal.aborted)return;setPreviousId(data.previousId);setEnabled(data.enabled);setAvailability(data.enabled?'ready':'unavailable');}).catch(()=>{if(!c.signal.aborted){setEnabled(false);setAvailability('error');}});return()=>c.abort();},[url,jobId,availabilityAttempt]);
+ useEffect(()=>{const c=new AbortController();fetch(`${url}?job=${encodeURIComponent(jobId)}`,{signal:AbortSignal.any([c.signal,AbortSignal.timeout(15000)]),cache:'no-store'}).then(readAwardAvailability).then(data=>{if(c.signal.aborted)return;setPreviousId(data.previousId);setEnabled(data.enabled);setPauseReason(data.reason??null);setAvailability(data.enabled?'ready':data.paused?'paused':'unavailable');}).catch(()=>{if(!c.signal.aborted){setEnabled(false);setAvailability('error');}});return()=>c.abort();},[url,jobId,availabilityAttempt]);
  useEffect(()=>{if(!enabled)return;const c=new AbortController();fetch(`/api/records/${recordId}/units/${unitId}/population?job=${encodeURIComponent(jobId)}`,{signal:c.signal,cache:'no-store'}).then(r=>{if(!r.ok)throw Error('POPULATION_UNAVAILABLE');return r.json();}).then(data=>{setEventId(data.snapshot?.event?.id??'');}).catch(()=>{if(!c.signal.aborted)setError('No s’ha pogut carregar l’observació de població.');});return()=>c.abort();},[enabled,recordId,unitId,jobId]);
  const population=status==='approved'?<ConcertApprovedPopulation recordId={recordId} unitId={unitId} jobId={jobId} page={page} enabled={enabled} previousId={previousId}/>:null;
- if(availability!=='ready')return <>{population}<ConcertAwardAvailability state={availability} onRetry={()=>{setAvailability('loading');setAvailabilityAttempt(value=>value+1);}}/></>;
+ if(availability!=='ready')return <>{population}<ConcertAwardAvailability state={availability} reason={pauseReason} onRetry={()=>{setAvailability('loading');setAvailabilityAttempt(value=>value+1);}}/></>;
  if(!enabled)return population;
  if(status==='approved'&&!previousId)return <>{population}<p className="mt-3 rounded border p-3 text-sm" role="status">Aquesta línia aprovada no té una decisió individual anterior disponible. La revisió econòmica individual queda pendent de comprovació.</p></>;
  async function refreshPopulation(){try{const response=await fetch(`/api/records/${recordId}/units/${unitId}/population?job=${encodeURIComponent(jobId)}`,{cache:'no-store',signal:AbortSignal.timeout(15000)});const body=await response.json();if(!response.ok)throw Error(body.error);setEventId(body.snapshot?.event?.id??'');setError('');}catch{setError('No s’ha pogut carregar l’observació de població.');}}

@@ -20,6 +20,7 @@ import {concertQuantityCoverage} from '@/lib/concerts/quantity-coverage';
 import {provisionalServiceHeadings} from '@/lib/concerts/provisional-headings';
 import {provisionalDocumentReport} from '@/lib/concerts/provisional-report';
 import {diagnosticDraftComparison} from '@/lib/concerts/diagnostic-report';
+import {matchesDiagnosticReconciliation,parseDiagnosticReconciliation,type DiagnosticReconciliation} from '@/lib/concerts/diagnostic-reconciliation';
 import {proposeConcertSupportCode} from '@/lib/concerts/support-code-proposal';
 import {concertDocumentaryFacts,type ConcertDocumentaryFacts} from '@/lib/concerts/documentary-facts';
 
@@ -36,6 +37,8 @@ export function ConcertUnits({record,services,onSaved,onDocumentaryFacts}:{recor
  const [loadedScope,setLoadedScope]=useState<string|null>(null);
  const [units,setUnits]=useState<Unit[]>([]);
  const [reconciliations,setReconciliations]=useState<Reconciliation[]>([]);
+ const [diagnosticReceipt,setDiagnosticReceipt]=useState<DiagnosticReconciliation|null>(null);
+ const [diagnosticReceiptStatus,setDiagnosticReceiptStatus]=useState<string>('disabled');
  const [links,setLinks]=useState<ConcertLink[]>([]);
  const [error,setError]=useState('');
  const [busy,setBusy]=useState(false);
@@ -52,7 +55,7 @@ export function ConcertUnits({record,services,onSaved,onDocumentaryFacts}:{recor
  useEffect(()=>{function focus(){const hash=window.location.hash;if(hash.startsWith('#concert-line-')){setActiveLine(hash.slice(14));setShowAllUnits(true);setFilter('');}}
   focus();window.addEventListener('hashchange',focus);return()=>window.removeEventListener('hashchange',focus);},[]);
 
- useEffect(()=>{const c=new AbortController();fetch(url,{signal:c.signal,cache:'no-store'}).then(r=>r.json()).then(data=>{if(c.signal.aborted)return;if(data.error)setError(data.error);else{setLoadedScope(loadScope);setSupported(data.supported!==false);setUnits(data.units??[]);setReconciliations(data.reconciliations??[]);}}).catch(e=>{if(e.name!=='AbortError')setError('No s’han pogut carregar les unitats');});return()=>c.abort();},[url,loadScope]);
+ useEffect(()=>{const c=new AbortController();fetch(url,{signal:c.signal,cache:'no-store'}).then(r=>r.json()).then(data=>{if(c.signal.aborted)return;if(data.error)setError(data.error);else{setLoadedScope(loadScope);setSupported(data.supported!==false);setUnits(data.units??[]);setReconciliations(data.reconciliations??[]);setDiagnosticReceipt(parseDiagnosticReconciliation(data.diagnosticReconciliation));setDiagnosticReceiptStatus(data.diagnosticReconciliationStatus??'disabled');}}).catch(e=>{if(e.name!=='AbortError')setError('No s’han pogut carregar les unitats');});return()=>c.abort();},[url,loadScope]);
  useEffect(()=>{onDocumentaryFacts?.({recordId:record.id,jobId:record.currentJobId??null,facts:loaded&&supported?concertDocumentaryFacts(record,units,reconciliations):null});},[record,loaded,supported,units,reconciliations,onDocumentaryFacts]);
  useEffect(()=>{const c=new AbortController();fetch(`/api/records/${record.id}/concert-links`,{signal:c.signal,cache:'no-store'}).then(r=>r.json()).then(data=>{if(data.error)setError(data.error);else setLinks(data.links??[]);}).catch(e=>{if(e.name!=='AbortError')setError('No s’han pogut carregar els vincles');});return()=>c.abort();},[record.id]);
  async function submit(body:Record<string,unknown>){
@@ -61,7 +64,7 @@ export function ConcertUnits({record,services,onSaved,onDocumentaryFacts}:{recor
    const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...body,expectedJobId:record.currentJobId}),signal:AbortSignal.timeout(20000)});
    const data=await r.json();if(!r.ok)throw Error(data.error);
    const current=await fetch(url,{signal:AbortSignal.timeout(15000)}).then(r=>r.json());if(current.error)throw Error(current.error);
-   setUnits(current.units);setEditingUnitId(null);
+   setUnits(current.units);setReconciliations(current.reconciliations??[]);setDiagnosticReceipt(parseDiagnosticReconciliation(current.diagnosticReconciliation));setDiagnosticReceiptStatus(current.diagnosticReconciliationStatus??'disabled');setEditingUnitId(null);
   }catch(e){setError(e instanceof Error?e.message:'No s’ha pogut guardar');}finally{setBusy(false);}
  }
  async function reviewAll(){
@@ -89,21 +92,23 @@ export function ConcertUnits({record,services,onSaved,onDocumentaryFacts}:{recor
  const documentaryMaxima=documentaryMaximumNotices(record.sourceDocuments,units);
  const missingOlderOrigin=units.some(unit=>unit.horizon_state==='pre_2024_origin_unavailable');
  const reconciled=reconciliations.find(item=>item.reconciled&&item.row_count===units.length);
- const bulkEligible=!currentReservation(record)&&!record.corrections?.some(c=>!c.valid)&&!!reconciled&&!record.isHistorical&&record.currentJobStatus==='needs_review'&&
-  ['concert-reconciled-annex-v1','concert-program-lines-v2'].includes(record.analysis?.rules_version??'')&&units.every(unit=>unit.status==='draft'&&!!unit.storage_path&&!!(unit.effective_service_code??unit.observed_service_code));
  const officialText=record.sourceDocuments.filter(document=>document.status==='fetched'&&document.extractedText&&
   !document.qualityFlags.some(flag=>['corrupt_text','incomplete_extraction'].includes(flag)))
   .sort((left,right)=>(right.textLength??0)-(left.textLength??0))[0]?.extractedText;
  const publications=record.sourceDocuments.filter(document=>document.documentType==='publication'&&document.status==='fetched');
  const provisionalReport=provisionalDocumentReport(record);
  const diagnosticComparison=diagnosticDraftComparison(record,units);
+ const diagnosticRequiresIndividual=!!diagnosticComparison||diagnosticReceiptStatus==='absent'||diagnosticReceiptStatus==='current';
+ const bulkEligible=!diagnosticRequiresIndividual&&!currentReservation(record)&&!record.corrections?.some(c=>!c.valid)&&!!reconciled&&!record.isHistorical&&record.currentJobStatus==='needs_review'&&
+  ['concert-reconciled-annex-v1','concert-program-lines-v2'].includes(record.analysis?.rules_version??'')&&units.every(unit=>unit.status==='draft'&&!!unit.storage_path&&!!(unit.effective_service_code??unit.observed_service_code));
+ const diagnosticCurrent=matchesDiagnosticReconciliation(diagnosticReceipt,diagnosticComparison,units);
  const proposalCandidates=publications.length!==1?[]:publications.filter(document=>document.currentTextConsistent===true&&document.extractedText&&document.extractionPartial===false&&typeof document.extractionCoverage==='object'&&document.extractionCoverage!==null&&'complete' in document.extractionCoverage&&document.extractionCoverage.complete===true&&!document.qualityFlags.some(flag=>['corrupt_text','incomplete_extraction'].includes(flag))).flatMap(document=>provisionalServiceHeadings(record.title,document.extractedText!).map(row=>({...row,documentId:document.id,archived:document.archived})));
  const proposalUnknownSource=proposalCandidates.length>0&&units.some(unit=>typeof unit.document_id!=='string'||unit.document_id.length===0);
  const proposalSameSource=proposalCandidates.length>0&&units.some(unit=>unit.document_id===proposalCandidates[0].documentId);
  const proposalSources=proposalUnknownSource||proposalSameSource?[]:proposalCandidates;
  const caseKeys=concertCaseKeys(record.title,units.map(unit=>unit.act_type),officialText);
  const primary=caseKeys[0],attributes=caseKeys.slice(1);
- const identifiedAmount=concertLineAmountSummary(units,reconciliations,primary==='award'&&!/proposta/i.test(record.title));
+ const identifiedAmount=diagnosticCurrent&&diagnosticReceipt?{count:units.length,totalCents:diagnosticReceipt.calculated_gross_cents,reason:null}:concertLineAmountSummary(units,reconciliations,primary==='award'&&!/proposta/i.test(record.title));
  const filteredUnits=units.filter(unit=>`${unit.effective_provider_name??unit.provider_name??unit.recovered_provider_name??unit.observed_provider_name} ${concertServiceCodeDisplay(unit).code} ${unit.observed_service_name} ${unit.provider_nif} ${unit.reses_code}`.toLocaleLowerCase('ca').includes(filter.toLocaleLowerCase('ca')));
  const visibleUnits=showAllUnits||filteredUnits.length<=6?filteredUnits:filteredUnits.slice(0,6);
 
@@ -133,7 +138,11 @@ export function ConcertUnits({record,services,onSaved,onDocumentaryFacts}:{recor
    <div className="rounded-xl border border-sky-200 bg-sky-50/60 p-4"><p className="text-xs font-semibold uppercase tracking-wide text-sky-900">Subtotal documental de les línies</p><p className="mt-1 text-2xl font-bold tabular-nums text-sky-950">{identifiedAmount.totalCents===null?(identifiedAmount.reason==='none'?'No atribuïble':'Pendent de contrast'):money(identifiedAmount.totalCents/100)}</p><p className="text-xs text-sky-900">{identifiedAmount.count} de {units.length} {units.length===1?'línia':'línies'} amb import · no acredita despesa real, finançament nou ni saldo vigent</p>{identifiedAmount.reason&&identifiedAmount.reason!=='none'&&<p className="mt-1 text-xs text-sky-900">Cal un únic annex complet i conciliat, sense propostes, revisions pendents ni valors no verificables. Revisa cada línia.</p>}</div>
   </div>
   <ConcertMatchingCoverageNotice record={record} units={units}/>
-  {diagnosticComparison&&<p className="rounded-lg border border-sky-300 bg-sky-50 p-3 text-sm text-sky-950">Comprovació documental: les {diagnosticComparison.count} línies coincideixen amb els totals impresos de cada servei{diagnosticComparison.declaredNetCents!==null&&<>; els imports sense IVA sumen {money(diagnosticComparison.declaredNetCents/100)}, el màxim indicat al resolc</>}. La suma amb IVA és {money(diagnosticComparison.totalCents/100)} i està calculada. Aquesta comprovació no substitueix la conciliació formal ni aprova finançament; cal revisar les línies.</p>}
+  {diagnosticComparison&&<p className="rounded-lg border border-sky-300 bg-sky-50 p-3 text-sm text-sky-950">{diagnosticCurrent?'Conciliació documental vigent':'Comprovació documental'}: les {diagnosticComparison.count} línies coincideixen amb els totals impresos de cada servei{diagnosticComparison.declaredNetCents!==null&&<>; els imports sense IVA sumen {money(diagnosticComparison.declaredNetCents/100)}, el màxim indicat al resolc</>}. La suma amb IVA és {money(diagnosticComparison.totalCents/100)} i està calculada. {diagnosticCurrent?'La conciliació no aprova finançament; cal revisar cada línia.':'Aquesta comprovació no substitueix la conciliació formal ni aprova finançament; cal revisar les línies.'}</p>}
+  {diagnosticComparison&&diagnosticReceiptStatus==='absent'&&<p role="status" className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950">La conciliació encara no està registrada o ha deixat de ser vigent. Es tornarà a comprovar en desar la revisió d’una línia; si no coincideixen els imports o la font, no es desarà cap decisió.{reviewed>0?' Les línies aprovades no es poden comptar mentre la conciliació no sigui vigent.':''}</p>}
+  {!diagnosticComparison&&diagnosticReceiptStatus==='absent'&&<p role="alert" className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950">Aquest annex havia estat identificat per revisar-lo per línies, però la font o les dades actuals no permeten comprovar la conciliació. Cal recuperar i contrastar la documentació; no es descarta el cas.</p>}
+  {diagnosticReceiptStatus==='unavailable'&&<p role="alert" className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950">No s’ha pogut comprovar la conciliació documental. Torna a carregar el cas abans de revisar les línies.</p>}
+  {diagnosticReceiptStatus==='current'&&!diagnosticCurrent&&<p role="alert" className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950">La conciliació i les línies visibles no coincideixen. Torna a carregar el cas abans de prendre cap decisió.</p>}
   {proposalSources.length>0&&<section className="rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950" aria-label="Serveis de la proposta pendents de revisió">
    <h3 className="font-semibold">Serveis esmentats en la proposta provisional</h3>
    <p className="mt-1">Lectura dels encapçalaments de l’annex de la publicació. Cal comprovar que corresponen a l’acte actual, contrastar cada servei i cercar la resolució definitiva; aquestes observacions no són línies aprovades ni sumen finançament.</p>
@@ -158,7 +167,7 @@ export function ConcertUnits({record,services,onSaved,onDocumentaryFacts}:{recor
    {maximum.condition&&<><p className="mt-1">Condició indicada a la resolució: «{maximum.condition}»</p><p className="mt-1 font-semibold">Revisa la data efectiva de l’assignació i si cal ajustar l’import; el màxim no és necessàriament l’import aplicable.</p></>}
   </div>)}
   {missingOlderOrigin&&<p className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950">Hi ha línies amb origen anterior a 2024. Es conserven els imports documentals, però no se sumen a la foto vigent sense un original dins de l’horitzó.</p>}
-  {reconciliations.length>0&&<p role="status" className={`rounded-lg border p-3 text-sm ${reconciled?'border-emerald-300 bg-emerald-50 text-emerald-950':'border-amber-300 bg-amber-50 text-amber-950'}`}>
+  {reconciliations.length>0&&(!diagnosticCurrent||!!reconciled)&&<p role="status" className={`rounded-lg border p-3 text-sm ${reconciled?'border-emerald-300 bg-emerald-50 text-emerald-950':'border-amber-300 bg-amber-50 text-amber-950'}`}>
    {reconciled?`${reconciled.annex?`Annex ${reconciled.annex}`:'Annex'} conciliat: ${reconciled.row_count} línies i ${money(reconciled.sum_cents/100)}. La suma coincideix amb ${reconciled.coverage?.declared_amount_kind==='maximum'?'l’import màxim declarat':'l’import declarat'} a la resolució; pendent de validació humana i de vincular els actes posteriors.`:
     'Hi ha línies documentals, però no consta un annex complet conciliat. No es poden aprovar com a conjunt.'}
   </p>}
@@ -219,7 +228,7 @@ export function ConcertUnits({record,services,onSaved,onDocumentaryFacts}:{recor
        {editingUnitId===unit.id&&<form className="mt-2 grid gap-2 rounded border p-3" onSubmit={e=>{e.preventDefault();const form=new FormData(e.currentTarget);void submit({prepareExtractedUnitId:unit.id,providerName:form.get('provider_name'),serviceCode:unit.effective_service_code??unit.observed_service_code});}}><label>Nom complet de l’entitat segons el PDF<input className="form-text mt-1 w-full" name="provider_name" defaultValue={entity??''} minLength={3} required/></label><p className="text-sm">NIF {unit.provider_nif} · RESES {unit.reses_code} · codi {unit.effective_service_code??unit.observed_service_code}. Confirma el nom abans d’aprovar.</p><button className="rounded border px-3 py-2" title="Desa el nom contrastat; no aprova la línia" disabled={busy}>Desar identificació de la línia</button></form>}
       </div>}
       {unit.status==='draft'&&!unit.pipeline_job_id&&onSaved&&<DocumentedCorrectionForm record={record} services={services} unitId={unit.id} documentId={unit.document_id} initialPage={unit.page??1} onSaved={onSaved}/>}
-      {allowed&&unit.status==='draft'&&(!unit.extraction_origin||unit.pipeline_job_id)&&<div className="mt-3 space-y-2"><label className="block">Justificació de la unitat<textarea className="form-text w-full" value={notes[unit.id]??''} onChange={e=>setNotes({...notes,[unit.id]:e.target.value})}/></label><div className="flex flex-wrap gap-2"><button disabled={busy||unit.service_code_correction?.valid===false||!!(unit.service_code_correction?.valid&&unit.service_code&&unit.service_code!==unit.service_code_correction.value)||(notes[unit.id]?.trim().length??0)<10} className="rounded border px-3 py-2 disabled:opacity-50" title="Aprova només aquesta línia després de contrastar la font" onClick={()=>void submit({unitId:unit.id,approve:true,note:notes[unit.id]})}>Aprovar unitat</button><button disabled={busy||(notes[unit.id]?.trim().length??0)<10} className="rounded border px-3 py-2 disabled:opacity-50" title="Rebutja només aquesta línia i conserva la justificació" onClick={()=>void submit({unitId:unit.id,approve:false,note:notes[unit.id]})}>Rebutjar unitat</button></div></div>}
+      {allowed&&unit.status==='draft'&&(!unit.extraction_origin||unit.pipeline_job_id)&&<div className="mt-3 space-y-2"><label className="block">Justificació de la unitat<textarea className="form-text w-full" value={notes[unit.id]??''} onChange={e=>setNotes({...notes,[unit.id]:e.target.value})}/></label><div className="flex flex-wrap gap-2">{!diagnosticRequiresIndividual&&<button disabled={busy||unit.service_code_correction?.valid===false||!!(unit.service_code_correction?.valid&&unit.service_code&&unit.service_code!==unit.service_code_correction.value)||(notes[unit.id]?.trim().length??0)<10} className="rounded border px-3 py-2 disabled:opacity-50" title="Aprova només aquesta línia després de contrastar la font" onClick={()=>void submit({unitId:unit.id,approve:true,note:notes[unit.id]})}>Aprovar unitat</button>}<button disabled={busy||(notes[unit.id]?.trim().length??0)<10} className="rounded border px-3 py-2 disabled:opacity-50" title="Rebutja només aquesta línia i conserva la justificació" onClick={()=>void submit({unitId:unit.id,approve:false,note:notes[unit.id]})}>Rebutjar unitat</button></div></div>}
       </div>}
      </article>;
     })}
