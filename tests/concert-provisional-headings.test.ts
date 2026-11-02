@@ -4,6 +4,7 @@ import {createHash} from 'node:crypto';
 import {provisionalServiceHeadings,provisionalServiceAmounts,provisionalServiceIdentifiers} from '../lib/concerts/provisional-headings';
 import {currentDocumentTextConsistent} from '../lib/concerts/document-text-integrity';
 import {provisionalDocumentReport} from '../lib/concerts/provisional-report';
+import {provisionalResolutionPage} from '../lib/concerts/provisional-resolution';
 import type {SourceRecord} from '../lib/workbench-types';
 
 const title='Acord proposta per a la provisió de serveis socials de prova en una ciutat fictícia';
@@ -50,6 +51,14 @@ test('proposal identifiers need one matching FUE, acronym and separately cited a
  assert.equal(provisionalServiceIdentifiers(title,text.replace('Codi FUE- 2025-01234567','Codi FUE- 2025-99999999')).length,0);
  assert.equal(provisionalServiceIdentifiers(title,text.replace('Codi RESES: S12345','Codi RESES: S12345 i Codi RESES: S54321')).length,0);
  assert.equal(provisionalServiceIdentifiers(title,text.replace('## Pàgina 2\n▪','- Una sol·licitud (FUE- 2025-01234567) (CIF: G12345678) servei (ABC).\n\n## Pàgina 2\n▪')).length,0);
+});
+
+test('a later resolution candidate needs one operative assignment and all identifiers',()=>{
+ const text='## Pàgina 4\nRESOLC: 1. Assignar els serveis.\n## Pàgina 7\nG12345678 S12345 S54321';
+ assert.equal(provisionalResolutionPage(text,'G12345678',['S12345','S54321']),4);
+ assert.equal(provisionalResolutionPage(text.replace('Assignar','Proposar assignar'),'G12345678',['S12345','S54321']),null);
+ assert.equal(provisionalResolutionPage(text,'G12345678',['S12345','S55555']),null);
+ assert.equal(provisionalResolutionPage(text+'\nRESOLC: 1. Assignar altres serveis','G12345678',['S12345','S54321']),null);
 });
 
 test('proposal amounts come from each labelled total with VAT, never from a component or general model total',()=>{

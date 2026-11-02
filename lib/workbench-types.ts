@@ -16,6 +16,7 @@ export type RecordOperationProgress = {
 };
 
 export type SourceRecord = {
+  provisionalResolutionLookup?:{candidates:Array<{recordId:string;title:string;documentId:string;page:number}>;issue:string|null}|null;
   corrections?:import('./human-resolution').DocumentedCorrection[];
   reservation?:import('./human-resolution').Reservation|null;
   resolutionHistory?:import('./human-resolution').Reservation[];

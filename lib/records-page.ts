@@ -1,5 +1,8 @@
 import {normalizeConveni} from './convenis/contract';
 import {currentDocumentTextConsistent} from './concerts/document-text-integrity';
+import {provisionalDocumentReport} from './concerts/provisional-report';
+import {provisionalResolutionPage} from './concerts/provisional-resolution';
+import {hasCurrentTextCoverage} from './pipeline/document-coverage';
 import {effectiveJobs} from './effective-jobs';
 import {projectLatestCandidates} from './candidate-projection';
 import {textDefects} from './pipeline/readable-document';
@@ -103,7 +106,43 @@ export async function getSourceRecord(id: string): Promise<SourceRecord | null> 
   if(issueProjection.error)throw issueProjection.error;
   const [corrections,reservation,resolutionHistory]=await Promise.all([db.from('current_documented_corrections').select('*').eq('source_record_id',id),db.from('current_record_reservations').select('*').eq('source_record_id',id).maybeSingle(),db.from('record_reservation_events').select('*').eq('source_record_id',id).order('created_at',{ascending:false})]);
   if(corrections.error)throw corrections.error;if(reservation.error)throw reservation.error;if(resolutionHistory.error)throw resolutionHistory.error;
-  return {...record,resolutionHistory:resolutionHistory.data,corrections:corrections.data,reservation:reservation.data,recoveryModel:process.env.OPENAI_MATCHING_MODEL??null,issueGroup:(issueProjection.data?.issue_group as SourceRecord['issueGroup'])??null,operationProgress:recordOperationProgress(task.data as ProgressTask|null)};
+  const provisionalResolutionLookup=await findProvisionalResolutionCandidates(db,record);
+  return {...record,provisionalResolutionLookup,resolutionHistory:resolutionHistory.data,corrections:corrections.data,reservation:reservation.data,recoveryModel:process.env.OPENAI_MATCHING_MODEL??null,issueGroup:(issueProjection.data?.issue_group as SourceRecord['issueGroup'])??null,operationProgress:recordOperationProgress(task.data as ProgressTask|null)};
+}
+
+/** A bounded, read-only search. Matching is a review candidate, never an
+ * economic link or a definitive assertion that no later resolution exists. */
+async function findProvisionalResolutionCandidates(db:ReturnType<typeof createServerSupabase>,record:SourceRecord):Promise<SourceRecord['provisionalResolutionLookup']>{
+ const report=provisionalDocumentReport(record);
+ if(!report||!report.rows.length||report.rows.some(row=>!row.identifiers))return null;
+ const identities=report.rows.map(row=>row.identifiers!);
+ const nifs=[...new Set(identities.map(row=>row.nif))],reses=[...new Set(identities.map(row=>row.reses))];
+ const originalDate=record.sourcePayload.data_publicacio;
+ if(nifs.length!==1||reses.length!==identities.length||typeof originalDate!=='string'||!/^20\d\d-\d\d-\d\d/.test(originalDate))return null;
+ const issue={candidates:[],issue:'No s’ha pogut completar la cerca limitada de resolucions relacionades. Torna-ho a intentar o contrasta manualment les fonts.'};
+ try{
+ const matching=await db.from('record_enrichments').select('source_record_id').eq('provider_nif',nifs[0]).neq('source_record_id',record.id).limit(51);
+ if(matching.error||!matching.data||matching.data.length>50)return issue;
+ const ids=[...new Set(matching.data.map(row=>row.source_record_id).filter((id):id is string=>typeof id==='string'))];
+ if(!ids.length)return {candidates:[],issue:null};
+ const [records,documents]=await Promise.all([
+  db.from('source_records').select('id,title,source_payload').eq('financing_type','concert').in('id',ids),
+  db.from('source_documents').select('id,source_record_id,status,mime_type,storage_path,storage_sha256,active_extraction_id,extracted_text,extracted_text_hash,extraction_partial,extraction_method,extraction_coverage,quality_flags').in('source_record_id',ids).limit(101),
+ ]);
+ if(records.error||documents.error||!records.data||!documents.data||documents.data.length>100)return issue;
+ const candidates:Array<{recordId:string;title:string;documentId:string;page:number}>=[];
+ for(const candidate of records.data){
+  const date=candidate.source_payload?.data_publicacio;
+  if(typeof date!=='string'||!/^20\d\d-\d\d-\d\d/.test(date)||date.slice(0,10)<=originalDate.slice(0,10))continue;
+  const pdfs=documents.data.filter(doc=>doc.source_record_id===candidate.id&&doc.mime_type?.includes('pdf')&&doc.status==='fetched');
+  if(pdfs.length!==1)continue;
+  const doc=pdfs[0];
+  if(!currentDocumentTextConsistent(doc)||doc.extraction_partial!==false||doc.quality_flags?.some((flag:string)=>['corrupt_text','incomplete_extraction'].includes(flag))||!hasCurrentTextCoverage(doc.extraction_method,doc.extraction_coverage,doc.mime_type,doc.extraction_partial))continue;
+  const page=provisionalResolutionPage(doc.extracted_text as string,nifs[0],reses);
+  if(page)candidates.push({recordId:candidate.id,title:candidate.title,documentId:doc.id,page});
+ }
+ return {candidates,issue:null};
+ }catch{return issue;}
 }
 
 export function mapRecord(row: Record<string, unknown>): SourceRecord {
