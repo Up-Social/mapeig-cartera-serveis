@@ -1,6 +1,8 @@
 import { textDefects } from "./pipeline/readable-document";
 import { scoreQuality } from "./pipeline/chunks";
 import { isUnusableWebExtraction } from "./source-evidence";
+import { isGenericPortalText } from "./portal-text";
+export { isGenericPortalText } from "./portal-text";
 
 export const EVIDENCE_POLICY_VERSION = "substantive-evidence-v2";
 
@@ -25,18 +27,8 @@ export type EvidenceQualityInput = {
   coverageVerified?: boolean;
 };
 
-const GENERIC_PORTAL_PATTERNS = [
-  /^e[- ]?tauler\s*[-–—:]?\s*consorci administraci[oó] oberta de catalunya[.!]?$/i,
-  /^consorci administraci[oó] oberta de catalunya\s*[-–—:]?\s*e[- ]?tauler[.!]?$/i,
-];
-
 function normalizedText(value: string) {
   return value.replace(/\s+/g, " ").trim();
-}
-
-export function isGenericPortalText(value: string) {
-  const normalized = normalizedText(value);
-  return GENERIC_PORTAL_PATTERNS.some((pattern) => pattern.test(normalized));
 }
 
 export function evidenceRejectionReasons(
