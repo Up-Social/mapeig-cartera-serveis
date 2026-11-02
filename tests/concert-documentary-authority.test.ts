@@ -47,3 +47,26 @@ test('wrapped program header shows a literal manager code without inferring the 
  assert.deepEqual(programAnnexManagers(text.replace('gestor','òrgan')),[]);
  assert.deepEqual(programAnnexManagers(text.replace('BE2193','BE2193 altre text')),[]);
 });
+
+test('without saved metadata the current verified PDF documents signer and managers, independent of line amounts',()=>{
+ const doc={id,revision:`${sha}:${extraction}`,extractedTextHash:textHash,currentTextConsistent:true,archived:true,status:'fetched',extractedText:text,mimeType:'application/pdf',extractionMethod:'pdf-text-markdown-v2',extractionPartial:false,extractionCoverage:{complete:true},qualityFlags:[] as string[]} as unknown as SourceRecord['sourceDocuments'][number];
+ const shell={...doc,id:'shell',mimeType:'text/html',extractedText:'Carregant...'};
+ const record={financingType:'concert',isHistorical:false,externalEnrichment:{documentaryAuthority:null,contractingBody:'Generalitat de Catalunya'},sourceDocuments:[shell,doc]} as unknown as SourceRecord;
+ assert.deepEqual(currentDocumentaryAuthority(record),{authority:{value:'La Consellera de Drets Socials i Inclusió',page:3},managerCodes:[{page:4,value:'BE2192'}]});
+ assert.equal(currentDocumentaryAuthority({...record,sourceDocuments:[doc,{...doc,id:'other'}]}),null);
+ assert.equal(currentDocumentaryAuthority({...record,sourceDocuments:[{...doc,qualityFlags:['corrupt_text']}]}),null);
+ assert.equal(currentDocumentaryAuthority({...record,sourceDocuments:[{...doc,archived:false}]}),null);
+ assert.equal(currentDocumentaryAuthority({...record,sourceDocuments:[{...doc,extractedText:'## Pàgina 1\nResolució sense signatura\n'}]}),null);
+ assert.equal(currentDocumentaryAuthority({...record,isHistorical:true}),null);
+ assert.equal(currentDocumentaryAuthority({...record,financingType:'conveni'} as SourceRecord),null);
+ // Saved metadata that no longer matches is not silently replaced by the current reading.
+ assert.equal(currentDocumentaryAuthority({...record,externalEnrichment:{documentaryAuthority:{version:'concert-documentary-authority-v1'}}} as unknown as SourceRecord),null);
+});
+
+test('manager group row with printed totals under a header whose cartera label wraps above',async()=>{
+ const {programAnnexManagers}=await import('../lib/concerts/documentary-authority');
+ const text='## Pàgina 5\n                 Codi\n                 cartera                         Cost (IVA\n   Centre        (amb                            inclòs si\n   gestor    Nom entitat   NIF entitat   suport)   Codi S   Nom servei   Municipi   Places   escau)\n\n   BE2191                                                                        2         6.523,30 €\n             Fundació      G55112890     1.2.6.2.6 S03694   Tutela       Ripoll     1         3.276,28 €\n';
+ assert.deepEqual(programAnnexManagers(text),[{value:'BE2191',page:5}]);
+ assert.deepEqual(programAnnexManagers(text.replace('2         6.523,30 €','Tarragona i altres')),[]);
+ assert.deepEqual(programAnnexManagers(text.replace(/cartera/g,'altres')),[]);
+});

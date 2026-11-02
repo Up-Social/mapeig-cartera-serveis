@@ -88,7 +88,7 @@ export function CaseStudy({ initialRecord, services, concertServices, origin, ne
   const independentAuthority=currentDocumentaryAuthority(record);
   const programManagers=currentProgramAnnexManagers(record);
   const documentarySigner=documentaryFacts?.authority??independentAuthority?.authority??null;
-  const comparisonRecord=documentaryFacts&&record.externalEnrichment?{...record,externalEnrichment:{...record.externalEnrichment,contractingBody:documentaryFacts.authority?.value??record.externalEnrichment.contractingBody}}:record;
+  const comparisonRecord=documentarySigner&&record.externalEnrichment?{...record,externalEnrichment:{...record.externalEnrichment,contractingBody:documentarySigner.value}}:record;
   const historical = !!record.isHistorical;
   const isConcert = record.financingType === "concert";
   const {pending:concertPending,ready:concertRecoveryReady,error:concertStorageError,save:saveConcertPending}=useConcertReprocessPending(record.id,isConcert);
