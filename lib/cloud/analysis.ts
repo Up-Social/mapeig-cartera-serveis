@@ -24,7 +24,7 @@ import {assertSafeEvidenceRecovery,assertSafeLegacyAuditReceipts,assertSafeReque
 import {concertNoAwardFromEvidence} from '../concerts/no-award';
 import {assertNoProviderReceiptsForConcertReview,concertTitleReview,reviewConcertDiscard} from './concert-discard-review';
 import {reconciledConcertAnalysis} from './concert-analysis';
-import {applyConcertRoleReviewWithDiagnostics,concertRolesNeedingReview,concertRoleReviewSchema,CONCERT_ROLE_REPAIR_INSTRUCTIONS,CONCERT_ROLE_REPAIR_VERSION} from '../concerts/role-evidence';
+import {applyConcertRoleReviewWithDiagnostics,concertRolesNeedingReview,concertRoleReviewSchema,CONCERT_ROLE_REPAIR_INSTRUCTIONS,CONCERT_ROLE_REPAIR_VERSION,recoverOperativeConcertObject} from '../concerts/role-evidence';
 import {hasCurrentTextCoverage} from '../pipeline/document-input';
 import {projectConcertEnrichment} from './concert-enrichment';
 async function versionedProviderRequest(c:Context,jobId:string,phase:string,body:Record<string,unknown>){
@@ -172,7 +172,17 @@ export async function analyzeRecord(c:Context,job:{id:string;source_record_id:st
    return;
   }
   const enrichment=Array.isArray(r.data.record_enrichments)?r.data.record_enrichments[0]:r.data.record_enrichments;
-  const originalRoles=enrichment?.scope_facts?.roles;
+  const previousRoles=enrichment?.scope_facts?.roles;
+  // Never alter the request of an existing provider receipt or matching run.
+  const recoveryKey=`${job.id}:operative-concert-object-v1`;
+  const priorRecovery=await readCheckpoint<{recovered:boolean}>(c,recoveryKey);
+  const priorRoleReceipt=await readCheckpoint(c,`ai:${job.id}:${CONCERT_ROLE_REPAIR_VERSION}`);
+  const priorMatchingInput=await readCheckpoint(c,`matching-input:${job.id}`);
+  const mayRecover=r.data.financing_type==='concert'&&(priorRecovery?.recovered===true||(!priorRecovery&&!priorRoleReceipt&&!priorMatchingInput));
+  const recovery=mayRecover?recoverOperativeConcertObject(previousRoles,chunks):{roles:previousRoles,recovered:false};
+  if(priorRecovery?.recovered&&!recovery.recovered)throw new CloudFailure('validation',5,{operation:'concert_object_recovery',code:'CONCERT_OBJECT_EVIDENCE_CHANGED'});
+  if(!priorRecovery&&!priorRoleReceipt&&!priorMatchingInput&&r.data.financing_type==='concert')await checkpoint(c,recoveryKey,{recovered:recovery.recovered});
+  const originalRoles=recovery.roles;
   let aligned={roles:originalRoles,reviewed:[] as string[]};
   const roleReviewDiagnostics:EvidenceDiagnostic[]=[];
   const rolesToReview=r.data.financing_type==='concert'
@@ -284,7 +294,7 @@ export async function analyzeRecord(c:Context,job:{id:string;source_record_id:st
   }
   const scoped=applyFinancingClassification({...applyScopeRules(result,aligned.roles,chunks,accreditations),...(incompatibleConcertResponse?{classification:'out_of_portfolio' as const}:{})},r.data.financing_type);
   if(requiresConcertScopeDiscardFence(r.data.financing_type,scoped))await assertNoProviderReceiptsForConcertReview(c.db,c.task);
-  const ruled=reviewConcertDiscard({...scoped,rule_audit:{...scoped.rule_audit,matching_contract_version:MATCHING_INPUT_VERSION,...(modelDiscardReview?{concert_model_discard_review:modelDiscardReview}:{}),...(roleReviewDiagnostics.length&&scoped.classification==='insufficient_evidence'?{diagnostics:[...roleReviewDiagnostics,...analysisDiagnostics(scoped).filter(d=>!roleReviewDiagnostics.some(r=>r.field===d.field))]}:{}),...(aligned.reviewed.length?{role_review:{version:CONCERT_ROLE_REPAIR_VERSION,roles:aligned.reviewed}}:{}),...(modelEvidenceIssue?{model_evidence_issue:modelEvidenceIssue}:{}),evidence_policy:{version:EVIDENCE_POLICY_VERSION,total_chunks:assessed.length,selected_chunks:chunks.length,selection_complete:chunks.length===assessed.filter(chunk=>chunk.eligible).length,rejected:rejectedEvidence}},model_conclusion:JSON.parse(extractOutputText(raw))},r.data.financing_type,chunks.length);
+  const ruled=reviewConcertDiscard({...scoped,rule_audit:{...scoped.rule_audit,matching_contract_version:MATCHING_INPUT_VERSION,...(recovery.recovered?{operative_concert_object:{version:'operative-concert-object-v1',previous:previousRoles?.financed_object}}:{}),...(modelDiscardReview?{concert_model_discard_review:modelDiscardReview}:{}),...(roleReviewDiagnostics.length&&scoped.classification==='insufficient_evidence'?{diagnostics:[...roleReviewDiagnostics,...analysisDiagnostics(scoped).filter(d=>!roleReviewDiagnostics.some(r=>r.field===d.field))]}:{}),...(aligned.reviewed.length?{role_review:{version:CONCERT_ROLE_REPAIR_VERSION,roles:aligned.reviewed}}:{}),...(modelEvidenceIssue?{model_evidence_issue:modelEvidenceIssue}:{}),evidence_policy:{version:EVIDENCE_POLICY_VERSION,total_chunks:assessed.length,selected_chunks:chunks.length,selection_complete:chunks.length===assessed.filter(chunk=>chunk.eligible).length,rejected:rejectedEvidence}},model_conclusion:JSON.parse(extractOutputText(raw))},r.data.financing_type,chunks.length);
   validateAnalysis(ruled,catalog.all,chunks.length,true,documentedCodes.size>0);
   await commit(c,job.id,'analysis',{version:catalog.version.id,result:ruled,usage:raw.usage,candidates:ruled.candidates.map(candidate=>({...candidate,model:responseModel(raw,model),metadata:{response_id:raw.id,usage:raw.usage,positive_audit_version:auditVersion,normalization_version:'catalog-binding-v1'},evidence:candidate.evidence_ordinals.map(n=>chunks[n-1])})),evidence:ruled.evidence_ordinals.map(n=>chunks[n-1])});
  }

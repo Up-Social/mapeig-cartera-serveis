@@ -1,14 +1,37 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {applyConcertRoleReview,applyConcertRoleReviewWithDiagnostics,concertRolesNeedingReview,concertRoleReviewSchema} from '../lib/concerts/role-evidence';
+import {applyConcertRoleReview,applyConcertRoleReviewWithDiagnostics,concertRolesNeedingReview,concertRoleReviewSchema,recoverOperativeConcertObject} from '../lib/concerts/role-evidence';
 import {applyScopeRules,hasLiteralRoleEvidence,type RoleFacts} from '../lib/scope-rules';
 import type {AnalysisOutput} from '../lib/analysis-contract';
+import {readFileSync} from 'node:fs';
 const chunks=[{content:'No s’adjudica el servei de pis assistit per a joves majors de 18 anys.'},
  {content:'Resolc assignar el servei de pis assistit per a joves majors de 18 anys a l’entitat que consta a l’annex.'}];
 const fact={state:'known' as const,value:'servei de pis assistit',kind:'yes',evidence_ordinals:[1],quotes:['Es finança el servei de pis assistit.']};
 const roles:Partial<RoleFacts>={final_service:fact,financed_object:{...fact,kind:'service_financing',evidence_ordinals:[2],quotes:[chunks[1].content]},final_population:{...fact,kind:'population',value:'joves majors de 18 anys',evidence_ordinals:[2],quotes:[chunks[1].content]}};
 const known={role:'final_service',state:'known',value:fact.value,kind:fact.kind,evidence_ordinal:2};
 const unknown={role:'final_service',state:'unknown',value:null,kind:'unknown',evidence_ordinal:0};
+test('a literal operative allocation can replace an ungrounded generic Concert object',()=>{
+ const source=[{content:'RESOLC: 1. Assignar la plaça, en règim de concert social, a l’entitat exposada a l’Annex d’aquesta resolució, mitjançant procediment de modificació.'}];
+ const previous={financed_object:{state:'known' as const,kind:'other',value:'Assignació de plaça',evidence_ordinals:[1],quotes:['Una cita diferent que no consta al document.']}};
+ const recovered=recoverOperativeConcertObject(previous,source);
+ assert.equal(recovered.recovered,true);assert.equal(recovered.roles?.financed_object?.kind,'service_financing');
+ assert.equal(hasLiteralRoleEvidence(recovered.roles?.financed_object,source),true);assert.equal(previous.financed_object.kind,'other');
+ for(const altered of [
+  'RESOLC: 1. No assignar la plaça, en règim de concert social, a l’entitat.',
+  'Es proposa assignar la plaça, en règim de concert social, a l’entitat.',
+  'RESOLC: 1. Assignar la plaça, en règim de cessió, a l’entitat.',
+ ])assert.equal(recoverOperativeConcertObject(previous,[{content:altered}]).recovered,false);
+ assert.equal(recoverOperativeConcertObject(previous,[...source,...source]).recovered,false);
+ assert.equal(recoverOperativeConcertObject({financed_object:{...previous.financed_object,state:'contradictory'}},source).recovered,false);
+ assert.equal(recoverOperativeConcertObject({financed_object:{...previous.financed_object,quotes:[source[0].content]}},source).recovered,false);
+});
+test('S1-1 official resolution contains the operative allocation used as evidence',()=>{
+ const text=readFileSync('tests/fixtures/official/nen-deu-modification-2025.txt','utf8');
+ const fact={state:'known' as const,kind:'other',value:'Modificació i assignació d’una plaça',evidence_ordinals:[1],quotes:['Cita anterior no localitzable.']};
+ const result=recoverOperativeConcertObject({financed_object:fact},[{content:text}]);
+ assert.equal(result.recovered,true);assert.match(result.roles?.financed_object?.quotes[0]??'',/Assignar la plaça, en règim de concert social/);
+ assert.equal(hasLiteralRoleEvidence(result.roles?.financed_object,[{content:text}]),true);
+});
 test('a value mentioned in a negation cannot repair its own evidence',()=>{
  assert.deepEqual(concertRolesNeedingReview(roles,chunks),['final_service']);assert.equal(hasLiteralRoleEvidence(fact,chunks),false);
  assert.throws(()=>applyConcertRoleReview(roles,chunks,undefined));
