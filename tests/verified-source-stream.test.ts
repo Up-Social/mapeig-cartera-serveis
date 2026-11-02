@@ -36,8 +36,8 @@ test('archived sources stream only after verification and preserve headers for l
   const bytes=Buffer.alloc(5*1024*1024+17);for(let i=0;i<bytes.length;i++)bytes[i]=i%251;
   const digest=hash(bytes),path=`cases/${record}/items/${unit}/documents/${document}/${digest}.pdf`;
   let downloads=0;
-  const query=(table:string)=>({select(){return this;},eq(){return this;},async maybeSingle(){return {data:table==='record_units'?{storage_path:path,storage_sha256:digest,document_id:document}:table==='source_documents'?{id:document,mime_type:'application/pdf'}:null,error:null};}});
-  fixture.streamFixture={db:{from:query,storage:{from:()=>({download:async()=>{downloads++;return {data:new Blob([bytes]),error:null};}})}},archive:{bytes,mimeType:'application/pdf'}};
+  const query=(table:string)=>({select(){return this;},eq(){return this;},async maybeSingle(){return {data:table==='record_units'?{storage_path:path,storage_sha256:digest,document_id:document}:table==='source_documents'?{id:document,mime_type:'application/pdf',storage_sha256:digest}:null,error:null};}});
+  fixture.streamFixture={db:{from:query,storage:{from:()=>({download:async()=>{downloads++;return {data:new Blob([bytes]),error:null};}})}},archive:{bytes,mimeType:'application/pdf',sha256:digest}};
   const cases=[
    {route:routes[0],params:{id:document}},
    {route:routes[1],params:{id:record,unitId:unit}},
@@ -52,6 +52,12 @@ test('archived sources stream only after verification and preserve headers for l
    assert.ok(count>1);assert.equal(total,bytes.length);assert.equal(digestStream.digest('hex'),digest);
   }
   assert.equal(downloads,1);
+  const pinned:Response=await routes[0].GET(new Request(`http://local.invalid?sha=${digest}`),{params:Promise.resolve({id:document})});
+  assert.equal(pinned.status,200);
+  const changed:Response=await routes[0].GET(new Request(`http://local.invalid?sha=${'f'.repeat(64)}`),{params:Promise.resolve({id:document})});
+  assert.equal(changed.status,409);assert.match((await changed.json()).error,/canviat/);
+  const invalid:Response=await routes[0].GET(new Request('http://local.invalid?sha=invalid'),{params:Promise.resolve({id:document})});
+  assert.equal(invalid.status,400);
   fixture.streamFixture={db:{from:query,storage:{from:()=>({download:async()=>({data:new Blob([Buffer.from('corrupt')]),error:null})})}}};
   const corrupt:Response=await routes[1].GET(new Request('http://local.invalid'),{params:Promise.resolve({id:record,unitId:unit})});
   assert.equal(corrupt.status,503);assert.match((await corrupt.json()).error,/integritat/);

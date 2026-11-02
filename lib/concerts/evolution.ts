@@ -1,6 +1,8 @@
+import {economicConcertTerritory,type ReviewedConcertGeography} from './supplemental-geography-projection';
 import {concertUnitName} from './display-name';
 import {projectConcertBalances,type ConcertFinancialLine} from './financial-ledger';
 export type EconomicUnit={
+ supplemental_geography?:ReviewedConcertGeography|null;
  document_identity?:string;recovered_provider_name?:string|null;recovered_service_name?:string|null;line_award_state?:'current'|'stale';
  id:string;source_record_id:string;unit_key:string;act_type:string;status:string;source_fingerprint:string;
  provider_name:string|null;observed_provider_name:string|null;provider_nif:string|null;reses_code:string|null;
@@ -17,10 +19,10 @@ export type EconomicLink={id:string;later_unit_id:string;earlier_unit_id:string;
 export type EconomicPublication={id:string;title:string;job_id:string|null;job_status:string|null;official_url:string|null};
 export type MissingConcertLines={earlier_record_id:string;later_record_id:string;evidence:string};
 export type ConcertEvolutionData={missingLines?:MissingConcertLines[];units:EconomicUnit[];reviews:EconomicReview[];links:EconomicLink[];publications:EconomicPublication[]};
-export type EvolutionMovement={unitId:string;recordId:string;rootId:string|null;provider:string;operation:string;period:string;amountCents:number|null;amountKind:EconomicReview['amount_kind'];
+export type EvolutionMovement={territory?:string|null;supplementalGeography?:ReviewedConcertGeography|null;unitId:string;recordId:string;rootId:string|null;provider:string;operation:string;period:string;amountCents:number|null;amountKind:EconomicReview['amount_kind'];
  status:'reviewed'|'pending'|'excluded';issues:string[];effectiveAt:string|null;beforeCents?:number|null;afterCents?:number|null};
 export type EvolutionBalance={rootId:string;rootIds:string[];providerNif:string|null;provider:string;service:string;territory:string;period:string;funder:string;amountCents:number|null;maximum:boolean;issues:string[]};
-export const ECONOMIC_RULES_VERSION='concert-economics-2024-v4';
+export const ECONOMIC_RULES_VERSION='concert-economics-2024-v5';
 export const ECONOMIC_AMOUNT_LABELS={exact:'Import documental',maximum:'Màxim autoritzat · no és despesa real',unknown:'Import no acreditat'};
 const name=concertUnitName;
 const excluded=(u:EconomicUnit)=>['out_of_scope','pre_2024_origin_unavailable'].includes(u.horizon_state??'');
@@ -38,6 +40,11 @@ export function euroCents(value:string|number|null):number|null{
 /** One projection for the UI and both Excel sheets. Never promotes source drafts. */
 export function concertEvolution(data:ConcertEvolutionData,cutoff:string){
  if(!iso(cutoff))throw Error('Data de tall no vàlida');
+ // Resolve a display/projection copy only; source fingerprints and persisted
+ // adjudications remain the exact evidence that the economic reviewer saw.
+ const economicReviewByUnit=new Map(data.reviews.map(r=>[r.unit_id,r]));
+ const territoryStates=new Map(data.units.map(u=>[u.id,economicConcertTerritory(u.territory,u.supplemental_geography,economicReviewByUnit.get(u.id))]));
+ data={...data,units:data.units.map(u=>({...u,territory:territoryStates.get(u.id)!.territory}))};
  const byId=new Map(data.units.map(u=>[u.id,u]));
  const reviews=new Map(data.reviews.map(r=>[r.unit_id,r]));
  const publications=new Map(data.publications.map(p=>[p.id,p]));
@@ -59,6 +66,10 @@ export function concertEvolution(data:ConcertEvolutionData,cutoff:string){
  const movements:EvolutionMovement[]=[],accepted:ConcertFinancialLine[]=[];
  const affected=new Map<string,Set<string>>();
  const block=(root:string,issue:string)=>{if(!affected.has(root))affected.set(root,new Set());affected.get(root)!.add(issue);};
+ const documentaryTerritories=new Map<string,Set<string>>();
+ for(const u of data.units){const review=reviews.get(u.id);if(u.act_type==='award'&&u.status!=='rejected'&&!excluded(u)&&review?.status!=='excluded'&&!(review?.effective_at&&review.effective_at>cutoff)&&u.territory){
+  const key=agreementIdentity(u),territories=documentaryTerritories.get(key)??new Set<string>();territories.add(u.territory);documentaryTerritories.set(key,territories);
+ }}
  const chains=new Map(data.units.map(u=>[u.id,chain(u.id)]));
  // Topological order is independent of UUIDs or publication dates.
  const ordered=[...data.units].sort((a,b)=>chains.get(a.id)!.path.length-chains.get(b.id)!.path.length||
@@ -70,7 +81,7 @@ export function concertEvolution(data:ConcertEvolutionData,cutoff:string){
   if(review?.effective_at&&review.effective_at>cutoff)continue;
   const period=review?.period_start&&review?.period_end?`${review.period_start}/${review.period_end}`:'Període pendent';
   const m:EvolutionMovement={unitId:u.id,recordId:u.source_record_id,rootId:c.root,provider:name(u),operation:review?.operation??'pending',period,
-   amountCents:review?.amount_cents??null,amountKind:review?.amount_kind??'unknown',status:isExcluded?'excluded':'pending',issues,effectiveAt:review?.effective_at??null};
+   territory:u.territory,supplementalGeography:u.supplemental_geography,amountCents:review?.amount_cents??null,amountKind:review?.amount_kind??'unknown',status:isExcluded?'excluded':'pending',issues,effectiveAt:review?.effective_at??null};
   movements.push(m);if(isExcluded){issues.push('Exclòs de la foto des de 2024; no suma');continue;}
   if(c.issue)issues.push(c.issue);
   if(!review||review.status!=='approved')issues.push('Interpretació econòmica pendent de revisió');
@@ -86,6 +97,15 @@ export function concertEvolution(data:ConcertEvolutionData,cutoff:string){
   if(!u.storage_sha256||!u.storage_path||!u.page||!u.evidence_quote)issues.push('Font de la línia incompleta');
   if(!u.service_code)issues.push('Servei pendent de validació');
   if(!u.territory)issues.push('Territori pendent de validació');
+  const geographyIssue=territoryStates.get(u.id)?.issue;if(geographyIssue)issues.push(geographyIssue);
+  // Geography cannot silently split duplicate publications of one source row
+  // into different economic scopes, nor create a territorial move in a chain.
+  if(u.act_type==='award'&&(documentaryTerritories.get(agreementIdentity(u))?.size??0)>1)
+   issues.push('Territoris incompatibles entre publicacions de la mateixa línia documental');
+  for(const ancestorId of c.path.slice(1)){const ancestor=byId.get(ancestorId);
+   if(ancestor?.territory&&u.territory&&ancestor.territory!==u.territory&&(territoryStates.get(u.id)?.applied||territoryStates.get(ancestorId)?.applied))
+    issues.push('La ubicació complementària no coincideix amb el territori de la cadena revisada');
+  }
   for(const ancestorId of c.path.slice(1)){
    const ancestor=movements.find(row=>row.unitId===ancestorId);
    if(!ancestor||ancestor.status!=='reviewed')issues.push('Hi ha un acte anterior pendent');

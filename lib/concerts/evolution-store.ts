@@ -75,6 +75,15 @@ export async function loadConcertEvolution(db:SupabaseClient,recordId?:string):P
   const result=await db.from('concert_economic_reviews').select('*').in('unit_id',selectedUnits.slice(offset,offset+100).map(u=>u.id));
   if(result.error)throw result.error;reviews.push(...result.data);
  }
+ if(process.env.CONCERT_SUPPLEMENTAL_GEOGRAPHY_ENABLED==='true'&&process.env.CONCERT_SUPPLEMENTAL_GEOGRAPHY_REVIEW_ENABLED==='true'){
+  for(let offset=0;offset<selectedUnits.length;offset+=100){
+   const page=selectedUnits.slice(offset,offset+100);
+   const geography=await db.from('current_concert_supplemental_geography_review').select('*').in('unit_id',page.map(u=>u.id));
+   if(geography.error)throw geography.error;
+   const byUnit=new Map((geography.data??[]).map(g=>[g.unit_id,g]));
+   for(const unit of page)unit.supplemental_geography=byUnit.get(unit.id)??null;
+  }
+ }
  const displayDocuments:Array<{id:string;extracted_text:string|null}>=[];
  const documentIds=[...new Set(selectedUnits.map(u=>u.document_id).filter((id):id is string=>!!id))];
  for(let offset=0;offset<documentIds.length;offset+=100){

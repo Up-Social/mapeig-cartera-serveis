@@ -8,6 +8,7 @@ import {htmlToText,cleanTextWithCoverage,hasCurrentTextCoverage} from '../pipeli
 import {hash} from '../pipeline/chunks';
 import {fetchOfficialDocument} from '../pipeline/official-resolution';
 import {archiveSource,readSource,sha256,ArchivedSourceUnavailableError} from '../source-storage';
+import {parsePdfSignatureDate} from '../concerts/pdf-signature-date';
 type Extraction={text:string;method:string;hash:string;mime:string;partial:boolean;extraction_version:string;coverage?:unknown;source_sha256?:string;source_url?:string;source_path?:string;previous_text_sha256?:string;target_previous_extraction_id?:string;target_pages?:number[]};
 const OCR_RENDER_DPI=300;
 // Maximum transient checkpoint payload, measured in UTF-8 bytes before transfer.
@@ -132,6 +133,25 @@ export async function extractDocument(c:Context,job:string,id:string,url:string,
    // Inspect the durable journal before creating another VM.
    await journalStep('document_status',0);
    const sb=await openSandbox();
+   // Optional supplemental observation. Never create another sandbox or
+   // invalidate a text/OCR checkpoint just to inspect a signature. Missing
+   // pdfsig, absent schema and verification errors must not stop extraction.
+   if(process.env.CONCERT_SIGNATURE_DATES_ENABLED==='true'){
+    try {
+     const scope=await c.db.from('source_records').select('financing_type').eq('id',source.data.source_record_id).maybeSingle();
+     if(!scope.error&&scope.data?.financing_type==='concert'){
+      const signature=await quietCommand(sb,'sh',['-c','command -v pdfsig >/dev/null 2>&1 && TZ=UTC LC_ALL=C pdfsig -no-ocsp /tmp/source.pdf > /tmp/signature.txt 2>/dev/null && test "$(wc -c < /tmp/signature.txt)" -le 256000'],{timeoutMs:20_000});
+      if(signature.exitCode===0){
+       const content=await sb.readFileToBuffer({path:'/tmp/signature.txt'});
+       const observation=content?parsePdfSignatureDate(content.toString('utf8')):null;
+       if(observation)await rpc(c.db,'cloud_store_concert_signature',{...lease(c),p_job:job,p_document:id,p_sha:sourceSha256,p_claimed_utc:observation.claimedUtc,p_local_date:observation.localDate,p_certificate_trust:observation.certificateTrust});
+      }
+     }
+    }catch {
+     // The observation is optional; its failure never implies an invalid PDF.
+     console.warn('CONCERT_SIGNATURE_OBSERVATION_UNAVAILABLE');
+    }
+   }
    const command=await quietCommand(sb,'pdftotext',['-layout','/tmp/source.pdf','/tmp/source.txt'],{timeoutMs:20_000});
    // A failed pdftotext may leave no file. Treat it as empty for OCR, as before.
    const size=await quietCommand(sb,'sh',['-c',`test ! -f /tmp/source.txt || test "$(wc -c < /tmp/source.txt)" -le ${MAX_PREFLIGHT_BYTES}`],{timeoutMs:20_000});

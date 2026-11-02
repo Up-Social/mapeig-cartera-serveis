@@ -6,16 +6,20 @@ import {ArchivedSourceUnavailableError,readSource,SourceContentChangedError} fro
 import {streamVerifiedBytes} from '@/lib/verified-byte-stream';
 
 /** The same case-scoped archive serves every source dataset. Never redirect to an unarchived original. */
-export async function GET(_request:Request,{params}:{params:Promise<{id:string}>}){
+export async function GET(request:Request,{params}:{params:Promise<{id:string}>}){
  const {id}=await params;
  if(!isUuid(id))return Response.json({error:'Document no vàlid'},{status:400});
+ const expectedSha=new URL(request.url).searchParams.get('sha');
+ if(expectedSha!==null&&!/^[a-f0-9]{64}$/.test(expectedSha))return Response.json({error:'Revisió documental no vàlida'},{status:400});
  const db=createServerSupabase();
  const {data,error}=await db.from('source_documents').select('*').eq('id',id).maybeSingle();
  if(error||!data)return Response.json({error:'Document no disponible'},{status:404});
+ if(expectedSha!==null&&data.storage_sha256!==expectedSha)return Response.json({error:'El document ha canviat. Torna a obrir la fitxa per revisar la font vigent.'},{status:409});
  // The already-running local preview still uses the pre-migration remote schema.
- if(!hasUnitSchema())return legacyOpen(data.url);
+ if(!hasUnitSchema())return expectedSha!==null?Response.json({error:'No es pot comprovar la revisió documental en aquest entorn.'},{status:503}):legacyOpen(data.url);
  try{
   const archived=await readSource(db,data);
+  if(expectedSha!==null&&archived.sha256!==expectedSha)return Response.json({error:'El document ha canviat. Torna a obrir la fitxa per revisar la font vigent.'},{status:409});
   const headers=new Headers({'Content-Type':archived.mimeType,'Cache-Control':'private, no-store','X-Content-Type-Options':'nosniff'});
   if(/html|xml|svg/i.test(archived.mimeType))headers.set('Content-Security-Policy',"sandbox; default-src 'none'");
   return new Response(streamVerifiedBytes(archived.bytes),{headers});

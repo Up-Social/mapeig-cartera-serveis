@@ -5,6 +5,7 @@ import {createServerSupabase} from '@/lib/records-page';
 import {isUuid} from '@/lib/uuid';
 import {archiveUnitSource} from '@/lib/source-storage';
 import {parseDiagnosticReconciliationStatus} from '@/lib/concerts/diagnostic-reconciliation';
+import {nominalServiceEvidence} from '@/lib/concerts/nominal-service-evidence';
 export async function GET(_request:Request,{params}:{params:Promise<{id:string}>}) {
  if(!hasUnitSchema())return Response.json({units:[],supported:false});
  const {id}=await params;if(!isUuid(id))return Response.json({error:'Registre no vàlid'},{status:400});
@@ -15,9 +16,14 @@ export async function GET(_request:Request,{params}:{params:Promise<{id:string}>
    readPages((from,to)=>db.from('concert_line_observations').select('unit_id,proposed_value,applied').eq('source_record_id',id).order('created_at',{ascending:false}).order('id').range(from,to)),
    readPages((from,to)=>db.from('concert_annex_reconciliations').select('id,document_id,document_sha256,annex,row_count,sum_cents,declared_cents,reconciled,coverage').eq('source_record_id',id).order('id').range(from,to)),
    readPages((from,to)=>db.from('current_documented_corrections').select('*').eq('source_record_id',id).order('id').range(from,to)),
-   readPages((from,to)=>db.from('source_documents').select('id,extracted_text,quality_flags,storage_sha256,extraction_method,extraction_coverage,mime_type,extraction_partial').eq('source_record_id',id).eq('status','fetched').eq('extraction_partial',false).order('id').range(from,to)),
+   readPages((from,to)=>db.from('source_documents').select('id,extracted_text,extracted_text_hash,quality_flags,storage_sha256,extraction_method,extraction_coverage,mime_type,extraction_partial').eq('source_record_id',id).eq('status','fetched').eq('extraction_partial',false).order('id').range(from,to)),
    readPages((from,to)=>db.from('current_concert_unit_geography').select('unit_id,municipality,county,province,page,evidence').eq('source_record_id',id).order('unit_id').range(from,to)),
   ]);
+  // Optional until the migration is installed. A query failure must not be
+  // presented as an absence of proposals when the feature is enabled.
+  const supplementalGeography=process.env.CONCERT_SUPPLEMENTAL_GEOGRAPHY_ENABLED==='true'
+   ? await readPages((from,to)=>db.from(process.env.CONCERT_SUPPLEMENTAL_GEOGRAPHY_REVIEW_ENABLED==='true'?'current_concert_supplemental_geography_review':'current_concert_supplemental_geography').select('*').eq('source_record_id',id).order('unit_id').range(from,to))
+   : [];
   let diagnosticReconciliation=null;let diagnosticReconciliationStatus:'disabled'|'absent'|'current'|'unavailable'='disabled';
   if(process.env.ENABLE_CONCERT_LINE_AWARDS==='true'&&process.env.CONCERT_LINE_READERS_READY==='true'){
    try{
@@ -26,7 +32,7 @@ export async function GET(_request:Request,{params}:{params:Promise<{id:string}>
     else {const status=parseDiagnosticReconciliationStatus(result.data);diagnosticReconciliation=status.report;diagnosticReconciliationStatus=status.status;}
    }catch{diagnosticReconciliationStatus='unavailable';}
   }
-  const withNames=recoverConcertDisplayNames(units,documents.filter(d=>!d.quality_flags?.includes('corrupt_text'))).map(unit=>({...unit,geography:geography.find(row=>row.unit_id===unit.id)??null}));
+  const withNames=recoverConcertDisplayNames(units,documents.filter(d=>!d.quality_flags?.includes('corrupt_text'))).map(unit=>({...unit,geography_review_available:process.env.CONCERT_SUPPLEMENTAL_GEOGRAPHY_ENABLED==='true'&&process.env.CONCERT_SUPPLEMENTAL_GEOGRAPHY_REVIEW_ENABLED==='true',nominal_service_evidence:nominalServiceEvidence(unit,documents),geography:geography.find(row=>row.unit_id===unit.id)??null,supplemental_geography:supplementalGeography.find(row=>row.unit_id===unit.id)??null}));
   return Response.json({units:recoverPrintedSupportCandidates(recoverPrintedServiceCandidates(withNames,documents),documents).map(unit=>{const history=observations.filter(row=>row.unit_id===unit.id),latest=history[0],applied=history.find(row=>row.applied);const codeCorrection=corrections.find(c=>c.unit_id===unit.id&&c.field==='service_code');return {...unit,service_code_correction:codeCorrection?{value:codeCorrection.value,valid:codeCorrection.valid,reviewer:codeCorrection.reviewer,reason:codeCorrection.reason,page:codeCorrection.page,document_id:codeCorrection.document_id}:null,effective_service_code:codeCorrection?.valid?codeCorrection.value:unit.observed_service_code,effective_provider_name:corrections.find(c=>c.valid&&c.unit_id===unit.id&&c.field==='provider_name')?.value??unit.provider_name??unit.recovered_provider_name??unit.observed_provider_name,observed_establishment_code:applied?.proposed_value?.resesCode??null,observation:latest?{...applied?.proposed_value,pendingRevision:!latest.applied}:null};}),reconciliations,diagnosticReconciliation,diagnosticReconciliationStatus});
  }catch{return Response.json({error:'No s’han pogut consultar les unitats i les revisions'},{status:500});}
 

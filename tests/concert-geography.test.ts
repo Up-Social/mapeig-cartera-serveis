@@ -53,3 +53,12 @@ test('failure to persist geography is explicit and does not claim success',async
   assert.ok(error instanceof Error);assert.ok(JSON.stringify(error).includes('CONCERT_GEOGRAPHY_SAVE_FAILED'));return true;
  });
 });
+test('supplementary location remains a review proposal even when a source names a municipality',()=>{
+ const html=renderToStaticMarkup(React.createElement(ConcertGeography,{municipality:null,supplemental:{municipality:'Barcelona',county:'Barcelonès',province:'Barcelona',source_url:'https://example.org/convocatoria',source_quote:'Ubicació: dependències del centre a Barcelona.',source_captured_at:'2025-07-21T00:00:00Z',source_sha256:'a'.repeat(64),reference:{sourceUrl:'https://www.idescat.cat/codis/'}}}));
+ assert.match(html,/Proposta d’ubicació de font complementària · pendent de revisió/);
+ assert.match(html,/no identificat amb evidència suficient en aquesta línia/);
+ assert.match(html,/No modifica el territori econòmic ni confirma finançament/);
+ assert.match(html,/https:\/\/example.org\/convocatoria/);
+ const unsafe=renderToStaticMarkup(React.createElement(ConcertGeography,{municipality:null,supplemental:{municipality:'Barcelona',county:null,province:null,source_url:'javascript:alert(1)',source_quote:'Centre a Barcelona',source_captured_at:'2025-07-21T00:00:00Z',source_sha256:'a'.repeat(64),reference:null}}));
+ assert.doesNotMatch(unsafe,/href="javascript:/);
+});
