@@ -11,6 +11,9 @@ import {CloudFailure} from './errors';
 import {hasCurrentConcertAward,hasMixedConcertFinancialActs} from '../concerts/no-award';
 import {extractResolcAwards} from '../concerts/resolc-extraction';
 import {annexAnchorDrift,annexDraftDrift} from '../concerts/observation-drift';
+import {extractDiagnosticAnnex} from '../concerts/diagnostic-annex';
+import {currentDocumentTextConsistent} from '../concerts/document-text-integrity';
+import {hasCurrentTextCoverage} from '../pipeline/document-coverage';
 
 type Job={id:string;source_record_id:string};
 const BATCH_SIZE=5;
@@ -38,7 +41,7 @@ export async function prepareConcertObservations(c:Context,job:Job):Promise<bool
  const current=await c.db.from('source_records').select('id,title,source_record_id,source_payload,financing_type').eq('id',job.source_record_id).single();
  if(current.error)throw new CloudFailure('internal');
  if(current.data.financing_type!=='concert')return true;
- const documents=await readPages((from,to)=>c.db.from('source_documents').select('id,mime_type,status,extraction_partial,storage_sha256,extracted_text')
+ const documents=await readPages((from,to)=>c.db.from('source_documents').select('id,mime_type,status,extraction_partial,storage_path,storage_sha256,active_extraction_id,extracted_text,extracted_text_hash,extraction_method,extraction_coverage,quality_flags')
   .eq('source_record_id',job.source_record_id).eq('status','fetched').order('id').range(from,to));
  const all=documents.filter(d=>d.mime_type?.includes('pdf')&&!d.extraction_partial&&d.storage_sha256&&d.extracted_text);
  const seen=new Set<string>();
@@ -87,6 +90,9 @@ export async function prepareConcertObservations(c:Context,job:Job):Promise<bool
   if(program===true)continue;
   let rows:EconomicAnnexLine[]=extractEconomicAnnexRows(document.extracted_text!);
   let columnCoverage:ReturnType<typeof extractColumnAnnexWithCoverage>|null=null;
+  if(!rows.length&&actType==='award'&&currentDocumentTextConsistent(document)&&document.extraction_partial===false&&!document.quality_flags?.some((flag:string)=>['corrupt_text','incomplete_extraction'].includes(flag))&&hasCurrentTextCoverage(document.extraction_method,document.extraction_coverage,document.mime_type,document.extraction_partial)&&hasCurrentConcertAward(publication.title,document.extracted_text!)&&!prior.some(unit=>(unit.document_id===document.id||unit.document_id===null)&&!unit.unit_key.startsWith('official-annex:'))){
+   rows=extractDiagnosticAnnex(document.extracted_text!);
+  }
   if(!rows.length&&!prior.some(unit=>(unit.document_id===document.id||unit.document_id===null)&&!unit.unit_key.startsWith('official-annex:'))){
    const raw=document.extracted_text!.replace(/^## Pàgina \d+\s*$/gm,'\f').replace(/^\f\s*/,'');
    rows=extractConcertAnnexRows(raw).map(row=>({annex:0,page:row.page,row:row.row,nif:row.nif,
