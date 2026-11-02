@@ -281,3 +281,8 @@ test('a verified individual award allows reviewed economics for its current need
  d.units[0]=current;d.publications[0].job_status='error';assert.equal(projection(d).movements[0].status,'pending');
  d.publications[0].job_status='needs_review';d.reviews[0].funder=null;assert.match(projection(d).movements[0].issues.join(' '),/Finançador no acreditat/);
 });
+test('economic review distinguishes missing territory from a verified service and unconfirmed movement amount',()=>{
+ const d=data([{...unit('a'),line_award_state:'current',territory:null}],[{...review('a'),amount_cents:null,amount_kind:'unknown'}]);
+ const issues=projection(d).movements[0].issues.join(' ');
+ assert.match(issues,/Territori pendent/);assert.doesNotMatch(issues,/Servei pendent/);assert.match(issues,/Import del moviment pendent/);
+});

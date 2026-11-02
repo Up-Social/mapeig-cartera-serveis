@@ -84,7 +84,8 @@ export function concertEvolution(data:ConcertEvolutionData,cutoff:string){
   if(!review||!iso(review.effective_at))issues.push('Data d’efectes no acreditada');
   if(!review?.funder?.trim())issues.push('Finançador no acreditat');
   if(!u.storage_sha256||!u.storage_path||!u.page||!u.evidence_quote)issues.push('Font de la línia incompleta');
-  if(!u.service_code||!u.territory)issues.push('Servei o territori pendent de validació');
+  if(!u.service_code)issues.push('Servei pendent de validació');
+  if(!u.territory)issues.push('Territori pendent de validació');
   for(const ancestorId of c.path.slice(1)){
    const ancestor=movements.find(row=>row.unitId===ancestorId);
    if(!ancestor||ancestor.status!=='reviewed')issues.push('Hi ha un acte anterior pendent');
@@ -96,7 +97,7 @@ export function concertEvolution(data:ConcertEvolutionData,cutoff:string){
     const periods=review.annualities;
     if(!['award','renewal'].includes(review.operation)||periods.some(p=>!iso(p.start)||!iso(p.end)||p.start<'2024-01-01'||p.end<p.start||!Number.isSafeInteger(p.amountCents)||p.amountCents<0)||!Number.isSafeInteger(review.amount_cents)||periods.reduce((s,p)=>s+BigInt(p.amountCents),BigInt(0))!==BigInt(review.amount_cents!)||periods.some((p,i)=>periods.some((q,j)=>i!==j&&p.start<=q.end&&p.end>=q.start))||periods.some(p=>p.start<review.period_start!||p.end>review.period_end!))issues.push('Anualitats invàlides, solapades o no conciliades amb el total');
    }
-   if(review.operation!=='nonfinancial'&&(review.amount_cents===null||!Number.isSafeInteger(review.amount_cents)||review.amount_kind==='unknown'))issues.push('Import no acreditat o no vàlid');
+   if(review.operation!=='nonfinancial'&&(review.amount_cents===null||!Number.isSafeInteger(review.amount_cents)||review.amount_kind==='unknown'))issues.push('Import del moviment pendent de contrastar o no vàlid');
    if(review.operation==='award'&&u.act_type!=='award')issues.push('Un canvi no pot duplicar la base');
    if(u.act_type==='award'&&review.operation!=='award')issues.push('La base requereix una adjudicació');
    if(u.act_type==='cession'&&review.operation!=='nonfinancial')issues.push('La cessió no genera finançament');
