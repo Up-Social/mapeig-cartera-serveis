@@ -9,14 +9,15 @@ export async function GET(_request:Request,{params}:{params:Promise<{id:string}>
  const {id}=await params;if(!isUuid(id))return Response.json({error:'Registre no vàlid'},{status:400});
  const db=createServerSupabase();
  try{
-  const [units,observations,reconciliations,corrections,documents]=await Promise.all([
+  const [units,observations,reconciliations,corrections,documents,geography]=await Promise.all([
    readPages((from,to)=>db.from('record_units').select('*').eq('source_record_id',id).neq('unit_key','legacy').order('created_at').order('id').range(from,to)),
    readPages((from,to)=>db.from('concert_line_observations').select('unit_id,proposed_value,applied').eq('source_record_id',id).order('created_at',{ascending:false}).order('id').range(from,to)),
    readPages((from,to)=>db.from('concert_annex_reconciliations').select('id,document_id,document_sha256,annex,row_count,sum_cents,declared_cents,reconciled,coverage').eq('source_record_id',id).order('id').range(from,to)),
    readPages((from,to)=>db.from('current_documented_corrections').select('*').eq('source_record_id',id).order('id').range(from,to)),
    readPages((from,to)=>db.from('source_documents').select('id,extracted_text,quality_flags,storage_sha256,extraction_method,extraction_coverage,mime_type,extraction_partial').eq('source_record_id',id).eq('status','fetched').eq('extraction_partial',false).order('id').range(from,to)),
+   readPages((from,to)=>db.from('current_concert_unit_geography').select('unit_id,municipality,county,province,page,evidence').eq('source_record_id',id).order('unit_id').range(from,to)),
   ]);
-  const withNames=recoverConcertDisplayNames(units,documents.filter(d=>!d.quality_flags?.includes('corrupt_text')));
+  const withNames=recoverConcertDisplayNames(units,documents.filter(d=>!d.quality_flags?.includes('corrupt_text'))).map(unit=>({...unit,geography:geography.find(row=>row.unit_id===unit.id)??null}));
   return Response.json({units:recoverPrintedSupportCandidates(recoverPrintedServiceCandidates(withNames,documents),documents).map(unit=>{const history=observations.filter(row=>row.unit_id===unit.id),latest=history[0],applied=history.find(row=>row.applied);const codeCorrection=corrections.find(c=>c.unit_id===unit.id&&c.field==='service_code');return {...unit,service_code_correction:codeCorrection?{value:codeCorrection.value,valid:codeCorrection.valid,reviewer:codeCorrection.reviewer,reason:codeCorrection.reason,page:codeCorrection.page,document_id:codeCorrection.document_id}:null,effective_service_code:codeCorrection?.valid?codeCorrection.value:unit.observed_service_code,effective_provider_name:corrections.find(c=>c.valid&&c.unit_id===unit.id&&c.field==='provider_name')?.value??unit.provider_name??unit.recovered_provider_name??unit.observed_provider_name,observed_establishment_code:applied?.proposed_value?.resesCode??null,observation:latest?{...applied?.proposed_value,pendingRevision:!latest.applied}:null};}),reconciliations});
  }catch{return Response.json({error:'No s’han pogut consultar les unitats i les revisions'},{status:500});}
 

@@ -1,4 +1,5 @@
 import {prepareProgramObservations} from './program-observations';
+import {storeConcertChangeGeography} from './concert-geography';
 import {readPages} from '../read-pages';
 import {declaredEconomicAnnexTotal,declaredGeneralAnnexTotal,declaredGeneralAnnexQuantity,extractColumnAnnexWithCoverage,extractConcertAnnexRows,extractEconomicAnnexRows,extractProgram317Rows,safeAnnexSum,storedAmountCents,type EconomicAnnexLine} from '../concerts/annex-extraction';
 import {concertActKind,type ConcertPublication} from '../concerts/record-linking';
@@ -63,7 +64,10 @@ export async function prepareConcertObservations(c:Context,job:Job):Promise<bool
     const prior=existing.get(key);
     if(prior){
      if(annexAnchorDrift(prior,row).length||prior.provider_nif!==row.nif||prior.observed_service_code!==row.observedServiceCode||storedAmountCents(prior.amount,true)!==row.amountCents||prior.quantity_delta!==row.quantityDelta)throw new CloudFailure('validation',5,{operation:'concert_change_drift',code:'CONCERT_SOURCE_CHANGED'});
-     if(prior.storage_path)continue;
+     if(prior.storage_path){
+      await storeConcertChangeGeography(c,job.id,prior.id,document,row);
+      continue;
+     }
     }
     const registry=await c.db.from('reses_services').select('county,entities(nif,legal_name)').eq('registry_number',row.resesCode).maybeSingle();
     if(registry.error)throw new CloudFailure('internal');
@@ -72,6 +76,7 @@ export async function prepareConcertObservations(c:Context,job:Job):Promise<bool
     const saved=await c.db.rpc('cloud_stage_concert_change_line',{...lease(c),p_job:job.id,p_document:document.id,p_line:{...row,actType,registeredProviderName,territory:registry.data?.county??null}});
     if(saved.error)throw new CloudFailure('validation',5,{operation:'stage_concert_change',code:saved.error.code??'DATABASE_ERROR'});
     await archiveUnitSource(c.db,job.source_record_id,saved.data as string,verifiedSources);
+    await storeConcertChangeGeography(c,job.id,saved.data as string,document,row);
     staged++;if(staged>=BATCH_SIZE)return false;
    }
    // Changes retain their signed source amount, never become an award annex.
