@@ -16,6 +16,23 @@ export const failureLabels:Record<FailureKind,string>={
 
 /** Fixed, user-facing diagnostics; never copy arbitrary provider details. */
 export function failureMessage(failure:CloudFailure):string {
+ if(failure.diagnostic?.operation==='concert_discard_review'&&failure.diagnostic.code==='EXISTING_PROVIDER_RECEIPT_REVIEW_REQUIRED'){
+  const reasons:Record<string,string>={
+   receipt_not_received:'No s’ha confirmat la resposta d’una petició anterior de la IA. Cal comprovar-ne el resultat abans de repetir-la.',
+   unsupported_receipt_phase:'Hi ha una resposta anterior de la IA que no es pot vincular a una fase reconeguda del procés. Cal revisar-ne la traçabilitat.',
+   invalid_receipt_usage:'La resposta de la IA no inclou un consum vàlid. Cal confirmar-lo abans de continuar.',
+   usage_missing:'S’ha rebut la resposta de la IA, però falta registrar-ne el consum. Cal completar la conciliació abans de continuar.',
+   usage_mismatch:'El consum registrat no coincideix amb el de la resposta de la IA. Cal contrastar tots dos registres abans de continuar.',
+   reservation_missing:'S’ha rebut la resposta de la IA, però no s’ha trobat la reserva de pressupost corresponent. Cal revisar-la abans de continuar.',
+   settlement_pending:'S’ha rebut la resposta de la IA, però el seu cost encara està pendent de liquidar. Cal conciliar la reserva abans de continuar.',
+   unsupported_pricing:'No es pot verificar la tarifa aplicada a una resposta anterior de la IA. Cal revisar-ne el cost abans de continuar.',
+   settlement_mismatch:'El cost liquidat no coincideix amb el consum i la tarifa de la petició. Cal revisar la diferència abans de continuar.',
+   orphan_reservation:'Hi ha una reserva de pressupost sense una resposta de la IA vinculada. Cal comprovar si la petició es va executar abans de repetir-la.',
+   orphan_usage:'Hi ha consum registrat sense una resposta de la IA vinculada. Cal revisar-ne la traçabilitat abans de continuar.',
+  };
+  const detail=failure.diagnostic.details;
+  if(detail&&typeof detail==='object'&&'reason' in detail&&typeof detail.reason==='string'&&Object.hasOwn(reasons,detail.reason))return reasons[detail.reason];
+ }
  const messages:Record<string,string>={
   PROVIDER_UNKNOWN_RESOURCE_RELEASE_UNCONFIRMED:'El resultat del proveïdor i l’alliberament del recurs no es poden confirmar. Cal revisar-los abans de reprendre.',
   PROVIDER_RESOURCE_RELEASE_UNCONFIRMED:'No es pot confirmar l’alliberament del recurs de la IA. Cal revisar-ne l’estat i el resultat abans de reprendre.',

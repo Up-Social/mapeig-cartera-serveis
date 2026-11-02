@@ -27,7 +27,7 @@ test('role exclusions remain pending and Concert retains its provider receipt fe
  assert.equal(requiresConcertScopeDiscardFence('contractacio',rules),false);
  assert.equal(requiresConcertScopeDiscardFence('concert',{classification:'insufficient_evidence',rule_audit:{rule:'unknown_determinant_role'}}),false);
  assert.equal(requiresConcertScopeDiscardFence('concert',{classification:'discarded'}),true);
- const makeDb=(receipt:string|null)=>({from:()=>{let filter:string|null=null;const q={select:()=>q,eq:()=>q,like:()=>q,contains:(_field:string,value:{state:string})=>{filter=value.state;return q;},limit:async()=>({data:receipt&&(filter===receipt||filter===null)?[{item_key:'ai:fixture:matching'}]:[],error:null})};return q;}} as unknown as CloudDb);
+ const makeDb=(receipt:string|null)=>({from:(table:string)=>{let filter:string|null=null;const result=()=>({data:table==='cloud_checkpoints'&&receipt&&(filter===receipt||filter===null)?[{item_key:'ai:fixture:matching',state:receipt}]:[],error:null});const q={select:()=>q,eq:()=>q,like:()=>q,order:()=>q,contains:(_field:string,value:{state:string})=>{filter=value.state;return q;},limit:async()=>result(),range:async()=>result()};return q;}} as unknown as CloudDb);
  await assert.rejects(()=>assertNoProviderReceiptsForConcertReview(makeDb('sending'),'task'),(error:unknown)=>error instanceof CloudFailure&&error.kind==='provider_unknown');
  await assert.rejects(()=>assertNoProviderReceiptsForConcertReview(makeDb('unknown'),'task'),(error:unknown)=>error instanceof CloudFailure&&error.kind==='provider_unknown');
  await assert.rejects(()=>assertNoProviderReceiptsForConcertReview(makeDb('received'),'task'),(error:unknown)=>error instanceof CloudFailure&&error.kind==='provider_reconciliation');
