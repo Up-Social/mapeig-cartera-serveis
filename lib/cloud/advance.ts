@@ -1,4 +1,4 @@
-import {isConcertRefreshNavigationDocument} from '../concerts/refresh-policy';
+import {isConcertRefreshNavigationDocument,isConfirmedConcertNavigationShell} from '../concerts/refresh-policy';
 import {preflightConveni} from '../convenis/process';
 import {cloudConveniOptions} from './conveni-conflict';
 import {EXTRACTION_VERSION} from '../pipeline/readable-document';
@@ -60,7 +60,7 @@ async function advanceClaimed(c:Context,workflow:string):Promise<{done:boolean;w
    failureStage='document_extraction';
    const docs:{data:Array<{id:string;url:string;status:string;chunk_count:number;extraction_version:string|null;extraction_method:string|null;extraction_coverage:unknown;extraction_partial:boolean|null;quality_score:number|null;quality_flags:string[]|null;mime_type:string|null;document_type:string|null;storage_sha256:string|null;storage_path:string|null;active_extraction_id:string|null;extracted_text_hash:string|null}>}={data:[]};
    for(let offset=0;;offset+=200){
-    const page=await db.from('source_documents').select('id,url,status,chunk_count,extraction_version,extraction_method,extraction_coverage,extraction_partial,quality_score,quality_flags,mime_type,document_type,storage_sha256,storage_path,active_extraction_id,extracted_text_hash').eq('source_record_id',job.source_record_id).order('id').range(offset,offset+199);
+    const page=await db.from('source_documents').select('id,url,status,chunk_count,extraction_version,extraction_method,extraction_coverage,extraction_partial,quality_score,quality_flags,mime_type,document_type,source_fields,storage_sha256,storage_path,active_extraction_id,extracted_text_hash').eq('source_record_id',job.source_record_id).order('id').range(offset,offset+199);
     if(page.error)throw Error();docs.data.push(...page.data);if(page.data.length<200)break;
    }
    if(!docs.data.length)throw new CloudFailure('document');
@@ -73,7 +73,8 @@ async function advanceClaimed(c:Context,workflow:string):Promise<{done:boolean;w
    const recovery=run.data?.parameters?.targeted_ocr;
    const refreshSources=run.data?.parameters?.concert_refresh_sources===true;
    if(refreshSources){
-    docs.data=docs.data.filter(doc=>!isConcertRefreshNavigationDocument(doc));
+    const navigation=await Promise.all(docs.data.map(async doc=>isConcertRefreshNavigationDocument(doc)||await isConfirmedConcertNavigationShell(doc)));
+    docs.data=docs.data.filter((_,index)=>!navigation[index]);
     if(!docs.data.length)throw new CloudFailure('document',5,{operation:'document_refresh',code:'CONCERT_SOURCE_REFRESH_FAILED'});
     completedDocuments=0;
    }
