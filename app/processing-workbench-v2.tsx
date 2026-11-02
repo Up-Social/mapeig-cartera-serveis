@@ -19,6 +19,7 @@ import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import {
   isRecordOperationTerminal,
+  recordOperationNeedsAttention,
   type RecordOperation,
 } from "@/lib/record-operation";
 import type {CloudResourceBlock} from '@/lib/batch-types';
@@ -392,7 +393,7 @@ export function RecordStages({
           disabled={busy||cloudBlocked||record.operationProgress?.state === 'incident'}
           onClick={() => run("process", () => startRecordOperation(record.id, "process"))}
         >
-          {displayedOperation === "process" ? "Processant..." : cloudBlocked ? "Processament no disponible" : record.status === "error" ? "Tornar a processar" : "Processar"}
+          {displayedOperation === "process" ? "Processant..." : cloudBlocked ? "Processament no disponible" : recordOperationNeedsAttention(record) || record.status === "error" ? "Tornar a processar" : "Processar"}
         </Button>
       )}
       {cloudBlocked&&!record.analysis&&!record.matchingCandidates.length&&<p className="mt-2 text-xs text-muted-foreground">No es poden iniciar operacions des d’aquest entorn mentre l’execució estigui desactivada o bloquejada.</p>}

@@ -1,10 +1,10 @@
 import {normalizeConveni} from './convenis/contract';
+import {currentDocumentTextConsistent} from './concerts/document-text-integrity';
 import {effectiveJobs} from './effective-jobs';
+import {projectLatestCandidates} from './candidate-projection';
 import {textDefects} from './pipeline/readable-document';
-import officialSnapshot from '../data/legal/cartera.json';
-import {eligibleServices,type OfficialService} from './official-catalog';
-const officialByCode=new Map(eligibleServices(officialSnapshot.services as OfficialService[]).map(s=>[s.service_code,s]));
 import {latestAnalysis} from './latest-analysis';
+import {isRecipientReviewContainer} from './analysis-contract';
 import "server-only";
 import { createClient } from "@supabase/supabase-js";
 import {assertTestEnvironment} from './test-environment';
@@ -111,9 +111,10 @@ export function mapRecord(row: Record<string, unknown>): SourceRecord {
   const jobs=Array.isArray(row.pipeline_jobs)?[...row.pipeline_jobs].sort((a,b)=>String(b.created_at).localeCompare(String(a.created_at))||String(b.id).localeCompare(String(a.id))):[];
   const reviews=Array.isArray(row.review_decisions)?row.review_decisions.filter(r=>r.pipeline_job_id===jobs[0]?.id):[];
   const analysis=latestAnalysis(row.pipeline_jobs);
-  const rawCandidates=mapLatestCandidates(row.pipeline_jobs);
-  const unreliable=analysis?.reliability_status==='invalidated'||rawCandidates.some(candidate=>candidate.score<=0);
-  const visibleAnalysis=analysis&&unreliable?{...analysis,reliability_status:'invalidated' as const,reliability_reasons:[...new Set([...(analysis.reliability_reasons??[]),'non_positive_confidence'])]}:analysis;
+  const {candidates:rawCandidates,observations,invalidScoreReason}=projectLatestCandidates(row.pipeline_jobs);
+  const unreliable=analysis?.reliability_status==='invalidated'||!!invalidScoreReason;
+  const visibleAnalysis=analysis&&invalidScoreReason?{...analysis,reliability_status:'invalidated' as const,reliability_reasons:[...new Set([...(analysis.reliability_reasons??[]),invalidScoreReason])]}:analysis;
+  const partialUnitReview=row.financing_type==='conveni'&&jobs[0]?.status==='needs_review'&&isRecipientReviewContainer(analysis);
   return {
     currentJobId: jobs[0]?.id ?? null,
     currentJobStatus: jobs[0]?.status ?? null,
@@ -121,7 +122,7 @@ export function mapRecord(row: Record<string, unknown>): SourceRecord {
     id: String(row.id), sourceDataset: String(row.source_dataset), financingType: row.financing_type as SourceRecord["financingType"], sourceRecordId: String(row.source_record_id),
     mechanism: String(row.mechanism), title: String(row.title),
     providerName: row.provider_name == null ? null : String(row.provider_name),
-    amount: row.financing_type==='conveni' ? ((v)=>v===null?null:v/100)(normalizeConveni((row.source_payload??{}) as Record<string,unknown>).publicCents) : row.amount == null ? null : Number(row.amount), status: row.processing_status as ProcessingStatus,
+    amount: row.financing_type==='conveni' ? ((v)=>v===null?null:v/100)(normalizeConveni((row.source_payload??{}) as Record<string,unknown>).publicCents) : row.amount == null ? null : Number(row.amount), contractVerifiedAward:row.contract_verified_award==null?null:Number(row.contract_verified_award), status: row.processing_status as ProcessingStatus,
     carteraCode: row.cartera_code == null ? null : String(row.cartera_code),
     carteraName: row.cartera_name == null ? null : String(row.cartera_name),
     confidence: row.confidence == null ? null : Number(row.confidence),
@@ -138,7 +139,7 @@ export function mapRecord(row: Record<string, unknown>): SourceRecord {
       const item = document as Record<string, unknown>;
       const defects=textDefects(String(item.extracted_text ?? item.text_preview ?? ""));
       return {
-        revision:`${item.storage_sha256??''}:${item.active_extraction_id??''}`,id: String(item.id), url: String(item.url), documentType: String(item.document_type),
+        revision:`${item.storage_sha256??''}:${item.active_extraction_id??''}`,currentTextConsistent:currentDocumentTextConsistent(item),id: String(item.id), url: String(item.url), documentType: String(item.document_type),
         archived: Boolean(item.storage_path),
         resolution: item.resolution as SourceRecord['sourceDocuments'][number]['resolution'],
         sourceFields: Array.isArray(item.source_fields) ? item.source_fields.map(String) : [],
@@ -148,6 +149,8 @@ export function mapRecord(row: Record<string, unknown>): SourceRecord {
         textPreview: item.text_preview == null ? null : String(item.text_preview),
         textLength: item.text_length == null ? null : Number(item.text_length),
         extractionMethod: item.extraction_method == null ? null : String(item.extraction_method),
+        extractionPartial: typeof item.extraction_partial==='boolean'?item.extraction_partial:null,
+        extractionCoverage: item.extraction_coverage??null,
         qualityScore: defects.includes("corrupt_text") ? 0 : item.quality_score == null ? null : Number(item.quality_score),
         qualityFlags: [...new Set([...(Array.isArray(item.quality_flags) ? item.quality_flags.map(String) : []),...defects])],
         chunkCount: Number(item.chunk_count ?? 0),
@@ -155,11 +158,12 @@ export function mapRecord(row: Record<string, unknown>): SourceRecord {
     }).sort((a,b)=>Number(b.documentType==='technical_specifications')-Number(a.documentType==='technical_specifications')) : [],
     analysis:visibleAnalysis,
     matchingCandidates: unreliable?[]:rawCandidates,
+    unverifiedCandidateObservations: unreliable?[]:observations,
     matchingError: mapLatestMatchingError(row.pipeline_jobs),
-    reviewDecision: mapReviewDecision(reviews),
-    reviewActor: mapLatestReview(reviews)?.actor ?? null,
-    reviewReason: mapLatestReview(reviews)?.reason ?? null,
-    reviewedAt: mapLatestReview(reviews)?.createdAt ?? null,
+    reviewDecision: partialUnitReview?null:mapReviewDecision(reviews),
+    reviewActor: partialUnitReview?null:mapLatestReview(reviews)?.actor ?? null,
+    reviewReason: partialUnitReview?null:mapLatestReview(reviews)?.reason ?? null,
+    reviewedAt: partialUnitReview?null:mapLatestReview(reviews)?.createdAt ?? null,
     updatedAt: row.updated_at == null ? null : String(row.updated_at),
     pipelineRunId: mapLatestRun(row.pipeline_jobs)?.id ?? null,
     batchNumber: mapLatestRun(row.pipeline_jobs)?.number ?? null,
@@ -168,32 +172,8 @@ export function mapRecord(row: Record<string, unknown>): SourceRecord {
   };
 }
 
-export function mapLatestCandidates(value: unknown): SourceRecord["matchingCandidates"] {
-  if (!Array.isArray(value)) return [];
-  const jobs = [...value].map((job) => job as Record<string, unknown>).sort((a, b) => String(b.created_at).localeCompare(String(a.created_at))||String(b.id).localeCompare(String(a.id)));
-  const latest = jobs[0];
-  if (!latest || !Array.isArray(latest.matching_candidates)) return [];
-  return latest.matching_candidates.filter(candidate => officialByCode.has(String((candidate as Record<string,unknown>).target_code))).map((candidate) => {
-    const item = candidate as Record<string, unknown>;
-    const links = Array.isArray(item.matching_candidate_evidence) ? item.matching_candidate_evidence : [];
-    return {
-      id: String(item.id), pipelineJobId: String(item.pipeline_job_id), rank: Number(item.rank), targetCode: String(item.target_code), targetName: String(item.target_name),
-      score: Number(item.score), rationale: String(item.rationale), model: String(item.engine_version),
-      serviceDetail: {sectorScope:officialByCode.get(String(item.target_code))?.target_population??null,portfolioStatus:"Dentro"},
-      catalogVersionId: String(item.catalog_version_id ?? ""),
-      legalReference:officialByCode.get(String(item.target_code))?.legal_reference,
-      evidence: links.flatMap((link) => {
-        const relation = link as Record<string, unknown>;
-        const chunk = relation.evidence_chunks;
-        if (!chunk || typeof chunk !== "object") return [];
-        const evidence = chunk as Record<string, unknown>;
-        return [{ ordinal: Number(evidence.ordinal), content: String(evidence.content), explanation: relation.explanation == null ? null : String(relation.explanation) }];
-      }).sort((a, b) => a.ordinal - b.ordinal),
-    };
-  }).sort((a, b) => a.rank - b.rank);
-}
 
-export const RECORD_SELECT = "*,source_documents(id,url,resolution,document_type,source_fields,status,mime_type,storage_path,storage_sha256,active_extraction_id,extracted_text,text_preview,text_length,extraction_method,quality_score,quality_flags,chunk_count),record_enrichments(extracted_title,provider_name,provider_nif,mechanism,award_date,amount,contracting_body,target_population,summary,confidence,engine_version,record_enrichment_evidence(evidence_chunks(ordinal,content))),review_decisions(id,pipeline_job_id,classification,reasons,decision,reason,reviewer,created_at),pipeline_jobs(id,run_id,status,error_message,created_at,verification_only,analysis_results(*),pipeline_runs(batch_number,parameters),matching_candidates(id,pipeline_job_id,catalog_version_id,rank,target_code,target_name,score,rationale,engine_version,matching_candidate_evidence(explanation,evidence_chunks(ordinal,content))))";
+export const RECORD_SELECT = "*,contract_verified_award,source_documents(id,url,resolution,document_type,source_fields,status,mime_type,storage_path,storage_sha256,active_extraction_id,extracted_text,extracted_text_hash,text_preview,text_length,extraction_method,extraction_partial,extraction_coverage,quality_score,quality_flags,chunk_count),record_enrichments(extracted_title,provider_name,provider_nif,mechanism,award_date,amount,contracting_body,target_population,summary,confidence,engine_version,record_enrichment_evidence(evidence_chunks(ordinal,content))),review_decisions(id,pipeline_job_id,classification,reasons,decision,reason,reviewer,created_at),pipeline_jobs(id,run_id,status,error_message,created_at,verification_only,analysis_results(*),pipeline_runs(batch_number,parameters),matching_candidates(id,pipeline_job_id,catalog_version_id,rank,target_code,target_name,score,rationale,engine_version,matching_candidate_evidence(explanation,evidence_chunks(ordinal,content))))";
 
 function mapLatestRun(value: unknown) {
   if (!Array.isArray(value) || !value.length) return null;

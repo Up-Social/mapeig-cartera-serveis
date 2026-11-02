@@ -1,5 +1,7 @@
 # Clasificación normativa y servicios finales
 
+> Revisió documental 28/10/2026: consulteu [l’estat i els límits actualitzats](ESTADO_ACTUAL_2026_10_28.md). Els resultats i recomptes datats d’aquest document són històrics; el codi i les migracions prevalen en cas de discrepància.
+
 ## Referencia y alcance
 
 Se utiliza el texto consolidado de consulta del Decret 142/2010 obtenido del Portal Jurídic, documento 557820, versión 2164168, fecha 2026-07-14. El propio portal indica que la consolidación no tiene carácter oficial: las publicaciones del DOGC son la fuente normativa oficial. La procedencia, URL de publicación original, enlaces de descarga y lista de afectaciones están en `data/legal/cartera.json`; el texto completo convertido está en `data/legal/cartera.md`.

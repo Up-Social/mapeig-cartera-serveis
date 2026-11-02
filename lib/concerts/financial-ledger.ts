@@ -77,10 +77,17 @@ export function projectConcertBalances(lines:ConcertFinancialLine[]):ConcertBala
 
 /** Annual breakdown wins over the displayed total. Unallocated totals remain one period. */
 export function allocatePlurianual(totalCents:number|null,annualities:Array<{year:number;amountCents:number}>):{rows:Array<{period:string;amountCents:number|null}>;issues:string[]}{
- if(!annualities.length)return {rows:[{period:'plurianual',amountCents:totalCents}],issues:totalCents===null?['Import total no acreditat.']:[]};
  const issues:string[]=[];
+ if(totalCents!==null&&(!Number.isSafeInteger(totalCents)||totalCents<0))issues.push('Import total no vàlid.');
+ if(!annualities.length)return {rows:[{period:'plurianual',amountCents:totalCents}],issues:totalCents===null?['Import total no acreditat.']:issues};
  if(new Set(annualities.map(row=>row.year)).size!==annualities.length)issues.push('Anualitat repetida.');
- if(annualities.some(row=>!Number.isSafeInteger(row.amountCents)||row.amountCents<0))issues.push('Anualitat amb import no vàlid.');
- if(totalCents!==null&&annualities.reduce((sum,row)=>sum+row.amountCents,0)!==totalCents)issues.push('La suma de les anualitats no coincideix amb el total del document.');
+ if(annualities.some(row=>!Number.isInteger(row.year)))issues.push('Any de l’anualitat no vàlid.');
+ const invalid=annualities.some(row=>!Number.isSafeInteger(row.amountCents)||row.amountCents<0);
+ if(invalid)issues.push('Anualitat amb import no vàlid.');
+ if(!invalid){
+  const sum=annualities.reduce((value,row)=>value+BigInt(row.amountCents),BigInt(0));
+  if(sum>BigInt(Number.MAX_SAFE_INTEGER))issues.push('La suma de les anualitats supera la precisió segura.');
+  if(totalCents!==null&&Number.isSafeInteger(totalCents)&&sum!==BigInt(totalCents))issues.push('La suma de les anualitats no coincideix amb el total del document.');
+ }
  return {rows:annualities.map(row=>({period:String(row.year),amountCents:row.amountCents})),issues};
 }

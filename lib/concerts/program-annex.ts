@@ -1,6 +1,7 @@
 import {allocateByWeights} from './evolution';
+import {parseEuroCents,safeAnnexSum} from './annex-extraction';
 export type ProgramLine={page:number;row:number;nif:string;resesCode:string;dispositionNumber:string;position:string;quote:string;observedProviderName:string|null;observedServiceName:string|null;municipality:string|null;quantity:number|null;amountCents:number|null;annualCostCents:number|null;dispositionCents:number|null;amountBasis:'direct'|'allocated'|'unknown';modality:string|null};
-const money=(s:string)=>{const v=s.match(/(-?[\d.]+,\d{2})\s*€/);return v?Math.round(Number(v[1].replaceAll('.','').replace(',','.'))*100):null;};
+const money=(s:string)=>{const v=s.match(/(-?[\d.]+,\d{2})\s*€/);return v?parseEuroCents(v[1]):null;};
 /** An amendment may reproduce the final annex after an old/new comparison.
  * Read the expressly reproduced annex once; never add the comparison tables to it. */
 export function programDocumentScope(text:string):string {
@@ -76,8 +77,10 @@ export function extractProgramAnnex(text:string):ProgramLine[]{
     // Repeated tariff/quantity components belong to the preceding RESES, including across pages.
     const extra=line.match(/(?:^|\s)(\d+)\s+([\d.]+,\d{2}\s*€)\s+[\d.]+,\d{2}\s*€\s*$/),last=result.at(-1);
     if(last&&extra&&identity){
-     last.annualCostCents=(last.annualCostCents??0)+money(extra[2])!;
-     last.quantity=(last.quantity??0)+Number(extra[1]);
+     const extraCost=money(extra[2]),extraQuantity=Number(extra[1]);
+     last.annualCostCents=last.annualCostCents===null||extraCost===null?null:safeAnnexSum([last.annualCostCents,extraCost]);
+     const totalQuantity=last.quantity===null?null:last.quantity+extraQuantity;
+     last.quantity=totalQuantity!==null&&Number.isSafeInteger(totalQuantity)?totalQuantity:null;
      last.quote=text.slice(identity?.quoteStart??0,absolute+lines.slice(0,i+1).join('\n').length).trim().replace(/\s+/g,' ');
     }
     continue;
@@ -129,16 +132,17 @@ export function programCoverage(text:string,rows:ProgramLine[]){
 export function programDeclaredTotal(text:string,rows:ProgramLine[]):number|null{
  const scoped=programDocumentScope(text);
  const totals=[...scoped.matchAll(/\bTotal\s+(?:general\s+)?([\d.]+,\d{2})\s*€/gi)];
- const sum=rows.reduce((n,r)=>n+(r.amountCents??0),0);
- if(!rows.length||rows.some(r=>r.amountCents===null))return null;
- const value=(match:RegExpMatchArray)=>Math.round(Number(match[1].replaceAll('.','').replace(',','.'))*100);
+ const sum=safeAnnexSum(rows.map(row=>row.amountCents));
+ if(!rows.length||sum===null||rows.some(r=>r.amountCents===null))return null;
+ const value=(match:RegExpMatchArray)=>parseEuroCents(match[1]);
+ if(totals.some(total=>value(total)===null))return null;
  if(totals.some(match=>value(match)===sum))return sum;
  if(totals.length<2)return null;
  let offset=0,combined=0;const partitioned:ProgramLine[]=[];
  for(const total of totals){
   const section=scoped.slice(offset,total.index),part=extractProgramAnnex(section);
-  if(!part.length||!programCoverage(section,part).complete||part.some(r=>r.amountCents===null)||part.reduce((n,r)=>n+r.amountCents!,0)!==value(total))return null;
-  partitioned.push(...part);combined+=value(total);offset=total.index!+total[0].length;
+  if(!part.length||!programCoverage(section,part).complete||part.some(r=>r.amountCents===null)||safeAnnexSum(part.map(r=>r.amountCents))!==value(total))return null;
+  partitioned.push(...part);const next=safeAnnexSum([combined,value(total)]);if(next===null)return null;combined=next;offset=total.index!+total[0].length;
  }
  const identity=(r:ProgramLine)=>[r.page,r.nif,r.resesCode,r.dispositionNumber,r.position,r.amountCents].join(':');
  if(combined!==sum||partitioned.map(identity).sort().join('|')!==rows.map(identity).sort().join('|'))return null;

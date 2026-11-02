@@ -32,11 +32,11 @@ begin
  if exists(select 1 from cloud_checkpoints where task_id=match_task and item_key like '%:complete') then raise exception 'Completion checkpoint leaked into matching';end if;
  if not exists(select 1 from cloud_budget_reservations where task_id=match_task and reserved_usd=0 and actual_usd=0) then raise exception 'Reused provider cost was counted twice';end if;
  update worker_tasks set status='completed',completed_at=now() where id=match_task;
- claim:=claim_provider_call((result->>'jobId')::uuid,'matching','hash');
+ claim:=claim_provider_call((result->>'jobId')::uuid,'matching','prepared-json-v1:'||repeat('0',64));
  begin
-  perform claim_provider_call((result->>'jobId')::uuid,'matching','hash');raise exception 'Unknown request retried';
+  perform claim_provider_call((result->>'jobId')::uuid,'matching','prepared-json-v1:'||repeat('0',64));raise exception 'Unknown request retried';
  exception when others then if sqlerrm<>'PROVIDER_UNKNOWN' then raise;end if;end;
  update provider_calls set state='received',response='{"id":"receipt"}' where id=(claim->>'id')::uuid;
- claim:=claim_provider_call((result->>'jobId')::uuid,'matching','hash');
+ claim:=claim_provider_call((result->>'jobId')::uuid,'matching','prepared-json-v1:'||repeat('0',64));
  if (claim->>'send')::boolean or claim->'response'->>'id'<>'receipt' then raise exception 'Receipt not resumed';end if;
 end $$;

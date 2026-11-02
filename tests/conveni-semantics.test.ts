@@ -4,7 +4,7 @@ import {conveniCitationDiagnostics,conveniUnitCollisions,conveniFundingDiagnosti
 import {ConveniValidationError} from '../lib/convenis/diagnostics';
 import {resolveConveniServices,serviceReference} from '../lib/convenis/semantics';
 import {resolveConveniCitations,indexConveniCitations} from '../lib/convenis/citations';
-const evidence={document_id:'doc',page:2,quote:'El projecte es dura a terme amb coordinació amb els Serveis Socials Bàsics.'};
+const evidence={document_id:'doc',page:2,quote:'L’Entitat sintètica amb NIF G12345678 durà a terme el projecte amb coordinació amb els Serveis Socials Bàsics.'};
 const docs=[{id:'doc',storage_sha256:'hash',extracted_text:`## Pàgina 2\n${evidence.quote}`}];
 const unit:ConveniUnit={key:'',recipient:'Entitat sintètica',recipient_nif:'G12345678',recipient_nature:'private',period:'2025',year:2025,amount_cents:10000,amount_state:'planned',joint:false,mixed:false,financiers:['Ajuntament'],territory:'Vic',classification:'in_portfolio',service_code:'1.1.1',population:'Persones en risc social',description:'Atenció social',explanation:'Proposta pendent de revisió',reason:null,evidence:[evidence],blockers:[],social_assessment:{status:'social',explanation:'Prestació social documentada',evidence:[evidence]}};
 const bundle=(units=[unit]):ConveniAnalysis=>({actors:[{name:unit.recipient,nif:unit.recipient_nif,nature:'private',roles:['recipient'],evidence:[evidence]}],units,instrument_grant:true,coverage_complete:true,unallocated_cents:0,summary:'Fixture de comprovació'});
@@ -30,10 +30,12 @@ test('same recipient and period with different concepts is an unresolved collisi
  const units=[{...unit,amount_cents:10500000,mixed:true},{...unit,amount_cents:1400000}];
  const issues=conveniUnitCollisions(units);assert.equal(issues.length,1);assert.equal(issues[0].code,'CONVENI_RECIPIENT_PERIOD_COLLISION');
  assert.deepEqual(issues[0].units?.map(u=>u.amount_cents),[10500000,1400000]);
- assert.throws(()=>validate(bundle(units)),ConveniValidationError);assert.equal(units.length,2);
+ const result=validate(bundle(units));assert.equal(result.units.length,1);assert.equal(result.units[0].amount_cents,null);
+ assert.deepEqual(result.units[0].concepts?.map(u=>u.amount_cents),[10500000,1400000]);
+ assert.ok(result.diagnostics?.some(d=>d.code==='CONVENI_RECIPIENT_PERIOD_COLLISION'));assert.equal(units.length,2);
 });
 test('quote diagnostics identify field and page without treating an OCR accent difference as a literal quote',()=>{
- const quote=evidence.quote.replace('dura','durà');
+ const quote=evidence.quote.replace('durà','dura');
  const a=bundle([{...unit,evidence:[{...evidence,quote}]}]);const issues=conveniCitationDiagnostics(a,docs);
  assert.equal(issues.length,1);assert.equal(issues[0].field,'units[0].evidence[0]');assert.equal(issues[0].page,2);assert.equal(issues[0].quote,quote);
  assert.equal(issues[0].code,'CONVENI_CITATION_DIACRITIC_VARIANT');assert.equal(issues[0].requiresVisualReview,true);
@@ -49,7 +51,10 @@ test('identity collisions do not hide an independently missing financial row',()
  const a=bundle([{...unit,amount_cents:10500000},{...unit,amount_cents:1400000},{...unit,recipient:'Altres receptors',amount_cents:45126400}]);
  const payload={'Total aportacions previstes Generalitat':578000,'Total aportacions previstes ens locals':0};
  const [gap]=conveniFundingDiagnostics(a,payload);assert.equal(gap.difference_cents,773600);assert.equal(gap.allocated_cents,57026400);
- assert.throws(()=>validateConveni(a,payload,docs,new Set(['1.1.1'])),(e:unknown)=>e instanceof ConveniValidationError&&e.diagnostics.some(d=>d.code==='CONVENI_RECIPIENT_PERIOD_COLLISION')&&e.diagnostics.some(d=>d.difference_cents===773600));
+ const result=validateConveni(a,payload,docs,new Set(['1.1.1']));
+ assert.ok(result.diagnostics?.some(d=>d.code==='CONVENI_RECIPIENT_PERIOD_COLLISION'));
+ assert.ok(result.diagnostics?.some(d=>d.difference_cents===773600));
+ assert.equal(result.units[0].amount_cents,null);assert.ok(result.units[0].blockers.includes('reconciliation'));
  assert.equal(a.unallocated_cents,0); // Never invent a residual to make it balance.
 });
 test('financial totals cannot exceed exact integer cents through aggregate overflow',()=>{
@@ -63,4 +68,41 @@ test('documented recipient aliases can share NIF, but NIF alone or contradictory
  const conflicting=structuredClone(a);conflicting.actors.push({...a.actors[0],nature:'public'});assert.ok(validate(conflicting).units[0].blockers.includes('unknown_recipient'));
  const different=bundle();different.actors[0].nif='G87654321';assert.ok(validate(different).units[0].blockers.includes('unknown_recipient'));
  const signerOnly=structuredClone(a);signerOnly.actors[0].roles=['signatory'];assert.ok(validate(signerOnly).units[0].blockers.includes('unknown_recipient'));
+});
+
+test('matching model actor and NIF cannot establish an identity absent from all cited text',()=>{
+ const quote='L’ajuntament aporta cent euros al servei sense identificar cap entitat receptora.';
+ const evidenceOnly={document_id:'d',page:1,quote};
+ const candidate={...unit,evidence:[evidenceOnly],social_assessment:{...unit.social_assessment!,evidence:[evidenceOnly]}};
+ const a=bundle([candidate]);a.actors[0].evidence=[evidenceOnly];
+ const result=validateConveni(a,{'Total aportacions previstes Generalitat':100,'Total aportacions previstes ens locals':0},[{id:'d',storage_sha256:'h',extracted_text:`## Pàgina 1\n${quote}`}],new Set(['1.1.1']),{requireSemanticAssessment:true});
+ assert.ok(result.units[0].blockers.includes('unverified_identity'));
+});
+
+test('recipient identity requires whole name and NIF boundaries, including Unicode letters',()=>{
+ const check=(quote:string,recipient='Entitat sintètica')=>{
+  const cited={document_id:'d',page:1,quote};
+  const candidate={...unit,recipient,evidence:[cited],social_assessment:{...unit.social_assessment!,evidence:[cited]}};
+  const a=bundle([candidate]);a.actors[0]={...a.actors[0],name:recipient,evidence:[cited]};
+  return validateConveni(a,{'Total aportacions previstes Generalitat':100,'Total aportacions previstes ens locals':0},[{id:'d',storage_sha256:'h',extracted_text:`## Pàgina 1\n${quote}`}],new Set(['1.1.1']),{requireSemanticAssessment:true}).units[0].blockers;
+ };
+ for(const quote of [
+  'Entitat sintètica amb NIF G123456789 presta un servei social acreditat.',
+  'Entitat sintètica amb NIF AG12345678 presta un servei social acreditat.',
+  'Entitat sintètica amb NIF G12345678À presta un servei social acreditat.',
+  'Entitat sintèticaX amb NIF G12345678 presta un servei social acreditat.',
+ ])assert.ok(check(quote).includes('unverified_identity'),quote);
+ assert.ok(!check('Entitat sintètica amb NIF G-12345678 presta un servei social acreditat.').includes('unverified_identity'));
+});
+
+test('a recipient actor can independently cite identity, but an unrelated or invalid actor cannot',()=>{
+ const service={document_id:'d',page:1,quote:'Presta un servei social a les persones del municipi.'};
+ const identity={document_id:'d',page:1,quote:'Entitat sintètica amb NIF G12345678 signa el conveni.'};
+ const candidate={...unit,evidence:[service],social_assessment:{...unit.social_assessment!,evidence:[service]}};
+ const a=bundle([candidate]);a.actors[0].evidence=[identity];
+ const check=()=>validateConveni(a,{'Total aportacions previstes Generalitat':100,'Total aportacions previstes ens locals':0},[{id:'d',storage_sha256:'h',extracted_text:`## Pàgina 1\n${service.quote}\n${identity.quote}`}],new Set(['1.1.1']),{requireSemanticAssessment:true}).units[0].blockers;
+ assert.ok(!check().includes('unverified_identity'));
+ for(const change of [{name:'Altra entitat'},{nif:'G87654321'},{roles:['signatory'] as ('signatory')[]},{nature:'public' as const}]){
+  const old=a.actors[0];a.actors[0]={...old,...change};assert.ok(check().includes('unverified_identity'));a.actors[0]=old;
+ }
 });

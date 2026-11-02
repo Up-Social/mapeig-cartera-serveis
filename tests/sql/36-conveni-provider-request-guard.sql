@@ -1,0 +1,37 @@
+do $$
+declare sid uuid:=gen_random_uuid();rid uuid;j uuid;j2 uuid;call jsonb;
+begin
+ insert into source_records(id,source_dataset,source_record_id,mechanism,title) values(sid,'convenis',sid::text,'Conveni','Conveni sintètic');
+ insert into pipeline_runs default values returning id into rid;
+ insert into pipeline_jobs(run_id,source_record_id,status) values(rid,sid,'ready') returning id into j;
+ call:=claim_provider_call(j,'conveni','prepared-json-v1:'||repeat('2',64));
+ begin perform claim_provider_call(j,'conveni','prepared-json-v1:'||repeat('3',64));raise exception 'TEST: uncertain call was repeated';
+ exception when raise_exception then if sqlerrm<>'PROVIDER_UNKNOWN' then raise;end if;end;
+ update provider_calls set state='received',response='{"result":"fixture"}' where id=(call->>'id')::uuid;
+ if (claim_provider_call(j,'conveni','prepared-json-v1:'||repeat('2',64))->>'send')::boolean then raise exception 'Matching receipt was not reused';end if;
+ begin perform claim_provider_call(j,'conveni','prepared-json-v1:'||repeat('3',64));raise exception 'TEST: changed request was sent under old job';
+ exception when raise_exception then if sqlerrm<>'PROVIDER_REQUEST_CHANGED' then raise;end if;end;
+ if (select count(*) from provider_calls where pipeline_job_id=j)<>1 then raise exception 'Unexpected new provider call';end if;
+ call:=claim_provider_call(j,'enrichment','prepared-json-v1:'||repeat('4',64));
+ begin perform claim_provider_call(j,'conveni','prepared-json-v1:'||repeat('2',64));raise exception 'TEST: received call bypassed uncertain call';
+ exception when raise_exception then if sqlerrm<>'PROVIDER_UNKNOWN' then raise;end if;end;
+ update provider_calls set state='received',response='{}' where id=(call->>'id')::uuid;
+ begin perform claim_provider_call(j,'enrichment','prepared-json-v1:'||repeat('5',64));raise exception 'TEST: changed enrichment request was sent under old job';
+ exception when raise_exception then if sqlerrm<>'PROVIDER_REQUEST_CHANGED' then raise;end if;end;
+ call:=claim_provider_call(j,'matching','prepared-json-v1:'||repeat('6',64));
+ update provider_calls set state='received',response='{"result":"fixture"}' where id=(call->>'id')::uuid;
+ begin perform claim_provider_call(j,'matching','prepared-json-v1:'||repeat('7',64));raise exception 'TEST: changed matching request was sent under old job';
+ exception when raise_exception then if sqlerrm<>'PROVIDER_REQUEST_CHANGED' then raise;end if;end;
+ call:=claim_provider_call(j,'positive-audit-v4','prepared-json-v1:'||repeat('8',64));
+ update provider_calls set state='received',response='{"result":"fixture"}' where id=(call->>'id')::uuid;
+ begin perform claim_provider_call(j,'positive-audit-v4','prepared-json-v1:'||repeat('9',64));raise exception 'TEST: changed audit was sent under old job';
+ exception when raise_exception then if sqlerrm<>'PROVIDER_REQUEST_CHANGED' then raise;end if;end;
+ insert into pipeline_runs default values returning id into rid;
+ insert into pipeline_jobs(run_id,source_record_id,status) values(rid,sid,'ready') returning id into j2;
+ if not (claim_provider_call(j2,'conveni','prepared-json-v1:'||repeat('3',64))->>'send')::boolean then raise exception 'New job should accept the changed contract';end if;
+ update provider_calls set state='received',response='{}' where pipeline_job_id=j2;
+ call:=claim_provider_call(j2,'positive-audit-v3','prepared-json-v1:'||repeat('a',64));
+ update provider_calls set state='received',response='{}' where id=(call->>'id')::uuid;
+ begin perform claim_provider_call(j2,'positive-audit-v4','prepared-json-v1:'||repeat('b',64));raise exception 'TEST: older audit caused a new call';
+ exception when raise_exception then if sqlerrm<>'PROVIDER_REQUEST_CHANGED' then raise;end if;end;
+end $$;

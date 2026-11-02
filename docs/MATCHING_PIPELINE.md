@@ -1,5 +1,7 @@
 # Contracte del pipeline de matching
 
+> Revisió documental 28/10/2026: consulteu [l’estat i els límits actualitzats](ESTADO_ACTUAL_2026_10_28.md). Els resultats i recomptes datats d’aquest document són històrics; el codi i les migracions prevalen en cas de discrepància.
+
 > Actualización 2026-09-12: el nuevo flujo normativo usa exclusivamente servicios hoja del catálogo oficial versionado, un servicio principal y cuatro categorías de análisis. Véase [NORMATIVE_MATCHING.md](NORMATIVE_MATCHING.md) para el contrato vigente y la instalación local. Las referencias al Master como destino del matching en el texto histórico siguiente ya no aplican al nuevo flujo.
 
 El matching s'executa de manera controlada sobre els registres preparats d'un lot. Abans de processar-lo, `npm run matching:ready` comprova cinc precondicions:

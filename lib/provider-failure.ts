@@ -1,3 +1,10 @@
+/** Preserve unknown provider outcomes across child-process boundaries. */
+export function isProviderOutcomeUnknown(error:unknown):boolean {
+ if(typeof error==='string')return error.includes('PROVIDER_UNKNOWN');
+ if(!error||typeof error!=='object')return false;
+ const value=error as {message?:unknown;stderr?:unknown;code?:unknown};
+ return [value.message,value.stderr,value.code].some(item=>typeof item==='string'&&item.includes('PROVIDER_UNKNOWN'));
+}
 export function classifyFailure(error:unknown){
  const message=error instanceof Error?error.message:String(error); const lower=message.toLowerCase();
  if(lower.includes('provider_unknown'))return {kind:'provider_unknown',retryable:false,blocked:true,message:'Resposta de proveïdor desconeguda. No es repetirà la petició automàticament.'};

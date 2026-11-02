@@ -1,0 +1,55 @@
+-- Synthetic fixture only. S1-6 candidate, captured set and full migration chain
+-- must already exist in the disposable database. All mutations roll back.
+begin;
+do $$
+declare actual_ text; baseline_ text; before720_ text; patched_ text;
+ stable_ constant text:='exists(select 1 from public.documented_corrections where source_record_id=any(history_selected_ids))';
+ proposal_ constant text:='exists(select 1 from concert_provisional_complete_candidate.sets where record_id=any(history_selected_ids)) or ';
+ bytes_ constant text:='exists(select 1 from conveni_transactional_bytes_candidate.plans where record_id=any(history_selected_ids)) or ';
+ variant_ text;
+begin
+ actual_:=pg_get_functiondef('public.delete_discarded_records(jsonb,integer)'::regprocedure);
+ if (length(actual_)-length(replace(actual_,proposal_,'')))/length(proposal_)<>1 then raise exception 'PROVISIONAL_GUARD_MISSING';end if;
+ baseline_:=replace(actual_,proposal_,'');
+ if (length(baseline_)-length(replace(baseline_,bytes_,'')))/length(bytes_)<>1 then raise exception 'BYTEA_GUARD_MISSING';end if;
+ before720_:=replace(baseline_,bytes_,'');
+ foreach variant_ in array array[baseline_,before720_] loop
+  if (length(variant_)-length(replace(variant_,stable_,'')))/length(stable_)<>1 then raise exception 'PROVISIONAL_ANCHOR_NOT_UNIQUE';end if;
+  patched_:=replace(variant_,stable_,proposal_||stable_);
+  -- Parse both real-function body forms by installing each within this test
+  -- transaction; the rollback below restores the migrated definition.
+  execute patched_;
+  if position(proposal_||stable_ in pg_get_functiondef('public.delete_discarded_records(jsonb,integer)'::regprocedure))=0 then raise exception 'PROVISIONAL_GUARD_PATCH_INVALID';end if;
+ end loop;
+ execute actual_;
+end $$;
+
+do $$
+declare r uuid:='11111111-1111-4111-8111-111111111111';clean_ uuid:=gen_random_uuid();run_ uuid;j_ uuid;cleanrun_ uuid;cleanj_ uuid;
+ selection_ jsonb;clean_selection_ jsonb;before_ bigint;purge_ uuid;blocked_ boolean:=false;
+begin
+ if has_schema_privilege('service_role','concert_provisional_complete_candidate','USAGE') then raise exception 'PROVISIONAL_SCHEMA_EXPOSED';end if;
+ if has_table_privilege('service_role','concert_provisional_complete_candidate.sets','SELECT') then raise exception 'PROVISIONAL_TABLE_EXPOSED';end if;
+ if has_function_privilege('service_role','concert_provisional_complete_candidate.capture(uuid,uuid,uuid,text)','EXECUTE') then raise exception 'PROVISIONAL_CAPTURE_EXPOSED';end if;
+ if not exists(select 1 from concert_provisional_complete_candidate.sets where record_id=r) then raise exception 'PROVISIONAL_FIXTURE_MISSING';end if;
+ insert into public.catalog_versions(id,source_url,publication_url,retrieved_at,version_date,content_hash,legal_notice,general_context,provenance,entry_count,validated,active)
+  values('synthetic-s6-catalog','https://fixture.invalid','https://fixture.invalid',now(),'2024-01-01','synthetic','synthetic','synthetic','{}',1,true,true);
+ insert into public.pipeline_runs default values returning id into run_;
+ insert into public.pipeline_jobs(run_id,source_record_id,status,preparation_status) values(run_,r,'ready','ready') returning id into j_;
+ perform public.persist_analysis(j_,'synthetic-s6-catalog','{"classification":"discarded","reasons":["individual_grant"],"explanation":"Fixture sintètica","service_description":"Fixture","target_population":"Fixture"}','[]','[{"content":"fixture"}]');
+ select jsonb_build_object('id',id,'job_id',job_id,'result_token',result_token) into selection_ from public.current_record_results where id=r and destination='discarded';
+ if selection_ is null then raise exception 'PROVISIONAL_DISCARD_FIXTURE_NOT_FOUND';end if;
+ insert into public.source_records(id,source_dataset,source_record_id,mechanism,title) values(clean_,'contractacions','SYNTHETIC-CLEAN-'||clean_,'Contractació','Neteja sintètica');
+ insert into public.pipeline_runs default values returning id into cleanrun_;
+ insert into public.pipeline_jobs(run_id,source_record_id,status,preparation_status) values(cleanrun_,clean_,'ready','ready') returning id into cleanj_;
+ perform public.persist_analysis(cleanj_,'synthetic-s6-catalog','{"classification":"discarded","reasons":["individual_grant"],"explanation":"Fixture sintètica","service_description":"Fixture","target_population":"Fixture"}','[]','[{"content":"fixture"}]');
+ select jsonb_build_object('id',id,'job_id',job_id,'result_token',result_token) into clean_selection_ from public.current_record_results where id=clean_ and destination='discarded';
+ if clean_selection_ is null then raise exception 'CLEAN_DISCARD_FIXTURE_NOT_FOUND';end if;
+ select count(*) into before_ from public.storage_purge_batches;
+ begin perform public.delete_discarded_records(jsonb_build_array(selection_,clean_selection_),2);
+ exception when raise_exception then if sqlerrm='PRESERVED_HISTORY_EXISTS' then blocked_:=true;else raise;end if;end;
+ if not blocked_ or not exists(select 1 from public.source_records where id=r) or not exists(select 1 from public.source_records where id=clean_) or (select count(*) from public.storage_purge_batches)<>before_ then raise exception 'PROVISIONAL_DELETE_NOT_ATOMIC';end if;
+ purge_:=public.delete_discarded_records(jsonb_build_array(clean_selection_),1);
+ if purge_ is null or exists(select 1 from public.source_records where id=clean_) or not exists(select 1 from public.source_records where id=r) then raise exception 'CLEAN_DISCARD_NOT_DELETED';end if;
+end $$;
+rollback;

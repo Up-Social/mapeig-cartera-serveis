@@ -1,5 +1,7 @@
 # Mapeig del finançament de la Cartera de Serveis Socials
 
+> Revisió documental 28/10/2026: consulteu [l’estat i els límits actualitzats](ESTADO_ACTUAL_2026_10_28.md). Els resultats i recomptes datats d’aquest document són històrics; el codi i les migracions prevalen en cas de discrepància.
+
 ## Estat del document
 
 Descripció funcional del producte implementat. El codi i les migracions del repositori són la font de veritat tècnica. Els recomptes de dades poden canviar amb noves importacions; `DATA_INTEGRITY_AUDIT.md` conserva una fotografia datada.
@@ -37,7 +39,7 @@ RESES enriqueix entitats, establiments, tipologies, territori i capacitat. És e
 
 ### Catàleg Master
 
-El Master autoritzat s'importa a `master_services`, separat de `source_records`. Conté 142 files, de les quals 140 tenen estat `Dentro` i són les úniques elegibles per al matching actual.
+El Master autoritzat s’importa a `master_services`, separat de `source_records`, com a referència. El matching normatiu vigent utilitza les prestacions de servei fulla elegibles del catàleg oficial versionat; vegeu [NORMATIVE_MATCHING.md](NORMATIVE_MATCHING.md).
 
 La seva importació no autoritza a utilitzar-lo per generar, entrenar, ajustar o validar silenciosament resultats. L'ús per al matching requereix configuració i autorització explícites. Les dues files il·lustratives fora de cartera no entren al prompt.
 
@@ -90,22 +92,20 @@ Els canvis d'esquema es fan exclusivament amb migracions timestampades.
 
 ## Execució local i desplegada
 
-En desenvolupament, Next.js i Supabase s'executen localment i els processos poden iniciar-se immediatament des de la web. En producció, Vercel atén la interfície i les operacions curtes; les operacions llargues creen `worker_tasks` i les executa un worker TypeScript extern contra Supabase remot.
-
-El worker processa una tasca cada vegada, manté heartbeat, recupera tasques interrompudes i reintenta el procés complet fins a tres vegades.
+En desenvolupament es pot utilitzar Supabase local, però cal comprovar el destí configurat: `.env.local` pot apuntar a producció. En producció les tasques persistents s’executen amb Vercel Workflows i Sandbox, amb controls de recuperació i inventari; el worker del Mac és una opció separada, no el consumidor ordinari. Vegeu [CLOUD_BATCHES.md](CLOUD_BATCHES.md).
 
 ## Estat i límits actuals
+
+L’OCR i el catàleg normatiu oficial estan implementats; això no garanteix la lectura de tots els documents ni l’acceptació funcional. Els circuits de concerts i convenis incorporen revisió i traçabilitat econòmica.
 
 Estan implementats la ingesta dels consolidats, el connector d'e-Tauler, la preparació HTML/PDF, l'enriquiment, el matching amb IA, la revisió, les provisions, les exportacions, les entitats, la sincronització RESES i l'auditoria d'integritat.
 
 Continuen fora o incomplets:
 
 - connector BDNS;
-- reconstrucció del catàleg des de la font pública oficial;
 - reducció prèvia de candidats amb regles, CPV, RESES i similitud semàntica;
-- OCR per als documents sense text;
 - tauler de qualitat agregada amb precisió, cobertura i conciliació jeràrquica;
-- desagregació econòmica completa dels annexos de concert social.
+- validació humana de la cobertura i dels casos econòmics complexos de concerts i convenis.
 
 No s'ha de processar automàticament tot l'univers fins que existeixi una mostra humana suficient i s'hagin mesurat la precisió exacta i jeràrquica, la cobertura, la taxa de revisió i la traçabilitat de l'evidència.
 

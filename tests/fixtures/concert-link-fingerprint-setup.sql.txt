@@ -1,0 +1,41 @@
+-- Test-only. Run setup, candidate and assertions in the same psql connection.
+-- All objects and fixtures roll back. No real records, documents or approvals.
+begin;
+create temporary table concert_link_test_ids(name text primary key,id uuid not null);
+do $$
+declare original_record uuid:=gen_random_uuid();historic_record uuid:=gen_random_uuid();fresh_record uuid:=gen_random_uuid();
+ original_unit uuid:=gen_random_uuid();historic_unit uuid:=gen_random_uuid();fresh_unit uuid:=gen_random_uuid();
+ historical_link uuid:=gen_random_uuid();fresh_link uuid:=gen_random_uuid();
+ entry_ record;doc_ uuid;hash_ text:=repeat('a',64);source_path_ text;item_path_ text;
+begin
+ insert into public.source_records(id,source_dataset,source_record_id,mechanism,title,financing_type) values
+  (original_record,'concerts',original_record::text,'Concert','Original sintètic','concert'),
+  (historic_record,'concerts',historic_record::text,'Concert','Esmena històrica sintètica','concert'),
+  (fresh_record,'concerts',fresh_record::text,'Concert','Esmena nova sintètica','concert');
+ if to_regclass('storage.objects') is not null and to_regclass('public.source_documents') is not null then
+  -- Full-schema harness: source and unit Storage rows are metadata fixtures,
+  -- never real files. They satisfy deferred provenance constraints at commit.
+  for entry_ in select * from (values
+   (original_unit,original_record,'original','award'),(historic_unit,historic_record,'historic','amendment'),
+   (fresh_unit,fresh_record,'fresh','amendment')) as x(unit_id,record_id,unit_key,act_type)
+  loop
+   doc_:=gen_random_uuid();source_path_:='cases/'||entry_.record_id||'/documents/'||doc_||'/'||hash_||'.pdf';
+   item_path_:='cases/'||entry_.record_id||'/items/'||entry_.unit_id||'/documents/'||doc_||'/'||hash_||'.pdf';
+   execute 'insert into public.source_documents(id,source_record_id,url,url_hash,document_type,status,mime_type,storage_path,storage_sha256) values($1,$2,$3,$4,''annex'',''fetched'',''application/pdf'',$5,$6)'
+    using doc_,entry_.record_id,'https://example.invalid/'||doc_,md5(doc_::text),source_path_,hash_;
+   execute 'insert into storage.objects(bucket_id,name) values(''cloud-documents'',$1),(''cloud-documents'',$2)' using source_path_,item_path_;
+   execute 'insert into public.record_units(id,source_record_id,unit_key,provider_name,reses_code,territory,status,act_type,horizon_state,document_id,storage_path,storage_sha256) values($1,$2,$3,''Entitat sintètica'',''S11111'',''Barcelona'',''approved'',$4,''in_scope'',$5,$6,$7)'
+    using entry_.unit_id,entry_.record_id,entry_.unit_key,entry_.act_type,doc_,item_path_,hash_;
+  end loop;
+ else
+  insert into public.record_units(id,source_record_id,unit_key,provider_name,reses_code,territory,status,act_type,horizon_state) values
+   (original_unit,original_record,'original','Entitat sintètica','S11111','Barcelona','approved','award','in_scope'),
+   (historic_unit,historic_record,'historic','Entitat sintètica','S11111','Barcelona','approved','amendment','in_scope'),
+   (fresh_unit,fresh_record,'fresh','Entitat sintètica','S11111','Barcelona','approved','amendment','in_scope');
+ end if;
+ insert into public.concert_unit_links(id,later_unit_id,earlier_unit_id,root_unit_id,relation_kind,matching_method,evidence,status,review_note,reviewed_at) values
+  (historical_link,historic_unit,original_unit,original_unit,'amendment','reses_nif','Evidència sintètica','confirmed','Vincle històric sintètic',clock_timestamp());
+ insert into public.concert_unit_links(id,later_unit_id,earlier_unit_id,root_unit_id,relation_kind,matching_method,evidence) values
+  (fresh_link,fresh_unit,original_unit,original_unit,'amendment','reses_nif','Evidència sintètica');
+ insert into concert_link_test_ids values('original',original_unit),('historic_unit',historic_unit),('fresh_unit',fresh_unit),('historic_link',historical_link),('fresh_link',fresh_link);
+end $$;

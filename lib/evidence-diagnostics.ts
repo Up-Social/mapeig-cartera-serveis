@@ -1,7 +1,7 @@
 import type {StoredAnalysis} from './analysis-contract';
 import type {SourceRecord} from './workbench-types';
 export type EvidenceDiagnostic={code:string;message:string;field?:string;unitId?:string;documentId?:string;page?:number;action:'source'|'prepare'|'ocr'|'enrich'|'match'|'units'|'links';rule:string};
-const fields:Record<string,string>={financed_object:'l’objecte finançat',final_population:'les persones destinatàries',final_service:'el servei prestat'};
+const fields:Record<string,string>={financed_object:'l’objecte finançat',financier:'el finançador',economic_recipient:'el receptor econòmic',direct_beneficiary:'el beneficiari directe',service_provider:'el prestador del servei',final_population:'les persones destinatàries',final_service:'el servei prestat',financial_instrument:'l’instrument de finançament'};
 export function sourceRecoveryDiagnostic(record:Pick<SourceRecord,'sourceDocuments'|'evidenceStatus'>):EvidenceDiagnostic|null{
  const documents=record.sourceDocuments;
  if(record.evidenceStatus==='ready'||!documents.length||!documents.every(d=>d.qualityFlags.includes('generic_portal')))return null;
@@ -15,8 +15,14 @@ export function analysisDiagnostics(analysis:Pick<StoredAnalysis,'classification
  const rule=String(audit.rule??'historical_result');
  if(rule==='ineligible_evidence')return [{code:'source_not_substantive',message:'No s’ha llegit una resolució o annex amb contingut útil; el portal o anunci localitzat no acredita el servei.',action:'prepare',rule}];
  const blocked=Array.isArray(audit.blocked_roles)?audit.blocked_roles.filter((d):d is {role:string;reason:string}=>!!d&&typeof d==='object'&&typeof d.role==='string'&&typeof d.reason==='string'):[];
- if(blocked?.length)return blocked.map(({role,reason})=>({code:reason,field:role,message:`Falta acreditar ${fields[role]??role}: ${reason==='contradictory'?'hi ha informació contradictòria':reason==='missing_fact'?'el fet no consta als fragments analitzats':'la cita no es pot verificar literalment en els fragments analitzats'}.`,action:'enrich',rule}));
+ const blockedDiagnostics:EvidenceDiagnostic[]=blocked.map(({role,reason})=>({code:reason,field:role,message:`Falta acreditar ${fields[role]??role}: ${reason==='contradictory'?'hi ha informació contradictòria':reason==='missing_fact'?'el fet no consta als fragments analitzats':'la cita no es pot verificar literalment en els fragments analitzats'}.`,action:'enrich',rule}));
+ if(rule==='role_discard_requires_review')return [{code:rule,message:analysis.explanation,action:'match',rule},...blockedDiagnostics];
+ if(blockedDiagnostics.length)return blockedDiagnostics;
  const original=analysis.model_conclusion;
+ if(rule==='model_discard_requires_review'){
+  const proposal=typeof original?.explanation==='string'?original.explanation.trim():'';
+  return [{code:rule,message:`El descart proposat necessita revisió i no s’ha aplicat.${proposal?` La proposta anterior indicava: «${proposal}»; és una explicació pendent de contrast.`:''}`,action:'match',rule}];
+ }
  if(original?.population_verified===false||original?.social_service_verified===false)return [
   ...(original.population_verified===false?[{code:'population_unverified',field:'final_population',message:'No s’ha acreditat la compatibilitat dels destinataris amb el servei proposat.',action:'match' as const,rule}]:[]),
   ...(original.social_service_verified===false?[{code:'service_unverified',field:'final_service',message:'No s’ha acreditat quin servei concret finança aquesta resolució.',action:'match' as const,rule}]:[]),

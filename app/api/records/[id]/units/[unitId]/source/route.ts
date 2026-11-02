@@ -1,6 +1,7 @@
 import {createServerSupabase} from '@/lib/records-page';
 import {SOURCE_BUCKET,sha256} from '@/lib/source-storage';
 import {isUuid} from '@/lib/uuid';
+import {streamVerifiedBytes} from '@/lib/verified-byte-stream';
 
 export async function GET(_request:Request,{params}:{params:Promise<{id:string;unitId:string}>}){
  const {id,unitId}=await params;
@@ -13,12 +14,16 @@ export async function GET(_request:Request,{params}:{params:Promise<{id:string;u
   return Response.json({error:'Ruta de la còpia arxivada invàlida'},{status:503});
  const doc=await db.from('source_documents').select('mime_type').eq('id',unit.data.document_id).eq('source_record_id',id).maybeSingle();
  if(doc.error||!doc.data)return Response.json({error:'Document no disponible'},{status:404});
- const stored=await db.storage.from(SOURCE_BUCKET).download(unit.data.storage_path);
- if(stored.error||!stored.data)return Response.json({error:'Còpia absent de Storage'},{status:503});
- const bytes=Buffer.from(await stored.data.arrayBuffer());
+ let stored;
+ try{stored=await db.storage.from(SOURCE_BUCKET).download(unit.data.storage_path);}
+ catch{return Response.json({error:'No s’ha pogut llegir la còpia arxivada de Storage'},{status:503});}
+ if(stored.error||!stored.data)return Response.json({error:'No s’ha pogut llegir la còpia arxivada de Storage'},{status:503});
+ let bytes:Buffer;
+ try{bytes=Buffer.from(await stored.data.arrayBuffer());}
+ catch{return Response.json({error:'No s’ha pogut llegir la còpia arxivada de Storage'},{status:503});}
  if(sha256(bytes)!==unit.data.storage_sha256)return Response.json({error:'La còpia no supera la verificació d’integritat'},{status:503});
  const mime=doc.data.mime_type??'application/octet-stream';
  const headers=new Headers({'Content-Type':mime,'Cache-Control':'private, no-store','X-Content-Type-Options':'nosniff'});
  if(/html|xml|svg/i.test(mime))headers.set('Content-Security-Policy',"sandbox; default-src 'none'");
- return new Response(bytes,{headers});
+ return new Response(streamVerifiedBytes(bytes),{headers});
 }

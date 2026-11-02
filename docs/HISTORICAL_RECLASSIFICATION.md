@@ -1,5 +1,7 @@
 # Actualització de classificacions antigues
 
+> Revisió documental 28/10/2026: consulteu [l’estat i els límits actualitzats](ESTADO_ACTUAL_2026_10_28.md). Els resultats i recomptes datats d’aquest document són històrics; el codi i les migracions prevalen en cas de discrepància.
+
 La campanya `normative-history-v1` selecciona únicament registres amb propostes antigues, sense cap resultat normatiu, decisió humana, provisió o feina activa. No importa dades ni reclassifica aprovacions. La selecció, el lot i la tasca són transaccionals; una nova petició retorna el mateix lot. Els treballs i candidats previs es conserven. Una revisió durant el procés impedeix noves escriptures de domini del treball històric.
 
 En producció, Revisió mostra l’acció d’actualització i l’enllaç al progrés a Lots. Els resultats nous mostren la classificació al llistat plegat, separada de l’estat de revisió. «Fora de cartera» és una proposta respecte del catàleg validat; no és un judici d’il·legalitat. Classificacions recull les decisions revisades. No cal tornar a importar fitxers. Actualitzar la pàgina recupera els resultats disponibles.

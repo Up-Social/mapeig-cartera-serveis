@@ -37,7 +37,7 @@ export async function pauseLocalProcessing(db: SupabaseClient, target: {runId?:s
   }
   if (runId) {
     const result=await db.from('pipeline_runs').update({status:'paused',pause_kind:'processing_disabled',pause_reason:'Processament aturat preventivament. Cal reprendre explícitament el lot.'})
-      .eq('id',runId).in('status',['queued','preparing','ready','enriching','matching','paused']);
+      .eq('id',runId).in('status',['queued','preparing','ready','enriching','matching']);
     if(result.error)throw new Error('PROCESSING_PAUSE_UNAVAILABLE');
   }
   if (target.taskId) {

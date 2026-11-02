@@ -1,5 +1,7 @@
 # Guia de la interfície
 
+> Revisió documental 28/10/2026: consulteu [l’estat i els límits actualitzats](ESTADO_ACTUAL_2026_10_28.md). Els resultats i recomptes datats d’aquest document són històrics; el codi i les migracions prevalen en cas de discrepància.
+
 ## Accés
 
 La web demana la contrasenya compartida configurada amb `APP_ACCESS_PASSWORD`. La sessió dura set dies en el mateix navegador. **Tancar sessió** elimina la cookie d'accés immediatament. Si falta la variable al servidor, l'aplicació només mostra l'avís de configuració i no permet entrar.
@@ -53,7 +55,7 @@ La mostra només utilitza registres pendents. Exclou qualsevol cas que ja hagi f
 3. Cada registre acaba amb un dels estats següents:
    - **Llest**: disposa d'evidència i pot anar a matching.
    - **Sense font documental**: la fila no conté cap URL útil.
-   - **Format no compatible**: requereix OCR o un extractor addicional.
+   - **Format no compatible**: l’extracció disponible no ha pogut llegir el document; cal revisar el diagnòstic i la font.
    - **Error**: no s'ha pogut descarregar o processar la font.
 
 Els documents no apareixen com una font independent: formen part del detall del registre del dataset corresponent.
@@ -126,6 +128,6 @@ També existeix una exportació completa sobre una còpia del Master quan el ser
 
 - **No es pot crear el lot**: no queden prou identitats pendents i no processades per a la mida indicada.
 - **Sense font documental**: substitueix la fila o continua amb els registres llestos.
-- **Format no compatible**: el document necessita OCR; no s'envia a OpenAI.
+- **Format no compatible**: cal revisar el diagnòstic; hi ha OCR per a PDF, però no garanteix l’extracció de tots els documents.
 - **El matching no comença**: comprova la clau, el model, l'autorització del catàleg i que el lot tingui registres llestos.
 - **No es pot exportar un lot**: encara queden casos per revisar o falta `MASTER_EXCEL_PATH` a `.env.local`.

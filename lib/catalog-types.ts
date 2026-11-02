@@ -14,6 +14,7 @@ export type MasterService = {
 };
 
 export type ServiceProvision = {
+  financingType?: import('./financing-types').FinancingType | null;
   id: string;
   sourceId: string;
   callUrl: string | null;

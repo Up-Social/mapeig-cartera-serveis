@@ -3,6 +3,6 @@ export function executionStatus(task:{execution_state:string;lease_until:string|
  let state=task.execution_state;
  if(state==='running'&&task.lease_until&&Date.parse(task.lease_until)<now)state='interrupted';
  if(state==='pending'&&task.last_progress_at)state=now-Date.parse(task.last_progress_at)>15*60_000?'interrupted':'running';
- const labels:Record<string,string>={pending:'Pendent d’inici',running:'En execució',paused:task.failure_kind?.includes('quota')?'Pausat per quota':'Execució pausada',interrupted:'Interromput',completed:'Execució finalitzada'};
- return {state,label:labels[state]??'Pendent d’inici',lastProgress:task.last_progress_at,recoverable:['pending','paused','interrupted'].includes(state)&&task.failure_kind!=='provider_unknown'&&task.failure_kind!=='budget',reason:task.failure_kind};
+ const labels:Record<string,string>={pending:'Pendent d’inici',running:'En execució',paused:task.failure_kind==='provider_reconciliation'?'Pausat: cal conciliar les respostes del proveïdor':task.failure_kind?.includes('quota')?'Pausat per quota':'Execució pausada',interrupted:'Interromput',completed:'Execució finalitzada'};
+ return {state,label:labels[state]??'Pendent d’inici',lastProgress:task.last_progress_at,recoverable:['pending','paused','interrupted'].includes(state)&&!['provider_unknown','provider_reconciliation','budget'].includes(task.failure_kind??''),reason:task.failure_kind};
 }

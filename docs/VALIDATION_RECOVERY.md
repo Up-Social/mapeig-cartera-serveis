@@ -1,5 +1,7 @@
 # Recuperació de validacions
 
+> Revisió documental 28/10/2026: consulteu [l’estat i els límits actualitzats](ESTADO_ACTUAL_2026_10_28.md). Els resultats i recomptes datats d’aquest document són històrics; el codi i les migracions prevalen en cas de discrepància.
+
 Les referències normatives es vinculen al codi fulla validat al servidor. La IA no ha de reproduir literalment una referència per poder continuar: el contrast independent contra la fitxa concreta continua sent obligatori abans de persistir una correspondència positiva. Cap normalització admet pares, prestacions excloses o codis desconeguts.
 
 Els candidats declarats incompatibles s’exclouen; si no en queda cap o no s’acredita l’abast, el resultat és evidència insuficient. Les puntuacions originals es conserven i la validació final ordena el principal. Una cita literal amb ordinal equivocat es vincula als fragments del mateix expedient que la contenen exactament. Si es repeteix, es conserven totes les referències coincidents; no se’n tria una arbitràriament. Les cites inexistents es rebutgen. Les opcions del esquema estricte utilitzen fragments literals sense cometes, barres inverses ni caràcters de control; el text font no es modifica.

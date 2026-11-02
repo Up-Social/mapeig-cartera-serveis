@@ -1,5 +1,5 @@
 export type ConcertPublication={id:string;title:string;source_record_id:string;source_payload:Record<string,unknown>};
-export type ConcertLinkCandidate={laterRecordId:string;earlierRecordId:string;kind:'amendment'|'renewal'|'modification'|'termination'|'cession'|'appeal'|'validation'|'other';method:'explicit_resolution'|'expedient_territory';evidence:string};
+export type ConcertLinkCandidate={laterRecordId:string;earlierRecordId:string;kind:'amendment'|'renewal'|'modification'|'termination'|'cession'|'appeal'|'validation'|'call'|'other';method:'explicit_resolution'|'expedient_territory';evidence:string};
 
 export function concertResolutionNumbers(text:string):string[]{
  return [...new Set((text.toUpperCase().match(/\b[A-Z]{2,5}\s*\/\s*\d{1,5}\s*\/\s*20\d{2}\b/g)??[]).map(value=>value.replace(/\s/g,'')))];
@@ -10,7 +10,7 @@ export function publicationDate(row:ConcertPublication):string{
  return typeof value==='string'&&/^20\d{2}-\d{2}-\d{2}/.test(value)?value.slice(0,10):'';
 }
 export function concertTerritory(title:string):string|null{
- const value=normalize(title);
+ const value=normalize(title).replace(/[’']/g,' ');
  for(const territory of ['barcelona','lleida','girona','tarragona','terres de l ebre'])if(value.includes(territory))return territory;
  return null;
 }

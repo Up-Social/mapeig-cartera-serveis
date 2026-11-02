@@ -1,5 +1,7 @@
 # Importació dels Excel consolidats
 
+> Revisió documental 28/10/2026: consulteu [l’estat i els límits actualitzats](ESTADO_ACTUAL_2026_10_28.md). Els resultats i recomptes datats d’aquest document són històrics; el codi i les migracions prevalen en cas de discrepància.
+
 L'importador és `scripts/import-excels.ts`. Llegeix els quatre llibres autoritzats des d'una carpeta externa i fa `upsert` a Supabase per lots.
 
 ## Requisits

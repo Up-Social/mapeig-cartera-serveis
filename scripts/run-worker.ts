@@ -1,6 +1,10 @@
 import {getProcessingSetting,isProcessingPaused,pauseLocalProcessing} from '../lib/processing-control';
 import {executionMode} from '../lib/pipeline/execution-mode';
-import {classifyFailure,retryDelay} from '../lib/provider-failure';
+import {isLocalTypeBlocked} from '../lib/pipeline/local-matching-guard';
+import {runLocalWorkerLoop} from '../lib/pipeline/local-worker-loop';
+import {commitLocalEnrichment} from '../lib/pipeline/local-enrichment-commit';
+import {failLocalUnknownTask} from '../lib/pipeline/local-provider-unknown';
+import {classifyFailure,isProviderOutcomeUnknown,retryDelay} from '../lib/provider-failure';
 import { execFile } from "node:child_process";
 import { hostname } from "node:os";
 import { promisify } from "node:util";
@@ -35,25 +39,9 @@ type Task = {
 
 async function main() {
   console.log(`Worker ${workerId} connectat. ${once ? "Una tasca" : `Sondeig cada ${pollMs} ms`}.`);
-  do {
-    let task: Task | null;
-    try {
-      task = await claimTask();
-    } catch (error) {
-      if (once) throw error;
-      console.error(
-        `No s'ha pogut consultar la cua: ${formatError(error)}. Reintent en ${pollMs} ms.`,
-      );
-      await delay(pollMs);
-      continue;
-    }
-    if (!task) {
-      if (once) break;
-      await delay(pollMs);
-      continue;
-    }
-    await executeTask(task);
-  } while (!stopping);
+  await runLocalWorkerLoop({once,isStopping:()=>stopping,claim:claimTask,execute:executeTask,wait:()=>delay(pollMs),
+    onBlocked:error=>console.error(formatError(error)),
+    onError:error=>console.error(`No s'ha pogut consultar la cua: ${formatError(error)}. Reintent en ${pollMs} ms.`)});
   console.log("Worker aturat.");
 }
 
@@ -87,6 +75,14 @@ async function executeTask(task: Task) {
     console.log(`${task.id}: completada`);
   } catch (error) {
     if(isProcessingPaused(error)){await pauseLocalProcessing(db,{runId:task.run_id,taskId:task.id,jobId:task.pipeline_job_id});console.log(`${task.id}: processament pausat; dades conservades.`);return;}
+    if(isProviderOutcomeUnknown(error)){
+      await failLocalUnknownTask(db,task.id,workerId);
+      console.error(`${task.id}: PROVIDER_UNKNOWN: resultat desconegut; cal revisió.`);return;
+    }
+    if(isLocalTypeBlocked(error)){
+      await db.from('worker_tasks').update({status:'failed',completed_at:new Date().toISOString(),error_message:'LOCAL_TYPE_BLOCKED: Reprograma el lot amb el flux cloud compatible.'}).eq('id',task.id).eq('claimed_by',workerId);
+      console.error(`${task.id}: LOCAL_TYPE_BLOCKED: reprograma el lot amb el flux cloud compatible.`);return;
+    }
     const message = formatError(error).slice(0, 2000);
     await markDomainFailure(task, message);
     const willRetry = task.task_type === "process_run" && task.attempts < 3 && classifyFailure(message).retryable;
@@ -122,7 +118,7 @@ function commandFor(task: Task): string[] {
 
 async function markDomainFailure(task: Task, message: string) {
   if (task.task_type === "enrich_record" && task.source_record_id) {
-    await db.from("source_records").update({ enrichment_status: "error", enrichment_error: message, processing_status: "error", updated_at: new Date().toISOString() }).eq("id", task.source_record_id);
+    if(task.pipeline_job_id)try{await commitLocalEnrichment(db,task.pipeline_job_id,task.source_record_id,'error',null,[],message);}catch(error){if(!isLocalTypeBlocked(error))throw error;}
   } else if (task.task_type === "prepare_run" && task.run_id) {
     await db.from("pipeline_runs").update({ status: "preparation_error", error_count: 1 }).eq("id", task.run_id);
     const { data: jobs } = await db.from("pipeline_jobs").select("source_record_id").eq("run_id", task.run_id);
@@ -160,7 +156,7 @@ function integerOption(name: string, fallback: number, min: number, max: number)
     throw new Error(`${name} ha de ser un enter entre ${min} i ${max}`);
   return value;
 }
-function delay(ms: number) { return new Promise((resolve) => setTimeout(resolve, ms)); }
+function delay(ms: number):Promise<void> { return new Promise((resolve) => setTimeout(resolve, ms)); }
 function formatError(error: unknown) {
   if (error instanceof Error) return error.message;
   if (error && typeof error === "object") {

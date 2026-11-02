@@ -29,8 +29,10 @@ export function assessConcertAct(title:string, documentText?:string|null):Concer
   const document=normalize(documentText??'');
   // Operative clauses describe the decision. Legal background, appeal rights and
   // annex labels can mention other act types without making this one of them.
-  const resolc=document.search(/\bresolc\s*:/);
-  const operative=resolc>=0?document.slice(resolc+document.slice(resolc).indexOf(':')+1).slice(0,1100):document;
+  // Preserve line boundaries until the annex is removed. Normalizing whitespace
+  // first would let an annex row masquerade as a numbered operative clause.
+  const marker=/\bresolc\s*:/i.exec(documentText??'');
+  const operative=marker?normalize((documentText??'').slice(marker.index+marker[0].length).slice(0,1100).split(/\n\s*(?:#{1,6}\s*)?annex\b/i)[0]):document;
   const firstAct=operative.split(/\b2\.\s/)[0].split(/\bd.acord amb\b/)[0];
   const text=firstAct?`${t} ${firstAct}`:t;
   const attributes=firstAct?`${t} ${firstAct}`:t;
@@ -45,7 +47,15 @@ export function assessConcertAct(title:string, documentText?:string|null):Concer
   let primaryCase:ConcertCase|null=null;
   let effect:ConcertEffect='none';
   let reason='No es pot establir l’efecte econòmic sense llegir el document i les seves línies.';
-  if(hasCurrentConcertAward(title,document)){
+  if(hasCurrentConcertAward(title,documentText)){
+   // A numbered operative denial or reduction can coexist with an award. Do
+   // not derive these labels from legal background or an annex heading.
+   if(marker){
+    const clauses=operative;
+    if(/(?:^|\b\d+[.)]\s*)denegar\b/.test(clauses))overlappingCases.push(1);
+    if(/(?:^|\b\d+[.)]\s*)(?:cessar|minorar|reduir)\b/.test(clauses))overlappingCases.push(2);
+    if(/(?:^|\b\d+[.)]\s*)declarar\s+(?:les\s+)?places\s+desertes\b/.test(clauses))overlappingCases.push(9);
+   }
    primaryCase=/places desertes/.test(t)?9:overlappingCases.includes(16)?16:overlappingCases.includes(11)?11:overlappingCases.includes(14)?14:overlappingCases.includes(10)?10:null;
    effect=overlappingCases.includes(16)?'possible_allocation':'possible_award';
    reason='El resolc assigna el servei a una entitat; cal desglossar i contrastar les línies abans de comptar l’import.';

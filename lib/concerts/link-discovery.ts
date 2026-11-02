@@ -15,7 +15,7 @@ export async function discoverConcertLinks(db:SupabaseClient,recordId?:string){
  const documents:ConcertLinkDocument[]=[];
  for(let batch=0;batch<publications.length;batch+=40){
   for(let offset=0;;offset+=100){
-   const page=await db.from('source_documents').select('id,source_record_id,status,mime_type,extraction_partial,extraction_method,quality_flags,storage_path,storage_sha256,extracted_text')
+   const page=await db.from('source_documents').select('id,source_record_id,status,mime_type,extraction_partial,extraction_method,extraction_coverage,quality_flags,storage_path,storage_sha256,extracted_text')
     .in('source_record_id',publications.slice(batch,batch+40).map(r=>r.id)).eq('status','fetched').eq('mime_type','application/pdf').order('id').range(offset,offset+99);
    if(page.error)throw page.error;documents.push(...page.data);if(page.data.length<100)break;
   }

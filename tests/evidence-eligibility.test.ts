@@ -28,3 +28,19 @@ test("substantive official evidence remains eligible", () => {
   assert.equal(isSubstantiveEvidenceQuote("servei de centre de dia per a persones grans en situació de dependència"), true);
   assert.deepEqual(documentQuality(content, "pdftotext").qualityFlags, ["short_text"]);
 });
+
+test('a readable excerpt cannot stand in for a document whose extraction coverage is unknown',()=>{
+ const content='Resolució de servei social per a persones amb discapacitat amb activitats i suport documentat. '.repeat(20);
+ assert.ok(evidenceRejectionReasons({content,textLength:content.length,coverageVerified:false}).includes('incomplete_extraction'));
+ assert.equal(isEligibleEvidence({content,textLength:content.length,coverageVerified:true}),true);
+});
+
+test('a failed declared annex blocks complete matching without treating other links as required annexes',async()=>{
+ const {unavailableDeclaredAnnexes,missingDeclaredAnnexIds}=await import('../lib/cloud/evidence-window');
+ const annex={document_type:'annex',status:'fetched',extraction_partial:false,text_length:1000,extraction_method:'pdftotext',extraction_coverage:null,mime_type:'application/pdf',quality_flags:[]};
+ assert.equal(unavailableDeclaredAnnexes([annex]).length,0);
+ assert.deepEqual(missingDeclaredAnnexIds([{...annex,id:'a'}],[]),['a']);
+ assert.deepEqual(missingDeclaredAnnexIds([{...annex,id:'a'}],[{source_document_id:'a'}]),[]);
+ for(const patch of [{status:'error'},{extraction_partial:true},{quality_flags:['incomplete_extraction']},{text_length:0},{quality_flags:['javascript_shell']},{extraction_method:'html-basic',mime_type:'text/html'}])assert.equal(unavailableDeclaredAnnexes([{...annex,...patch}]).length,1);
+ assert.equal(unavailableDeclaredAnnexes([{...annex,document_type:'regulatory_basis',status:'error'}]).length,0);
+});

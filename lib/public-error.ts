@@ -16,5 +16,7 @@ export function publicErrorMessage(error: unknown, fallback = "No s’ha pogut c
   if (/quota/iu.test(message)) return "El servei ha aturat temporalment el procés per límit de quota.";
   if (/active_task|actiu/iu.test(message)) return "Ja hi ha un procés actiu per a aquest registre.";
   if (/provider_unknown/iu.test(message)) return "Hi ha una resposta externa pendent de confirmar. No es repetirà la petició automàticament.";
+  if (/provider_reconciliation/iu.test(message)) return "Hi ha respostes o reserves de proveïdor pendents de conciliació. Cal revisar-les abans de continuar.";
+  if (/record_operation_busy/iu.test(message)) return "L’expedient o el lot s’està modificant. Espera que acabi l’operació abans de tornar-ho a intentar.";
   return fallback;
 }

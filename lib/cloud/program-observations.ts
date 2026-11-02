@@ -1,10 +1,11 @@
 import {identifyPriorObservation} from '../concerts/observation-identity';
+import {safeAnnexSum} from '../concerts/annex-extraction';
 import {readPages} from '../read-pages';
 import {createHash} from 'node:crypto';
 import {extractProgramAnnex,programCoverage,programDeclaredTotal} from '../concerts/program-annex';
 import {programServiceCode} from '../concerts/program-service';
 import {loadOfficialCatalog} from '../official-catalog';
-import {archiveUnitSource} from '../source-storage';
+import {archiveUnitSource,createUnitSourceVerificationCache} from '../source-storage';
 import {lease,type Context} from './context';
 import {CloudFailure} from './errors';
 
@@ -17,6 +18,7 @@ export async function prepareProgramObservations(c:Context,job:{id:string;source
  const previous={data:await readPages((from,to)=>c.db.from('record_units').select('id,unit_key,provider_nif,reses_code,page,evidence_quote,document_id,storage_path,storage_sha256').eq('source_record_id',job.source_record_id).eq('document_id',document.id).neq('unit_key','legacy').order('id').range(from,to))};
  const versions={data:await readPages((from,to)=>c.db.from('concert_line_observations').select('unit_id,payload_hash').eq('source_record_id',job.source_record_id).eq('parser_version',PROGRAM_VERSION).order('id').range(from,to))};
  const claimed=new Set<string>();let staged=0;
+ const verifiedSources=createUnitSourceVerificationCache();
  const occurrences=new Map<string,number>();
  const coverage=programCoverage(document.extracted_text,rows);
  const year=document.extracted_text.slice(0,2500).match(/per[ií]ode[\s\S]{0,100}?(20\d{2})/i)?.[1];
@@ -33,15 +35,16 @@ export async function prepareProgramObservations(c:Context,job:{id:string;source
   // Exclude assigned database IDs from the semantic revision hash.
   const payloadHash=createHash('sha256').update(JSON.stringify({...line,existingUnitId:null,unitKey:null})).digest('hex');
   if(versions.data.some(v=>v.payload_hash===payloadHash&&v.unit_id===existing?.id)){
-   if(!existing?.storage_path||existing.storage_sha256!==document.storage_sha256){await archiveUnitSource(c.db,job.source_record_id,existing!.id);if(++staged>=5)return false;}
+   if(!existing?.storage_path||existing.storage_sha256!==document.storage_sha256){await archiveUnitSource(c.db,job.source_record_id,existing!.id,verifiedSources);if(++staged>=5)return false;}
    continue;
   }
   const saved=await c.db.rpc('cloud_stage_program_observation',{...lease(c),p_job:job.id,p_document:document.id,p_line:line,p_hash:payloadHash});
   if(saved.error)throw new CloudFailure('validation',5,{operation:'program_observation',code:saved.error.code??'DATABASE_ERROR'});
-  await archiveUnitSource(c.db,job.source_record_id,saved.data as string);
+  await archiveUnitSource(c.db,job.source_record_id,saved.data as string,verifiedSources);
   if(++staged>=5)return false;
  }
- const sum=rows.reduce((n,r)=>n+(r.amountCents??0),0);
+ const sum=safeAnnexSum(rows.map(row=>row.amountCents));
+ if(sum===null)throw new CloudFailure('validation',5,{operation:'program_coverage',code:'CONCERT_AMOUNT_RANGE',message:'La suma del programa supera la precisió segura o conté un import no vàlid. Cal revisar-la sense consolidar.'});
  const checked=await c.db.rpc('cloud_finalize_program_observations',{...lease(c),p_job:job.id,p_document:document.id,
   p_rows:rows.length,p_sum_cents:sum,p_declared_cents:programDeclaredTotal(document.extracted_text,rows),p_coverage:coverage});
  if(checked.error)throw new CloudFailure('validation',5,{operation:'program_coverage',code:checked.error.code??'DATABASE_ERROR'});

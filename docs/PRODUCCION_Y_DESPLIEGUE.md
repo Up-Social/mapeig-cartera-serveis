@@ -1,6 +1,8 @@
 # Desenvolupament i desplegament
 
-Guia operativa de l'arquitectura actual. El repositori és una aplicació Next.js desplegable, amb migracions Supabase, CI i un worker TypeScript extern per a les operacions llargues.
+> Revisió documental 28/10/2026: consulteu [l’estat i els límits actualitzats](ESTADO_ACTUAL_2026_10_28.md). Els resultats i recomptes datats d’aquest document són històrics; el codi i les migracions prevalen en cas de discrepància.
+
+Guia operativa de l'arquitectura actual. El repositori és una aplicació Next.js desplegable, amb migracions Supabase, CI i Vercel Workflows/Sandbox per a les operacions llargues en producció.
 
 ## Arquitectura per entorn
 
@@ -11,17 +13,17 @@ Navegador → Next.js local → Supabase local (Docker)
                          ↘ scripts TypeScript locals
 ```
 
-Per defecte, les accions de procés iniciades des de la web local executen el despatx immediat. Es pot provar el comportament de producció amb `WORKER_EXECUTION_MODE=queue` i `npm run worker:run`.
+Per defecte, les accions de procés iniciades des de la web local executen el despatx immediat. El mode `queue` permet provar un worker local; no reprodueix l’executor de Vercel Workflows.
 
 ### Web desplegada
 
 ```text
 Navegador → Vercel → Supabase remot
                     ↓ worker_tasks
-              worker TypeScript en macOS
+              Vercel Workflows → Sandbox temporal
 ```
 
-Vercel executa la web i operacions curtes. No manté processos Node.js llargs després d'una petició. La preparació, l'enriquiment i el matching complet es desen a `worker_tasks`; el worker extern reclama i executa les tasques contra el mateix Supabase remot.
+Vercel executa les tasques persistents mitjançant Workflows i Sandbox; Supabase conserva la cua i els checkpoints. Vegeu [CLOUD_BATCHES.md](CLOUD_BATCHES.md) i [l’incident de storage](STORAGE_VERCEL_2026_10.md).
 
 ## Requisits
 
@@ -54,9 +56,9 @@ No executis `supabase db reset` sense autorització explícita: elimina les dade
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | sí | sí | sí | clau publicable |
 | `SUPABASE_SECRET_KEY` | sí | sí | sí | operacions privilegiades de servidor |
 | `APP_ACCESS_PASSWORD` | sí | sí | no necessària | accés compartit a la web |
-| `WORKER_EXECUTION_MODE` | opcional | `queue` recomanat | opcional | força la cua persistent |
-| `OPENAI_API_KEY` | si es processa | no necessària | sí | enriquiment i matching |
-| `OPENAI_MATCHING_MODEL` | si es processa | no necessària | sí | model explícit |
+| `WORKER_EXECUTION_MODE` | opcional | `vercel_workflow` | opcional | selecciona l’executor; `disabled` pausa el processament |
+| `OPENAI_API_KEY` | si es processa | sí, si es processa | sí | enriquiment i matching |
+| `OPENAI_MATCHING_MODEL` | si es processa | sí, si es processa | sí | model explícit |
 | `MATCHING_CATALOG_SOURCE` | si es processa | no necessària | sí | catàleg autoritzat |
 | `ALLOW_MASTER_MATCHING` | si s'autoritza | no necessària | sí | autorització addicional del Master |
 | `MASTER_EXCEL_PATH` | per exportar Master | no recomanada | opcional | ruta local al fitxer original |
@@ -86,21 +88,15 @@ Utilitza una contrasenya llarga i única per entorn. Canviar-la invalida les ses
 
 ## Migracions
 
-Tots els canvis de base de dades neixen a `supabase/migrations` i es versionen amb el codi.
+Els canvis de base de dades es versionen amb el codi. Abans de preparar una entrega cal distingir les migracions aprovades dels experiments locals.
 
-Desenvolupament local:
+**Paquet de Concerts del 02/11/2026:** selecció explícita de 46 migracions sobre una base remota de 112 versions; 39 candidates queden excloses de l'aplicació. Els experiments 310, 320, 330 i 340 es conserven a `supabase/experiments/migrations/`. No executeu `supabase db push` sobre tot l'arbre: altres candidates encara són al directori actiu i no formen part d'aquesta entrega.
 
-```bash
-supabase migration up --local
-```
+El manifest local és `docs/local/concert-release-selected.json`; l'artefacte transaccional, els hashes i el procediment d'aplicació són a `docs/local/concert-release-2026-11-02.sql`, `docs/local/concert-release-sql-artifact-2026-11-02.json` i `docs/local/concert-release-apply-2026-11-02.md`. `node scripts/validate-concert-release-manifest.mjs` comprova integritat i dependències sense connectar-se a cap base. Aquests artefactes de treball són locals i no es publiquen a Git.
 
-Entorn remot:
+El generador històric `scripts/prepare-release-migrations.ts` continua desactivat. Supabase local i Docker queden fora d'ús per decisió de l'usuari; no iniciar-los per preparar ni verificar aquesta entrega.
 
-```bash
-supabase link --project-ref ID_DEL_PROJECTE
-supabase db push
-supabase migration list
-```
+Entorn remot: després de l'autorització, confirmar projecte, còpia de seguretat i historial exacte; pausar i drenar el processament; aplicar només el paquet revisat en una transacció; comprovar les 158 versions resultants i publicar el desplegament complet compatible. Un error anterior al COMMIT reverteix el conjunt. Una resposta incerta requereix consultar l'historial abans de repetir. Després del COMMIT, mantenir la pausa davant incidències i preparar una correcció compatible; no assumir que tornar al codi anterior reverteix la base.
 
 Revisa sempre una migració abans d'aplicar-la. Els canvis destructius han d'utilitzar una estratègia en fases: afegir, migrar i verificar; retirar l'estructura antiga en una entrega posterior.
 
@@ -118,24 +114,20 @@ La comanda executa lint, tipus, tests i build. `.github/workflows/ci.yml` repete
 
 El directori arrel del projecte Vercel és l'arrel del repositori, no `apps/web`. El preset és Next.js i les ordres provenen de `package.json`.
 
-Configura a Vercel les variables de Supabase remot, `APP_ACCESS_PASSWORD` i `WORKER_EXECUTION_MODE=queue`. Les claus d'OpenAI poden quedar exclusivament al worker perquè la web només crea tasques persistents.
+Configura les variables necessàries per a Vercel Workflows, incloses les d’OpenAI al servidor, segons [CLOUD_BATCHES.md](CLOUD_BATCHES.md). Una publicació o canvi remot requereix autorització específica.
 
 Flux recomanat:
 
-1. Crear una branca des de `main`.
-2. Desenvolupar i afegir migracions si cal.
-3. Executar `npm run verify`.
-4. Obrir un pull request i esperar que CI quedi verd.
-5. Validar el Preview amb un Supabase que no sigui producció.
-6. Aplicar i verificar les migracions remotes.
-7. Fusionar a `main` i desplegar la web.
-8. Fer una prova d'accés, consulta, creació d'una tasca i exportació.
+1. Treballar a `main`; qualsevol branca requereix autorització expressa prèvia.
+2. Revisar els canvis, executar les comprovacions proporcionals i validar amb dades aïllades.
+3. Demanar autorització separada abans de cada commit i push; confirmar les migracions i el desplegament remot amb l’usuari.
+4. Desplegar completament, comprovar CI, configuració i estat remot, i validar els fluxos autoritzats. Un Preview no ha d’utilitzar la base de producció.
 
 No permetis que un Preview apunti a la base de producció.
 
-## Worker de producció
+## Worker local o de cua explícita
 
-El worker s'executa des d'un ordinador amb el repositori i `.env.local` configurat:
+Aquest worker no és el consumidor ordinari de producció. Abans d’executar-lo cal verificar el destí de `.env.local` i obtenir autorització si pot escriure en remot:
 
 ```bash
 npm run worker:run
@@ -157,7 +149,7 @@ Processa una tasca cada vegada, actualitza el heartbeat, recupera tasques interr
 - Les migracions estan aplicades i verificades abans del codi que en depèn.
 - `APP_ACCESS_PASSWORD` és única i està configurada.
 - Les operacions llargues només creen `worker_tasks` des de Vercel.
-- El worker està actiu i apunta al mateix Supabase que la web.
+- Executor cloud, inventari de Sandbox i controls de processament verificats; no activar un worker local de producció per defecte.
 - S'han comprovat reintents, idempotència i recuperació de tasques abandonades.
 - Les exportacions només inclouen decisions positives vigents.
 - Hi ha còpies de seguretat i un procediment de restauració provat.

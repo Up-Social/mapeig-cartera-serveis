@@ -63,14 +63,16 @@ test('controlled pause survives a child process boundary without being confused 
 
 test('local pause changes only operational state and preserves domain evidence and journals',async()=>{
  const writes:Array<{table:string;value:Record<string,unknown>}>=[];
+ const allowedStatuses:string[][]=[];
  const db={from:(table:string)=>{
-  const q={update:(value:Record<string,unknown>)=>{writes.push({table,value});return q;},eq:()=>q,in:()=>q,
+  const q={update:(value:Record<string,unknown>)=>{writes.push({table,value});return q;},eq:()=>q,in:(_field:string,values:string[])=>{allowedStatuses.push(values);return q;},
    then:(resolve:(value:unknown)=>void)=>resolve({error:null})};return q;
  }} as unknown as SupabaseClient;
  await pauseLocalProcessing(db,{runId:'run',taskId:'task'});
  assert.deepEqual(writes.map(w=>w.table),['pipeline_runs','worker_tasks']);
  assert.equal(writes[0].value.status,'paused');assert.equal(writes[1].value.execution_state,'paused');
  assert.equal(writes[1].value.failure_kind,'processing_disabled');assert.equal(writes[1].value.completed_at,null);
+ assert.equal(allowedStatuses[0].includes('paused'),false,'existing pause reason must be preserved');
 });
 
 test('mock opt-in cannot bypass the shared pause or target a remote database',async()=>{

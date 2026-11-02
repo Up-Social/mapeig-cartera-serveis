@@ -14,7 +14,7 @@ begin
  select id into v from catalog_versions where active and validated limit 1;
  perform persist_analysis(j,v,'{"classification":"discarded","reasons":["individual_grant"],"explanation":"Fixture amb proveïdor pendent","service_description":"","target_population":""}','[]','[{"content":"fixture"}]');
  select jsonb_build_array(jsonb_build_object('id',id,'job_id',job_id,'result_token',result_token)) into selection from current_record_results where job_id=j;
- perform claim_provider_call(j,'test','unknown-hash');
+ perform claim_provider_call(j,'test','prepared-json-v1:'||repeat('1',64));
  begin perform delete_discarded_records(selection,1);raise exception 'Unknown local receipt deleted';exception when others then if sqlerrm not in ('DELETE_PROVIDER_UNRESOLVED','DELETE_ACTIVE_WORK') then raise;end if;end;
  if not exists(select 1 from analysis_results where pipeline_job_id=j) then raise exception 'Unknown deletion did not roll back';end if;
  foreach c in array array['discarded','out_of_portfolio','insufficient_evidence'] loop

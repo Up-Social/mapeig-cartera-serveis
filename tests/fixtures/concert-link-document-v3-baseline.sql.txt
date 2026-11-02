@@ -1,0 +1,3 @@
+-- Must run after fingerprint setup (inside its transaction), before v3 fixture.
+create temporary table concert_link_v3_rpc_baseline as
+ select oid,proacl from pg_proc where oid='public.review_concert_link(uuid,integer,text,text,text,text)'::regprocedure;

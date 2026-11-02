@@ -2,6 +2,7 @@ import {execFileSync} from 'node:child_process';
 import {readFileSync,readdirSync} from 'node:fs';
 import {createClient} from '@supabase/supabase-js';
 import {TEST_API, TEST_PROJECT, assertTestEnvironment} from '../lib/test-environment';
+import {requireCleanPrototypeSchema} from './sql-test-prototype-guard';
 
 async function main() {
 // Uses only a separately named Docker project. Never reads .env.local.
@@ -10,6 +11,7 @@ const status = JSON.parse(execFileSync('supabase',['status','--workdir','tests/r
 const env = {NEXT_PUBLIC_SUPABASE_URL:status.API_URL, WORKFLOW_TEST_PROJECT:TEST_PROJECT, PIPELINE_PROVIDER:'mock'};
 assertTestEnvironment(env);
 function sql(input:string) {return execFileSync('docker',['exec','-i',container,'psql','-U','postgres','-d','postgres','-X','-v','ON_ERROR_STOP=1','-At'],{input,encoding:'utf8'});}
+sql(requireCleanPrototypeSchema);
 sql('create table if not exists public.workflow_test_migrations (name text primary key); revoke all on public.workflow_test_migrations from public, anon, authenticated;');
 const applied=new Set(sql('select name from public.workflow_test_migrations').trim().split('\n'));
 for(const file of readdirSync('supabase/migrations').filter(f=>f.endsWith('.sql')).sort()) {

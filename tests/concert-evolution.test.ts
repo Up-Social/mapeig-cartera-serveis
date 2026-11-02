@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {concertEvolution,euroCents,allocateByWeights,type ConcertEvolutionData,type EconomicUnit,type EconomicReview,type EconomicLink} from '../lib/concerts/evolution';
+import {concertEvolution,isConcertCutoff,euroCents,allocateByWeights,type ConcertEvolutionData,type EconomicUnit,type EconomicReview,type EconomicLink} from '../lib/concerts/evolution';
 import {projectConcertBalances,type ConcertFinancialLine} from '../lib/concerts/financial-ledger';
 import {proposeUnitLinks,type ConcertUnitForLink} from '../lib/concerts/unit-linking';
 const unit=(id:string,act='award'):EconomicUnit=>({id,source_record_id:`record-${id}`,unit_key:`line-${id}`,act_type:act,status:'approved',source_fingerprint:`fp-${id}`,provider_name:'Entitat original',observed_provider_name:null,provider_nif:'G12345678',reses_code:'S01150',service_code:'1.2.3',observed_service_code:'1.2.3',territory:'Barcelona',period:'2024',amount:1000,effective_start:null,effective_end:null,horizon_state:'in_scope',document_id:`doc-${id}`,page:1,storage_path:`cases/${id}`,storage_sha256:`hash-${id}`,evidence_quote:`Passatge oficial de la línia ${id}`});
@@ -49,6 +49,8 @@ test('cycles, multiple mothers and missing mothers never give a balance',()=>{
 });
 test('cutoff excludes later effects and refuses invalid dates',()=>{
  const d=data([unit('a'),unit('b','modification')],[review('a'),{...review('b','delta',20000),effective_at:'2024-02-01'}],[link('b','a')]);assert.equal(concertEvolution(d,'2024-01-31').balances[0].amountCents,100000);assert.throws(()=>concertEvolution(d,'2024-02-31'));
+ for(const date of ['','2024-02-31','not-a-date','2024-1-01'])assert.equal(isConcertCutoff(date),false);
+ assert.equal(isConcertCutoff('2024-02-29'),true);
 });
 test('duplicate archived line across publications is counted once',()=>{
  const a=unit('a'),b={...unit('b'),storage_sha256:a.storage_sha256,unit_key:a.unit_key,evidence_quote:a.evidence_quote};const p=projection(data([a,b],[review('a'),review('b')]));assert.equal(p.balances.length,1);assert.equal(p.balances[0].amountCents,100000);
@@ -101,6 +103,13 @@ test('a partial-period delta reduces its containing annual base without annualiz
 test('a publication with missing change lines blocks the original final balance',()=>{
  const d=data();d.missingLines=[{earlier_record_id:'record-a',later_record_id:'record-b',evidence:'Referència explícita'}];assert.equal(projection(d).balances[0].amountCents,null);
 });
+test('an unlinked related publication cannot create a second definitive root',()=>{
+ const d=data([unit('a'),unit('b')],[review('a'),review('b')]);
+ d.missingLines=[{earlier_record_id:'record-a',later_record_id:'record-b',evidence:'Possible esmena'}];
+ const balances=projection(d).individualBalances;
+ assert.equal(balances.length,2);
+ assert.ok(balances.every(balance=>balance.amountCents===null));
+});
 test('simultaneous sibling replacements cannot be ordered by arbitrary IDs',()=>{
  const p=projection(data([unit('a'),unit('b','modification'),unit('c','modification')],[review('a'),{...review('b','replacement',120000),effective_at:'2024-02-01'},{...review('c','replacement',130000),effective_at:'2024-02-01'}],[link('b','a'),link('c','a')]));assert.equal(p.balances[0].amountCents,null);assert.match(p.movements[1].issues.join(' '),/simultanis/);
 });
@@ -128,4 +137,139 @@ test('competing cessions block attribution and later cessions do not change an e
  const d=data([unit('a'),{...unit('b','cession'),provider_name:'Nova B',provider_nif:'G87654321'},{...unit('c','cession'),provider_name:'Nova C',provider_nif:'G87654322'}],[review('a'),{...review('b','nonfinancial'),amount_cents:null,effective_at:'2024-02-01'},{...review('c','nonfinancial'),amount_cents:null,effective_at:'2024-03-01'}],[link('b','a'),link('c','a')]);
  assert.equal(projection(d).balances[0].amountCents,null);assert.match(projection(d).balances[0].issues.join(' '),/Cessions concurrents/);
  assert.equal(concertEvolution(d,'2024-01-31').balances[0].provider,'Entitat original');
+});
+
+test('a malformed service code cannot match a documented code by punctuation normalization',()=>{
+ const original=lu('a',{serviceCode:'1.2.3'});
+ const change=lu('b',{actType:'modification',publishedAt:'2024-02-01',serviceCode:'1-2-3'});
+ assert.deepEqual(proposeUnitLinks([original,change]),[]);
+ assert.deepEqual(proposeUnitLinks([{...original,serviceCode:'1-2-3'},change]),[]);
+ assert.equal(proposeUnitLinks([original,{...change,serviceCode:'1.2.3'}]).length,1);
+});
+
+test('simultaneous independent replacement and delta cannot acquire an invented ordering',()=>{
+ const d=data([unit('a'),unit('b','modification'),unit('c','modification')],[review('a'),{...review('b','replacement',120000),effective_at:'2024-02-01'},{...review('c','delta',20000),effective_at:'2024-02-01'}],[link('b','a'),link('c','a')]);
+ const result=projection(d);assert.equal(result.balances[0].amountCents,null);assert.ok(result.movements.some(m=>m.issues.some(issue=>/simultanis/.test(issue))));
+ const ordered=data(d.units,d.reviews,[link('b','a'),link('c','b')]);
+ assert.equal(projection(ordered).balances[0].amountCents,140000);
+ const partial=structuredClone(d);partial.reviews[1].effective_at='2024-07-01';partial.reviews[2].effective_at='2024-07-01';partial.reviews[2].period_start='2024-07-01';
+ assert.equal(projection(partial).balances[0].amountCents,null);
+});
+
+test('a pending sibling in the same document blocks the consolidated picture but preserves the individual balance',()=>{
+ const source=unit('a'),out={...unit('out','modification'),source_record_id:'transfer',document_id:'transfer-doc'},incoming={...unit('in','modification'),source_record_id:'transfer',document_id:'transfer-doc',reses_code:'S12345'};
+ const reviews=[review('a'),{...review('out','delta',-30000),expected_job_id:'job-transfer',effective_at:'2024-02-01'},
+  {...review('in','delta',30000),expected_job_id:'job-transfer',effective_at:'2024-02-01'}];
+ const d=data([source,out,incoming],reviews,[link('out','a')]);
+ d.publications=[{id:source.source_record_id,title:'Adjudicació',job_id:'job-a',job_status:'approved',official_url:null},{id:'transfer',title:'Modificació',job_id:'job-transfer',job_status:'approved',official_url:null}];
+ const p=projection(d);
+ assert.equal(p.movements.find(m=>m.unitId==='in')?.status,'pending');
+ assert.equal(p.movements.find(m=>m.unitId==='out')?.afterCents,70000);
+ assert.equal(p.individualBalances.find(b=>b.rootId==='a')?.amountCents,70000);
+ assert.equal(p.balances[0].amountCents,null);assert.match(p.balances[0].issues.join(' '),/línia pendent del mateix document/);
+ assert.doesNotMatch(p.balances[0].issues.join(' '),/trasllat/i);
+});
+test('two independently linked and reviewed changes preserve the consolidated sum without inventing a pair',()=>{
+ const a=unit('a'),b={...unit('b'),reses_code:'S12345'},out={...unit('out','modification'),source_record_id:'transfer',document_id:'transfer-doc'},incoming={...unit('in','modification'),source_record_id:'transfer',document_id:'transfer-doc',reses_code:'S12345'};
+ const reviews=[review('a'),{...review('b','award',50000)},{...review('out','delta',-30000),expected_job_id:'job-transfer',effective_at:'2024-02-01'},
+  {...review('in','delta',30000),expected_job_id:'job-transfer',effective_at:'2024-02-01'}];
+ const d=data([a,b,out,incoming],reviews,[link('out','a'),link('in','b')]);
+ d.publications=[{id:a.source_record_id,title:'Original A',job_id:'job-a',job_status:'approved',official_url:null},{id:b.source_record_id,title:'Original B',job_id:'job-b',job_status:'approved',official_url:null},{id:'transfer',title:'Modificació',job_id:'job-transfer',job_status:'approved',official_url:null}];
+ const p=projection(d);assert.equal(p.pending,0);assert.equal(p.balances.length,1);assert.equal(p.balances[0].amountCents,150000);
+ assert.deepEqual(p.individualBalances.map(b=>b.amountCents).sort((x,y)=>(x??0)-(y??0)),[70000,80000]);
+});
+test('a pending line in a different document does not block, but a different entity in the same act remains uncertain',()=>{
+ const a=unit('a'),out={...unit('out','modification'),source_record_id:'transfer',document_id:'doc-1'},other={...unit('in','modification'),source_record_id:'transfer',document_id:'doc-2'};
+ const reviews=[review('a'),{...review('out','delta',-30000),expected_job_id:'job-transfer',effective_at:'2024-02-01'},{...review('in','delta',30000),expected_job_id:'job-transfer',effective_at:'2024-02-01'}];
+ const d=data([a,out,other],reviews,[link('out','a')]);d.publications=[{id:a.source_record_id,title:'Original',job_id:'job-a',job_status:'approved',official_url:null},{id:'transfer',title:'Modificació',job_id:'job-transfer',job_status:'approved',official_url:null}];
+ assert.equal(projection(d).balances[0].amountCents,70000);
+ other.document_id='doc-1';other.provider_nif='G87654321';other.service_code='1.2.4';
+ assert.equal(projection(d).balances[0].amountCents,null,'a different approved identity or service cannot rule out a transfer within the act');
+ assert.equal(projection(d).individualBalances[0].amountCents,70000);
+});
+
+test('a pending line in a 2024 act does not block a separately evidenced 2025 annual balance',()=>{
+ const a=unit('a'),out={...unit('out','modification'),source_record_id:'transfer',document_id:'transfer-doc'},pending={...unit('in','modification'),source_record_id:'transfer',document_id:'transfer-doc'};
+ const award={...review('a','award',200000),period_end:'2025-12-31',annualities:[{start:'2024-01-01',end:'2024-12-31',amountCents:100000},{start:'2025-01-01',end:'2025-12-31',amountCents:100000}]};
+ const d=data([a,out,pending],[award,{...review('out','delta',-30000),expected_job_id:'job-transfer',effective_at:'2024-02-01'},
+  {...review('in','delta',30000),expected_job_id:'job-transfer',effective_at:'2024-02-01'}],[link('out','a')]);
+ d.publications=[{id:a.source_record_id,title:'Original',job_id:'job-a',job_status:'approved',official_url:null},{id:'transfer',title:'Modificació',job_id:'job-transfer',job_status:'approved',official_url:null}];
+ const p=projection(d);assert.equal(p.balances.find(b=>b.period.startsWith('2024'))?.amountCents,null);
+ assert.equal(p.balances.find(b=>b.period.startsWith('2025'))?.amountCents,100000);
+ d.reviews[2].period_start=null;d.reviews[2].period_end=null;
+ assert.equal(projection(d).balances.find(b=>b.period.startsWith('2024'))?.amountCents,null,'unknown pending period must remain conservative');
+});
+test('a rejected or out-of-horizon sibling does not create a simultaneous economic conflict',()=>{
+ for(const patch of [{status:'rejected'},{horizon_state:'out_of_scope'}]){
+  const d=data([unit('a'),unit('b','modification'),{...unit('c','modification'),...patch}],
+   [review('a'),{...review('b','replacement',120000),effective_at:'2024-02-01'}, {...review('c','delta',20000),effective_at:'2024-02-01'}],
+   [link('b','a'),link('c','a')]);
+  const p=projection(d);assert.equal(p.balances[0].amountCents,120000);assert.ok(!p.balances[0].issues.some(issue=>/simultanis/.test(issue)));
+ }
+});
+test('an excluded correction does not create an artificial concurrent correction',()=>{
+ const a=unit('a'),b=unit('b','amendment'),c={...unit('c','amendment'),status:'rejected'};
+ const d=data([a,b,c],[review('a'),{...review('b','correction',90000),corrects_unit_id:'a',effective_at:'2024-02-01'},
+  {...review('c','correction',80000),corrects_unit_id:'a',effective_at:'2024-02-01'}],[link('b','a'),link('c','a')]);
+ assert.equal(projection(d).balances[0].amountCents,90000);
+});
+test('a pending line without document identity cannot be ruled out of the same act',()=>{
+ const a=unit('a'),out={...unit('out','modification'),source_record_id:'transfer',document_id:'transfer-doc'},other={...unit('in','modification'),source_record_id:'transfer',document_id:null};
+ const d=data([a,out,other],[review('a'),{...review('out','delta',-30000),expected_job_id:'job-transfer',effective_at:'2024-02-01'},
+  {...review('in','delta',30000),expected_job_id:'job-transfer',effective_at:'2024-02-01'}],[link('out','a')]);
+ d.publications=[{id:a.source_record_id,title:'Original',job_id:'job-a',job_status:'approved',official_url:null},{id:'transfer',title:'Modificació',job_id:'job-transfer',job_status:'approved',official_url:null}];
+ const p=projection(d);assert.equal(p.balances[0].amountCents,null);assert.equal(p.individualBalances[0].amountCents,70000);
+ assert.match(p.balances[0].issues.join(' '),/document no identificat/);
+});
+test('a reviewed change does not block a separate funder in the same root and period',()=>{
+ const a=unit('a'),renewal=unit('renewal','renewal'),out={...unit('out','modification'),source_record_id:'transfer',document_id:'transfer-doc'},pending={...unit('in','modification'),source_record_id:'transfer',document_id:'transfer-doc'};
+ const d=data([a,renewal,out,pending],[review('a'),{...review('renewal','renewal',50000),funder:'Ajuntament',effective_at:'2024-01-01'},
+  {...review('out','delta',-30000),expected_job_id:'job-transfer',effective_at:'2024-02-01'},
+  {...review('in','delta',30000),expected_job_id:'job-transfer',effective_at:'2024-02-01'}],[link('renewal','a'),link('out','a')]);
+ d.publications=[{id:a.source_record_id,title:'Original',job_id:'job-a',job_status:'approved',official_url:null},
+  {id:renewal.source_record_id,title:'Pròrroga',job_id:'job-renewal',job_status:'approved',official_url:null},
+  {id:'transfer',title:'Modificació',job_id:'job-transfer',job_status:'approved',official_url:null}];
+ const p=projection(d);assert.equal(p.balances.find(b=>b.funder==='Drets Socials')?.amountCents,null);
+ assert.equal(p.balances.find(b=>b.funder==='Ajuntament')?.amountCents,50000);
+});
+test('a pending sibling with another evidenced funder or territory does not block this scoped balance',()=>{
+ const a=unit('a'),out={...unit('out','modification'),source_record_id:'transfer',document_id:'transfer-doc'},incoming={...unit('in','modification'),source_record_id:'transfer',document_id:'transfer-doc'};
+ const d=data([a,out,incoming],[review('a'),{...review('out','delta',-30000),expected_job_id:'job-transfer',effective_at:'2024-02-01'},
+  {...review('in','delta',30000),funder:'Ajuntament',expected_job_id:'job-transfer',effective_at:'2024-02-01'}],[link('out','a')]);
+ d.publications=[{id:a.source_record_id,title:'Original',job_id:'job-a',job_status:'approved',official_url:null},{id:'transfer',title:'Modificació',job_id:'job-transfer',job_status:'approved',official_url:null}];
+ assert.equal(projection(d).balances[0].amountCents,70000);
+ d.reviews[2].status='draft';assert.equal(projection(d).balances[0].amountCents,null,'an unreviewed funding value cannot rule out impact');
+ d.reviews[2].status='approved';d.reviews[2].funder='Drets Socials';incoming.territory='Girona';assert.equal(projection(d).balances[0].amountCents,70000);
+ incoming.status='draft';assert.equal(projection(d).balances[0].amountCents,null,'an unreviewed territory cannot rule out impact');
+});
+
+
+test('a pending sibling with evidenced funder B blocks B even if the reviewed endpoint affects A',()=>{
+ const a=unit('a'),renewal=unit('renewal','renewal'),out={...unit('out','modification'),source_record_id:'transfer',document_id:'transfer-doc'},pending={...unit('in','modification'),source_record_id:'transfer',document_id:'transfer-doc'};
+ const d=data([a,renewal,out,pending],[review('a'),{...review('renewal','renewal',50000),funder:'Ajuntament'},
+  {...review('out','delta',-30000),expected_job_id:'job-transfer',effective_at:'2024-02-01'},
+  {...review('in','delta',30000),funder:'Ajuntament',expected_job_id:'job-transfer',effective_at:'2024-02-01'}],[link('renewal','a'),link('out','a')]);
+ d.publications=[{id:a.source_record_id,title:'Original',job_id:'job-a',job_status:'approved',official_url:null},{id:renewal.source_record_id,title:'Pròrroga',job_id:'job-renewal',job_status:'approved',official_url:null},{id:'transfer',title:'Modificació',job_id:'job-transfer',job_status:'approved',official_url:null}];
+ const p=projection(d);assert.equal(p.balances.find(b=>b.funder==='Drets Socials')?.amountCents,70000);assert.equal(p.balances.find(b=>b.funder==='Ajuntament')?.amountCents,null);
+ d.reviews[3].status='draft';const unknown=projection(d);assert.equal(unknown.balances.find(b=>b.funder==='Drets Socials')?.amountCents,null);assert.equal(unknown.balances.find(b=>b.funder==='Ajuntament')?.amountCents,null);
+});
+test('duplicate documentary roots preserve pending changes and cessions attached to either root',()=>{
+ const a=unit('a'),b={...unit('b'),storage_sha256:a.storage_sha256,unit_key:a.unit_key,evidence_quote:a.evidence_quote},change=unit('c','modification');
+ const d=data([a,b,change],[review('a'),review('b'),{...review('c','delta',30000),status:'draft'}],[link('c','b')]);
+ let p=projection(d);assert.equal(p.balances.length,1);assert.equal(p.balances[0].amountCents,null);assert.deepEqual(p.balances[0].rootIds,['a','b']);assert.match(p.balances[0].issues.join(' '),/pendent de revisió/);
+ const cession={...unit('d','cession'),provider_name:'Nova entitat',provider_nif:'G87654321'};
+ const d2=data([a,b,cession],[review('a'),review('b'),{...review('d','nonfinancial'),amount_cents:null,effective_at:'2024-02-01'}],[link('d','b')]);
+ p=projection(d2);assert.equal(p.balances[0].providerNif,'G87654321');assert.equal(p.balances[0].amountCents,100000);
+ const other={...unit('e','cession'),provider_nif:'G87654322'};d2.units.push(other);d2.reviews.push({...review('e','nonfinancial'),amount_cents:null,effective_at:'2024-03-01'});d2.links.push(link('e','a'));d2.publications.push({id:other.source_record_id,title:'Cessió',job_id:'job-e',job_status:'approved',official_url:null});
+ p=projection(d2);assert.equal(p.balances[0].amountCents,null);assert.match(p.balances[0].issues.join(' '),/Cessions concurrents/);
+});
+test('individual award stays pending in evolution when its documentary decision is stale',()=>{
+ const stale={...unit('a'),line_award_state:'stale' as const};
+ const result=projection(data([stale],[review('a')]));
+ assert.equal(result.movements[0].status,'pending');assert.match(result.movements[0].issues.join(' '),/adjudicació ha quedat obsoleta/);
+ assert.ok(result.balances.every(balance=>balance.amountCents===null));
+});
+test('a current individual award still needs a separate economic interpretation and period',()=>{
+ const current={...unit('a'),line_award_state:'current' as const};const result=projection(data([current],[]));
+ assert.equal(result.movements[0].status,'pending');assert.match(result.movements[0].issues.join(' '),/Interpretació econòmica pendent/);
 });

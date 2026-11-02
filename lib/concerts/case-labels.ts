@@ -1,6 +1,6 @@
 /** Sprint 1 annex: act types and overlapping attributes stay separate. */
 import {hasCurrentConcertAward,referencesConcertCallInTitle} from './no-award';
-export type ConcertCaseKey='denial'|'termination'|'modification'|'proposal'|'call'|'appeal'|'amendment'|'unspecified'|'vacant'|'territorial'|'mixed'|'program_renewal'|'emergency'|'other_funder'|'spending'|'multiyear'|'cession'|'validation'|'award'|'renewal';
+export type ConcertCaseKey='denial'|'termination'|'modification'|'proposal'|'call'|'appeal'|'amendment'|'unspecified'|'vacant'|'vacant_reference'|'territorial'|'mixed'|'program_renewal'|'emergency'|'other_funder'|'spending'|'multiyear'|'cession'|'validation'|'award'|'renewal';
 export const concertCase:Record<ConcertCaseKey,{label:string;description:string;tone:'blue'|'amber'|'red'|'violet'}>={
  denial:{label:'Denegació',description:'La sol·licitud es denega; no acredita nou finançament.',tone:'red'},
  termination:{label:'Cessament o minoració',description:'Redueix o extingeix un concert existent. Cal vincular la línia original i acreditar l’efecte econòmic.',tone:'red'},
@@ -11,6 +11,7 @@ export const concertCase:Record<ConcertCaseKey,{label:string;description:string;
  amendment:{label:'Esmena o rectificació',description:'Corregeix una resolució o publicació. Cal comprovar què canvia; no es duplica l’import original.',tone:'violet'},
  unspecified:{label:'Acte per precisar',description:'El títol no permet saber el tipus d’acte; cal llegir el document.',tone:'amber'},
  vacant:{label:'Places desertes',description:'Places sense adjudicar, llevat que el document assigni una entitat i un import.',tone:'amber'},
+ vacant_reference:{label:'Places desertes (referència)',description:'El títol fa referència a una resolució de places desertes. Cal revisar l’acte i cada línia per determinar-ne la situació actual.',tone:'amber'},
  territorial:{label:'Expedient territorial',description:'Un mateix expedient té resolucions territorials diferents; cadascuna conserva les seves línies.',tone:'blue'},
  mixed:{label:'Concert i gestió delegada',description:'El document reuneix dues modalitats. Les línies es revisen individualment.',tone:'blue'},
  program_renewal:{label:'Pròrroga de programa',description:'Un annex prorroga diversos serveis i entitats. Cal evitar sumar imports repetits per disposició.',tone:'blue'},
@@ -44,6 +45,9 @@ export function concertCaseKeys(title:string,unitActs:string[],documentText?:str
  else if(/provisi[oó]|adjudicaci[oó]/.test(t)||unitActs.includes('award'))primary='award';
  else primary='unspecified';
  const keys:ConcertCaseKey[]=[primary];
+ // An amendment can refer to an earlier vacancy decision without establishing
+ // whether any individual line is currently vacant or awarded.
+ if(primary==='amendment'&&/esmena\s+de\s+la\s+resoluci[oó]\s+de\s+places\s+desertes/.test(t))keys.push('vacant_reference');
  if(/exp\.?\s*\d[\d-]+[^)]*\([^)]+\)/.test(t)||/\([^)]*(barcelona|lleida|girona|tarragona)[^)]*\)/.test(t))keys.push('territorial');
  if(/concert social i gesti[oó] delegada|concert social.*gesti[oó] delegada/.test(t))keys.push('mixed');
  if(primary==='renewal'&&/programa\s*\d+/.test(t))keys.push('program_renewal');

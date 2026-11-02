@@ -1,14 +1,24 @@
+import {independentConveniReadersEnabled,requireConsistentConveniReads} from './convenis/independent-read-guard';
 import {hasUnitSchema,schemaSelect} from './runtime-schema';
 import "server-only";
 import { createServerSupabase } from "./records-page";
 import type { ApprovedFilters, ApprovedPage, ApprovedProvision } from "./approved-types";
+import {lineReadersEnabled,requireConsistentLineReads} from './concerts/line-read-guard';
 
 const PAGE_SIZE = 25;
 const SELECT = "id,catalog_version_id,source_record_id,source_id,unit_id,centre,period,act_type,annex_reference,call_url,regulatory_basis_url,provider_name,provider_nif,mechanism,award_date,amount,contracting_body,target_population,source_reference,service_code,approved_at,source_records!inner(id,title,source_dataset,financing_type,source_record_id,processing_status,source_documents(status,storage_path),review_decisions(decision,created_at),pipeline_jobs(run_id,status,created_at,pipeline_runs(batch_number))),master_services(service_name),official_services(service_name)";
 
 export async function getApprovedPage(filters: ApprovedFilters): Promise<ApprovedPage> {
   const db = createServerSupabase();
-  let request = db.from("conveni_reviewed_provisions").select(schemaSelect(SELECT), { count: "exact" }).or('processing_status.eq.completat,financing_type.eq.conveni',{referencedTable:'source_records'});
+  await requireConsistentConveniReads(db);
+  const independent=independentConveniReadersEnabled();
+  if(!independent)await requireConsistentLineReads(db);
+  const lineLedger=lineReadersEnabled();
+  let request = independent
+    ? db.rpc('conveni_independent_approved',{}, {count:'exact'}).select(schemaSelect(`${SELECT},concert_line_approved,conveni_independent_virtual`))
+    : lineLedger
+    ? db.rpc('concert_line_combined_approved',{}, {count:'exact'}).select(schemaSelect(`${SELECT},concert_line_approved`))
+    : db.from("conveni_reviewed_provisions").select(schemaSelect(SELECT), { count: "exact" }).or('processing_status.eq.completat,financing_type.eq.conveni',{referencedTable:'source_records'});
   if (hasUnitSchema()) request=request.is("superseded_at",null);
   if (filters.type !== "totes") request = request.eq("source_records.financing_type", filters.type);
   if (filters.query) { const q = filters.query.replaceAll(/[,%()]/g, " ").trim(); const expression = `provider_name.ilike.%${q}%,provider_nif.ilike.%${q}%,source_id.ilike.%${q}%,service_code.ilike.%${q}%`; request = request.or(expression); }
@@ -17,10 +27,12 @@ export async function getApprovedPage(filters: ApprovedFilters): Promise<Approve
   if (result.error) throw result.error;
   const total = result.count ?? 0;
   const pageCount = Math.max(1, Math.ceil(total / PAGE_SIZE));
-  return { provisions: (result.data as unknown as Record<string, unknown>[] ?? []).map(mapApproved), total, page: Math.min(filters.page, pageCount), pageCount, pageSize: PAGE_SIZE };
+  const rows=result.data as unknown as Record<string, unknown>[] ?? [];
+  if(!independent)await requireConsistentLineReads(db);await requireConsistentConveniReads(db);
+  return { provisions: rows.map(row=>mapApproved(row,row.concert_line_approved===true||row.conveni_independent_virtual===true)), total, page: Math.min(filters.page, pageCount), pageCount, pageSize: PAGE_SIZE };
 }
 
-function mapApproved(row: Record<string, unknown>): ApprovedProvision {
+function mapApproved(row: Record<string, unknown>,lineApproved=false): ApprovedProvision {
   const rawSource = row.source_records; const source = (Array.isArray(rawSource) ? rawSource[0] : rawSource) as Record<string, unknown>;
   const jobs = Array.isArray(source.pipeline_jobs) ? source.pipeline_jobs as Array<Record<string, unknown>> : [];
   const job = jobs.filter((item) => ["approved", "corrected"].includes(String(item.status))).sort((a, b) => String(b.created_at).localeCompare(String(a.created_at)))[0];
@@ -29,5 +41,5 @@ function mapApproved(row: Record<string, unknown>): ApprovedProvision {
   const decision = decisions.sort((a, b) => String(b.created_at).localeCompare(String(a.created_at)))[0];
   const rawMaster = row.official_services ?? row.master_services; const master = (Array.isArray(rawMaster) ? rawMaster[0] : rawMaster) as Record<string, unknown> | undefined;
   const documents=Array.isArray(source.source_documents)?source.source_documents as Array<Record<string,unknown>>:[];
-  return { id: String(row.id), sourceRecordId: String(row.source_record_id), sourceId: String(row.source_id), title: String(source.title), sourceDataset: String(source.source_dataset), financingType: String(source.financing_type), sourceArchivePending:documents.some(document=>document.status==='fetched'&&!document.storage_path), batchId: job ? String(job.run_id) : null, batchNumber: run?.batch_number == null ? null : String(run.batch_number).padStart(8, "0"), decision: (decision?.decision === "corrected" ? "corrected" : "approved"), decisionDate: decision?.created_at == null ? null : String(decision.created_at), unitId: String(row.unit_id??""), centre:row.centre==null?null:String(row.centre),period:row.period==null?null:String(row.period),actType:row.act_type==null?null:String(row.act_type),annexReference:row.annex_reference==null?null:String(row.annex_reference), catalogVersion: row.catalog_version_id == null ? null : String(row.catalog_version_id), serviceCode: String(row.service_code), serviceName: String(master?.service_name ?? row.service_code), providerName: row.provider_name == null ? null : String(row.provider_name), providerNif: row.provider_nif == null ? null : String(row.provider_nif), mechanism: String(row.mechanism), awardDate: row.award_date == null ? null : String(row.award_date), amount: row.amount == null ? null : Number(row.amount), contractingBody: row.contracting_body == null ? null : String(row.contracting_body), targetPopulation: row.target_population == null ? null : String(row.target_population), callUrl: row.call_url == null ? null : String(row.call_url), regulatoryBasisUrl: row.regulatory_basis_url == null ? null : String(row.regulatory_basis_url), sourceReference: String(row.source_reference) };
+  return { id: String(row.id), sourceRecordId: String(row.source_record_id), sourceId: String(row.source_id), title: String(source.title), sourceDataset: String(source.source_dataset), financingType: String(source.financing_type), sourceArchivePending:documents.some(document=>document.status==='fetched'&&!document.storage_path), batchId: !lineApproved && job ? String(job.run_id) : null, batchNumber: lineApproved || run?.batch_number == null ? null : String(run.batch_number).padStart(8, "0"), decision: (!lineApproved && decision?.decision === "corrected" ? "corrected" : "approved"), decisionDate: lineApproved ? (row.approved_at == null ? null : String(row.approved_at)) : (decision?.created_at == null ? null : String(decision.created_at)), unitId: String(row.unit_id??""), centre:row.centre==null?null:String(row.centre),period:row.period==null?null:String(row.period),actType:row.act_type==null?null:String(row.act_type),annexReference:row.annex_reference==null?null:String(row.annex_reference), catalogVersion: row.catalog_version_id == null ? null : String(row.catalog_version_id), serviceCode: String(row.service_code), serviceName: String(master?.service_name ?? row.service_code), providerName: row.provider_name == null ? null : String(row.provider_name), providerNif: row.provider_nif == null ? null : String(row.provider_nif), mechanism: String(row.mechanism), awardDate: row.award_date == null ? null : String(row.award_date), amount: row.amount == null ? null : Number(row.amount), contractingBody: row.contracting_body == null ? null : String(row.contracting_body), targetPopulation: row.target_population == null ? null : String(row.target_population), callUrl: row.call_url == null ? null : String(row.call_url), regulatoryBasisUrl: row.regulatory_basis_url == null ? null : String(row.regulatory_basis_url), sourceReference: String(row.source_reference) };
 }

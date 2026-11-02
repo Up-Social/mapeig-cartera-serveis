@@ -1,7 +1,9 @@
 import type {SourceRecord} from '@/lib/workbench-types';
 import {assessConcertAct,CONCERT_CASE_LABELS,type ConcertEffect} from '@/lib/concerts/act-assessment';
+import {extractAdministrativeCorrections} from '@/lib/concerts/administrative-correction';
+import {contractAmountSource} from '@/lib/source-comparison';
 
-function display(value:string|number|null|undefined){return value==null||value===''?'No consta':String(value);}
+function display(value:string|number|null|undefined){return value==null||(typeof value==='string'&&!value.trim())?'No consta · pendent':String(value);}
 function displayComparison(value:string|number|null|undefined,label:string){
  if(typeof value==='number'&&label==='Import')return new Intl.NumberFormat('ca-ES',{style:'currency',currency:'EUR'}).format(value);
  return display(value);
@@ -14,12 +16,18 @@ export function CaseAtAGlance({record}:{record:SourceRecord}){
   !d.qualityFlags.some(flag=>['corrupt_text','incomplete_extraction'].includes(flag)))
   .sort((left,right)=>(right.textLength??0)-(left.textLength??0))[0]?.extractedText;
  const assessment=record.financingType==='concert'&&!reconciledAnnex?assessConcertAct(record.title,officialText):null;
+ const administrative=record.financingType==='concert'?record.sourceDocuments.filter(d=>d.status==='fetched'&&d.mimeType?.includes('pdf')&&d.extractedText&&!d.qualityFlags.some(flag=>['corrupt_text','incomplete_extraction'].includes(flag))).map(document=>({document,...extractAdministrativeCorrections(document.extractedText!)})).filter(item=>item.rows.length||item.unparsedRows||item.incompleteBoundary):[];
  const extracted=record.financingType==='conveni'?null:record.externalEnrichment;
+ const contractRelated=record.sourceDataset==='contractacions'||record.financingType==='contractacio';
+ const contractAligned=record.sourceDataset==='contractacions'&&record.financingType==='contractacio';
+ const contractAmount=contractRelated?(contractAligned?contractAmountSource(record.amount,record.sourcePayload):'unknown'):null;
+ const verifiedAward=contractAligned&&record.contractVerifiedAward!=null&&record.contractVerifiedAward===record.amount;
+ const contractAmountLabel=contractAmount===null?null:({award:verifiedAward?'import d’adjudicació informat':'import d’adjudicació pendent de verificar',tender:'possible pressupost de licitació',estimate:'possible valor estimat del contracte',unknown:'naturalesa no acreditada',none:'sense import d’origen'} as const)[contractAmount];
  const rows=[
   {label:record.financingType==='conveni'?'Signants d’origen (no acredita receptors)':'Entitat',original:record.providerName,official:extracted?.providerName},
-  {label:record.financingType==='concert'?'Import global del document':record.financingType==='conveni'?'Import públic previst del conveni':'Import',original:record.amount,official:extracted?.amount},
+  {label:contractRelated?'Import':record.financingType==='concert'?'Import global del document':record.financingType==='conveni'?'Import públic previst del conveni':'Import',original:record.amount,official:extracted?.amount},
   {label:'Mecanisme',original:record.mechanism,official:extracted?.mechanism},
- ].filter(row=>row.original!=null||row.official!=null);
+ ];
  return <section id="resum" aria-label="Resum del cas" className="surface scroll-mt-32 p-5 sm:p-6">
   <p className="page-eyebrow">Lectura ràpida</p><h2 className="section-title mt-1">Resum del cas</h2>
   <p className="mt-2 text-sm text-muted-foreground">{record.financingType==='conveni'?'Dades de l’Excel. Revisa els receptors, els imports atribuïbles i les anualitats a les unitats del conveni. No són pagaments.':'Dades de la font i camps extrets del document. Les diferències requereixen comprovació humana.'}</p>
@@ -27,9 +35,9 @@ export function CaseAtAGlance({record}:{record:SourceRecord}){
     const compared=extracted&&row.official!=null;
     const sameConcertMechanism=record.financingType==='concert'&&row.label==='Mecanisme'&&
      typeof row.original==='string'&&typeof row.official==='string'&&/concert/i.test(row.original)&&/concert/i.test(row.official);
-    const differs=compared&&row.original!=null&&!sameConcertMechanism&&display(row.original)!==display(row.official);
+    const differs=compared&&row.original!=null&&!sameConcertMechanism&&!(row.label==='Import'&&contractAmount!==null)&&display(row.original)!==display(row.official);
     const isAmount=row.label.includes('Import');
-    return <div key={row.label} className="rounded-lg border p-3"><dt className="font-semibold">{row.label}</dt><dd className="mt-1">Font: {displayComparison(row.original,isAmount?'Import':row.label)}</dd>{compared&&<dd className={`mt-1 ${differs?'font-medium text-amber-800':''}`}>Document: {displayComparison(row.official,isAmount?'Import':row.label)}{differs?' · diferència pendent de revisar':''}</dd>}{isAmount&&record.financingType==='concert'&&<dd className="mt-1 text-xs text-muted-foreground">{reconciledAnnex?'Import extret de la capçalera. Pot ser sense IVA; el total acreditat de les línies consta al repartiment de l’annex.':'Import global extret; consulta les línies per saber què es pot atribuir a cada entitat.'}</dd>}</div>;
+    return <div key={row.label} className="rounded-lg border p-3"><dt className="font-semibold">{row.label}</dt><dd className="mt-1">Font: {displayComparison(row.original,isAmount?'Import':row.label)}{isAmount&&contractAmountLabel&&` · ${contractAmountLabel}`}</dd>{compared&&<dd className={`mt-1 ${differs?'font-medium text-amber-800':''}`}>Document: {displayComparison(row.official,isAmount?'Import':row.label)}{isAmount&&contractAmount!==null?' · naturalesa pendent de verificar':differs?' · diferència pendent de revisar':''}</dd>}{isAmount&&contractAmount!==null&&!verifiedAward&&<dd className="mt-1 text-xs text-muted-foreground">Un pressupost, un valor estimat o un import sense procedència acreditada no identifiquen l’import adjudicat. Cal revisar el document.</dd>}{isAmount&&record.financingType==='concert'&&(row.original!=null||row.official!=null)&&<dd className="mt-1 text-xs text-muted-foreground">{reconciledAnnex?'Import extret de la capçalera. Pot ser sense IVA; el total acreditat de les línies consta al repartiment de l’annex.':'Import global extret; consulta les línies per saber què es pot atribuir a cada entitat.'}</dd>}</div>;
   })}</dl>
   {reconciledAnnex&&<div className="mt-4 rounded-lg border border-sky-200 bg-sky-50 p-4 text-sm text-slate-900" data-testid="concert-reconciled-summary">
    <h3 className="font-semibold">Provisió amb annex econòmic conciliat</h3>
@@ -44,5 +52,6 @@ export function CaseAtAGlance({record}:{record:SourceRecord}){
    <p className="mt-2 text-xs">La validació general del servei no confirma l’efecte econòmic net d’aquest acte. Cal reconciliar els actes i les línies abans de considerar un total del concert.</p>
    <a className="mt-2 inline-block text-xs font-semibold underline" href="#unitats">Veure entitats, serveis, imports i modificacions</a>
   </div>}
+  {administrative.length>0&&<section className="mt-4 rounded-lg border p-4 text-sm"><h3 className="font-semibold">Dades administratives proposades per revisar</h3><p className="mt-2">Contrasta cada línia amb la resolució anterior i la unitat corresponent. Aquesta lectura no modifica cap registre ni incorpora finançament.</p>{administrative.map(item=><div key={item.document.id} className="mt-3 space-y-2">{item.rows.map((row,index)=><div key={`${row.resesCode}-${index}`} className="rounded border p-3"><p>{row.resesCode} · GECAT {row.gecat} · Disposició {row.disposition} · Posició {row.position}</p><details className="mt-2"><summary className="cursor-pointer">Fragment documental · pàgina {row.page}</summary><blockquote className="mt-2 border-l pl-3">{row.quote}</blockquote><a className="mt-2 inline-block underline" href={`/api/documents/${item.document.id}/open#page=${row.page}`} target="_blank" rel="noreferrer">Obrir el document</a></details></div>)}{item.unparsedRows>0&&<p className="status-warning rounded p-3">Hi ha {item.unparsedRows} línies de la taula que no s’han pogut interpretar. Cal revisar el document complet.</p>}{item.incompleteBoundary&&<p className="status-warning rounded p-3">No s’ha pogut delimitar la secció de correccions en el text extret. Revisa el document complet; no s’han proposat dades administratives.</p>}</div>)}</section>}
  </section>;
 }

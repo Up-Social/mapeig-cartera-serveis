@@ -1,8 +1,9 @@
 import {createServerSupabase} from '@/lib/records-page';
 import {isUuid} from '@/lib/uuid';
-import {concertEvolution} from '@/lib/concerts/evolution';
+import {concertEvolution,isConcertCutoff} from '@/lib/concerts/evolution';
 import {loadConcertEvolution} from '@/lib/concerts/evolution-store';
 import {storeConcertLinkProposals} from '@/lib/concerts/link-discovery';
+import {LineReadUnavailable} from '@/lib/concerts/line-read-guard';
 export const dynamic='force-dynamic';
 export async function GET(request:Request,{params}:{params:Promise<{id:string}>}){
  const {id}=await params;if(!isUuid(id))return Response.json({error:'Registre no vàlid'},{status:400});
@@ -14,8 +15,9 @@ export async function GET(request:Request,{params}:{params:Promise<{id:string}>}
   return rows.error?Response.json({error:'No s’han pogut cercar originals'},{status:500}):Response.json({units:rows.data});
  }
  const cutoff=new URL(request.url).searchParams.get('cutoff')??new Date().toISOString().slice(0,10);
+ if(!isConcertCutoff(cutoff))return Response.json({error:'La data de tall no és vàlida. Introdueix una data existent.'},{status:400});
  try{const data=await loadConcertEvolution(createServerSupabase(),id);return Response.json({data,projection:concertEvolution(data,cutoff)});}
- catch{return Response.json({error:'No s’ha pogut carregar l’evolució econòmica. Torna a provar-ho.'},{status:500});}
+ catch(error){if(error instanceof LineReadUnavailable)return Response.json({error:error.message},{status:503});return Response.json({error:'No s’ha pogut carregar l’evolució econòmica. Torna a provar-ho.'},{status:500});}
 }
 export async function POST(request:Request,{params}:{params:Promise<{id:string}>}){
  const {id}=await params;if(!isUuid(id))return Response.json({error:'Registre no vàlid'},{status:400});

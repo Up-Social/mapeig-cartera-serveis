@@ -3,6 +3,14 @@ import {isIP} from "node:net";
 import {request as httpRequest} from 'node:http';
 import {request as httpsRequest} from 'node:https';
 const MAX_BYTES=10*1024*1024,MAX_PDF_BYTES=16*1024*1024,MAX_TEXT=200_000,TIMEOUT_MS=20_000;
+export const HTML_COVERAGE_POLICY='html-text-coverage-v1';
+export function hasCurrentTextCoverage(method:string|null,coverage:unknown,mimeType:string|null=null,partial:boolean|null|undefined=undefined){
+ if(partial===true||(typeof coverage==='object'&&coverage!==null&&'complete' in coverage&&coverage.complete===false))return false;
+ const htmlOrText=method==='html-basic'||mimeType?.includes('html')||mimeType==='text/plain';
+ if(htmlOrText)return typeof coverage==='object'&&coverage!==null&&'policy' in coverage&&coverage.policy===HTML_COVERAGE_POLICY&&'complete' in coverage&&coverage.complete===true;
+ // Unknown historical metadata cannot certify that an HTML/text extraction was complete.
+ return typeof method==='string'&&/^(?:pdf-(?:text|ocr)-markdown-v2|pdftotext(?:-layout)?|pdf-text)$/.test(method);
+}
 export async function fetchWithLimits(initialUrl: string,options?:{allowedHosts:string[]}) {
   let current = new URL(initialUrl);
   for (let redirect = 0; redirect <= 5; redirect += 1) {
@@ -65,5 +73,12 @@ export function htmlToText(html: string) {
     .replace(/&gt;/gi, ">").replace(/&quot;/gi, '"').replace(/&#39;|&apos;/gi, "'")
     .replace(/&#(\d+);/g, (_, code: string) => String.fromCodePoint(Number(code)));
 }
-export function cleanText(text: string) { return text.replace(/\r/g, "").replace(/[\t ]+/g, " ").replace(/\n{3,}/g, "\n\n").trim().slice(0, MAX_TEXT); }
+export function cleanTextWithCoverage(text: string) {
+  const normalized=text.replace(/\r/g, "").replace(/[\t ]+/g, " ").replace(/\n{3,}/g, "\n\n").trim();
+  let end=Math.min(normalized.length,MAX_TEXT);
+  if(end<normalized.length&&end>0&&normalized.charCodeAt(end-1)>=0xd800&&normalized.charCodeAt(end-1)<=0xdbff&&normalized.charCodeAt(end)>=0xdc00&&normalized.charCodeAt(end)<=0xdfff)end--;
+  return {text:normalized.slice(0,end),partial:normalized.length>MAX_TEXT,
+    coverage:{complete:normalized.length<=MAX_TEXT,characterLimit:MAX_TEXT,normalizedCharacters:normalized.length,policy:HTML_COVERAGE_POLICY}};
+}
+export function cleanText(text: string) { return cleanTextWithCoverage(text).text; }
 function inferMime(pathname: string, bytes: Buffer) { return pathname.toLowerCase().endsWith(".pdf") || bytes.subarray(0, 4).toString() === "%PDF" ? "application/pdf" : "application/octet-stream"; }

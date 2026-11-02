@@ -55,3 +55,28 @@ test('PDF territory overrides a generic imported title when excluding a false pr
  const barcelona={...docs[0],extracted_text:docs[0].extracted_text!.replaceAll('Girona','Barcelona')};
  assert.equal(proposeDocumentRecordLinks(pubs,[barcelona,docs[1]]).length,0);
 });
+
+test('an explicit call is a procedural candidate for an award, never a financial original',()=>{
+ const call={...earlier,id:'call',title:'Resolució DSI/3383/2025, de convocatòria per a la provisió de places',source_payload:{data_publicacio:'2025-09-22'}};
+ const award={...later,id:'award',title:'RESOLUCIÓ de provisió de serveis socials PIL',source_payload:{data_publicacio:'2025-11-01'}};
+ const extra=' El document recull les condicions, les persones destinatàries i el procediment aplicable.'.repeat(5);
+ const callDoc=doc('call','Resolució DSI/3383/2025, de 15 de setembre, de convocatòria per a la provisió de places.'+extra);
+ const awardDoc=doc('award','Fets\nEn data 22 de setembre es va publicar la Resolució DSI/3383/2025, de 15 de setembre, de convocatòria per a la provisió de places.\nFonaments de dret\nNormes.\nRESOLC: 1. Assignar 4 places al servei documentat.'+extra);
+ const links=proposeDocumentRecordLinks([call,award],[callDoc,awardDoc]);
+ assert.equal(links.length,1);assert.equal(links[0].kind,'call');assert.equal(links[0].earlierRecordId,'call');
+ assert.match(links[0].evidence,/candidata documental|Candidata documental/);assert.match(links[0].evidence,/no acredita imports/);
+ for(const bad of [
+  {...awardDoc,extracted_text:awardDoc.extracted_text!.replaceAll('3383/2025','3384/2025')},
+  {...awardDoc,extracted_text:awardDoc.extracted_text!.replace('Assignar','Proposar')},
+  {...awardDoc,extracted_text:awardDoc.extracted_text!.replace('Fets\nEn data','Fonaments de dret\nEn data')},
+  {...awardDoc,extraction_partial:true},
+  {...awardDoc,extraction_partial:null},
+  {...awardDoc,extraction_coverage:{complete:false}},
+  {...awardDoc,extraction_method:null},
+ ])assert.deepEqual(proposeDocumentRecordLinks([call,award],[callDoc,bad]),[]);
+ assert.deepEqual(proposeDocumentRecordLinks([call,award],[{...callDoc,extracted_text:callDoc.extracted_text!.replace('3383/2025','3384/2025')},awardDoc]),[]);
+ assert.deepEqual(proposeDocumentRecordLinks([call,award],[{...callDoc,extraction_partial:null},awardDoc]),[]);
+ assert.deepEqual(proposeDocumentRecordLinks([call,award],[{...callDoc,extraction_coverage:{complete:false}},awardDoc]),[]);
+ assert.deepEqual(proposeDocumentRecordLinks([{...call,source_payload:{data_publicacio:'2025-12-01'}},award],[callDoc,awardDoc]),[]);
+ assert.deepEqual(proposeDocumentRecordLinks([call,{...award,title:'Esmena de la resolució de provisió'}],[callDoc,awardDoc]),[]);
+});

@@ -3,6 +3,14 @@ import {mkdtempSync,readFileSync,writeFileSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join,resolve} from 'node:path';
 
+// This historical October cut is no longer a valid release inventory. Keep the
+// old procedure available for audit, but prevent it from generating runnable
+// SQL until a new release package and its database preconditions are reviewed.
+function requireCurrentReleaseInventory():void {
+ throw new Error('El paquet històric de migracions està desactivat: cal preparar i revisar un inventari nou abans de publicar.');
+}
+requireCurrentReleaseInventory();
+
 const names=[
  '20261007100000_case_storage_provenance',
  '20261007101000_import_row_archives',

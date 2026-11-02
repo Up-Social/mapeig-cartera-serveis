@@ -1,0 +1,41 @@
+-- Synthetic compatibility assertions. Requires setup + v3 baseline + v3 fixture.
+do $$
+declare original_ uuid:=(select id from concert_link_test_ids where name='original');
+ fresh_ uuid:=(select id from concert_link_test_ids where name='fresh_unit');
+ historic_ uuid:=(select id from concert_link_test_ids where name='historic_link');
+ link_ uuid:=(select id from concert_link_test_ids where name='fresh_link');
+ later_fp text;earlier_fp text;version_ integer;
+begin
+ if not exists(select 1 from pg_proc p join concert_link_v3_rpc_baseline b on p.oid=b.oid and p.proacl is not distinct from b.proacl
+  where p.oid='public.review_concert_link(uuid,integer,text,text,text,text)'::regprocedure) then raise exception 'LEGACY_RPC_OID_OR_ACL_CHANGED';end if;
+ if not exists(select 1 from concert_link_fingerprint_candidate.config where singleton and enabled=false) then raise exception 'GUARD_NOT_DISABLED';end if;
+ begin
+  update concert_link_fingerprint_candidate.config set enabled=true;
+  raise exception 'ACTIVATION_SEAL_BYPASSED';
+ exception when check_violation then null;end;
+ if concert_link_fingerprint_candidate.document_review_state(historic_)->>'state'<>'guard_disabled' then raise exception 'STATE_DID_NOT_REPORT_DISABLED';end if;
+ begin
+  perform concert_link_fingerprint_candidate.document_review_confirm(link_,1,null,null,null,null,null,null,'Intent sintètic');
+  raise exception 'CLOSED_PRIVATE_CONFIRM_ACCEPTED';
+ exception when others then if sqlerrm not like '%CONCERT_LINK_DOCUMENT_GUARD_DISABLED%' then raise;end if;end;
+ select source_fingerprint into strict earlier_fp from public.concert_economic_source where id=original_;
+ select source_fingerprint into strict later_fp from public.concert_economic_source where id=fresh_;
+ -- Legacy confirmation continues to work with feature disabled, but records no
+ -- invented new metadata. This is compatibility, not freshness accreditation.
+ version_:=public.review_concert_link(link_,1,later_fp,earlier_fp,'confirmed','Confirmació legacy sintètica');
+ if version_<>2 or not exists(select 1 from public.concert_unit_links where id=link_ and status='confirmed'
+  and confirmed_later_fingerprint is null and confirmed_earlier_fingerprint is null
+  and confirmed_later_document_hash is null and confirmed_earlier_document_hash is null) then raise exception 'CLOSED_LEGACY_CHANGED';end if;
+ -- Direct writes to newly added fingerprints remain forbidden even while off.
+ begin
+  update public.concert_unit_links set confirmed_later_fingerprint=repeat('a',32),confirmed_earlier_fingerprint=repeat('b',32) where id=link_;
+  raise exception 'DIRECT_FORGERY_ACCEPTED';
+ exception when others then if sqlerrm not like '%CONCERT_LINK_FINGERPRINT_REVIEW_REQUIRED%' then raise;end if;end;
+ -- Existing permitted legacy direct status transitions remain unchanged while off.
+ update public.concert_unit_links set status='rejected' where id=link_;
+ update public.concert_unit_links set status='confirmed' where id=link_;
+ if not exists(select 1 from public.concert_unit_links where id=link_ and status='confirmed') then raise exception 'CLOSED_DIRECT_LEGACY_CHANGED';end if;
+ if has_schema_privilege('service_role','concert_link_fingerprint_candidate','USAGE') or
+  has_function_privilege('service_role','concert_link_fingerprint_candidate.document_review_confirm(uuid,integer,text,text,uuid,text,uuid,text,text)','EXECUTE') then raise exception 'CANDIDATE_EXPOSED';end if;
+end $$;
+rollback;

@@ -1,6 +1,8 @@
 import ExcelJS from "exceljs";
+import {excelCalendarDate} from './excel-calendar-date';
+import {concertPopulationNotice} from './concerts/population-export-notice';
 
-export type ProvisionExcelRow = { unit_id?:string; centre?:string|null; period?:string|null; act_type?:string|null; annex_reference?:string|null; source_id: string; call_url: string | null; regulatory_basis_url: string | null; provider_name: string | null; provider_nif: string | null; mechanism: string; award_date: string | null; amount: number | null; contracting_body: string | null; target_population: string | null; source_reference: string; service_code: string; service_name: string };
+export type ProvisionExcelRow = { source_records?:unknown; unit_id?:string; centre?:string|null; period?:string|null; act_type?:string|null; annex_reference?:string|null; source_id: string; call_url: string | null; regulatory_basis_url: string | null; provider_name: string | null; provider_nif: string | null; mechanism: string; award_date: string | null; amount: number | null; contracting_body: string | null; target_population: string | null; source_reference: string; service_code: string; service_name: string };
 
 export async function createProvisionExcel(rows: ProvisionExcelRow[], options: { reviewWarnings?: string[] } = {}) {
   const workbook = new ExcelJS.Workbook();
@@ -31,7 +33,7 @@ export async function createProvisionExcel(rows: ProvisionExcelRow[], options: {
   sheet.getRow(1).height = 32;
   sheet.autoFilter = { from: "A1", to: "R1" };
   for (const item of rows) {
-    const row = sheet.addRow({ ...item, call_url: hyperlink(item.call_url), regulatory_basis_url: hyperlink(item.regulatory_basis_url), award_date: item.award_date ? new Date(`${item.award_date}T00:00:00`) : null, amount: item.amount == null ? null : Number(item.amount) });
+    const row = sheet.addRow({ ...item, call_url: hyperlink(item.call_url), regulatory_basis_url: hyperlink(item.regulatory_basis_url), award_date: excelCalendarDate(item.award_date,item.source_id), amount: item.amount == null ? null : Number(item.amount) });
     row.alignment = { vertical: "top", wrapText: true };
     row.getCell(7).numFmt = "yyyy-mm-dd";
     row.getCell(8).numFmt = "#,##0.00";
@@ -39,13 +41,16 @@ export async function createProvisionExcel(rows: ProvisionExcelRow[], options: {
   const reviewWarnings=[...(options.reviewWarnings??[])];
   if(rows.some(r=>r.mechanism==='Conveni'))reviewWarnings.push('Convenios: aportación pública prevista revisada, no pagos. Las condiciones por anualidad se detallan en Detall_Registres.');
   if(new Set(rows.map(r=>r.mechanism)).size>1)reviewWarnings.push('Total combinado de mecanismos potencialmente solapado. No se ha conciliado con RAISC.');
+  const priorWarnings=reviewWarnings.length>0;
+  const populationNotice=concertPopulationNotice(rows,'es');
+  if(populationNotice)reviewWarnings.push(populationNotice);
   if (reviewWarnings.length) {
     const review = workbook.addWorksheet("Estado_Revision");
     review.columns = [
       { header: "Estado de la exportación", key: "warning", width: 105 },
     ];
     review.getRow(1).font = { bold: true };
-    review.addRow({ warning: "Exportación parcial: solo incluye las líneas aprobadas; las pendientes no representan un importe cero." });
+    review.addRow({ warning: priorWarnings ? "Exportación parcial: solo incluye las líneas aprobadas; las pendientes no representan un importe cero." : "Información adicional sobre esta exportación." });
     for (const warning of reviewWarnings) review.addRow({ warning });
   }
   const output = await workbook.xlsx.writeBuffer(); return new Uint8Array(output);

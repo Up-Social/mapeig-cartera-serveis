@@ -21,3 +21,21 @@ test('partial export states pending lines without turning unknown amounts into z
  assert.match(String(wb.getWorksheet('Estado_Revision')?.getCell('A2').value),/solo incluye las líneas aprobadas/);
  assert.match(String(wb.getWorksheet('Estado_Revision')?.getCell('A3').value),/41 líneas pendientes/);
 });
+test('calendar dates survive a non-UTC timezone and invalid dates fail closed',async()=>{
+ const original=process.env.TZ;
+ process.env.TZ='Europe/Madrid';
+ try {
+  const row:ProvisionExcelRow={source_id:'DATE',call_url:null,regulatory_basis_url:null,provider_name:null,provider_nif:null,mechanism:'Concert',award_date:'2026-09-30',amount:0,contracting_body:null,target_population:null,source_reference:'fixture',service_code:'1',service_name:'Synthetic'};
+  const bytes=await createProvisionExcel([row,{...row,award_date:null},{...row,award_date:'2024-02-29'},{...row,award_date:'1900-03-01'},{...row,award_date:'9999-12-31'}]);
+  const wb=new ExcelJS.Workbook();await wb.xlsx.load(Uint8Array.from(bytes).buffer);
+  const sheet=wb.getWorksheet('Detalle_Provisiones')!;
+  assert.equal((sheet.getCell('G2').value as Date).toISOString(),'2026-09-30T00:00:00.000Z');
+  assert.equal(sheet.getCell('G3').value,null);
+  assert.equal((sheet.getCell('G4').value as Date).toISOString(),'2024-02-29T00:00:00.000Z');
+  assert.equal((sheet.getCell('G5').value as Date).toISOString(),'1900-03-01T00:00:00.000Z');
+  assert.equal((sheet.getCell('G6').value as Date).toISOString(),'9999-12-31T00:00:00.000Z');
+  assert.equal(sheet.getCell('H2').value,0);
+  for(const award_date of ['','2025-02-29','2026-13-01','1900-02-28','0000-01-01','30/09/2026'])
+   await assert.rejects(createProvisionExcel([{...row,award_date}]),/Data de concessió no vàlida/);
+ } finally { if(original===undefined)delete process.env.TZ;else process.env.TZ=original; }
+});

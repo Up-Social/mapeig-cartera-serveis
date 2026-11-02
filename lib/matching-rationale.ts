@@ -16,9 +16,16 @@ export function parseMatchingRationale(value: string): MatchingRationalePart[] {
         : "Limitació";
     const start = (match.index ?? 0) + match[0].length;
     const end = matches[index + 1]?.index ?? normalized.length;
+    // Some stored rationales contain literal escaped line breaks between
+    // sections. Remove them at the section boundary only; literal escapes
+    // within the explanation can be meaningful and must be preserved.
+    const rawSection = normalized.slice(start, end).trim();
+    const section = index + 1 < matches.length
+      ? rawSection.replace(/(?:(?<!\\)(?:\\r\\n|\\n|\\r)|\s)+$/, "")
+      : rawSection;
     return {
       label: canonicalLabel as MatchingRationalePart["label"],
-      text: normalized.slice(start, end).trim().replace(/\s+/g, " "),
+      text: section.replace(/\s+/g, " "),
     };
   }).filter((part) => part.text.length > 0);
 

@@ -1,5 +1,6 @@
 import ExcelJS from 'exceljs';
 import {createProvisionExcel,type ProvisionExcelRow} from '../provision-excel';
+import {excelCalendarDate} from '../excel-calendar-date';
 import {SOURCE_NAME,type ConveniUnit} from './contract';
 export type ConveniExportRow=ProvisionExcelRow&{data:ConveniUnit;instrument_grant:boolean;related:string[];annexes:string[]};
 export async function createConveniExcel(rows:ConveniExportRow[],warnings:string[],legacy=false) {
@@ -10,7 +11,7 @@ export async function createConveniExcel(rows:ConveniExportRow[],warnings:string
  sheet.columns=columns.map(([header,key,width])=>({header,key,width}));
  sheet.getRow(1).font={name:'Arial',bold:true};sheet.getRow(1).alignment={wrapText:true};sheet.getRow(1).height=34;
  sheet.autoFilter={from:'A1',to:'U1'};
- for(const r of rows){const row=sheet.addRow({...r,source_reference:SOURCE_NAME,territory:r.data.territory,year:r.data.year,amount_state:({planned:'Previst',conditional:'Condicionat',confirmed:'Concessió confirmada'})[r.data.amount_state],instrument_grant:r.instrument_grant?'Sí':'No',related:r.related.join('; '),annexes:r.annexes.join('\n'),regulatory_basis_url:null,call_url:r.call_url?{text:r.call_url,hyperlink:r.call_url}:null,award_date:r.award_date?new Date(`${r.award_date}T00:00:00Z`):null});row.font={name:'Arial',size:10};row.alignment={vertical:'top',wrapText:true};row.getCell(7).numFmt='yyyy-mm-dd';row.getCell(8).numFmt='#,##0.00';}
+ for(const r of rows){const row=sheet.addRow({...r,source_reference:SOURCE_NAME,territory:r.data.territory,year:r.data.year,amount_state:({planned:'Previst',conditional:'Condicionat',confirmed:'Concessió confirmada'})[r.data.amount_state],instrument_grant:r.instrument_grant?'Sí':'No',related:r.related.join('; '),annexes:r.annexes.join('\n'),regulatory_basis_url:null,call_url:r.call_url?{text:r.call_url,hyperlink:r.call_url}:null,award_date:excelCalendarDate(r.award_date,r.source_id)});row.font={name:'Arial',size:10};row.alignment={vertical:'top',wrapText:true};row.getCell(7).numFmt='yyyy-mm-dd';row.getCell(8).numFmt='#,##0.00';}
  const notes=workbook.addWorksheet('Estat_Exportacio');notes.columns=[{header:'Abast i limitacions',key:'note',width:110}];notes.getRow(1).font={name:'Arial',bold:true};
  for(const note of ['Aportació pública prevista revisada. No equival a pagaments; les anualitats condicionades no són concessions fermes.','Només unitats aprovades amb evidència vigent. No se sumen totals pare i anualitats.','Les coincidències amb altres mecanismes no estan conciliades.',...warnings]){const row=notes.addRow({note});row.font={name:'Arial',size:10};row.alignment={wrapText:true};}
  return new Uint8Array(await workbook.xlsx.writeBuffer());

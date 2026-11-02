@@ -1,5 +1,7 @@
 # Validación del matching positivo remoto
 
+> Revisió documental 28/10/2026: consulteu [l’estat i els límits actualitzats](ESTADO_ACTUAL_2026_10_28.md). Els resultats i recomptes datats d’aquest document són històrics; el codi i les migracions prevalen en cas de discrepància.
+
 El esquema de producción limita los códigos a servicios hoja elegibles del catálogo oficial validado. Una comprobación independiente contrasta cada candidato positivo con su ficha exacta y los fragmentos del expediente. No confunde la norma, que define el servicio, con el documento, que acredita los hechos.
 
 Las citas permitidas proceden del documento y se verifican literalmente. Los candidatos incompatibles se eliminan sin inventar sustitutos. Se conservan puntuaciones y orden; en empate se mantiene el orden original. Si no queda ningún candidato acreditado, el resultado es evidencia insuficiente, nunca fuera de cartera por eliminación. La revisión humana sigue siendo necesaria: una cita literal y una puntuación alta no garantizan por sí solas una correspondencia correcta.

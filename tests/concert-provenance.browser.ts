@@ -1,0 +1,62 @@
+/** Run explicitly: node --import tsx tests/concert-provenance.browser.ts */
+import assert from 'node:assert/strict';
+import {build} from 'esbuild';
+import {chromium} from 'playwright';
+import {resolve} from 'node:path';
+async function main(){
+ const bundle=await build({stdin:{contents:`import React from 'react';import {createRoot} from 'react-dom/client';import {ConcertUnits} from './components/concert-units';const record={id:'fixture',title:'Resolució de provisió',sourceDocuments:[],corrections:[],currentJobStatus:'needs_review',analysis:null,isHistorical:false};createRoot(document.getElementById('root')!).render(<ConcertUnits record={record as never} services={[{code:"1.2.3",name:"Servei general"},{code:"1.2.3.1",name:"Opció específica A"},{code:"1.2.3.2",name:"Opció específica B"},{code:"1.2.30.1",name:"Servei diferent"}]}/>);`,resolveDir:process.cwd(),sourcefile:'concert-test.tsx',loader:'tsx'},bundle:true,write:false,platform:'browser',format:'iife',alias:{'@':resolve('.')},logLevel:'silent'});
+ const browser=await chromium.launch({headless:true});try{
+  const page=await browser.newPage();
+  await page.route('http://127.0.0.1:49100/',route=>route.fulfill({contentType:'text/html',body:'<div id="root"></div>'}));
+  const rows=[{id:'line-1',observed_service_code:'1.2.3',printed_support_candidate:{value:'STOI',page:4},provider_nif:'G12345678',reses_code:'S12345',unit_key:'narrative',act_type:'award',amount:1640.16,status:'draft',provider_name:null,effective_provider_name:'Entitat corregida',recovered_provider_name:'Nom recuperat anterior',observed_provider_name:'Nom observat anterior',observed_service_name:'Servei sintètic',observation:{},quantity:null as number|null,extraction_origin:null as string|null},{id:'line-2',provider_nif:null,reses_code:'S54321',unit_key:'program',act_type:'award',amount:100,status:'draft',provider_name:'Entitat B',observed_service_name:'Servei B',observation:{amountBasis:'allocated',dispositionNumber:'D1',position:'2'},quantity:null as number|null,extraction_origin:null as string|null},{id:'line-3',provider_nif:'G87654321',reses_code:null,evidence_quote:'Cita sense places acreditades',unit_key:'narrative-2',act_type:'award',amount:null,status:'draft',provider_name:'Entitat C',observed_service_name:'Servei C',observation:{},quantity:null as number|null,extraction_origin:null as string|null}];
+  await page.route('**/api/**',route=>{const url=route.request().url();const body=url.endsWith('/units')?{supported:true,units:rows,reconciliations:[]}:url.endsWith('/concert-links')?{links:[]}:{supported:false};return route.fulfill({contentType:'application/json',body:JSON.stringify(body)});});
+  await page.goto('http://127.0.0.1:49100/');await page.addScriptTag({content:bundle.outputFiles[0].text});
+  const lines=page.getByTestId('concert-unit');const line=lines.nth(0);await line.waitFor();
+  assert.match(await line.innerText(),/Import registrat en aquesta línia; pendent de contrast documental/);
+  assert.match(await line.innerText(),/Nom mostrat per a la línia; contrasta’l amb la font i les correccions registrades/);
+  assert.match(await line.innerText(),/Entitat corregida/);
+  assert.match(await line.innerText(),/NIF G12345678/);assert.match(await line.innerText(),/RESES S12345/);
+  assert.match(await line.innerText(),/Lectura candidata de la columna «Suport»: STOI · pàgina 4/);assert.match(await line.innerText(),/no determina ni modifica el codi del servei/);
+  await line.getByText('Nivell específic pendent de contrastar',{exact:false}).click();assert.match(await line.innerText(),/1.2.3.1 · Opció específica A/);assert.match(await line.innerText(),/1.2.3.2 · Opció específica B/);assert.doesNotMatch(await line.innerText(),/1.2.30.1/);assert.match(await line.innerText(),/cap no s’ha atribuït automàticament/);
+  assert.match(await line.innerText(),/Consulta la revisió de població de la línia, si està disponible/);
+  assert.doesNotMatch(await line.innerText(),/NIF pendent|RESES pendent/);
+  assert.match(await lines.nth(1).innerText(),/NIF pendent: no disponible; cal contrastar el document/);assert.match(await lines.nth(1).innerText(),/RESES S54321/);
+  assert.match(await lines.nth(2).innerText(),/NIF G87654321/);assert.match(await lines.nth(2).innerText(),/RESES pendent: no disponible; cal contrastar el document/);
+  assert.doesNotMatch(await line.innerText(),/segons l’annex|llegit a l’annex|Nom recuperat del mateix PDF/);
+  await line.getByRole('button',{name:'Revisar línia'}).click();
+  assert.match(await line.innerText(),/Proposta recuperada del text extret del mateix document: Nom recuperat anterior; pot diferir del nom mostrat/);
+  assert.match(await lines.nth(1).innerText(),/Import repartit proporcionalment/);
+  assert.match(await lines.nth(2).innerText(),/No acreditat/);
+  assert.match(await page.getByTestId('concert-distribution').innerText(),/Una fitxa per línia identificada/);
+  assert.match(await page.getByTestId('concert-coverage').innerText(),/Quantitat pendent de contrast · 3 línies amb quantitat pendent/);
+  rows[0].extraction_origin='program-columns-v2';rows[0].quantity=0;
+  rows[1].extraction_origin='program-columns-v2';
+  rows[2].extraction_origin='official-resolc';rows[2].quantity=5;
+  await page.reload();await page.addScriptTag({content:bundle.outputFiles[0].text});
+  const coverage=page.getByTestId('concert-coverage');await coverage.waitFor();
+  assert.match(await coverage.innerText(),/Suma de places identificades: 0 · 1 línia amb quantitat pendent · 2 línies de programa \(no inclou 1 altra línia\)/);
+  assert.match(await page.getByTestId('concert-unit').nth(0).innerText(),/0 places/);
+  assert.match(await page.getByTestId('concert-unit').nth(2).innerText(),/Quantitat: 5/);
+  assert.doesNotMatch(await page.getByTestId('concert-unit').nth(2).innerText(),/5 serveis/);
+  assert.match(await coverage.innerText(),/tipologies de programa identificades/);
+  rows[2].extraction_origin='official-resolc-v1';rows[2].evidence_quote='Assignar 5 places en el servei';
+  await page.reload();await page.addScriptTag({content:bundle.outputFiles[0].text});
+  await page.getByTestId('concert-unit').nth(2).waitFor();
+  assert.match(await page.getByTestId('concert-unit').nth(2).innerText(),/5 places/);
+  rows[2].evidence_quote='Assignar 15 places en el servei';
+  await page.reload();await page.addScriptTag({content:bundle.outputFiles[0].text});
+  await page.getByTestId('concert-unit').nth(2).waitFor();
+  assert.match(await page.getByTestId('concert-unit').nth(2).innerText(),/Quantitat: 5/);
+  rows[0].act_type='modification';rows[0].amount=null;
+  rows[1].act_type='modification';
+  await page.reload();await page.addScriptTag({content:bundle.outputFiles[0].text});
+  const modified=page.getByTestId('concert-unit');await modified.first().waitFor();
+  assert.match(await modified.nth(0).innerText(),/Import documentat de la línia de modificació/);
+  assert.match(await modified.nth(0).innerText(),/No acreditat/);
+  assert.match(await modified.nth(0).innerText(),/no acredita un import per a aquesta línia de modificació/);
+  assert.match(await modified.nth(1).innerText(),/Import repartit proporcionalment/);
+  assert.match(await modified.nth(2).innerText(),/Import individual/);
+  console.log('PASS Concerts narrative line: no unsupported annex attribution; document verification remains pending');
+ }finally{await browser.close();}
+}
+void main().catch(error=>{console.error(error);process.exitCode=1;});

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { batchResultGuidance } from "../lib/batch-result-guidance";
+import { batchResultClassification,batchResultGuidance } from "../lib/batch-result-guidance";
 import type { BatchJob } from "../lib/batch-types";
 
 const baseJob: BatchJob = {
@@ -56,6 +56,14 @@ test("envia la manca d'evidència a incidències, no a revisió pendent", () => 
 test("manté la proposta acreditada en revisió", () => {
   const guidance = batchResultGuidance({ ...baseJob, currentDestination: "review" });
   assert.equal(guidance.kind, "review");
+});
+test('conveni recipient review is not reported as an insufficient global result',()=>{
+ const analysis={id:'a',classification:'insufficient_evidence',reasons:[],explanation:'Propostes per receptor',service_description:'',target_population:'',catalog_version_id:'v',rules_version:'convenis-sprint2-v1',reviewed_classification:null,review_notes:null,evidence:[],rule_audit:{rule:'review_by_recipient'}} as const;
+ const job={...baseJob,financingType:'conveni' as const,currentDestination:'review',analysis:{...analysis,reasons:[],evidence:[]}};
+ assert.equal(batchResultGuidance(job).kind,'review');
+ assert.equal(batchResultClassification({...job,analysis:{...job.analysis,reviewed_classification:'discarded'}}),null);
+ assert.equal(batchResultGuidance({...job,currentDestination:'issues'}).kind,'issue');
+ assert.equal(batchResultGuidance({...job,status:'error'}).kind,'technical');
 });
 
 test("tradueix un document no processable a una explicació útil", () => {

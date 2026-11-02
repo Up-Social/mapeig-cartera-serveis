@@ -50,7 +50,10 @@ function applyRoleChecks(roles:Partial<RoleFacts>|undefined,chunks:ReadonlyArray
    const chunk=chunks[check.evidence_ordinal-1];
    if(!chunk?.content.trim()||chunk.content.trim().length<12||typeof check.value!=='string'||!check.value.trim()||!KINDS[check.role]?.includes(check.kind))throw Error('CONCERT_ROLE_REVIEW_INVALID');
    const known=fact?.state==='known'&&fact.kind!=='unknown'&&!!fact.value?.trim();
-   const changed=known&&(check.kind!==fact.kind||normalized(check.value)!==normalized(fact.value!));
+   // Capitalization is not a different fact; preserve the original value and
+   // still require a literal supporting quote and the same role kind.
+   const sameValue=known&&normalized(check.value).toLocaleLowerCase('ca')===normalized(fact.value!).toLocaleLowerCase('ca');
+   const changed=known&&(check.kind!==fact.kind||!sameValue);
    const ungrounded=!known&&(normalized(check.value).length<12||!normalized(chunk.content).includes(normalized(check.value)));
    const next:RoleFact={state:'known',value:known?fact.value:check.value.trim(),kind:check.kind,evidence_ordinals:[check.evidence_ordinal],quotes:[chunk.content]};
    if(changed||ungrounded||!hasLiteralRoleEvidence(next,chunks)){

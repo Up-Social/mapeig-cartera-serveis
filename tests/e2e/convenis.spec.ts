@@ -5,6 +5,7 @@ import {createClient,type SupabaseClient} from '@supabase/supabase-js';
 import ExcelJS from 'exceljs';
 import {readSource,SOURCE_BUCKET} from '../../lib/source-storage';
 import {processConveni} from '../../lib/convenis/process';
+import {HTML_COVERAGE_POLICY} from '../../lib/pipeline/document-input';
 
 let db:SupabaseClient;
 const ids:string[]=[];
@@ -24,7 +25,7 @@ test.beforeAll(async()=>{
   jobId=job.data.id;
   const evidence='La Fundació Sintètica, entitat privada amb NIF G12345678, rep 1.000 euros públics per un servei social a persones grans a Vic durant 2025, condicionats a la disponibilitat pressupostària.';
   const text=`## Pàgina 1\n${evidence}`;const url=`https://fixture.invalid/${id}`;
-  const doc=await db.from('source_documents').insert({source_record_id:id,url,url_hash:createHash('sha256').update(url).digest('hex'),document_type:'agreement',status:'fetched',mime_type:'text/plain',extracted_text:text,text_length:text.length,extraction_partial:false,quality_flags:[]}).select('id,source_record_id,url,mime_type,content_hash').single();if(doc.error)throw doc.error;
+  const doc=await db.from('source_documents').insert({source_record_id:id,url,url_hash:createHash('sha256').update(url).digest('hex'),document_type:'agreement',status:'fetched',mime_type:'text/plain',extracted_text:text,text_length:text.length,extraction_partial:false,extraction_method:'html-basic',extraction_coverage:{policy:HTML_COVERAGE_POLICY,complete:true,characterLimit:200000,normalizedCharacters:text.length},quality_flags:[]}).select('id,source_record_id,url,mime_type,content_hash').single();if(doc.error)throw doc.error;
   const source=await readSource(db,doc.data,{bytes:Buffer.from(text),mimeType:'text/plain'});paths.push(source.path);
   // The provider selects a literal span; processConveni resolves the physical
   // document, page and quote before persistence and review.
@@ -57,7 +58,7 @@ test('review by recipient, concurrent protection and both exports use 1,000 publ
  const missing=await page.request.post(`/api/records/${sourceId}/conveni`,{data:{jobId,unitId:unconfirmed.units[0].unit_id,eventId:randomUUID(),previousReviewId:null,outcome:'outside',note:'Proposta positiva sense comprovar naturalesa social.'}});expect(missing.status()).toBe(409);
  await unit.getByRole('checkbox').check();
  await unit.getByRole('button',{name:'Desa la decisió d’aquesta unitat'}).click();
- await expect(unit).toContainText('Decisió vigent');
+ await expect(unit).toContainText('Decisió registrada per a aquesta anàlisi; vigència documental pendent de contrast');
  const detail=await page.request.get(`/api/records/${sourceId}/conveni`);expect(detail.ok()).toBeTruthy();const data=await detail.json();
  const stale=await page.request.post(`/api/records/${sourceId}/conveni`,{data:{jobId,unitId:data.units[0].unit_id,eventId:randomUUID(),previousReviewId:null,outcome:'reject',note:'Una revisió simultània no pot sobreescriure la decisió.'}});expect(stale.status()).toBe(409);
  for(const format of ['', '&format=legacy']){

@@ -1,0 +1,188 @@
+-- CLOSED TEST-ONLY extension to concert-link-fingerprint-candidate.sql.txt.
+-- No application grants, routes, migrations or backfill. Snapshot fingerprints
+-- describe database metadata/text only; they do not authenticate Storage bytes
+-- or prove that text was produced from those bytes.
+
+alter table public.concert_unit_links
+ add column confirmed_later_document_id uuid,
+ add column confirmed_earlier_document_id uuid,
+ add column confirmed_later_document_hash text,
+ add column confirmed_earlier_document_hash text,
+ add constraint concert_link_document_snapshot_all_or_none check (
+  (confirmed_later_document_id is null and confirmed_earlier_document_id is null
+   and confirmed_later_document_hash is null and confirmed_earlier_document_hash is null)
+  or (confirmed_later_document_id is not null and confirmed_earlier_document_id is not null
+   and confirmed_later_document_hash is not null and confirmed_earlier_document_hash is not null
+   and confirmed_later_document_hash ~ '^[a-f0-9]{64}$' and confirmed_earlier_document_hash ~ '^[a-f0-9]{64}$')
+ );
+
+create or replace function concert_link_fingerprint_candidate.guard() returns trigger
+language plpgsql security definer set search_path=pg_catalog as $$
+declare requires_permit boolean:=false;
+begin
+ if tg_op='INSERT' then
+  requires_permit:=new.status='confirmed' or new.confirmed_later_fingerprint is not null or new.confirmed_earlier_fingerprint is not null
+   or new.confirmed_later_document_id is not null or new.confirmed_earlier_document_id is not null
+   or new.confirmed_later_document_hash is not null or new.confirmed_earlier_document_hash is not null;
+ elsif tg_op='UPDATE' then
+  requires_permit:=new.confirmed_later_fingerprint is distinct from old.confirmed_later_fingerprint
+   or new.confirmed_earlier_fingerprint is distinct from old.confirmed_earlier_fingerprint
+   or new.confirmed_later_document_id is distinct from old.confirmed_later_document_id
+   or new.confirmed_earlier_document_id is distinct from old.confirmed_earlier_document_id
+   or new.confirmed_later_document_hash is distinct from old.confirmed_later_document_hash
+   or new.confirmed_earlier_document_hash is distinct from old.confirmed_earlier_document_hash
+   or (new.status='confirmed' and (old.status is distinct from 'confirmed'
+    or new.later_unit_id is distinct from old.later_unit_id or new.earlier_unit_id is distinct from old.earlier_unit_id
+    or new.root_unit_id is distinct from old.root_unit_id or new.relation_kind is distinct from old.relation_kind
+    or new.matching_method is distinct from old.matching_method or new.evidence is distinct from old.evidence));
+ end if;
+ if requires_permit and not exists(select 1 from concert_link_fingerprint_candidate.permits
+  where pid=pg_backend_pid() and transaction_id=txid_current() and link_id=new.id) then
+  raise exception 'CONCERT_LINK_FINGERPRINT_REVIEW_REQUIRED';
+ end if;
+ return new;
+end $$;
+
+-- Only describe an internally consistent metadata snapshot; storage_sha256 is
+-- compared to metadata, not to the physical object. A missing field never
+-- implies exclusion or source absence; it keeps this confirmation pending.
+create function concert_link_fingerprint_candidate.document_metadata_ready(d public.source_documents,u public.record_units)
+returns boolean language sql stable set search_path=pg_catalog as $$
+ select coalesce(d.id=u.document_id and d.source_record_id=u.source_record_id
+  and d.status='fetched' and d.mime_type='application/pdf' and d.extraction_partial is false
+  and d.active_extraction_id is not null and d.extracted_text is not null
+  and d.extracted_text_hash ~ '^[a-f0-9]{64}$'
+  and d.extracted_text_hash=encode(extensions.digest(convert_to(d.extracted_text,'UTF8'),'sha256'),'hex')
+  and d.storage_sha256 ~ '^[a-f0-9]{64}$' and u.storage_sha256=d.storage_sha256
+  and d.storage_path='cases/'||u.source_record_id::text||'/documents/'||d.id::text||'/'||d.storage_sha256||'.pdf'
+  and jsonb_typeof(d.extraction_coverage)='object' and d.extraction_coverage->'complete'='true'::jsonb
+  and d.quality_flags is not null and not (d.quality_flags && array['corrupt_text','incomplete_extraction']),false)
+$$;
+revoke all on function concert_link_fingerprint_candidate.document_metadata_ready(public.source_documents,public.record_units) from public,anon,authenticated,service_role;
+
+-- This single-statement snapshot is meant to be displayed before confirmation.
+-- It deliberately makes no claim about physical bytes or signed provenance.
+create function concert_link_fingerprint_candidate.document_review_snapshot(p_link uuid) returns jsonb
+language plpgsql security definer set search_path=pg_catalog as $$
+declare result_ jsonb;
+begin
+ select jsonb_build_object('state','ready','linkId',l.id,'version',l.version,
+  'laterUnit',u.id,'laterUnitFingerprint',us.source_fingerprint,
+  'earlierUnit',v.id,'earlierUnitFingerprint',vs.source_fingerprint,
+  'laterDocument',du.id,'laterDocumentHash',public.concert_population_document_hash(du),
+  'earlierDocument',dv.id,'earlierDocumentHash',public.concert_population_document_hash(dv),
+  'physicalSourceVerified',false)
+ into result_
+ from public.concert_unit_links l
+ join public.record_units u on u.id=l.later_unit_id
+ join public.record_units v on v.id=l.earlier_unit_id
+ join public.concert_economic_source us on us.id=u.id
+ join public.concert_economic_source vs on vs.id=v.id
+ join public.source_documents du on du.id=u.document_id
+ join public.source_documents dv on dv.id=v.document_id
+ where l.id=p_link and u.status='approved' and v.status='approved'
+  and concert_link_fingerprint_candidate.document_metadata_ready(du,u)
+  and concert_link_fingerprint_candidate.document_metadata_ready(dv,v);
+ return coalesce(result_,jsonb_build_object('state','pending','reason','DOCUMENT_METADATA_UNVERIFIED','physicalSourceVerified',false));
+end $$;
+revoke all on function concert_link_fingerprint_candidate.document_review_snapshot(uuid) from public,anon,authenticated,service_role;
+
+-- Consumers must verify the full metadata predicate as well as the saved
+-- fingerprints. In particular, concert_population_document_hash does not
+-- include extracted_text_hash, which must independently match extracted_text.
+create function concert_link_fingerprint_candidate.document_review_state(p_link uuid) returns jsonb
+language sql stable security definer set search_path=pg_catalog as $$
+ select jsonb_build_object('state',case
+  when l.status<>'confirmed' then 'not_confirmed'
+  when l.confirmed_later_fingerprint is null or l.confirmed_earlier_fingerprint is null
+    or l.confirmed_later_document_id is null or l.confirmed_earlier_document_id is null
+    or l.confirmed_later_document_hash is null or l.confirmed_earlier_document_hash is null then 'historical_unverified'
+  when u.id is null or v.id is null or us.id is null or vs.id is null or du.id is null or dv.id is null
+    or u.status<>'approved' or v.status<>'approved'
+    or u.document_id is distinct from l.confirmed_later_document_id
+    or v.document_id is distinct from l.confirmed_earlier_document_id
+    or us.source_fingerprint is distinct from l.confirmed_later_fingerprint
+    or vs.source_fingerprint is distinct from l.confirmed_earlier_fingerprint
+    or not concert_link_fingerprint_candidate.document_metadata_ready(du,u)
+    or not concert_link_fingerprint_candidate.document_metadata_ready(dv,v)
+    or public.concert_population_document_hash(du) is distinct from l.confirmed_later_document_hash
+    or public.concert_population_document_hash(dv) is distinct from l.confirmed_earlier_document_hash then 'stale'
+  else 'metadata_current' end,'physicalSourceVerified',false)
+ from public.concert_unit_links l
+ left join public.record_units u on u.id=l.later_unit_id
+ left join public.record_units v on v.id=l.earlier_unit_id
+ left join public.concert_economic_source us on us.id=u.id
+ left join public.concert_economic_source vs on vs.id=v.id
+ left join public.source_documents du on du.id=u.document_id
+ left join public.source_documents dv on dv.id=v.document_id
+ where l.id=p_link
+$$;
+revoke all on function concert_link_fingerprint_candidate.document_review_state(uuid) from public,anon,authenticated,service_role;
+
+-- A row-only legacy confirmation is not evidence of the source revision seen
+-- by the reviewer. Reject new confirmations through that path in this fixture;
+-- reject/exclude can still use it and preserve earlier recorded fingerprints.
+create or replace function public.review_concert_link(p_link uuid,p_version integer,p_later_fingerprint text,p_earlier_fingerprint text,p_status text,p_note text)
+returns integer language plpgsql security definer set search_path=pg_catalog,public as $$
+declare old_row public.concert_unit_links; updated public.concert_unit_links;
+begin
+ if p_status='confirmed' then raise exception 'CONCERT_LINK_DOCUMENT_REVIEW_REQUIRED';end if;
+ perform pg_advisory_xact_lock(hashtextextended('concert-review-graph',0));
+ select * into strict old_row from public.concert_unit_links where id=p_link for update;
+ if old_row.version<>p_version then raise exception 'Revisió obsoleta; torna a carregar la fitxa';end if;
+ if p_status not in ('rejected','out_of_horizon') or length(trim(coalesce(p_note,'')))<10 then raise exception 'Revisió no vàlida';end if;
+ if old_row.status='confirmed' and exists(select 1 from public.concert_unit_links where earlier_unit_id=old_row.later_unit_id and status='confirmed') then raise exception 'Revisa primer els vincles dependents abans de retirar aquest';end if;
+ perform 1 from public.record_units where id in(old_row.later_unit_id,old_row.earlier_unit_id) order by id for update;
+ if (select source_fingerprint from public.concert_economic_source where id=old_row.later_unit_id) is distinct from p_later_fingerprint
+  or (select source_fingerprint from public.concert_economic_source where id=old_row.earlier_unit_id) is distinct from p_earlier_fingerprint then raise exception 'La línia ha canviat; torna a revisar-la';end if;
+ update public.concert_unit_links set status=p_status,review_note=trim(p_note),reviewed_at=now(),version=version+1
+  where id=p_link returning * into updated;
+ insert into public.concert_review_audit(kind,subject_id,before_value,after_value) values('link',p_link,to_jsonb(old_row),to_jsonb(updated));
+ return updated.version;
+end $$;
+
+-- Explicitly bind the exact snapshot shown to the reviewer to the same
+-- transaction that confirms the relationship. No route or grant is provided.
+create function concert_link_fingerprint_candidate.document_review_confirm(
+ p_link uuid,p_version integer,p_later_unit_fp text,p_earlier_unit_fp text,
+ p_later_document uuid,p_later_document_hash text,p_earlier_document uuid,p_earlier_document_hash text,p_note text
+) returns integer language plpgsql security definer set search_path=pg_catalog as $$
+declare l public.concert_unit_links;updated public.concert_unit_links;
+ later_u public.record_units;earlier_u public.record_units;later_d public.source_documents;earlier_d public.source_documents;n integer;
+begin
+ if current_setting('transaction_isolation')<>'read committed' then raise exception 'CONCERT_LINK_DOCUMENT_ISOLATION';end if;
+ if p_version is null or p_version<1 or length(trim(coalesce(p_note,'')))<10 or p_later_document is null or p_earlier_document is null
+  or p_later_document_hash is null or p_earlier_document_hash is null or p_later_unit_fp is null or p_earlier_unit_fp is null
+  or p_later_document=p_earlier_document or p_later_document_hash !~ '^[a-f0-9]{64}$' or p_earlier_document_hash !~ '^[a-f0-9]{64}$'
+  or p_later_unit_fp !~ '^[a-f0-9]{32}$' or p_earlier_unit_fp !~ '^[a-f0-9]{32}$' then raise exception 'CONCERT_LINK_DOCUMENT_INPUT';end if;
+ perform pg_advisory_xact_lock(hashtextextended('concert-review-graph',0));
+ select * into strict l from public.concert_unit_links where id=p_link for update;
+ if l.version<>p_version then raise exception 'CONCERT_LINK_DOCUMENT_VERSION';end if;
+ perform 1 from public.record_units where id in(l.later_unit_id,l.earlier_unit_id) order by id for update;
+ select * into strict later_u from public.record_units where id=l.later_unit_id;
+ select * into strict earlier_u from public.record_units where id=l.earlier_unit_id;
+ -- NOWAIT avoids waiting in inverse order behind a writer that already owns a parent/document.
+ perform 1 from public.source_records where id in(later_u.source_record_id,earlier_u.source_record_id) order by id for share nowait;
+ get diagnostics n=row_count;if n<>2 then raise exception 'CONCERT_LINK_DOCUMENT_SCOPE';end if;
+ if later_u.document_id is distinct from p_later_document or earlier_u.document_id is distinct from p_earlier_document then raise exception 'CONCERT_LINK_DOCUMENT_CHANGED';end if;
+ perform 1 from public.source_documents where id in(p_later_document,p_earlier_document) order by id for share nowait;
+ get diagnostics n=row_count;if n<>2 then raise exception 'CONCERT_LINK_DOCUMENT_MISSING';end if;
+ select * into strict later_d from public.source_documents where id=p_later_document;
+ select * into strict earlier_d from public.source_documents where id=p_earlier_document;
+ if not concert_link_fingerprint_candidate.document_metadata_ready(later_d,later_u)
+  or not concert_link_fingerprint_candidate.document_metadata_ready(earlier_d,earlier_u)
+  or (select source_fingerprint from public.concert_economic_source where id=later_u.id) is distinct from p_later_unit_fp
+  or (select source_fingerprint from public.concert_economic_source where id=earlier_u.id) is distinct from p_earlier_unit_fp
+  or public.concert_population_document_hash(later_d) is distinct from p_later_document_hash
+  or public.concert_population_document_hash(earlier_d) is distinct from p_earlier_document_hash then raise exception 'CONCERT_LINK_DOCUMENT_CHANGED';end if;
+ insert into concert_link_fingerprint_candidate.permits(pid,transaction_id,link_id) values(pg_backend_pid(),txid_current(),p_link);
+ update public.concert_unit_links set status='confirmed',review_note=trim(p_note),reviewed_at=now(),version=version+1,
+  confirmed_later_fingerprint=p_later_unit_fp,confirmed_earlier_fingerprint=p_earlier_unit_fp,
+  confirmed_later_document_id=p_later_document,confirmed_earlier_document_id=p_earlier_document,
+  confirmed_later_document_hash=p_later_document_hash,confirmed_earlier_document_hash=p_earlier_document_hash
+  where id=p_link returning * into updated;
+ delete from concert_link_fingerprint_candidate.permits where pid=pg_backend_pid() and transaction_id=txid_current() and link_id=p_link;
+ insert into public.concert_review_audit(kind,subject_id,before_value,after_value) values('link',p_link,to_jsonb(l),to_jsonb(updated));
+ return updated.version;
+end $$;
+revoke all on function concert_link_fingerprint_candidate.document_review_confirm(uuid,integer,text,text,uuid,text,uuid,text,text) from public,anon,authenticated,service_role;

@@ -1,0 +1,36 @@
+do $$
+declare sid uuid:=gen_random_uuid();sid2 uuid:=gen_random_uuid();rid uuid;rid2 uuid;j uuid;j2 uuid;t uuid;d uuid:=gen_random_uuid();d2 uuid:=gen_random_uuid();owner_id uuid:=gen_random_uuid();outcome jsonb;preflight text;page text;legacy text;
+begin
+ insert into source_records(id,source_dataset,source_record_id,mechanism,title) values(sid,'concerts',sid::text,'Concert','Prova'),(sid2,'concerts',sid2::text,'Concert','Altre');
+ insert into pipeline_runs default values returning id into rid;insert into pipeline_runs default values returning id into rid2;
+ insert into pipeline_jobs(run_id,source_record_id,status) values(rid,sid,'ready') returning id into j;
+ insert into pipeline_jobs(run_id,source_record_id,status) values(rid2,sid2,'ready') returning id into j2;
+ insert into worker_tasks(run_id,task_type,executor,execution_state,lease_owner,lease_generation,lease_until) values(rid,'prepare_run','vercel_workflow','running',owner_id,1,now()+interval '4 minutes') returning id into t;
+ insert into source_documents(id,source_record_id,url,url_hash,document_type,status) values(d,sid,'https://example.invalid/a',d::text,'publication','fetched'),(d2,sid2,'https://example.invalid/b',d2::text,'publication','fetched');
+ preflight:='pdf-preflight:'||d||':abc';page:='ocr-v2:'||d||':abc';legacy:='ocr:'||repeat('a',64)||':1:dpi300:readable-markdown-v4';
+ outcome:=cloud_read_pdf_checkpoint(t,owner_id,1,j,d,'preflight',preflight,5);
+ if outcome is distinct from '{"found":false}'::jsonb then raise exception 'Missing checkpoint not detected';end if;
+ insert into cloud_checkpoints(task_id,item_key,value) values(t,preflight,'{"rawText":"12345","version":"ok"}'),(t,page,'{"text":"12345"}'),(t,legacy,jsonb_build_object('text',repeat('a',8000001)));
+ outcome:=cloud_read_pdf_checkpoint(t,owner_id,1,j,d,'preflight',preflight,5);
+ if outcome->'value'->>'rawText'<>'12345' then raise exception 'Valid preflight not returned';end if;
+ outcome:=cloud_read_pdf_checkpoint(t,owner_id,1,j,d,'legacy',legacy,0);
+ if outcome is distinct from '{"found":true}'::jsonb then raise exception 'Legacy existence included payload';end if;
+ begin perform cloud_read_pdf_checkpoint(t,owner_id,1,j,d,'page',page,4);raise exception 'TEST: oversized page accepted';
+ exception when raise_exception then if sqlerrm<>'PDF_CHECKPOINT_TOO_LARGE' then raise;end if;end;
+ update cloud_checkpoints set value=jsonb_build_object('rawText',repeat('a',8000001)) where task_id=t and item_key=preflight;
+ begin perform cloud_read_pdf_checkpoint(t,owner_id,1,j,d,'preflight',preflight,8000000);raise exception 'TEST: oversized preflight accepted';
+ exception when raise_exception then if sqlerrm<>'PDF_CHECKPOINT_TOO_LARGE' then raise;end if;end;
+ update cloud_checkpoints set value=jsonb_build_object('rawText','ok','extra',repeat('a',16100001)) where task_id=t and item_key=preflight;
+ begin perform cloud_read_pdf_checkpoint(t,owner_id,1,j,d,'preflight',preflight,8000000);raise exception 'TEST: oversized metadata accepted';
+ exception when raise_exception then if sqlerrm<>'PDF_CHECKPOINT_TOO_LARGE' then raise;end if;end;
+ begin perform cloud_read_pdf_checkpoint(t,owner_id,1,j2,d2,'preflight','pdf-preflight:'||d2||':abc',8000000);raise exception 'TEST: foreign job accepted';
+ exception when raise_exception then if sqlerrm<>'CLOUD_SCOPE' then raise;end if;end;
+ begin perform cloud_read_pdf_checkpoint(t,owner_id,1,j,d2,'preflight','pdf-preflight:'||d2||':abc',8000000);raise exception 'TEST: foreign document accepted';
+ exception when raise_exception then if sqlerrm<>'CLOUD_SCOPE' then raise;end if;end;
+ begin perform cloud_read_pdf_checkpoint(t,owner_id,1,j,d,'page','ocr-v2:'||d2||':abc',8000000);raise exception 'TEST: foreign key accepted';
+ exception when raise_exception then if sqlerrm<>'PDF_CHECKPOINT_INVALID' then raise;end if;end;
+ update worker_tasks set lease_until=now()-interval '1 second' where id=t;
+ begin perform cloud_read_pdf_checkpoint(t,owner_id,1,j,d,'page',page,5);raise exception 'TEST: stale lease accepted';
+ exception when raise_exception then if sqlerrm<>'CLOUD_LEASE_LOST' then raise;end if;end;
+ if has_function_privilege('anon','public.cloud_read_pdf_checkpoint(uuid,uuid,bigint,uuid,uuid,text,text,integer)','EXECUTE') then raise exception 'Public access';end if;
+end $$;

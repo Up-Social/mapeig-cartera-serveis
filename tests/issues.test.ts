@@ -3,6 +3,7 @@ import test from "node:test";
 
 import { classifyIssue, issueMatchesFilters } from "../lib/issue-types";
 import type { SourceRecord } from "../lib/workbench-types";
+import {conveniMissingFieldMessages} from '../lib/convenis/missing-field-messages';
 
 const record: SourceRecord = {
   id: "123e4567-e89b-42d3-a456-426614174000",
@@ -67,6 +68,15 @@ test('paused workers expose an incident even when the job still says matching', 
   assert.match(result?.message??'',/Cal revisió abans de repetir/);
   assert.doesNotMatch(result?.message??'',/private provider/);
   assert.equal(classifyIssue({...paused,currentJobStatus:'approved',status:'completat',reviewDecision:'approved'}),null);
+});
+
+test('a paused validation incident preserves only fixed missing-field detail and never enables retry',()=>{
+ const progress={state:'incident' as const,step:'matching' as const,completed:0,total:1,detail:null,startedAt:'2026-09-30',lastActivityAt:'2026-09-30',finishedAt:null,attempts:1,failureKind:'validation'};
+ const message=conveniMissingFieldMessages.CONVENI_PERIOD_MISSING+'\n'+conveniMissingFieldMessages.CONVENI_PROPOSAL_NIF_UNIDENTIFIED;
+ const result=classifyIssue({...record,financingType:'conveni',currentJobStatus:'error',matchingError:message,operationProgress:progress});
+ assert.equal(result?.message,message);assert.equal(result?.retryOperation,null);
+ const unsafe=classifyIssue({...record,financingType:'conveni',currentJobStatus:'error',matchingError:message+'\nPRIVATE',operationProgress:progress});
+ assert.equal(unsafe?.message,'Resposta no vàlida.');assert.equal(unsafe?.retryOperation,null);
 });
 
 test("human decisions take precedence over technical history", () => {

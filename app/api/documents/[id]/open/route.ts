@@ -3,6 +3,7 @@ import {isUuid} from '@/lib/uuid';
 import {officialJson,OFFICIAL_DOCUMENT_HOSTS} from '@/lib/pipeline/official-resolution';
 import {hasUnitSchema} from '@/lib/runtime-schema';
 import {ArchivedSourceUnavailableError,readSource,SourceContentChangedError} from '@/lib/source-storage';
+import {streamVerifiedBytes} from '@/lib/verified-byte-stream';
 
 /** The same case-scoped archive serves every source dataset. Never redirect to an unarchived original. */
 export async function GET(_request:Request,{params}:{params:Promise<{id:string}>}){
@@ -17,7 +18,7 @@ export async function GET(_request:Request,{params}:{params:Promise<{id:string}>
   const archived=await readSource(db,data);
   const headers=new Headers({'Content-Type':archived.mimeType,'Cache-Control':'private, no-store','X-Content-Type-Options':'nosniff'});
   if(/html|xml|svg/i.test(archived.mimeType))headers.set('Content-Security-Policy',"sandbox; default-src 'none'");
-  return new Response(archived.bytes,{headers});
+  return new Response(streamVerifiedBytes(archived.bytes),{headers});
  }catch(cause){
   if(cause instanceof SourceContentChangedError)return Response.json({error:cause.message},{status:409});
   if(cause instanceof ArchivedSourceUnavailableError)return Response.json({error:cause.message},{status:503});

@@ -29,6 +29,7 @@ export type SourceRecord = {
   reviewHistory?: {id:string;jobId:string|null;classification:string|null;decision:string;reason:string|null;reasons:string[];createdAt:string}[];
   id: string; sourceDataset: string; financingType: FinancingType; sourceRecordId: string; mechanism: string; title: string;
   providerName: string | null; amount: number | null; status: ProcessingStatus;
+  contractVerifiedAward?:number|null;
   carteraCode: string | null; carteraName: string | null; confidence: number | null; evidence: string | null;
   sourceFile: string | null; sourceSheet: string | null; sourceRow: number | null;
   importRunId?:string|null;
@@ -40,6 +41,9 @@ export type SourceRecord = {
   enrichmentError: string | null;
   sourceDocuments: SourceDocument[];
   analysis?:StoredAnalysis|null; matchingCandidates: MatchingCandidate[];
+  /** Read-only stored proposals excluded by the local catalog visibility filter.
+   * Their presence does not make them eligible for selection or approval. */
+  unverifiedCandidateObservations?: UnverifiedCandidateObservation[];
   matchingError: string | null;
   reviewDecision: "approved" | "corrected" | "rejected" | "insufficient_evidence" | null;
   reviewActor?: string | null;
@@ -62,14 +66,19 @@ export type MatchingCandidate = {
   rationale: string; model: string; evidence: Array<{ ordinal: number; content: string; explanation: string | null }>;
   serviceDetail: { sectorScope: string | null; portfolioStatus: string | null } | null;
 };
+export type UnverifiedCandidateObservation = {
+  id:string; targetCode:string|null; targetName:string|null; catalogVersionId:string|null; rationale:string|null;
+  evidence:Array<{ordinal:number|null;content:string|null;explanation:string|null}>;
+};
 export type SourceDocument = {
+  currentTextConsistent?:boolean;
   revision?:string;
   resolution?: import('./pipeline/official-resolution').Resolution;
   id: string; url: string; documentType: string; sourceFields: string[];
   archived?: boolean;
   status: "discovered" | "fetching" | "fetched" | "unsupported" | "error";
   extractedText?:string|null; mimeType: string | null; textPreview: string | null; textLength: number | null;
-  extractionMethod: string | null; qualityScore: number | null; qualityFlags: string[]; chunkCount: number;
+  extractionMethod: string | null; extractionPartial?:boolean|null; extractionCoverage?:unknown; qualityScore: number | null; qualityFlags: string[]; chunkCount: number;
 };
 export type SourcePage = {
   records: SourceRecord[]; total: number; page: number; pageCount: number; pageSize: number;

@@ -1,0 +1,30 @@
+do $$ declare sid uuid:=gen_random_uuid(); rid uuid; j uuid; t uuid; owner_id uuid:=gen_random_uuid(); d uuid; u1 uuid;u2 uuid;u3 uuid; doc_path text; digest text:=repeat('e',64);
+ q1 text:='B12345678 Servei de suport 1.2.6.2.6 S00845 Barcelona 445,05 € 21/05/2025 31/12/2025 1 3.276,28 €';
+ q2 text:='B12345678 Servei de suport 1.2.6.2.6 S03532 Barcelona 445,05 € 23/05/2025 31/12/2025 1 3.247,02 €';base jsonb;
+begin
+ insert into source_records(id,source_dataset,source_record_id,mechanism,title,financing_type) values(sid,'concerts','GENERAL-'||sid,'Concert','Resolució de prova','concert');
+ insert into pipeline_runs default values returning id into rid;
+ insert into pipeline_jobs(run_id,source_record_id,status) values(rid,sid,'matching') returning id into j;
+ insert into worker_tasks(source_record_id,task_type,executor,execution_state,lease_owner,lease_generation,lease_until) values(sid,'enrich_record','vercel_workflow','running',owner_id,1,now()+interval '5 minutes') returning id into t;
+ doc_path:='cases/'||sid||'/documents/'||gen_random_uuid()||'/'||digest||'.pdf';
+ insert into source_documents(source_record_id,url,url_hash,document_type,status,mime_type,extracted_text,text_length,storage_path,storage_sha256,extraction_version)
+ values(sid,'https://example.invalid/general.pdf','general-test','annex','fetched','application/pdf',q1||E'\n'||q2||E'\nTotal\ngeneral 2 6.523,30 €',400,doc_path,digest,'readable-markdown-v4') returning id into d;
+ base:=jsonb_build_object('annex',0,'page',1,'row',1,'quantity',1,'amountCents',327628,'nif','B12345678','resesCode','S00845','actType','award','quote',q1,'observedServiceCode','1.2.6.2.6');
+ u1:=cloud_stage_concert_annex_line(t,owner_id,1,j,d,base);
+ u2:=cloud_stage_concert_annex_line(t,owner_id,1,j,d,base||jsonb_build_object('row',2,'amountCents',324702,'resesCode','S03532','quote',q2));
+ update record_units set storage_path='cases/'||sid||'/items/'||id||'/documents/'||d||'/'||digest||'.pdf',storage_sha256=digest where id in (u1,u2);
+ if not cloud_finalize_concert_annex(t,owner_id,1,j,d,0,2,652330,652330) then raise exception 'General annex should reconcile';end if;
+ if (select coverage->>'declared_amount_kind' from concert_annex_reconciliations where document_id=d and annex=0)<>'maximum' then raise exception 'Maximum type missing';end if;
+ if exists(select 1 from service_provisions where source_record_id=sid) then raise exception 'Reconciliation must not approve provisions';end if;
+ update record_units set amount=null where id=u2;
+ if cloud_finalize_concert_annex(t,owner_id,1,j,d,0,2,327628,327628) then raise exception 'Missing amount was treated as zero';end if;
+ update record_units set amount=3247.02 where id=u2;
+ update record_units set quantity=3 where id=u2;
+ if cloud_finalize_concert_annex(t,owner_id,1,j,d,0,2,652330,652330) then raise exception 'Wrong quantity reconciled';end if;
+ update record_units set quantity=1 where id=u2;
+ if cloud_finalize_concert_annex(t,owner_id,1,j,d,0,2,652330,null) then raise exception 'Absent declared total reconciled';end if;
+ if cloud_finalize_concert_annex(t,owner_id,1,j,d,0,2,652330,650000) then raise exception 'Conflicting totals reconciled';end if;
+ u3:=cloud_stage_concert_annex_line(t,owner_id,1,j,d,base||jsonb_build_object('row',3,'amountCents',null,'resesCode','S03532','quote',q2));
+ if (select amount from record_units where id=u3) is not null then raise exception 'Missing amount converted to a value';end if;
+ if (select status from record_units where id=u3)<>'draft' then raise exception 'Missing amount was approved';end if;
+end $$;

@@ -5,6 +5,7 @@ import {getProcessingSetting} from '@/lib/processing-control';
 import {createServerSupabase} from '@/lib/records-page';
 import {loadPausedTaskSummary} from '@/lib/cloud/paused-task-summary';
 import {PausedTasks} from './paused-tasks';
+import {ConcertHistorySetting} from './concert-history-setting';
 
 export const dynamic = "force-dynamic";
 
@@ -28,6 +29,7 @@ export default async function AdminPage() {
         <ProcessingSetting initialSetting={processing} />
         <PausedTasks summary={pauses} />
         <OcrSetting initialSetting={setting} />
+        <ConcertHistorySetting />
       </section>
     </main>
   );

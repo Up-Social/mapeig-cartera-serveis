@@ -1,5 +1,7 @@
 # Guia tècnica del pipeline actual
 
+> Revisió documental 28/10/2026: consulteu [l’estat i els límits actualitzats](ESTADO_ACTUAL_2026_10_28.md). Els resultats i recomptes datats d’aquest document són històrics; el codi i les migracions prevalen en cas de discrepància.
+
 Aquest document descriu la implementació vigent del PoC. El codi, les migracions i els tests del repositori són la font de veritat si apareix una discrepància.
 
 ## Arquitectura
@@ -15,7 +17,7 @@ Excel i fonts públiques
   → exportacions Excel
 ```
 
-La web és una aplicació Next.js amb App Router. Supabase aporta Postgres i l'API de dades. En desenvolupament s'utilitza Supabase local sobre Docker; la web desplegada i el worker extern poden apuntar a un projecte Supabase remot.
+La web és una aplicació Next.js amb App Router. Supabase aporta Postgres i l'API de dades. En desenvolupament s'utilitza Supabase local sobre Docker; el destí configurat pot ser remot, incloent producció. Producció utilitza Vercel Workflows i Sandbox; vegeu [CLOUD_BATCHES.md](CLOUD_BATCHES.md).
 
 ## Àrees de la web
 
@@ -51,12 +53,12 @@ També existeix el flux individual des de **Registres**, que crea un lot d'un so
 
 1. **Preparació documental**: descobreix URL, descarrega HTML/PDF, extreu text i crea fragments.
 2. **Enriquiment**: extreu camps estructurats exclusivament des dels fragments oficials.
-3. **Matching**: compara l'evidència amb els 140 serveis autoritzats i proposa fins a tres candidats.
+3. **Matching**: compara l’evidència amb els serveis fulla elegibles del catàleg oficial i proposa fins a tres candidats.
 4. **Revisió**: deixa els casos correctes pendents d'una decisió humana.
 
 Un error individual no atura la resta del lot. El procés conserva comptadors, fase, heartbeat, missatges d'error i intents. Les etapes ja resoltes es reutilitzen en un reintent.
 
-En desenvolupament, les accions poden iniciar els scripts localment. Amb `NODE_ENV=production` o `WORKER_EXECUTION_MODE=queue`, la web només crea una tasca a `worker_tasks`. `scripts/run-worker.ts` reclama una tasca de manera atòmica, recupera tasques abandonades i reintenta `process_run` fins a tres vegades.
+En desenvolupament es poden iniciar scripts locals. En producció `WORKER_EXECUTION_MODE=vercel_workflow` utilitza tasques persistents i Vercel Workflows; `queue` és un mode diferent amb `scripts/run-worker.ts`. No activar un consumidor local contra producció sense autorització.
 
 ## Evidència i matching
 

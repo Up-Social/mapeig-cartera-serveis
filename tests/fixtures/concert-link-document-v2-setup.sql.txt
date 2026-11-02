@@ -1,0 +1,19 @@
+-- Synthetic documents. No source bytes are stored or assumed to exist.
+do $$
+declare label_ text;u public.record_units;did uuid;digest_ text:=repeat('a',64);source_path_ text;item_path_ text;body_ text:='## Pàgina 1'||E'\n'||'Document sintètic per revisar el vincle';
+begin
+ for label_ in select unnest(array['original','historic_unit','fresh_unit']) loop
+  select * into strict u from public.record_units where id=(select id from concert_link_test_ids where name=label_);
+  did:=gen_random_uuid();
+  source_path_:='cases/'||u.source_record_id||'/documents/'||did||'/'||digest_||'.pdf';
+  item_path_:='cases/'||u.source_record_id||'/items/'||u.id||'/documents/'||did||'/'||digest_||'.pdf';
+  insert into public.source_documents(id,source_record_id,url,url_hash,document_type,status,mime_type,extraction_partial,active_extraction_id,extracted_text,extracted_text_hash,storage_path,storage_sha256,extraction_coverage,extraction_method,quality_flags)
+  values(did,u.source_record_id,'https://example.invalid/'||did,md5(did::text),'annex','fetched','application/pdf',false,gen_random_uuid(),body_,encode(extensions.digest(convert_to(body_,'UTF8'),'sha256'),'hex'),
+   source_path_,digest_,'{"complete":true}'::jsonb,'pdf-text-markdown-v2','{}');
+  if to_regclass('storage.objects') is not null then
+   execute 'insert into storage.objects(bucket_id,name) values(''cloud-documents'',$1),(''cloud-documents'',$2)' using source_path_,item_path_;
+  end if;
+  update public.record_units set document_id=did,storage_path=item_path_,storage_sha256=digest_ where id=u.id;
+  insert into concert_link_test_ids(name,id) values(label_||'_document',did);
+ end loop;
+end $$;

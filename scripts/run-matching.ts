@@ -1,19 +1,23 @@
 import {assertProcessingEnabled,isProcessingPaused,pauseLocalProcessing,PROCESSING_PAUSE_EXIT_CODE} from '../lib/processing-control';
 import {processConveni} from '../lib/convenis/process';
 import {responseModel} from '../lib/openai-model';
-import {readEvidenceChunks} from '../lib/pipeline/evidence-reader';
-import {classifyFailure,retryTransient} from '../lib/provider-failure';
-import {journaledProviderRequest} from '../lib/provider-journal';
+import {classifyFailure,isProviderOutcomeUnknown,retryTransient} from '../lib/provider-failure';
+import {journaledProviderRequest,assertNoUnsettledLocalCalls} from '../lib/provider-journal';
 import {applyPositiveAudit,positiveAuditSchema,positiveAuditInput,POSITIVE_AUDIT_INSTRUCTIONS,POSITIVE_AUDIT_VERSION} from '../lib/cloud/positive-audit';
-import {buildNormativeInput,MATCHING_INSTRUCTIONS,scopeFactsSchema,validateScopeFacts,type ScopeFacts} from '../lib/normative-matching';
+import {buildNormativeInput,MATCHING_INPUT_VERSION,MATCHING_INSTRUCTIONS,scopeFactsSchema,validateScopeFacts,type ScopeFacts} from '../lib/normative-matching';
 import {applyFinancingClassification,analysisSchema,validateAnalysis,type AnalysisOutput} from '../lib/analysis-contract';
 import {applyScopeRules,ROLE_INSTRUCTIONS,type RoleAccreditations} from '../lib/scope-rules';
-import {loadOfficialCatalog,assertEligible} from '../lib/official-catalog';
-import {addNamedCandidates,bindExplicitCodeCandidates,findExplicitServiceEvidence} from '../lib/named-candidate';
+import {assertEligible} from '../lib/official-catalog';
+import {addNamedCandidates,bindExplicitCodeCandidates,findExplicitServiceEvidence,prioritizeExplicitServices} from '../lib/named-candidate';
 import {normalizeCandidates} from '../lib/cloud/normalize-candidates';
 import {normalizeMissingScope} from '../lib/cloud/normalize-analysis';
 import {EVIDENCE_POLICY_VERSION,evidenceRejectionReasons,isEligibleEvidence} from '../lib/evidence-eligibility';
-import {selectEvidenceWindow} from '../lib/cloud/evidence-window';
+import {hasCurrentTextCoverage} from '../lib/pipeline/document-input';
+import {selectEvidenceWindow,missingDeclaredAnnexIds} from '../lib/cloud/evidence-window';
+import {assertLocalMatchingType,withLocalMatchingGuard,assertLocalRunTypes,assertLocalSelectedRunTypes,isLocalTypeBlocked} from '../lib/pipeline/local-matching-guard';
+import {claimLocalMatchingJob,reportLocalMatchingFailure} from '../lib/pipeline/local-matching-claim';
+import {captureLocalMatchingInput} from '../lib/pipeline/local-matching-input';
+import {captureLocalProviderScope,stopLocalRunForUnknown} from '../lib/pipeline/local-provider-unknown';
 import { createClient } from "@supabase/supabase-js";
 import WebSocket from "ws";
 
@@ -36,49 +40,53 @@ type EnrichmentOutput = { scope_facts:ScopeFacts; title: string | null; provider
 
 async function main() {
   await assertProcessingEnabled(supabase);
+  if(runId)await assertLocalRunTypes(supabase,runId);
   let request = supabase.from("pipeline_jobs").select("id,run_id,source_record_id").eq("status", runId ? "ready" : "queued").order("created_at").limit(limit);
   if (runId) request = request.eq("run_id", runId);
   if (process.env.WORKFLOW_JOB_ID) request=request.eq('id',process.env.WORKFLOW_JOB_ID);
   const { data: jobs, error } = await request;
   if (error) throw error;
   if (!jobs?.length) throw new Error("No hi ha treballs en cua");
-  for (const job of jobs) {await processJob(job); const state=await supabase.from('pipeline_runs').select('status').eq('id',job.run_id).single(); if(state.data?.status==='paused')return;}
+  if(!runId)await assertLocalSelectedRunTypes(supabase,jobs);
+  for(const job of jobs)await withLocalMatchingGuard(supabase,job.source_record_id,async()=>{});
+  for (const job of jobs) {await withLocalMatchingGuard(supabase,job.source_record_id,()=>processJob(job)); const state=await supabase.from('pipeline_runs').select('status').eq('id',job.run_id).single(); if(state.data?.status==='paused')return;}
   if (runId && jobs.length) await finishRunIfDone(runId);
 }
 
 async function processJob(job: { id: string; run_id: string; source_record_id: string }) {
   await assertProcessingEnabled(supabase);
-  const claimedAt = new Date().toISOString();
-  const { data: claimed, error: claimError } = await supabase.from("pipeline_jobs").update({ status: "matching", claimed_at: claimedAt, attempts: 1, error_message: null }).eq("id", job.id).in("status", ["queued", "ready"]).select("id").maybeSingle();
-  if (claimError) throw claimError;
+  const claimed=await claimLocalMatchingJob(supabase,job.id,job.source_record_id);
   if (!claimed) return;
-  await supabase.from("source_records").update({ processing_status: "processant", updated_at: claimedAt }).eq("id", job.source_record_id);
 
+  let providerScope:Awaited<ReturnType<typeof captureLocalProviderScope>>|null=null;
   try {
+    providerScope=await captureLocalProviderScope(supabase,job.run_id,job.id);
+    await assertNoUnsettledLocalCalls(supabase,job.id);
     const previous=await supabase.from('analysis_results').select('id').eq('pipeline_job_id',job.id).maybeSingle();
     if(previous.error)throw previous.error;
     if(previous.data){await supabase.from('pipeline_jobs').update({status:'needs_review'}).eq('id',job.id);return;}
     if(await processConveni(supabase,job,body=>journaledProviderRequest(supabase,job.id,'conveni',body)))return;
+    blockLocalGenericMatching();
+    /* The generic local writer is retained for future migration to a fenced
+       transaction; it must not run while its shared writes are unguarded. */
     if(!openaiKey||!model)throw Error('Falta la configuració OpenAI');
     const lineage=await supabase.from('pipeline_jobs').select('previous_job_id').eq('id',job.id).single();
     if(lineage.error)throw lineage.error;
     await assertNotPreviouslySelected(job.source_record_id, job.id, allowPreviousSelection||Boolean(lineage.data.previous_job_id));
-    const [{ data: record, error: recordError }, official] = await Promise.all([
-      supabase.from("source_records").select("id,financing_type,source_dataset,source_record_id,mechanism,title,provider_name,amount,source_payload,record_enrichments(id,summary,provider_name,provider_nif,mechanism,award_date,amount,contracting_body,target_population,scope_facts),source_documents!inner(id,status,text_length,extraction_method,quality_flags)").eq("id", job.source_record_id).eq("source_documents.status", "fetched").single(),
-      loadOfficialCatalog(supabase),
-    ]);
-    if (recordError) throw recordError;
+    const {record,official,sourceDocuments,evidence}=await captureLocalMatchingInput(supabase,job);
+    assertLocalMatchingType(record.financing_type);
     const catalog = official.eligible;
-    const documents = new Map(record.source_documents.map((document: { id: string; text_length:number|null; extraction_method:string|null; quality_flags:string[]|null }) => [document.id, document]));
-    const evidence = await readEvidenceChunks(supabase, [...documents.keys()]);
+    const documents = new Map(sourceDocuments.filter(document=>document.status==='fetched').map(document=>[document.id,document]));
+    if(missingDeclaredAnnexIds(sourceDocuments,evidence).length)throw Error('Hi ha annexos declarats no recuperats íntegrament. Cal revisar les fonts abans de classificar.');
     const assessed=(evidence??[]).map(chunk=>{
       const document=documents.get(chunk.source_document_id);
-      const quality={content:chunk.content,textLength:document?.text_length,extractionMethod:document?.extraction_method,qualityFlags:document?.quality_flags};
+      const quality={content:chunk.content,textLength:document?.text_length,extractionMethod:document?.extraction_method,qualityFlags:document?.quality_flags,coverageVerified:!!document&&hasCurrentTextCoverage(document.extraction_method,document.extraction_coverage,document.mime_type,document.extraction_partial)};
       return {...chunk,eligible:isEligibleEvidence(quality),rejection_reasons:evidenceRejectionReasons(quality)};
     });
     const chunks=selectEvidenceWindow(assessed.filter(chunk=>chunk.eligible));
     const rejectedEvidence=assessed.filter(chunk=>!chunk.eligible).map(chunk=>({source_document_id:chunk.source_document_id,ordinal:chunk.ordinal,reasons:chunk.rejection_reasons}));
     if (!chunks.length) {
+      if([...documents.values()].some(d=>!hasCurrentTextCoverage(d.extraction_method,d.extraction_coverage,d.mime_type,d.extraction_partial)))throw Error('Cal tornar a verificar la cobertura del text arxivat abans de classificar el cas.');
       if (!assessed.length) throw new Error("El registre no té fragments d'evidència");
       const result={classification:'insufficient_evidence',reasons:[],explanation:'La documentació localitzada no conté evidència llegible i substantiva. Cal recuperar la font oficial o l’annex.',service_description:'',target_population:'',rule_audit:{version:EVIDENCE_POLICY_VERSION,rejected:rejectedEvidence}};
       const stored=await supabase.rpc('persist_analysis',{p_job:job.id,p_version:official.version.id,p_result:result,p_candidates:[],p_evidence:[assessed[0]]});
@@ -87,7 +95,7 @@ async function processJob(job: { id: string; run_id: string; source_record_id: s
 
     const existingEnrichment = Array.isArray(record.record_enrichments) ? record.record_enrichments[0] : record.record_enrichments;
     const explicitlyCited=findExplicitServiceEvidence(catalog,chunks);
-    const promptServices=explicitlyCited.length?explicitlyCited.map(item=>item.service):catalog;
+    const promptServices=prioritizeExplicitServices(catalog,explicitlyCited);
     const eligibleCodes=promptServices.map(service=>service.service_code);
     const raw = await retryTransient(()=>journaledProviderRequest(supabase,job.id,'matching',{
         model,
@@ -107,7 +115,7 @@ async function processJob(job: { id: string; run_id: string; source_record_id: s
     let auditVersion=POSITIVE_AUDIT_VERSION;
     if(validated.classification==='in_portfolio'&&!exactOfficialEvidence){
       const audit=await retryTransient(()=>journaledProviderRequest(supabase,job.id,POSITIVE_AUDIT_VERSION,{model,instructions:POSITIVE_AUDIT_INSTRUCTIONS,input:positiveAuditInput(validated,official.all,official.version.general_context,chunks),text:{format:{type:'json_schema',name:'positive_audit',strict:true,schema:positiveAuditSchema(validated.candidates.map(c=>c.code),chunks)}},max_output_tokens:2000}));
-      validated=validateAnalysis(bindExplicitCodeCandidates(applyPositiveAudit(validated,JSON.parse(extractOutputText(audit)),official.all,chunks),catalog,chunks),official.all,chunks.length);
+      validated=validateAnalysis(applyPositiveAudit(validated,JSON.parse(extractOutputText(audit)),official.all,chunks),official.all,chunks.length);
     }else if(exactOfficialEvidence){
       auditVersion='official-code-description-v1';
     }
@@ -122,7 +130,7 @@ async function processJob(job: { id: string; run_id: string; source_record_id: s
       accreditations.financed_object={kind:'service_financing',evidence_ordinals:exactOrdinals,basis:'official_service_code_and_description'};
     }
     const scoped=applyFinancingClassification({...applyScopeRules(validated,enrichment?.scope_facts?.roles,chunks,accreditations),...(record.financing_type==='concert'&&received.classification==='out_of_portfolio'?{classification:'out_of_portfolio' as const}:{})},record.financing_type);
-    const analysis={...scoped,rule_audit:{...scoped.rule_audit,evidence_policy:{version:EVIDENCE_POLICY_VERSION,rejected:rejectedEvidence}},model_conclusion:providerResult};
+    const analysis={...scoped,rule_audit:{...scoped.rule_audit,matching_contract_version:MATCHING_INPUT_VERSION,evidence_policy:{version:EVIDENCE_POLICY_VERSION,rejected:rejectedEvidence}},model_conclusion:providerResult};
     validateAnalysis(analysis,official.all,chunks.length);
     const candidates = analysis.candidates;
 
@@ -148,11 +156,18 @@ async function processJob(job: { id: string; run_id: string; source_record_id: s
     await finishRunIfDone(job.run_id);
     console.log(`${record.source_record_id}: ${candidates.length} candidats · revisió necessària`);
   } catch (error) {
+    if(isProviderOutcomeUnknown(error)){
+      if(!providerScope)throw error;
+      await stopLocalRunForUnknown(supabase,job.run_id,job.id,providerScope);
+    }
+    if(isLocalTypeBlocked(error)){
+      await reportLocalMatchingFailure(supabase,job.id,job.source_record_id,'validation','El treball local s’ha aturat perquè el tipus o la revisió no es pot verificar.');
+      throw error;
+    }
     if(isProcessingPaused(error)){await pauseLocalProcessing(supabase,{runId:job.run_id});throw error;}
     const message = formatError(error);
     const failure=classifyFailure(message);
-    await supabase.from("pipeline_jobs").update({ status: "error", error_kind: failure.kind, error_message: message, completed_at: new Date().toISOString() }).eq("id", job.id);
-    await supabase.from("source_records").update({ processing_status: "error", updated_at: new Date().toISOString() }).eq("id", job.source_record_id);
+    await reportLocalMatchingFailure(supabase,job.id,job.source_record_id,failure.kind,message);
     if(failure.blocked)await supabase.from('pipeline_runs').update({status:'paused',pause_reason:failure.message,pause_kind:failure.kind}).eq('id',job.run_id);
     console.error(message);
   }
@@ -200,6 +215,7 @@ function extractOutputText(response: Record<string, unknown>) {
 }
 
 function nullableString() { return { anyOf: [{ type: "string" }, { type: "null" }] }; }
+function blockLocalGenericMatching():void {throw new Error('LOCAL_TYPE_BLOCKED: El matching genèric local requereix el flux cloud compatible.');}
 function matchingInstructions() {return MATCHING_INSTRUCTIONS;}
 
 async function persistEnrichment(sourceRecordId: string, enrichment: EnrichmentOutput, chunks: Array<{ id: string }>, actualModel: string) {

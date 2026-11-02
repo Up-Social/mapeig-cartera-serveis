@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { TableActionLink, WorkTable } from "@/components/work-list";
 import { DISCARD_REASON_LABELS } from "@/lib/review-contract";
 import { FINANCING_TYPE_LABELS } from "@/lib/financing-types";
+import { isUuid } from "@/lib/uuid";
 
 export type SelectableDiscard = {
   id: string;
@@ -40,17 +41,35 @@ export function DiscardedSelection({ rows, origin }: { rows: SelectableDiscard[]
 
   function remove() {
     start(async () => {
+      const uncertain = () => {
+        setSelected([]);
+        setOpen(false);
+        setMessage("No s’ha pogut confirmar el resultat de l’eliminació; pot continuar en curs. Revisa la llista i la neteja pendent abans de tornar-ho a intentar.");
+        window.dispatchEvent(new Event("navigation-counts:refresh"));
+        router.refresh();
+      };
       try {
         const response = await fetch("/api/discarded/delete", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ selection: items.map(({ id, job_id, result_token }) => ({ id, job_id, result_token })), confirmedCount: items.length }) });
         const result = await response.json();
-        if (!response.ok) throw Error(result.error);
+        if (!response.ok) {
+          const knownRejection = (response.status === 400 && result?.rejection === "invalid_selection") ||
+            (response.status === 409 && ["preserved_history", "population_history"].includes(result?.rejection));
+          if (!knownRejection || typeof result.error !== "string") { uncertain(); return; }
+          setOpen(false);
+          setMessage(result.error);
+          return;
+        }
+        const validId = typeof result?.purgeId === "string" && isUuid(result.purgeId);
+        const normalResult = Number.isInteger(result?.pending) && result.pending >= 0 && result.deleted === items.length;
+        const pendingResult = result?.pending === true && (result.deleted === undefined || result.deleted === items.length);
+        if (!validId || (!normalResult && !pendingResult)) { uncertain(); return; }
         setSelected([]);
         setOpen(false);
         setMessage(result.pending ? "Registres eliminats; neteja de fitxers pendent." : "Eliminació completa; absència de fitxers verificada.");
         window.dispatchEvent(new Event("navigation-counts:refresh"));
         router.refresh();
-      } catch (error) {
-        setMessage(error instanceof Error ? error.message : "No s’ha eliminat cap registre.");
+      } catch {
+        uncertain();
       }
     });
   }

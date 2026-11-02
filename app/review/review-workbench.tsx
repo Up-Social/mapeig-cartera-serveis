@@ -20,6 +20,7 @@ import { ReviewHistory } from "@/components/review-history";
 import { Input } from "@/components/ui/input";
 import { StableAccordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/visible-sections";
 import { AnalysisResult } from "@/components/analysis-result";
+import { UnverifiedCandidateObservations } from "@/components/unverified-candidate-observations";
 import { displaySourceIdentifier } from "@/lib/source-identifiers";
 import { sourcePayloadFieldLabel, sourcePayloadValue } from "@/lib/source-payload-display";
 import { sourceDocumentStatusLabel, sourceDocumentTypeLabel } from "@/lib/ui-labels";
@@ -241,7 +242,7 @@ export function ReviewDetail({
       </div>
       <section id="resultat" className="mt-5 border-t pt-5">
         <h4 className="section-title">Resultat de l’anàlisi</h4>
-        <div className="mt-3 space-y-3"><AnalysisResult reviewActor={record.reviewActor} analysis={record.analysis} candidates={record.matchingCandidates}/></div>
+        <div className="mt-3 space-y-3"><AnalysisResult reviewActor={record.reviewActor} analysis={record.analysis} candidates={record.matchingCandidates}/><UnverifiedCandidateObservations observations={record.unverifiedCandidateObservations}/></div>
       </section>
       <section className="mt-5 border-t pt-5">
         <h4 className="text-sm font-semibold">

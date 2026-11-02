@@ -30,3 +30,24 @@ test('the operative award prevails over a referenced call in the publication tit
  assert.equal(result.effect,'possible_allocation');
  assert.equal(result.source,'document');
 });
+
+test('a mixed operative award and denial are both visible without reading background as an act',()=>{
+ const mixed=assessConcertAct('Resolució de l’expedient: 25-000001-AP','Antecedents: es menciona una denegació anterior. RESOLC: 1. Assignar places a una entitat. 2. Denegar les places de l’annex segon.');
+ assert.equal(mixed.effect,'possible_award');assert.ok(mixed.overlappingCases.includes(1));
+ const background=assessConcertAct('Resolució de l’expedient: 25-000001-AP','Antecedents: 1. Denegar les places en una resolució anterior. RESOLC: 1. Assignar places a una entitat.');
+ assert.ok(!background.overlappingCases.includes(1));
+});
+
+test('annex rows cannot turn an operative approval into a new award',()=>{
+ const result=assessConcertAct('Resolució de l’expedient: 26-000001-AP',
+  'RESOLC: 1. Aprovar la relació de dades administratives.\nAnnex\n2. Assignar places a una entitat.');
+ assert.equal(result.primaryCase,8);
+ assert.equal(result.effect,'none');
+});
+
+test('an annex mentioning a denial does not make an operative award mixed',()=>{
+ const result=assessConcertAct('Resolució de l’expedient: 26-000002-AP',
+  'RESOLC: 1. Assignar places a una entitat.\n## Annex\n2. Denegar les places descrites en un antecedent.');
+ assert.equal(result.effect,'possible_award');
+ assert.ok(!result.overlappingCases.includes(1));
+});

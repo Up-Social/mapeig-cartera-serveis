@@ -232,12 +232,13 @@ function Metric({ label, value }: { label: string; value: number }) {
     </Card>
   );
 }
-function Detail({ label, value }: { label: string; value: string }) {
+function Detail({ label, value, note }: { label: string; value: string; note?: string }) {
   return (
     <div className="grid grid-cols-[100px_1fr] gap-3">
       <dt className="text-neutral-500">{label}</dt>
       <dd className="min-w-0 break-words font-medium text-neutral-800">
         {value}
+        {note&&<p className="mt-1 text-xs font-normal leading-5 text-muted-foreground">{note}</p>}
       </dd>
     </div>
   );
@@ -250,7 +251,7 @@ function StatusBadge({ status }: { status: string }) {
     </Badge>
   );
 }
-function ProvisionCard({ provision }: { provision: ServiceProvision }) {
+export function ProvisionCard({ provision }: { provision: ServiceProvision }) {
   return (
     <article className="rounded-xl border border-neutral-200 p-4">
       <div className="flex items-start justify-between gap-3">
@@ -271,7 +272,7 @@ function ProvisionCard({ provision }: { provision: ServiceProvision }) {
         <Detail label="Data" value={formatDate(provision.awardDate)} />
         <Detail label="Import" value={formatMoney(provision.amount)} />
         <Detail label="Òrgan" value={provision.contractingBody ?? "—"} />
-        <Detail label="Població" value={provision.targetPopulation ?? "—"} />
+        <Detail label="Població" value={provision.targetPopulation ?? "—"} note={provision.financingType==='concert'&&provision.targetPopulation?.trim()?'Aquest text pot descriure l’expedient en conjunt; no acredita per si sol la seva atribució a cada línia del concert.':undefined} />
         <Detail label="Font" value={provision.sourceReference} />
       </dl>
       {(provision.callUrl || provision.regulatoryBasisUrl) && (

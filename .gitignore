@@ -57,3 +57,8 @@ next-env.d.ts
 /.next-workflow-e2e/
 
 /.cache/
+
+# Local connector configuration and Python bytecode
+/.codex/
+__pycache__/
+*.pyc

@@ -6,6 +6,13 @@ export function recordOperationNeedsAttention(record: SourceRecord) {
   return record.operationProgress?.state === "incident" || record.currentJobStatus === "error";
 }
 
+/** Display only: the latest job can be newer than the shared source status. */
+export function recordProcessStatusLabel(record: SourceRecord) {
+  if (record.currentJobStatus === 'matching') return 'Processant';
+  if (record.currentJobStatus === 'error') return 'Incidència tècnica · sense resultat disponible';
+  return record.status;
+}
+
 export function isRecordOperationTerminal(
   operation: RecordOperation,
   record: SourceRecord,

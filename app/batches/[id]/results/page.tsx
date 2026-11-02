@@ -1,11 +1,13 @@
+import {BatchAnalysisFacts} from "@/components/batch-analysis-facts";
+import {BatchCandidateObservations} from "@/components/batch-candidate-observations";
 import { FilterForm } from "@/components/filter-form";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { batchButtonVariants } from "@/components/batch-button";
 import { DetailNavigation } from "@/components/detail-navigation";
-import { CLASSIFICATION_LABELS } from "@/lib/analysis-contract";
-import { batchResultGuidance } from "@/lib/batch-result-guidance";
+import { CLASSIFICATION_LABELS,isRecipientReviewContainer } from "@/lib/analysis-contract";
+import { batchResultClassification,batchResultGuidance } from "@/lib/batch-result-guidance";
 import type { BatchJob } from "@/lib/batch-types";
 import { getBatch } from "@/lib/batches";
 import { FINANCING_TYPE_LABELS } from "@/lib/financing-types";
@@ -32,7 +34,7 @@ export default async function BatchResults({
     (job) =>
       matchesView(job, view) &&
       (!filter.classification ||
-        (job.analysis?.reviewed_classification ?? job.analysis?.classification) ===
+        batchResultClassification(job) ===
           filter.classification) &&
       (!filter.type || job.financingType === filter.type),
   );
@@ -194,8 +196,7 @@ function ResultViewLink({
 }
 
 function JobResult({ job, batchId }: { job: BatchJob; batchId: string }) {
-  const classification =
-    job.analysis?.reviewed_classification ?? job.analysis?.classification;
+  const classification = batchResultClassification(job);
   const guidance = batchResultGuidance(job);
   const isTechnical = guidance.kind === "technical";
   const isIssue = guidance.kind === "issue";
@@ -213,7 +214,7 @@ function JobResult({ job, batchId }: { job: BatchJob; batchId: string }) {
           Estat: {jobStateLabel(job)} · Classificació:{" "}
           {classification
             ? CLASSIFICATION_LABELS[classification]
-            : "Sense resultat automàtic"}
+            : isRecipientReviewContainer(job.analysis)&&job.status==='needs_review'?"Revisió per unitat":"Sense resultat automàtic"}
         </p>
       </div>
 
@@ -240,30 +241,8 @@ function JobResult({ job, batchId }: { job: BatchJob; batchId: string }) {
         )}
       </section>
 
-      {job.analysis && (
-        <dl className="grid gap-3 text-sm sm:grid-cols-3">
-          <div>
-            <dt className="font-semibold">Servei identificat</dt>
-            <dd className="mt-1 text-muted-foreground">
-              {job.analysis.service_description?.trim() || "No prou acreditat"}
-            </dd>
-          </div>
-          <div>
-            <dt className="font-semibold">Destinataris</dt>
-            <dd className="mt-1 text-muted-foreground">
-              {job.analysis.target_population?.trim() || "No prou acreditats"}
-            </dd>
-          </div>
-          <div>
-            <dt className="font-semibold">Evidència disponible</dt>
-            <dd className="mt-1 text-muted-foreground">
-              {job.analysis.evidence.length
-                ? `${job.analysis.evidence.length} fragment(s)`
-                : "Cap fragment acreditat"}
-            </dd>
-          </div>
-        </dl>
-      )}
+      <BatchAnalysisFacts analysis={job.analysis}/>
+      <BatchCandidateObservations job={job}/>
 
       <div className="flex flex-wrap gap-2">
         <Link
@@ -290,6 +269,7 @@ function JobResult({ job, batchId }: { job: BatchJob; batchId: string }) {
 function jobState(job: BatchJob) {
   if (job.status === "error") return "error";
   if (job.currentDestination === "issues") return "issue";
+  if (job.conveniState === 'partial') return 'partial';
   if (
     ["approved", "corrected", "rejected", "insufficient_evidence", "needs_review"].includes(
       job.status,
@@ -304,6 +284,7 @@ function jobState(job: BatchJob) {
 function jobStateLabel(job: BatchJob) {
   return (
     {
+      partial: 'Aprovat amb unitats pendents',
       pending: "Pendent de començar",
       blocked: "Bloquejat",
       needs_review: "Pendent de revisió",

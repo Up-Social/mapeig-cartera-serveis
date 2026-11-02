@@ -1,7 +1,9 @@
 import type {ConcertPublication,ConcertLinkCandidate} from './record-linking';
 import {concertActKind,concertResolutionNumbers,concertTerritory,publicationDate} from './record-linking';
 import {isEligibleEvidence} from '../evidence-eligibility';
-export type ConcertLinkDocument={id:string;source_record_id:string;status:string;mime_type:string|null;extraction_partial:boolean|null;extraction_method:string|null;quality_flags:string[]|null;storage_path:string|null;storage_sha256:string|null;extracted_text:string|null};
+import {hasCurrentConcertAward} from './no-award';
+import {hasCurrentTextCoverage} from '../pipeline/document-input';
+export type ConcertLinkDocument={id:string;source_record_id:string;status:string;mime_type:string|null;extraction_partial:boolean|null;extraction_method:string|null;extraction_coverage?:unknown;quality_flags:string[]|null;storage_path:string|null;storage_sha256:string|null;extracted_text:string|null};
 const norm=(s:string)=>s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[’']/g,' ').replace(/\s+/g,' ').trim();
 const months=['gener','febrer','marc','abril','maig','juny','juliol','agost','setembre','octubre','novembre','desembre'];
 const iso=(y:string,m:string,d:string)=>{const s=`${y}-${m.padStart(2,'0')}-${d.padStart(2,'0')}`;return !Number.isNaN(Date.parse(s))&&new Date(`${s}T00:00:00Z`).toISOString().slice(0,10)===s?s:null;};
@@ -15,6 +17,7 @@ export function concertSignatureDates(text:string):string[]{
  return [...dates];
 }
 const eligible=(d:ConcertLinkDocument)=>d.status==='fetched'&&d.mime_type?.includes('pdf')&&!d.extraction_partial&&!!d.storage_path&&!!d.storage_sha256&&!!d.extracted_text&&isEligibleEvidence({content:d.extracted_text,extractionMethod:d.extraction_method,qualityFlags:d.quality_flags});
+const eligibleCall=(d:ConcertLinkDocument)=>eligible(d)&&d.extraction_partial===false&&hasCurrentTextCoverage(d.extraction_method,d.extraction_coverage,d.mime_type,d.extraction_partial);
 const words=(s:string)=>new Set(norm(s).match(/[a-z0-9]+/g)?.filter(w=>w.length>=4&&!['resolucio','serveis','socials','provisio','xarxa','publica','departament','catalunya','generalitat'].includes(w))??[]);
 function compatibleTitle(a:string,b:string){
  const x=words(a),y=words(b),shared=[...x].filter(w=>y.has(w));
@@ -29,13 +32,31 @@ export function proposeDocumentRecordLinks(rows:ConcertPublication[],documents:C
  const result:ConcertLinkCandidate[]=[];
  const docs=new Map(rows.map(r=>[r.id,documents.filter(d=>d.source_record_id===r.id&&eligible(d))]));
  for(const later of rows){
-  const kind=concertActKind(later);if(!kind)continue;
+  const kind=concertActKind(later);
   for(const d of docs.get(later.id)??[]){
    // Recitals identify previous acts; legal foundations and annex columns are not original references.
    const opening=d.extracted_text!.split(/Fonaments de dret/i)[0].slice(0,20000);
    const normalized=norm(opening);
    for(const earlier of rows){
     if(earlier.id===later.id||!publicationDate(earlier)||!publicationDate(later)||publicationDate(earlier)>=publicationDate(later))continue;
+    // A call is an antecedent of a definitive award, never an economic
+    // original or an amendment. Both archived documents must identify the
+    // same numbered call explicitly; the reference remains a candidate.
+    if(eligibleCall(d)&&!/\bconvocat[oò]ria\b/i.test(later.title)&&hasCurrentConcertAward(later.title,d.extracted_text)&&/\bconvocat[oò]ria\b/i.test(earlier.title)){
+     const numbers=concertResolutionNumbers(earlier.title);
+     if(numbers.length===1&&Number(numbers[0].split('/').at(-1))>=2024){
+      const number=numbers[0];
+      const expression=new RegExp(`Resoluci[oó]\\s+${number.replaceAll('/','\\s*/\\s*')}[^.;:]{0,140}\\bconvocat[oò]ria\\b`,'i');
+      const cite=opening.match(expression);
+      const earlierDoc=(docs.get(earlier.id)??[]).find(p=>eligibleCall(p)&&expression.test(p.extracted_text!.slice(0,5000)));
+      if(cite&&earlierDoc){
+       result.push({laterRecordId:later.id,earlierRecordId:earlier.id,kind:'call',method:'explicit_resolution',
+        evidence:`PDF arxivat ${d.id} (SHA ${d.storage_sha256}): ${cite[0].replace(/\s+/g,' ').trim()}. Convocatòria identificada també al PDF ${earlierDoc.id} (SHA ${earlierDoc.storage_sha256}). Candidata documental; no acredita imports ni vinculació financera.`});
+       continue;
+      }
+     }
+    }
+    if(!kind)continue;
     const laterTerritory=concertTerritory(opening);
     const priorDocs=(docs.get(earlier.id)??[]).filter(p=>{
      const earlierTerritory=concertTerritory(p.extracted_text!.split(/Fets|Antecedents|Fonaments de dret/i)[0].slice(0,2500));

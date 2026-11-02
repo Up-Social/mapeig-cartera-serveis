@@ -12,7 +12,9 @@ const normalize=(value:string|null|undefined)=>(value??'').normalize('NFD').repl
 const same=(a:string|null,b:string|null)=>Boolean(a&&b&&normalize(a)===normalize(b));
 // Official annexes sometimes print a service group while a later act prints
 // its leaf. This permits a review candidate, never a service equivalence.
-const relatedService=(a:string,b:string)=>/^\d+(?:\.\d+)+$/.test(a)&&/^\d+(?:\.\d+)+$/.test(b)&&
+const validService=(value:string)=>/^\d+(?:\.\d+)+$/.test(value);
+const sameService=(a:string,b:string)=>validService(a)&&validService(b)&&a===b;
+const relatedService=(a:string,b:string)=>validService(a)&&validService(b)&&
  (a.startsWith(`${b}.`)||b.startsWith(`${a}.`));
 export function proposeUnitLinks(units:ConcertUnitForLink[]):UnitLinkCandidate[]{
  const links:UnitLinkCandidate[]=[];
@@ -24,8 +26,8 @@ export function proposeUnitLinks(units:ConcertUnitForLink[]):UnitLinkCandidate[]
   for(const earlier of units){
    if(later.recordId===earlier.recordId||!later.publishedAt||!earlier.publishedAt||earlier.publishedAt>later.publishedAt)continue;
    if(later.resesCode&&earlier.resesCode&&!same(later.resesCode,earlier.resesCode))continue;
-   const groupedService=Boolean(later.serviceCode&&earlier.serviceCode&&!same(later.serviceCode,earlier.serviceCode)&&relatedService(later.serviceCode,earlier.serviceCode));
-   if(later.serviceCode&&earlier.serviceCode&&!same(later.serviceCode,earlier.serviceCode)&&!groupedService)continue;
+   const groupedService=Boolean(later.serviceCode&&earlier.serviceCode&&!sameService(later.serviceCode,earlier.serviceCode)&&relatedService(later.serviceCode,earlier.serviceCode));
+   if(later.serviceCode&&earlier.serviceCode&&!sameService(later.serviceCode,earlier.serviceCode)&&!groupedService)continue;
    if(later.territory&&earlier.territory&&!same(later.territory,earlier.territory))continue;
    const sameNif=same(later.providerNif,earlier.providerNif),sameReses=same(later.resesCode,earlier.resesCode);
    if(groupedService&&!(sameNif&&sameReses))continue;

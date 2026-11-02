@@ -1,3 +1,4 @@
+import {fakeOcrJournal} from './cloud-ocr-journal-fixture';
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {extractDocument} from '../lib/cloud/documents';
@@ -33,16 +34,25 @@ function fixture(original:{path:string;mime:string;hash:string},canonical:boolea
    };
   }},
   rpc:async(name:string,args:Record<string,unknown>)=>{
-   if(name==='cloud_checkpoint')journal.set(String(args.p_key),args.p_value);
+   if(name==='cloud_checkpoint')journal.set(String(args.p_key),args.p_value);if(name==='cloud_ocr_page_journal_step')return fakeOcrJournal(journal,args);if(name==='cloud_read_pdf_checkpoint'){const key=String(args.p_key);return {data:journal.has(key)?{found:true,...(args.p_kind==='legacy'?{}:{value:journal.get(key)})}:{found:false},error:null};}
    return {data:true,error:null};
   },
   from:(table:string)=>{
-   let key='';
+   let key='';let pending:Record<string,unknown>|null=null;
+   const filters:Array<[string,unknown]>=[];
    const q={
     select:()=>q,
-    eq:(column:string,value:string)=>{if(column==='item_key')key=value;return q;},
-    update:(value:Record<string,unknown>)=>{Object.assign(source,value);return q;},
-    single:async()=>({data:table==='source_documents'?source:null,error:null}),
+    eq:(column:string,value:string)=>{if(column==='item_key')key=value;if(pending)filters.push([column,value]);return q;},
+    is:(column:string,value:null)=>{if(pending)filters.push([column,value]);return q;},
+    update:(value:Record<string,unknown>)=>{pending=value;return q;},
+    single:async()=>{
+     if(table!=='source_documents')return {data:null,error:null};
+     if(pending){
+      if(!filters.every(([column,value])=>source[column as keyof typeof source]===value))return {data:null,error:Error('no rows')};
+      Object.assign(source,pending);
+     }
+     return {data:source,error:null};
+    },
     maybeSingle:async()=>({data:journal.has(key)?{value:journal.get(key)}:null,error:null}),
    };
    return q;

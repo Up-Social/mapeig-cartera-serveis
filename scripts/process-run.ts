@@ -1,5 +1,7 @@
 import {assertProcessingEnabled,isProcessingPaused,pauseLocalProcessing,PROCESSING_PAUSE_EXIT_CODE} from '../lib/processing-control';
-import {classifyFailure,retryDelay} from '../lib/provider-failure';
+import {assertLocalRunTypes,isLocalTypeBlocked} from '../lib/pipeline/local-matching-guard';
+import {captureLocalProviderScope,stopLocalRunForUnknown} from '../lib/pipeline/local-provider-unknown';
+import {classifyFailure,isProviderOutcomeUnknown,retryDelay} from '../lib/provider-failure';
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { createClient } from "@supabase/supabase-js";
@@ -17,6 +19,7 @@ async function main() {
   const { data: run, error } = await db.from("pipeline_runs").select("id,parameters,stage").eq("id", runId).single();
   if (error) throw error;
   if (run.parameters?.auto_process !== true) throw new Error("El lot no està configurat per al procés automàtic");
+  await assertLocalRunTypes(db,runId!);
 
   const initial=await loadJobs();
   if(!['enrichment','matching','review'].includes(run.stage) && initial.some(j=>j.preparation_status!=='ready' && !j.analysis_results?.length)) {
@@ -33,12 +36,15 @@ async function main() {
       let completed = false;
       let lastError = "No s'ha pogut contrastar el registre.";
       for (let attempt = 1; attempt <= 3 && !completed; attempt += 1) {
-        await db.from("source_records").update({ enrichment_status: "processing", enrichment_error: null, updated_at: new Date().toISOString() }).eq("id", job.source_record_id);
+        const providerScope=await captureLocalProviderScope(db,runId!,job.id);
         try {
-          await runCommand("enrichment:run", ["--source-record-id", job.source_record_id]);
+          await runCommand("enrichment:run", ["--source-record-id", job.source_record_id],job.id);
           completed = true;
         } catch (failure) {
-          if(isProcessingPaused(failure))throw failure;
+          if(isProcessingPaused(failure)||isLocalTypeBlocked(failure))throw failure;
+          if(isProviderOutcomeUnknown(failure)){
+            await stopLocalRunForUnknown(db,runId!,job.id,providerScope);
+          }
           lastError = messageOf(failure);
           const info=classifyFailure(lastError);
           if(info.blocked){await db.from('pipeline_jobs').update({status:'error',error_kind:info.kind,error_message:lastError}).eq('id',job.id);await db.from('pipeline_runs').update({status:'paused',pause_reason:info.message,pause_kind:info.kind}).eq('id',runId);return;}
@@ -84,7 +90,7 @@ async function loadJobs() {
 function sourceOf(job: Awaited<ReturnType<typeof loadJobs>>[number]) { const value = job.source_records; return (Array.isArray(value) ? value[0] : value) as { enrichment_status: string; enrichment_error: string | null }; }
 async function setRun(status: string, stage: string) { const { error } = await db.from("pipeline_runs").update({ status, stage, processing_completed_at: null, completed_at: null }).eq("id", runId); if (error) throw error; }
 async function refresh() { const { error } = await db.rpc("refresh_pipeline_run", { p_run_id: runId }); if (error) throw error; }
-async function runCommand(script: string, args: string[]) { await execFileAsync("npm", ["run", script, "--", ...args], { cwd: process.cwd(), env: process.env, maxBuffer: 20 * 1024 * 1024 }); }
+async function runCommand(script: string, args: string[],jobId?:string) { await execFileAsync("npm", ["run", script, "--", ...args], { cwd: process.cwd(), env:jobId?{...process.env,WORKFLOW_JOB_ID:jobId}:process.env, maxBuffer: 20 * 1024 * 1024 }); }
 function option(name: string) { const index = process.argv.indexOf(name); return index >= 0 ? process.argv[index + 1] : undefined; }
 function messageOf(error: unknown) { return error instanceof Error ? error.message.slice(0, 1000) : String(error).slice(0, 1000); }
-void main().catch(async (error: unknown) => { if(isProcessingPaused(error)){await pauseLocalProcessing(db,{runId});console.error("PROCESSING_DISABLED");process.exitCode=PROCESSING_PAUSE_EXIT_CODE;return;}const message = messageOf(error); await db.from("pipeline_runs").update({ status: "processing_error", error_count: 1 }).eq("id", runId); console.error("Procés automàtic fallit:", message); process.exitCode = 1; });
+void main().catch(async (error: unknown) => { if(isProviderOutcomeUnknown(error)){console.error(messageOf(error));process.exitCode=1;return;}if(isLocalTypeBlocked(error)){console.error(messageOf(error));process.exitCode=1;return;}if(isProcessingPaused(error)){await pauseLocalProcessing(db,{runId});console.error("PROCESSING_DISABLED");process.exitCode=PROCESSING_PAUSE_EXIT_CODE;return;}const message = messageOf(error); await db.from("pipeline_runs").update({ status: "processing_error", error_count: 1 }).eq("id", runId); console.error("Procés automàtic fallit:", message); process.exitCode = 1; });

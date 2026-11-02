@@ -4,6 +4,7 @@ import test from "node:test";
 import {
   isRecordOperationTerminal,
   recordOperationNeedsAttention,
+  recordProcessStatusLabel,
   type RecordOperation,
 } from "../lib/record-operation";
 import { createRecordStatusResponse } from "../lib/record-status-response";
@@ -44,6 +45,13 @@ const record: SourceRecord = {
 function withRecord(values: Partial<SourceRecord>) {
   return { ...record, ...values };
 }
+
+test('process label reflects the current job when the shared source status is stale',()=>{
+ assert.equal(recordProcessStatusLabel(withRecord({status:'pendent',currentJobStatus:'matching'})),'Processant');
+ assert.match(recordProcessStatusLabel(withRecord({status:'preparat',currentJobStatus:'error'})),/Incidència tècnica/);
+ assert.equal(recordProcessStatusLabel(withRecord({status:'preparat',currentJobStatus:null})),'preparat');
+ assert.equal(recordOperationNeedsAttention(withRecord({status:'preparat',currentJobStatus:'error'})),true);
+});
 
 test('a paused audit without a persisted result cannot be reviewed', () => {
   const pending=withRecord({currentJobId:'job',currentJobStatus:'matching',evidenceStatus:'ready',enrichmentStatus:'completed',operationProgress:{state:'incident',step:'matching',completed:0,total:1,detail:null,startedAt:'2026-09-30',lastActivityAt:'2026-09-30',finishedAt:null,attempts:1,failureKind:'internal'}});

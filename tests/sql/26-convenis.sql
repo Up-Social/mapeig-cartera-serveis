@@ -1,6 +1,10 @@
 do $$
-declare sid uuid:=gen_random_uuid();run uuid;job uuid;v text;code text;doc uuid;uid uuid;event uuid:=gen_random_uuid();event2 uuid:=gen_random_uuid();payload jsonb;unit jsonb;bundle jsonb;sha text:=repeat('a',64);path text;hash text;revision text;prior_review uuid;op uuid:=gen_random_uuid();evidence text:='La Fundació de prova rep mil euros per prestar un servei social a persones grans al municipi de Vic durant 2025.';
+declare sid uuid:=gen_random_uuid();run uuid;job uuid;v text;code text;doc uuid;doc2 uuid:=gen_random_uuid();uid uuid;event uuid:=gen_random_uuid();event2 uuid:=gen_random_uuid();payload jsonb;unit jsonb;bundle jsonb;sha text:=repeat('a',64);path text;hash text;revision text;prior_review uuid;op uuid:=gen_random_uuid();evidence text:='La Fundació de prova amb NIF G12345678 rep mil euros per prestar un servei social a persones grans al municipi de Vic durant 2025.';
 begin
+ if conveni_identity_quote_matches('Fundació','G12345678','FundacióX NIF G12345678') then raise exception 'TEST: name boundary';end if;
+ if conveni_identity_quote_matches('Fundació','G12345678','Fundació NIF G12345678À') then raise exception 'TEST: unicode NIF boundary';end if;
+ if conveni_identity_quote_matches('Fundació','G12345678','Fundació NIF AG12345678') then raise exception 'TEST: NIF prefix';end if;
+ if not conveni_identity_quote_matches('Fundació','G12345678','Fundació NIF G-12345678') then raise exception 'TEST: valid NIF separators';end if;
  if conveni_scope_reason('Conveni de col·laboració interadministrativa entre A i B','{}')<>'interadministrative_agreement' then raise exception 'TEST: interadministrative title not screened';end if;
  if conveni_scope_reason('Conveni entre A i B en desenvolupament del conveni interadministratiu anterior','{}') is not null then raise exception 'TEST: incidental title screened';end if;
  if conveni_public_amount('{"Total aportacions previstes Generalitat":"1.234,56 €","Total aportacions previstes ens locals":"0"}')<>1234.56 then raise exception 'TEST: locale amount mismatch';end if;
@@ -43,6 +47,44 @@ begin
  begin
   perform review_conveni_unit(sid,job,uid,gen_random_uuid(),null,'outside',null,'No s’ha confirmat la naturalesa social');raise exception 'TEST: outside without semantic confirmation';
  exception when raise_exception then if sqlerrm not like 'Cal confirmar la naturalesa social%' then raise;end if;end;
+ update conveni_unit_proposals set data=jsonb_set(data,'{evidence,0,quote}',to_jsonb('La Fundació de prova'::text)) where job_id=job and unit_id=uid;
+ begin
+  perform review_conveni_unit(sid,job,uid,gen_random_uuid(),null,'select',code,'Identitat sense NIF documentat',true);
+  raise exception 'TEST: fabricated identity accepted';
+ exception when raise_exception then if sqlerrm like 'TEST:%' then raise;end if;end;
+ update conveni_unit_proposals set data=unit where job_id=job and unit_id=uid;
+ -- Identity boundaries reject a larger NIF and a partial recipient name.
+ update source_documents set extracted_text='## Pàgina 1'||chr(10)||replace(evidence,'G12345678','G123456789') where id=doc;
+ update conveni_unit_proposals set data=jsonb_set(data,'{evidence,0,quote}',to_jsonb(replace(evidence,'G12345678','G123456789'))) where job_id=job and unit_id=uid;
+ begin perform review_conveni_unit(sid,job,uid,gen_random_uuid(),null,'select',code,'NIF amb sufix addicional',true);raise exception 'TEST: longer NIF accepted';
+ exception when raise_exception then if sqlerrm not like 'Cal una cita que contingui nom i NIF%' then raise;end if;end;
+ update source_documents set extracted_text='## Pàgina 1'||chr(10)||evidence where id=doc;
+ update conveni_unit_proposals set data=jsonb_set(unit,'{recipient}',to_jsonb('Fund'::text)) where job_id=job and unit_id=uid;
+ begin perform review_conveni_unit(sid,job,uid,gen_random_uuid(),null,'select',code,'Nom del receptor truncat',true);raise exception 'TEST: partial name accepted';
+ exception when raise_exception then if sqlerrm not like 'Cal una cita que contingui nom i NIF%' then raise;end if;end;
+ update conveni_unit_proposals set data=jsonb_set(unit,'{evidence,0,page}','2') where job_id=job and unit_id=uid;
+ begin perform review_conveni_unit(sid,job,uid,gen_random_uuid(),null,'select',code,'Pàgina incorrecta',true);raise exception 'TEST: incorrect page accepted';
+ exception when raise_exception then if sqlerrm not like 'Cal una cita que contingui nom i NIF%' then raise;end if;end;
+ -- A real source citation attached to the matching recipient actor may carry
+ -- identity separately from the service citation; rollback this successful review.
+ update conveni_analyses a set payload=jsonb_set(a.payload,'{actors}',jsonb_build_array(jsonb_build_object('name','Fundació de prova','nif','G12345678','nature','private','roles',jsonb_build_array('recipient'),'evidence',jsonb_build_array(jsonb_build_object('document_id',doc,'page',1,'quote',evidence))))) where job_id=job;
+ update conveni_unit_proposals set data=jsonb_set(unit,'{evidence,0,quote}',to_jsonb('rep mil euros per prestar un servei social a persones grans al municipi de Vic durant 2025.'::text)) where job_id=job and unit_id=uid;
+ begin perform review_conveni_unit(sid,job,uid,gen_random_uuid(),null,'select',code,'Identitat en evidència de receptor',true);raise exception 'ACTOR_PASS';
+ exception when raise_exception then if sqlerrm<>'ACTOR_PASS' then raise;end if;end;
+ update conveni_analyses a set payload=jsonb_set(a.payload,'{actors,0,roles}',jsonb_build_array('signatory')) where job_id=job;
+ begin perform review_conveni_unit(sid,job,uid,gen_random_uuid(),null,'select',code,'Firmant sense rol de receptor',true);raise exception 'TEST: signer identity accepted';
+ exception when raise_exception then if sqlerrm not like 'Cal una cita que contingui nom i NIF%' then raise;end if;end;
+ update conveni_analyses a set payload=jsonb_set(a.payload,'{actors,0,roles}',jsonb_build_array('recipient')) where job_id=job;
+ update conveni_analyses a set payload=jsonb_set(a.payload,'{actors,0,evidence,0,page}','2') where job_id=job;
+ begin perform review_conveni_unit(sid,job,uid,gen_random_uuid(),null,'select',code,'Identitat citada en pàgina incorrecta',true);raise exception 'TEST: actor wrong page accepted';
+ exception when raise_exception then if sqlerrm not like 'Cal una cita que contingui nom i NIF%' then raise;end if;end;
+ update conveni_analyses a set payload=jsonb_set(a.payload,'{actors}','[]') where job_id=job;
+ update conveni_unit_proposals set data=unit where job_id=job and unit_id=uid;
+ insert into source_documents(id,source_record_id,url,url_hash,document_type,status,mime_type,extracted_text,storage_path,storage_sha256,text_length,extraction_partial)
+ values(doc2,sid,'https://example.invalid/'||doc2,doc2::text,'annex','fetched','application/pdf',evidence,'cases/'||sid||'/documents/'||doc2||'/'||sha||'.pdf',sha,1000,false);
+ begin perform review_conveni_unit(sid,job,uid,gen_random_uuid(),null,'select',code,'Annex nou sense analitzar',true);raise exception 'TEST: new annex accepted';
+ exception when raise_exception then if sqlerrm<>'Cobertura documental canviada' then raise;end if;end;
+ delete from source_documents where id=doc2;
  perform review_conveni_unit(sid,job,uid,event,null,'select',code,'Aprovació amb evidència revisada',true);
  perform review_conveni_unit(sid,job,uid,event,null,'select',code,'Aprovació amb evidència revisada',true);
  if (select count(*) from service_provisions where source_record_id=sid and superseded_at is null)<>1 then raise exception 'TEST: missing or duplicate provision';end if;

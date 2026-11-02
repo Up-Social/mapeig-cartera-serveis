@@ -27,3 +27,25 @@ test("detecta etiquetes enganxades o amb salts irregulars", () => {
     ],
   );
 });
+
+test("neteja salts escapats entre apartats sense canviar el contingut interior", () => {
+  const rationale = String.raw`Encaix: Una prestació social.\n\nDiferenciació: El literal A\nB és rellevant.\r\nLimitació: Falta informació.`;
+  assert.deepEqual(parseMatchingRationale(rationale), [
+    { label: "Encaix", text: "Una prestació social." },
+    { label: "Diferenciació", text: String.raw`El literal A\nB és rellevant.` },
+    { label: "Limitació", text: "Falta informació." },
+  ]);
+  assert.equal(rationale.includes(String.raw`\n\nDiferenciació`), true);
+});
+
+test("conserva literals fora del límit entre apartats i el fallback antic", () => {
+  assert.deepEqual(parseMatchingRationale(String.raw`Encaix: \nText primer.\nDiferenciació: Text segon.\n`), [
+    { label: "Encaix", text: String.raw`\nText primer.` },
+    { label: "Diferenciació", text: String.raw`Text segon.\n` },
+  ]);
+  assert.deepEqual(parseMatchingRationale(String.raw`Text antic amb \n literal`), []);
+  assert.deepEqual(parseMatchingRationale(String.raw`Encaix: Literal \\nDiferenciació: Altra secció.`), [
+    { label: "Encaix", text: String.raw`Literal \\n` },
+    { label: "Diferenciació", text: "Altra secció." },
+  ]);
+});

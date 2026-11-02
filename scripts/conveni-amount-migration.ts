@@ -5,6 +5,7 @@ import {readFile,writeFile,mkdir} from 'node:fs/promises';
 import {dirname,resolve} from 'node:path';
 import {readPages} from '../lib/read-pages';
 import {isUuid} from '../lib/uuid';
+import {runConveniAmountTransaction} from '../lib/convenis/amount-migration';
 type Entry={id:string;source_record_id:string;before_amount:number|null;after_amount:number|null;source_hash:string;has_human_review:boolean;has_active_provision:boolean;operation_id:string;eligible:boolean};
 type Manifest={version:1;database:string;created_at:string;entries:Entry[]};
 const option=(name:string)=>{const i=process.argv.indexOf(name);return i<0?undefined:process.argv[i+1];};
@@ -35,8 +36,7 @@ async function main(){
    if(!operation.data){console.log(`Not applied; nothing to revert: ${e.source_record_id}`);continue;}
    if(operation.data.source_record_id!==e.id||operation.data.source_hash!==e.source_hash)throw Error('Reversal operation does not match the manifest');
   }
-  const result=revert?await db.rpc('revert_conveni_amount',{p_operation:e.operation_id}):await db.rpc('migrate_conveni_amount',{p_record:e.id,p_operation:e.operation_id,p_hash:e.source_hash,p_before:e.before_amount});
-  if(result.error)throw Error(`${e.source_record_id}: ${result.error.message}. Completed operations remain journaled; rerun the same manifest to resume.`);
+  await runConveniAmountTransaction(db,e,Boolean(revert));
   console.log(`${revert?'Reverted':'Applied'} ${e.source_record_id} · ${e.operation_id}`);
  }
 }

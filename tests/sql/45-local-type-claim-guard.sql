@@ -1,0 +1,68 @@
+do $$
+declare c uuid:=gen_random_uuid(); v uuid:=gen_random_uuid(); v2 uuid:=gen_random_uuid(); u uuid:=gen_random_uuid(); r uuid; r2 uuid; r3 uuid; j uuid; j2 uuid; j4 uuid; jc uuid; task uuid; prep uuid; enrich uuid; legacy uuid; direct_task uuid; safe_task uuid; got uuid; n integer;
+begin
+ update app_settings set enabled=true where key='processing_enabled';
+ insert into source_records(id,source_dataset,source_record_id,mechanism,title) values
+ (c,'concerts',c::text,'Concert','concert'),(v,'convenis',v::text,'Conveni','conveni'),(v2,'convenis',v2::text,'Conveni','second conveni'),(u,'convenis',u::text,'Conveni','unknown');
+ update source_records set financing_type=null where id=u;
+ insert into pipeline_runs default values returning id into r;
+ insert into pipeline_jobs(run_id,source_record_id,status) values(r,v,'ready') returning id into j;
+ insert into pipeline_jobs(run_id,source_record_id,status) values(r,c,'ready') returning id into jc;
+ insert into worker_tasks(run_id,task_type,executor,created_at) values(r,'match_run','local','1900-01-01') returning id into task;
+ begin perform claim_local_operation_task(task); raise exception 'TEST: mixed run claimed';
+ exception when raise_exception then if sqlerrm not like 'LOCAL_TYPE_BLOCKED:%' then raise;end if;end;
+ if (select status from worker_tasks where id=task)<>'queued' or exists(select 1 from pipeline_jobs where run_id=r and status<>'ready') then raise exception 'Guard changed batch';end if;
+ begin perform claim_worker_task('synthetic'); raise exception 'TEST: worker claimed mixed run';
+ exception when raise_exception then if sqlerrm not like 'LOCAL_TYPE_BLOCKED:%' then raise;end if;end;
+ if (select attempts from worker_tasks where id=task)<>0 then raise exception 'Guard changed attempts';end if;
+ -- A targeted job must still guard the whole run because its state is shared.
+ update worker_tasks set pipeline_job_id=j where id=task;
+ begin perform claim_local_operation_task(task);raise exception 'TEST: partial mixed run claimed';
+ exception when raise_exception then if sqlerrm not like 'LOCAL_TYPE_BLOCKED:%' then raise;end if;end;
+ insert into worker_tasks(run_id,task_type,executor,pipeline_job_id) values(r,'process_run','local',jc) returning id into direct_task;
+ begin perform claim_local_operation_task(direct_task);raise exception 'TEST: concert claimed';
+ exception when raise_exception then if sqlerrm not like 'LOCAL_TYPE_BLOCKED:%' then raise;end if;end;
+ insert into worker_tasks(task_type,source_record_id,pipeline_job_id,executor) values('enrich_record',v,j,'local') returning id into enrich;
+ begin perform claim_local_operation_task(enrich);raise exception 'TEST: mixed enrichment claimed';
+ exception when raise_exception then if sqlerrm not like 'LOCAL_TYPE_BLOCKED:%' then raise;end if;end;
+ update worker_tasks set pipeline_job_id=null where id=enrich;
+ begin perform claim_local_operation_task(enrich);raise exception 'TEST: implicit mixed enrichment claimed';
+ exception when raise_exception then if sqlerrm not like 'LOCAL_TYPE_BLOCKED:%' then raise;end if;end;
+ update worker_tasks set pipeline_job_id=jc where id=enrich;
+ begin perform claim_local_operation_task(enrich);raise exception 'TEST: foreign job enrichment claimed';
+ exception when raise_exception then if sqlerrm not like 'LOCAL_TYPE_BLOCKED:%' then raise;end if;end;
+ insert into worker_tasks(task_type,source_record_id,executor) values('enrich_record',u,'local') returning id into prep;
+ begin perform claim_local_operation_task(prep);raise exception 'TEST: unknown claimed';
+ exception when raise_exception then if sqlerrm not like 'LOCAL_TYPE_BLOCKED:%' then raise;end if;end;
+ -- Independent document preparation remains available with Concerts.
+ insert into worker_tasks(run_id,task_type,executor) values(r,'prepare_run','local') returning id into prep;
+ select count(*) into n from claim_local_operation_task(prep);
+ if n<>1 then raise exception 'Preparation incorrectly blocked';end if;
+ insert into pipeline_runs default values returning id into r2;
+ insert into pipeline_jobs(run_id,source_record_id,status) values(r2,v,'ready') returning id into j2;
+ update pipeline_runs set status='paused' where id=r2;
+ update worker_tasks set pipeline_job_id=j2 where id=enrich;
+ begin perform claim_local_operation_task(enrich);raise exception 'TEST: paused enrichment claimed';
+ exception when raise_exception then if sqlerrm not like 'LOCAL_TYPE_BLOCKED:%' then raise;end if;end;
+ if (select status from pipeline_runs where id=r2)<>'paused' or (select status from worker_tasks where id=enrich)<>'queued' then raise exception 'Pause was changed';end if;
+ insert into worker_tasks(run_id,task_type,executor) values(r2,'prepare_run','local') returning id into prep;
+ select count(*) into n from claim_local_operation_task(prep);
+ if n<>1 then raise exception 'Independent preparation incorrectly blocked by pause guard';end if;
+ update pipeline_runs set status='ready' where id=r2;
+ update pipeline_jobs set created_at='2100-01-01' where id=j2;
+ update worker_tasks set pipeline_job_id=null where id=enrich;
+ select count(*) into n from claim_local_operation_task(enrich);
+ if n<>1 or (select pipeline_job_id from worker_tasks where id=enrich) is distinct from j2 then raise exception 'Legacy enrichment did not bind its selected job';end if;
+ insert into pipeline_runs default values returning id into r3;
+ insert into pipeline_jobs(run_id,source_record_id,status,created_at) values(r3,v,'ready','2200-01-01');
+ if (select pipeline_job_id from worker_tasks where id=enrich) is distinct from j2 then raise exception 'Later job changed the bound target';end if;
+ insert into worker_tasks(run_id,task_type,executor,created_at) values(r2,'match_run','local','1901-01-01') returning id into safe_task;
+ insert into pipeline_jobs(run_id,source_record_id,status) values(r2,v2,'ready') returning id into j4;
+ insert into worker_tasks(task_type,source_record_id,executor,created_at) values('enrich_record',v2,'local','1899-01-01') returning id into legacy;
+ select id into got from claim_worker_task('synthetic');
+ if got is distinct from legacy or (select pipeline_job_id from worker_tasks where id=legacy) is distinct from j4 then raise exception 'Worker did not bind legacy enrichment job';end if;
+ update worker_tasks set created_at='1900-01-01' where id=direct_task;
+ select id into got from claim_worker_task('synthetic');
+ if got is distinct from safe_task or (select status from worker_tasks where id=direct_task)<>'queued' then raise exception 'Blocked task prevented another batch';end if;
+ if has_function_privilege('anon','public.claim_local_operation_task(uuid)','execute') then raise exception 'Public local claim';end if;
+end $$;

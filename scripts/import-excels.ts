@@ -6,6 +6,7 @@ import { createClient } from "@supabase/supabase-js";
 import ExcelJS from "exceljs";
 import WebSocket from "ws";
 import {archiveImportWorkbook,archiveImportedRow} from '../lib/source-storage';
+import {upsertImportedSourceBatch} from '../lib/pipeline/import-source-upsert';
 
 type Scalar = string | number | boolean | null;
 type Payload = Record<string, Scalar>;
@@ -143,8 +144,7 @@ void main().catch((error: unknown) => {
 });
 
 async function writeBatch(rows: ImportRow[]) {
-  const { error } = await supabase.from("source_records").upsert(rows, { onConflict: "source_dataset,source_record_id" });
-  if (error) throw error;
+  await upsertImportedSourceBatch(()=>supabase.from("source_records").upsert(rows, { onConflict: "source_dataset,source_record_id" }));
   const ids=await supabase.from('source_records').select('id,source_record_id').eq('source_dataset',rows[0].source_dataset).in('source_record_id',rows.map(row=>row.source_record_id));
   if(ids.error)throw ids.error;
   const byExternalId=new Map((ids.data??[]).map(row=>[row.source_record_id,row.id]));

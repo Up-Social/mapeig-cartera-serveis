@@ -3,11 +3,16 @@ import {ConveniStudy} from '@/components/conveni-study';
 import {HumanResolution} from '@/components/human-resolution';
 import {currentReservation} from '@/lib/human-resolution';
 import {SourceComparison} from '@/components/source-comparison';
+import {extractedFieldDisplay} from '@/lib/source-comparison';
 import {EvidenceDiagnostics} from "@/components/evidence-diagnostics";
 import {DocumentViewer} from "@/components/document-viewer";
 import {ConcertUnits} from "@/components/concert-units";
+import {ConcertReprocess} from "@/components/concert-reprocess";
+import {observedConcertReprocess,concertReprocessRequest,canRetryConcertReprocess,canClearRejectedConcertRequest,type ConcertReprocessPending} from '@/lib/concerts/reprocess-recovery';
+import {useConcertReprocessPending} from '@/lib/concerts/reprocess-pending-client';
+import {isUuid} from '@/lib/uuid';
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { SourceRecord } from "@/lib/workbench-types";
 import { submitRecordReview } from "@/lib/review-client";
@@ -15,13 +20,14 @@ import { reviewOptions, reviewValidation, MANUAL_DISCARD_REASONS, type ReviewOut
 import { sourcePayloadFieldLabel, sourcePayloadValue } from "@/lib/source-payload-display";
 import { sourceDocumentStatusLabel, sourceDocumentTypeLabel } from "@/lib/ui-labels";
 import { AnalysisResult } from "@/components/analysis-result";
+import { UnverifiedCandidateObservations } from "@/components/unverified-candidate-observations";
 import { CaseAtAGlance } from "@/components/case-at-a-glance";
 import { ReviewHistory } from "@/components/review-history";
 import { DocumentProvenance } from "@/components/document-provenance";
 import { classifyIssue, ISSUE_CATEGORY_LABELS, type IssueRecord } from "@/lib/issue-types";
 import { canReviewRecord, recordReviewLabel } from "@/lib/record-review-state";
 import { RecordStages, inferOperation } from "@/app/processing-workbench-v2";
-import type { RecordOperation } from "@/lib/record-operation";
+import {recordProcessStatusLabel,type RecordOperation} from "@/lib/record-operation";
 import {recordDataStage} from "@/lib/record-stage-copy";
 
 
@@ -49,10 +55,13 @@ export function CaseStudy({ initialRecord, services, concertServices, origin, ne
   const [error, setError] = useState("");
   const [reprocessMessage, setReprocessMessage] = useState("");
   const [reprocessError, setReprocessError] = useState("");
+  const reprocessInFlight = useRef(false);
+  const [concertRecoveryChecking,setConcertRecoveryChecking]=useState(false);
   const [showDocumentText,setShowDocumentText]=useState(false);
   const [showOriginalFields,setShowOriginalFields]=useState(false);
   const historical = !!record.isHistorical;
   const isConcert = record.financingType === "concert";
+  const {pending:concertPending,ready:concertRecoveryReady,error:concertStorageError,save:saveConcertPending}=useConcertReprocessPending(record.id,isConcert);
   const dataStage = recordDataStage(record.financingType);
   const invalidated = record.analysis?.reliability_status === "invalidated";
   const correctedCode=record.corrections?.find(c=>c.valid&&!c.unit_id&&c.field==='service_code')?.value;
@@ -62,6 +71,36 @@ export function CaseStudy({ initialRecord, services, concertServices, origin, ne
   const changed = !!outcome || !!notes || !!reasons.length || !!search;
   const rectification = !!record.reviewDecision || selection.startsWith("service:") || (!!correctedCode&&!selection);
   const matches = useMemo(() => search.trim().length < 2 ? [] : services.filter(s => `${s.code} ${s.name}`.toLocaleLowerCase("ca").includes(search.toLocaleLowerCase("ca"))).slice(0, 12), [search, services]);
+
+  const updateRecord=useCallback((latest:SourceRecord)=>{
+    setRecord(latest);
+    if(!historical&&concertPending&&observedConcertReprocess(concertPending,latest)){
+      try{saveConcertPending(null);setOperation(inferOperation(latest));}
+      catch{setReprocessError('S’ha observat la nova execució, però no s’ha pogut actualitzar l’estat de la petició al navegador. Torna a comprovar-lo.');return false;}
+    }
+    return true;
+  },[historical,concertPending,saveConcertPending]);
+
+  async function checkConcertReprocess(){
+    if(!concertPending||concertRecoveryChecking||reprocessInFlight.current)return;
+    setConcertRecoveryChecking(true);
+    try{
+      const response=await fetch(`/api/records/${record.id}`,{cache:'no-store',signal:AbortSignal.timeout(20_000)});
+      const body=await response.json() as {record?:SourceRecord};
+      if(!response.ok||!body.record||body.record.id!==record.id||!Array.isArray(body.record.sourceDocuments)||!Array.isArray(body.record.matchingCandidates))throw Error('STATUS_UNAVAILABLE');
+      const latest=body.record;
+      if(!updateRecord(latest))return;
+      if(observedConcertReprocess(concertPending,latest)){
+        setOperation(inferOperation(latest));
+        setReprocessError('');
+        setReprocessMessage('El cas ja té una execució posterior a la petició. Consulta’n el progrés i el resultat.');
+      }else{
+        setReprocessError('Encara no s’ha pogut confirmar una nova execució. Pots comprovar-ne l’estat o reenviar la mateixa petició amb la referència original, sense iniciar una segona anàlisi si ja s’ha registrat.');
+      }
+    }catch{
+      setReprocessError('No s’ha pogut consultar l’estat del concert. La petició anterior continua pendent de confirmar i no s’ha repetit.');
+    }finally{setConcertRecoveryChecking(false);}
+  }
 
   useEffect(() => {
     if (!changed || busy) return;
@@ -105,8 +144,24 @@ export function CaseStudy({ initialRecord, services, concertServices, origin, ne
     finally { setBusy(false); }
   }
 
-  async function reprocess(operationToRun: RecordOperation,ocrRecovery?:import('@/lib/ocr-recovery').OcrRecovery) {
-    if (busy || operation || cloudBlocked) return;
+  async function reprocess(operationToRun: RecordOperation,ocrRecovery?:import('@/lib/ocr-recovery').OcrRecovery,concertRefresh=false,retryPending?:ConcertReprocessPending) {
+    if(retryPending&&(!concertRefresh||retryPending!==concertPending||retryPending.recordId!==record.id||!canRetryConcertReprocess(retryPending)))return;
+    if (busy || operation || cloudBlocked || reprocessInFlight.current || concertRecoveryChecking || (isConcert && (historical||inferOperation(record)||(concertPending&&!retryPending)||!concertRecoveryReady))) return;
+    if(concertRefresh&&(!isConcert||operationToRun!=='process'))return;
+    if (isConcert && operationToRun === 'process') {
+      if (changed) {
+        setReprocessError('Hi ha canvis de revisió sense desar. Desa’ls o descarta’ls abans de tornar a processar el concert.');
+        return;
+      }
+      if (!window.confirm(retryPending?'Vols reenviar la mateixa petició pendent? Si ja es va registrar, no s’iniciarà una segona anàlisi. Si encara no es va registrar, s’iniciarà el reprocessament sol·licitat, que pot tenir cost d’IA i OCR.':'Vols tornar a cercar i processar aquest concert? Es repetirà la cerca, la descàrrega i l’extracció de les fonts, l’anàlisi de la resolució i la correspondència. Pot tenir cost d’IA i OCR. El resultat anterior queda a l’historial i la nova proposta requerirà revisió humana.')) return;
+    }
+    let pending:ConcertReprocessPending|null=null;
+    if(concertRefresh){
+      pending=retryPending??{recordId:record.id,expectedJobId:record.currentJobId??null};
+      try{saveConcertPending(pending);}
+      catch{setReprocessError('No s’ha pogut conservar l’estat de la petició al navegador. No s’ha iniciat el reprocesament.');return;}
+    }
+    reprocessInFlight.current = true;
     setBusy(true);
     setReprocessMessage("");
     setReprocessError("");
@@ -114,11 +169,19 @@ export function CaseStudy({ initialRecord, services, concertServices, origin, ne
       const response = await fetch(`/api/records/${record.id}/operation`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ operation: operationToRun, ...(ocrRecovery?{ocrRecovery}:{}), ...(record.currentJobId ? { expectedJobId: record.currentJobId } : {}) }),
+        body: JSON.stringify(pending?concertReprocessRequest(pending):{ operation: operationToRun, ...(ocrRecovery?{ocrRecovery}:{}), ...(record.currentJobId?{expectedJobId:record.currentJobId}:{}) }),
         signal: AbortSignal.timeout(20_000),
       });
-      const payload = await response.json() as { error?: string };
-      if (!response.ok) throw new Error(payload.error ?? "No s'ha pogut iniciar el reintent.");
+      const payload = await response.json() as { ok?:boolean;error?: string;outcome?:string;code?:string;result?:{jobId?:string} };
+      if(pending&&typeof payload.result?.jobId==='string'&&isUuid(payload.result.jobId)){
+        pending={...pending,jobId:payload.result.jobId};
+        saveConcertPending(pending);
+      }
+      if(pending&&(!response.ok||payload.ok===false)&&canClearRejectedConcertRequest(!!retryPending,payload.outcome)){
+        saveConcertPending(null);
+        pending=null;
+      }
+      if (!response.ok||payload.ok===false) throw new Error(payload.error ?? "No s'ha pogut iniciar el reintent.");
       setReprocessMessage(operationToRun === "process" || operationToRun === "ocr"
         ? isConcert ? "Reprocessament iniciat: fonts, anàlisi de la resolució i correspondència. El progrés s'actualitza a continuació." : "Reprocessament iniciat: fonts, contrast i correspondència. El progrés s'actualitza a continuació."
         : "Fase reiniciada. El progrés s'actualitza a continuació.");
@@ -126,15 +189,18 @@ export function CaseStudy({ initialRecord, services, concertServices, origin, ne
       window.dispatchEvent(new Event("navigation-counts:refresh"));
       router.refresh();
     } catch (cause) {
-      setReprocessError(cause instanceof Error ? cause.message : "No s'ha pogut iniciar el reintent.");
+      setReprocessError(pending?`${cause instanceof Error?cause.message:'No s’ha rebut confirmació.'} La petició pot haver-se registrat. Comprova’n l’estat abans de repetir-la.`:cause instanceof Error ? cause.message : "No s'ha pogut iniciar el reintent.");
     } finally {
+      reprocessInFlight.current = false;
       setBusy(false);
     }
+    if(retryPending)await checkConcertReprocess();
   }
 
   const originalFields = Object.entries(record.sourcePayload).filter(([key, value]) => !key.startsWith("Fórmula ·") && value !== null && value !== "" && !(typeof value === "string" && value.trim().startsWith("=")));
   return <div className="min-w-0 space-y-5">
     <CaseAtAGlance record={record}/>
+    {isConcert&&<ConcertReprocess recordId={record.id} historical={historical} busy={busy} active={!!operation||!!inferOperation(record)} cloudBlocked={cloudBlocked} recoveryPending={!!concertPending} recoveryReady={concertRecoveryReady} recoveryChecking={concertRecoveryChecking} recoveryRetryable={canRetryConcertReprocess(concertPending)} message={reprocessMessage} error={reprocessError||concertStorageError} onReprocess={()=>void reprocess('process',undefined,true)} onCheckStatus={()=>void checkConcertReprocess()} onRetryPending={()=>{if(concertPending)void reprocess('process',undefined,true,concertPending);}}/>}
     {record.financingType==='conveni'&&<ConveniStudy record={record} services={services}/>}
     {record.financingType!=='conveni'&&<HumanResolution record={record} services={isConcert?concertServices:services} onSaved={setRecord}/>}
     {record.financingType!=='conveni'&&<section id="decisio" className="surface scroll-mt-32 p-5 sm:p-6"><div className="w-full min-w-0"><div className="text-center"><p className="page-eyebrow">Validació humana</p><h2 className="section-title mt-1">Decisió</h2></div><p className={`mt-3 w-full min-w-0 rounded-md border p-3 text-center text-sm ${record.reviewDecision === "approved" || record.reviewDecision === "corrected" ? "status-success" : record.reviewDecision === "insufficient_evidence" || !record.reviewDecision ? "status-warning" : "status-neutral"}`}>{currentReservation(record)?'Acceptat amb reserves · fora dels totals definitius':record.reviewDecision ? `Decisió registrada: ${decisionLabels[record.reviewDecision]}` : recordReviewLabel(record)}</p>
@@ -147,12 +213,12 @@ export function CaseStudy({ initialRecord, services, concertServices, origin, ne
       {message && <p role="status" className="status-success mt-3 w-full min-w-0 rounded-md border p-3 text-sm">{message}</p>}{error && <p role="alert" className="status-error mt-3 w-full min-w-0 rounded-md border p-3 text-sm">{error}</p>}
     </div></section>}
     <div className="min-w-0 space-y-5">
-      {!historical && <section className="surface p-4"><h3 className="text-sm font-semibold">Procés · {record.reviewDecision ? decisionLabels[record.reviewDecision] : record.analysis ? "Anàlisi completada · pendent de validació humana" : record.operationProgress?.state === "incident" ? recordReviewLabel(record) : record.operationProgress?.detail ?? record.status}</h3><RecordStages record={record} operation={operation} onRecordUpdate={setRecord} onOperationStart={startOperation} onOperationFinish={finishOperation} cloudBlocked={cloudBlocked} concertExportState={concertExportState} /></section>}
-      {issue && <section role={issue.phase === "review" ? "status" : "alert"} className={`rounded-xl border p-5 ${issue.phase === "review" ? "status-warning" : "status-error"}`}><h2 className="text-lg font-semibold">Incidència · {ISSUE_CATEGORY_LABELS[issue.category]}</h2>{record.analysis?.classification!=="insufficient_evidence"&&<p className="mt-2 w-full text-sm leading-6">{issue.message}</p>}<div className="mt-3"><EvidenceDiagnostics record={record} onRetry={(op,recovery)=>void reprocess(op,recovery)} disabled={busy || !!operation || cloudBlocked}/></div>{issue.retryOperation && <div className="mt-4 space-y-3"><p className="w-full text-sm leading-6">{isConcert ? "Torna a cercar i preparar els documents, analitza la resolució i proposa la correspondència. Conserva l’anàlisi anterior a l’historial; no aprova cap resultat. L’anàlisi i la correspondència poden tenir cost d’IA." : "Torna a cercar i preparar els documents, contrasta les dades i proposa la correspondència. Conserva l’anàlisi anterior a l’historial; no aprova cap resultat. El contrast i la correspondència poden tenir cost d’IA."}</p><div className="flex flex-wrap gap-2"><button type="button" disabled={busy || !!operation || cloudBlocked} className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-50" onClick={() => void reprocess(issue.retryOperation === "ocr" ? "ocr" : "process")}>{busy ? "Iniciant…" : issue.retryOperation === "ocr" ? "Tornar a processar amb OCR" : "Tornar a processar tot el cas"}</button>{(["prepare", "enrich", "match"] as const).includes(issue.retryOperation as "prepare" | "enrich" | "match") && <button type="button" disabled={busy || !!operation || cloudBlocked} className="rounded-md border border-current px-4 py-2 text-sm disabled:opacity-50" onClick={() => void reprocess(issue.retryOperation!)}>{issue.retryOperation === "prepare" ? "Reintentar només la preparació" : issue.retryOperation === "enrich" ? dataStage.retry : "Reintentar només la correspondència"}</button>}</div><p className="text-xs">El processament complet repeteix totes les fases; no canvia automàticament el model ni la qualitat de l’OCR.</p>{cloudBlocked && <p className="text-xs">El processament no està disponible en aquest entorn de consulta.</p>}{reprocessMessage && <p role="status" className="text-sm">{reprocessMessage}</p>}{reprocessError && <p role="alert" className="text-sm">{reprocessError}</p>}</div>}</section>}
-      {!historical && record.analysis && !record.reviewDecision && !issue?.retryOperation && <section className="surface p-4"><h3 className="text-sm font-semibold">Revisar l&apos;anàlisi automàtica</h3><p className="mt-2 w-full text-sm leading-6">Si el resultat no concorda amb l&apos;acte publicat, torna a preparar les fonts i a analitzar el cas. L&apos;anàlisi anterior queda a l&apos;historial; {isConcert ? "l’anàlisi de la resolució" : "el contrast"} pot tenir cost d&apos;IA i la nova proposta també requerirà validació humana.</p><button type="button" disabled={busy || !!operation || cloudBlocked} className="mt-3 rounded-md border border-current px-4 py-2 text-sm font-semibold disabled:opacity-50" onClick={() => void reprocess("process")}>{busy ? "Iniciant…" : "Tornar a processar tot el cas"}</button>{cloudBlocked && <p className="mt-2 text-xs">El processament no està disponible en aquest entorn de consulta.</p>}{reprocessMessage && <p role="status" className="mt-2 text-sm">{reprocessMessage}</p>}{reprocessError && <p role="alert" className="mt-2 text-sm">{reprocessError}</p>}</section>}
-      <section id="resultat" className="surface scroll-mt-32 p-5"><p className="page-eyebrow">Proposta automàtica</p><h2 className="section-title mt-1">Resultat de l’anàlisi</h2><p className="mt-1 text-sm text-muted-foreground">Una proposta requereix validació humana, encara que la confiança estimada sigui alta.</p><div className="mt-4"><AnalysisResult reviewActor={record.reviewActor} analysis={record.analysis} candidates={record.matchingCandidates} returnTo={`/records/${record.id}?${new URLSearchParams({from:origin,...(record.isHistorical&&record.currentJobId?{job:record.currentJobId}:{})})}`} /></div></section>
+      {!historical && <section className="surface p-4"><h3 className="text-sm font-semibold">Procés · {record.reviewDecision ? decisionLabels[record.reviewDecision] : record.analysis ? "Anàlisi completada · pendent de validació humana" : record.operationProgress?.state === "incident" ? recordReviewLabel(record) : record.operationProgress?.detail ?? recordProcessStatusLabel(record)}</h3><RecordStages record={record} operation={operation} onRecordUpdate={updateRecord} onOperationStart={startOperation} onOperationFinish={finishOperation} cloudBlocked={cloudBlocked||(isConcert&&(!concertRecoveryReady||!!concertPending))} concertExportState={concertExportState} /></section>}
+      {issue && <section role={issue.phase === "review" ? "status" : "alert"} className={`rounded-xl border p-5 ${issue.phase === "review" ? "status-warning" : "status-error"}`}><h2 className="text-lg font-semibold">Incidència · {ISSUE_CATEGORY_LABELS[issue.category]}</h2>{record.analysis?.classification!=="insufficient_evidence"&&<p className="mt-2 w-full text-sm leading-6">{issue.message}</p>}<div className="mt-3"><EvidenceDiagnostics record={record} onRetry={(op,recovery)=>void reprocess(op,recovery)} disabled={busy || !!operation || cloudBlocked || (isConcert && (historical||!concertRecoveryReady||!!concertPending))}/></div>{!isConcert && issue.retryOperation && <div className="mt-4 space-y-3"><p className="w-full text-sm leading-6">{isConcert ? "Torna a cercar i preparar els documents, analitza la resolució i proposa la correspondència. Conserva l’anàlisi anterior a l’historial; no aprova cap resultat. L’anàlisi i la correspondència poden tenir cost d’IA." : "Torna a cercar i preparar els documents, contrasta les dades i proposa la correspondència. Conserva l’anàlisi anterior a l’historial; no aprova cap resultat. El contrast i la correspondència poden tenir cost d’IA."}</p><div className="flex flex-wrap gap-2"><button type="button" disabled={busy || !!operation || cloudBlocked} className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-50" onClick={() => void reprocess(issue.retryOperation === "ocr" ? "ocr" : "process")}>{busy ? "Iniciant…" : issue.retryOperation === "ocr" ? "Tornar a processar amb OCR" : "Tornar a processar tot el cas"}</button>{(["prepare", "enrich", "match"] as const).includes(issue.retryOperation as "prepare" | "enrich" | "match") && <button type="button" disabled={busy || !!operation || cloudBlocked} className="rounded-md border border-current px-4 py-2 text-sm disabled:opacity-50" onClick={() => void reprocess(issue.retryOperation!)}>{issue.retryOperation === "prepare" ? "Reintentar només la preparació" : issue.retryOperation === "enrich" ? dataStage.retry : "Reintentar només la correspondència"}</button>}</div><p className="text-xs">El processament complet repeteix totes les fases; no canvia automàticament el model ni la qualitat de l’OCR.</p>{cloudBlocked && <p className="text-xs">El processament no està disponible en aquest entorn de consulta.</p>}{reprocessMessage && <p role="status" className="text-sm">{reprocessMessage}</p>}{reprocessError && <p role="alert" className="text-sm">{reprocessError}</p>}</div>}</section>}
+      {!isConcert && !historical && record.analysis && !record.reviewDecision && !issue?.retryOperation && <section className="surface p-4"><h3 className="text-sm font-semibold">Revisar l&apos;anàlisi automàtica</h3><p className="mt-2 w-full text-sm leading-6">Si el resultat no concorda amb l&apos;acte publicat, torna a preparar les fonts i a analitzar el cas. L&apos;anàlisi anterior queda a l&apos;historial; {isConcert ? "l’anàlisi de la resolució" : "el contrast"} pot tenir cost d&apos;IA i la nova proposta també requerirà validació humana.</p><button type="button" disabled={busy || !!operation || cloudBlocked} className="mt-3 rounded-md border border-current px-4 py-2 text-sm font-semibold disabled:opacity-50" onClick={() => void reprocess("process")}>{busy ? "Iniciant…" : "Tornar a processar tot el cas"}</button>{cloudBlocked && <p className="mt-2 text-xs">El processament no està disponible en aquest entorn de consulta.</p>}{reprocessMessage && <p role="status" className="mt-2 text-sm">{reprocessMessage}</p>}{reprocessError && <p role="alert" className="mt-2 text-sm">{reprocessError}</p>}</section>}
+      <section id="resultat" className="surface scroll-mt-32 p-5"><p className="page-eyebrow">Proposta automàtica</p><h2 className="section-title mt-1">Resultat de l’anàlisi</h2><p className="mt-1 text-sm text-muted-foreground">Una proposta requereix validació humana, encara que la confiança estimada sigui alta.</p><div className="mt-4 space-y-4"><AnalysisResult reviewActor={record.reviewActor} analysis={record.analysis} candidates={record.matchingCandidates} returnTo={`/records/${record.id}?${new URLSearchParams({from:origin,...(record.isHistorical&&record.currentJobId?{job:record.currentJobId}:{})})}`} /><UnverifiedCandidateObservations observations={record.unverifiedCandidateObservations}/></div></section>
       <section id="evidencies" className="surface scroll-mt-32 p-5"><h2 className="section-title">Evidències i fonts oficials</h2><p className="mt-1 text-sm text-muted-foreground">Documents i fragments utilitzats per contrastar el cas.</p>{record.sourceDocuments.length ? <><button type="button" aria-expanded={showDocumentText} onClick={()=>setShowDocumentText(value=>!value)} className="mt-3 rounded-md border px-3 py-2 text-sm font-medium">{showDocumentText?'Amaga el text complet':'Mostra el text complet dels documents'}</button><div className="mt-4 space-y-3">{record.sourceDocuments.map(doc => <article key={doc.id} className="rounded-lg border p-4"><div className="flex flex-wrap justify-between gap-2"><strong>{sourceDocumentTypeLabel(doc.documentType)}</strong><span className="text-sm">{sourceDocumentStatusLabel(doc.status)}</span></div><a className="mt-2 block break-all text-sm underline" href={`/api/documents/${doc.id}/open`} target="_blank" rel="noreferrer">{doc.archived?'Obrir còpia arxivada':doc.status==='fetched'?'Comprovar i arxivar l’original':'Obrir document oficial'}</a>{doc.status==='fetched'&&doc.archived===false&&<p role="alert" className="status-error mt-3 p-3 text-sm">El text es va extreure anteriorment, però la còpia original encara no és a Storage. Cal verificar que la font actual coincideix amb l’original abans de donar-la per arxivada.</p>}<DocumentProvenance document={doc}/>{doc.mimeType?.includes("pdf")&&doc.archived&&<DocumentViewer url={`/api/documents/${doc.id}/open`}/>}{doc.qualityFlags.some(flag=>["corrupt_text","incomplete_extraction"].includes(flag))&&<p role="alert" className="status-error mt-3 p-3 text-sm">Text no fiable. Cal recuperar el document abans de tornar a analitzar aquest cas.</p>}<p className="mt-2 text-xs">{doc.textLength??0} caràcters · {doc.chunkCount} fragments · qualitat tècnica {doc.qualityScore==null?"pendent de comprovar":`${Math.round(doc.qualityScore*100)}%`}</p>{showDocumentText&&(doc.extractedText||doc.textPreview) && <p className="mt-3 whitespace-pre-wrap break-words text-sm leading-6">{doc.extractedText||doc.textPreview}</p>}</article>)}</div></> : <p className="mt-4 text-sm">Sense document oficial vinculat.</p>}</section>
-      <section id="dades" className="surface scroll-mt-32 p-5"><p className="page-eyebrow">Extracció · pendent de revisió</p><h2 className="section-title mt-1">Dades extretes de fonts oficials</h2>{record.externalEnrichment ? <><p className="mt-3 w-full text-sm leading-6">{record.externalEnrichment.summary}</p><dl className="card-fields mt-4 text-sm">{([["Entitat", record.externalEnrichment.providerName], ["NIF", record.externalEnrichment.providerNif], ["Mecanisme", record.externalEnrichment.mechanism], ["Població", record.externalEnrichment.targetPopulation], [record.financingType === "concert" ? "Import global del document" : "Import", record.externalEnrichment.amount]] as const).filter(([, value]) => value != null).map(([label, value]) => <div key={label}><dt className="font-semibold text-muted-foreground">{label}</dt><dd>{typeof value === "number" ? new Intl.NumberFormat("ca-ES", { style: "currency", currency: "EUR" }).format(value) : String(value)}</dd>{record.financingType === "concert" && label === "Import global del document" && <p className="mt-1 text-xs text-muted-foreground">Aquest valor no està assignat a cada entitat. Consulta el repartiment de l’annex.</p>}</div>)}</dl></> : <p className="mt-3 text-sm">No hi ha camps contrastats estructurats per a aquesta execució.</p>}
+      <section id="dades" className="surface scroll-mt-32 p-5"><p className="page-eyebrow">Extracció · pendent de revisió</p><h2 className="section-title mt-1">Dades extretes de fonts oficials</h2>{record.externalEnrichment ? <><p className="mt-3 w-full text-sm leading-6">{record.externalEnrichment.summary}</p><dl className="card-fields mt-4 text-sm">{([["Entitat", record.externalEnrichment.providerName], ["NIF", record.externalEnrichment.providerNif], ["Mecanisme", record.externalEnrichment.mechanism], ["Data indicada", record.externalEnrichment.awardDate?.replace(/^(\d{4})-(\d{2})-(\d{2})$/, "$3/$2/$1")], ["Òrgan indicat", record.externalEnrichment.contractingBody], ["Població", record.externalEnrichment.targetPopulation], [record.financingType === "concert" ? "Import global del document" : "Import", record.externalEnrichment.amount]] as const).map(([label, value]) => <div key={label}><dt className="font-semibold text-muted-foreground">{label}</dt><dd>{extractedFieldDisplay(record.financingType,label,value)}</dd>{record.financingType === "concert" && label === "Import global del document" && <p className="mt-1 text-xs text-muted-foreground">Aquest valor no està assignat a cada entitat. Consulta el repartiment de l’annex.</p>}</div>)}</dl></> : <p className="mt-3 text-sm">No hi ha camps contrastats estructurats per a aquesta execució.</p>}
       {record.financingType!=='conveni'&&<SourceComparison record={record}/>}<section className="mt-6 border-t pt-4"><h3 className="font-semibold">Dades originals ({originalFields.length} camps)</h3>{record.sourceFile&&<p className="mt-2 text-sm">{record.sourceFile} · {record.sourceSheet} · fila {record.sourceRow}{(record.importRunId||record.sourceStoragePath)&&<> · <a className="underline" href={`/api/records/${record.id}/import-source`}>Descarrega la font original arxivada</a></>}</p>}<button type="button" aria-expanded={showOriginalFields} onClick={()=>setShowOriginalFields(value=>!value)} className="mt-3 rounded-md border px-3 py-2 text-sm font-medium">{showOriginalFields?'Amaga les dades originals':'Mostra totes les dades originals'}</button>{showOriginalFields&&<dl className="card-fields mt-4 text-sm">{originalFields.map(([key, value]) => <div key={key}><dt className="font-semibold text-muted-foreground">{sourcePayloadFieldLabel(key)}</dt><dd className="mt-1 break-words whitespace-pre-wrap">{sourcePayloadValue(key, value)}</dd></div>)}</dl>}</section></section>
       {record.financingType === "concert" && <ConcertUnits record={record} services={concertServices} onSaved={setRecord} />}
       <section id="historial" className="surface scroll-mt-32 p-5"><h2 className="section-title">Historial i traçabilitat</h2><ReviewHistory record={record}/></section>

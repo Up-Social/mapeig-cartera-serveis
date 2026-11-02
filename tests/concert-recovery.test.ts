@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {extractProgramAnnex,programCoverage,programDeclaredTotal} from '../lib/concerts/program-annex';
 import {programServiceCode} from '../lib/concerts/program-service';
 import {analysisDiagnostics} from '../lib/evidence-diagnostics';
+
 import {normalizeCandidates} from '../lib/cloud/normalize-candidates';
 import {recoverPdfText,preserveUnselectedPdfPages} from '../lib/pipeline/readable-document';
 import {validateOcrRecovery} from '../lib/ocr-recovery';
@@ -12,6 +13,25 @@ import {readPages} from '../lib/read-pages';
 import catalog from '../data/legal/cartera.json';
 import type {OfficialService} from '../lib/official-catalog';
 import type {AnalysisOutput} from '../lib/analysis-contract';
+
+test('a withheld discard exposes the original explanation as an unverified proposal',()=>{
+ const result=analysisDiagnostics({classification:'insufficient_evidence',explanation:'Pendent de revisió.',rule_audit:{rule:'model_discard_requires_review'},model_conclusion:{explanation:'No consta el NIF del prestador, per tant cal descartar.'}});
+ assert.equal(result.length,1);assert.match(result[0].message,/No consta el NIF/);assert.match(result[0].message,/no s’ha aplicat/);assert.match(result[0].message,/pendent de contrast/);
+});
+
+test('missing role diagnostics use understandable field labels',()=>{
+ const names=['financier','economic_recipient','direct_beneficiary','service_provider','financial_instrument'];
+ const result=analysisDiagnostics({classification:'insufficient_evidence',explanation:'Pendent.',rule_audit:{rule:'unknown_determinant_role',blocked_roles:names.map(role=>({role,reason:'missing_fact'}))}});
+ assert.deepEqual(result.map(item=>item.field),names);
+ for(const item of result){assert.doesNotMatch(item.message,/_/);assert.match(item.message,/no consta als fragments analitzats/);}
+});
+
+test('a proposed role exclusion remains visible with missing-field diagnostics and unverified model flags',()=>{
+ const explanation='Els rols proposen una possible transferència. Cal contrastar les cites abans de decidir.';
+ const result=analysisDiagnostics({classification:'insufficient_evidence',explanation,rule_audit:{rule:'role_discard_requires_review',blocked_roles:[{role:'final_population',reason:'missing_fact'}]},model_conclusion:{population_verified:false,social_service_verified:false}});
+ assert.equal(result[0].message,explanation);assert.equal(result[0].code,'role_discard_requires_review');
+ assert.equal(result[1].field,'final_population');assert.match(result[1].message,/no consta als fragments analitzats/);
+});
 
 const headings=['NIF entitat','Nom entitat','GECAT','Disposició','Posició','finalista','inici','fi','Import assignat','Partida pressupostària','jurídic','FUE','Codi S','Nom servei','Municipi','Tipologia de servei','Places','Cost anual','Cost anual amb IVA'];
 function table(offset=0){
@@ -86,7 +106,7 @@ test('targeted OCR re-reads only selected pages even when old text is readable',
 test('Excel priority preserves zero and distinguishes absent data from discrepancies',()=>{
  const zero=compareSourceField('Import',0,100);assert.equal(zero.effective,0);assert.equal(zero.origin,'Excel');assert.equal(zero.status,'Discrepància');
  assert.equal(compareSourceField('Entitat',null,'Entitat oficial').origin,'Document');
- assert.equal(compareSourceField('Entitat','Entitat',null).status,'Falta al document');
+ assert.equal(compareSourceField('Entitat','Entitat',null).status,'No disponible al resultat documental');
  assert.equal(compareSourceField('Entitat','Associació','Associacio').status,'Coincideix');
  assert.equal(compareSourceField('Import',NaN,10).status,'Valor no vàlid');
 });
@@ -112,6 +132,7 @@ test('documented concert parent codes are allowed only with an explicit whitelis
 test('all line revisions are read beyond the database default limit and failures are not partial successes',async()=>{
  const data=Array.from({length:1203},(_,i)=>i);const result=await readPages(async(from,to)=>({data:data.slice(from,to+1),error:null}));assert.deepEqual(result,data);
  await assert.rejects(readPages(async()=>({data:[1],error:Error('database unavailable')})),/database unavailable/);
+ await assert.rejects(readPages(async()=>({data:null,error:null})),/pàgina vàlida/);
  assert.doesNotThrow(()=>analysisDiagnostics({classification:'insufficient_evidence',explanation:'Anàlisi antiga pendent de repetir.',rule_audit:{diagnostics:[null,{}],blocked_roles:{bad:true}}}));
 });
 
@@ -124,4 +145,12 @@ test('equipment codes cannot leak the preceding entity or budget into later RESE
  const {row,header}=table();const line=(nif:string,code:string,da:string,amount:string)=>row({'NIF entitat':nif,'Nom entitat':nif?'Entitat '+nif:'','Disposició':da,'Posició':'1','Import assignat':amount,'Codi S':code,'Tipologia de servei':code.startsWith('C')?'Casal per a Gent Gran':'Centre de dia per a gent gran','Cost anual':'100,00 €','Cost anual amb IVA':'104,00 €'});
  const text=[header,line('A12345678','S01234','2600000001','100,00 €'),line('B12345678','C01235','2600000002','200,00 €'),line('','S01236','','')].join('\n');
  const rows=extractProgramAnnex(text);assert.equal(rows.length,3);assert.deepEqual(rows.map(r=>r.nif),['A12345678','B12345678','B12345678']);assert.deepEqual(rows.map(r=>r.amountCents),[10000,10000,10000]);assert.equal(programCoverage(text,rows).complete,true);
+});
+
+test('continuation cannot turn an unknown earlier cost or quantity into zero',()=>{
+ const {row,header}=table();
+ const text=['## Pàgina 1',header,row({'NIF entitat':'G12345678','Nom entitat':'Entitat test','Disposició':'2600000001','Posició':'1','Import assignat':'100,00 €','Codi S':'S01234','Tipologia de servei':'Servei de centre de dia'}),
+  ' '.repeat(400)+'3   200,00 €   208,00 €'].join('\n');
+ const rows=extractProgramAnnex(text);assert.equal(rows.length,1);
+ assert.equal(rows[0].annualCostCents,null);assert.equal(rows[0].quantity,null);
 });

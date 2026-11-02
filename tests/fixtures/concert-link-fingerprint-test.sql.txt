@@ -1,0 +1,62 @@
+-- Test-only assertions after setup and candidate in the same transaction.
+do $$
+declare original_unit uuid:=(select id from concert_link_test_ids where name='original');
+ fresh_unit uuid:=(select id from concert_link_test_ids where name='fresh_unit');
+ historic_unit uuid:=(select id from concert_link_test_ids where name='historic_unit');
+ historic_link uuid:=(select id from concert_link_test_ids where name='historic_link');
+ fresh_link uuid:=(select id from concert_link_test_ids where name='fresh_link');
+ later_fp text;earlier_fp text;new_fp text;new_earlier_fp text;historic_fp text;version_ integer;stored_later text;stored_earlier text;
+begin
+ if not exists(select 1 from public.concert_unit_links where id=historic_link and status='confirmed'
+  and confirmed_later_fingerprint is null and confirmed_earlier_fingerprint is null) then raise exception 'HISTORICAL_FINGERPRINT_INVENTED';end if;
+ select source_fingerprint into strict earlier_fp from public.concert_economic_source where id=original_unit;
+ select source_fingerprint into strict later_fp from public.concert_economic_source where id=fresh_unit;
+ begin
+  update public.concert_unit_links set status='confirmed',review_note='Confirmació directa de prova',reviewed_at=clock_timestamp() where id=fresh_link;
+  raise exception 'DIRECT_CONFIRM_ACCEPTED';
+ exception when others then if sqlerrm not like '%CONCERT_LINK_FINGERPRINT_REVIEW_REQUIRED%' then raise;end if;end;
+ version_:=public.review_concert_link(fresh_link,1,later_fp,earlier_fp,'confirmed','Confirmació revisada sintètica');
+ if version_<>2 or not exists(select 1 from public.concert_unit_links where id=fresh_link and status='confirmed'
+  and confirmed_later_fingerprint=later_fp and confirmed_earlier_fingerprint=earlier_fp) then raise exception 'CONFIRMATION_DID_NOT_CAPTURE';end if;
+ if exists(select 1 from concert_link_fingerprint_candidate.permits) then raise exception 'PERMIT_LEFT_BEHIND';end if;
+ begin
+  update public.concert_unit_links set confirmed_later_fingerprint=repeat('a',32) where id=fresh_link;
+  raise exception 'FINGERPRINT_TAMPER_ACCEPTED';
+ exception when others then if sqlerrm not like '%CONCERT_LINK_FINGERPRINT_REVIEW_REQUIRED%' then raise;end if;end;
+ begin
+  update public.concert_unit_links set evidence='Evidència canviada directament' where id=fresh_link;
+  raise exception 'EVIDENCE_TAMPER_ACCEPTED';
+ exception when others then if sqlerrm not like '%CONCERT_LINK_FINGERPRINT_REVIEW_REQUIRED%' then raise;end if;end;
+ update public.record_units set reses_code='S99999' where id=fresh_unit;
+ select source_fingerprint into strict new_fp from public.concert_economic_source where id=fresh_unit;
+ if new_fp=later_fp or not exists(select 1 from public.concert_unit_links where id=fresh_link and confirmed_later_fingerprint is distinct from new_fp) then raise exception 'SOURCE_CHANGE_NOT_DETECTED';end if;
+ begin
+  perform public.review_concert_link(fresh_link,2,later_fp,earlier_fp,'confirmed','Revisió antiga sintètica');
+  raise exception 'STALE_REVIEW_ACCEPTED';
+ exception when others then if sqlerrm not like '%La línia ha canviat%' then raise;end if;end;
+ version_:=public.review_concert_link(fresh_link,2,new_fp,earlier_fp,'confirmed','Nova revisió sintètica');
+ if version_<>3 then raise exception 'RECONFIRM_FAILED';end if;
+ select confirmed_later_fingerprint,confirmed_earlier_fingerprint into stored_later,stored_earlier from public.concert_unit_links where id=fresh_link;
+ version_:=public.review_concert_link(fresh_link,3,new_fp,earlier_fp,'rejected','Vincle rebutjat en prova sintètica');
+ if version_<>4 or not exists(select 1 from public.concert_unit_links where id=fresh_link and status='rejected'
+  and confirmed_later_fingerprint=stored_later and confirmed_earlier_fingerprint=stored_earlier) then raise exception 'REJECTION_CHANGED_FINGERPRINTS';end if;
+ update public.record_units set provider_name='Nova entitat sintètica' where id=original_unit;
+ select source_fingerprint into strict new_earlier_fp from public.concert_economic_source where id=original_unit;
+ if new_earlier_fp=earlier_fp then raise exception 'EARLIER_SOURCE_CHANGE_NOT_DETECTED';end if;
+ begin
+  perform public.review_concert_link(fresh_link,4,new_fp,earlier_fp,'confirmed','Antecedent antic sintètic');
+  raise exception 'STALE_EARLIER_ACCEPTED';
+ exception when others then if sqlerrm not like '%La línia ha canviat%' then raise;end if;end;
+ version_:=public.review_concert_link(fresh_link,4,new_fp,new_earlier_fp,'confirmed','Antecedent revisat sintètic');
+ if version_<>5 then raise exception 'EARLIER_RECONFIRM_FAILED';end if;
+ version_:=public.review_concert_link(fresh_link,5,new_fp,new_earlier_fp,'out_of_horizon','Fora de l’horitzó sintètic');
+ if version_<>6 or not exists(select 1 from public.concert_unit_links where id=fresh_link and status='out_of_horizon'
+  and confirmed_later_fingerprint=new_fp and confirmed_earlier_fingerprint=new_earlier_fp) then raise exception 'EXCLUSION_CHANGED_FINGERPRINTS';end if;
+ select source_fingerprint into strict historic_fp from public.concert_economic_source where id=historic_unit;
+ perform public.review_concert_link(historic_link,1,historic_fp,new_earlier_fp,'rejected','Rebuig històric sintètic');
+ if not exists(select 1 from public.concert_unit_links where id=historic_link and status='rejected'
+  and confirmed_later_fingerprint is null and confirmed_earlier_fingerprint is null) then raise exception 'HISTORIC_REJECTION_INVENTED_FINGERPRINT';end if;
+ if has_schema_privilege('service_role','concert_link_fingerprint_candidate','USAGE')
+  or has_table_privilege('service_role','concert_link_fingerprint_candidate.permits','INSERT') then raise exception 'PERMIT_EXPOSED';end if;
+end $$;
+rollback;

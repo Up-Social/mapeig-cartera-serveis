@@ -2,11 +2,11 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {execFileSync} from 'node:child_process';
 import {readFileSync} from 'node:fs';
-import {extractConcertAnnexRows,extractProgram317Rows,extractEconomicAnnexRows} from '../lib/concerts/annex-extraction';
+import {declaredGeneralAnnexQuantity,declaredGeneralAnnexTotal,extractColumnAnnexRows,extractColumnAnnexWithCoverage,extractConcertAnnexRows,extractProgram317Rows,extractEconomicAnnexRows} from '../lib/concerts/annex-extraction';
 import {concertCaseKeys} from '../lib/concerts/case-labels';
-import {proposeRecordLinks,type ConcertPublication} from '../lib/concerts/record-linking';
+import {concertTerritory,proposeRecordLinks,type ConcertPublication} from '../lib/concerts/record-linking';
 import {proposeUnitLinks,type ConcertUnitForLink} from '../lib/concerts/unit-linking';
-import {annexCandidateOrdinals} from '../lib/cloud/concert-analysis';
+import {annexCandidateOrdinals,concertPopulations} from '../lib/cloud/concert-analysis';
 import {splitText} from '../lib/pipeline/chunks';
 import {selectEvidenceWindow} from '../lib/cloud/evidence-window';
 
@@ -24,15 +24,124 @@ test('official Barcelona annex stays split by line, NIF and RESES and reconciles
  assert.equal(rows.find(row=>row.nif==='G59088120')?.observedProviderName,'Fundació Germà Tomàs Canet');
 });
 
+test('an omitted service code can only inherit from a matching repeated table description on the same page',()=>{
+ const make=(code:string,description:string,date:string,amount:string)=>[
+  ' '.repeat(81)+description,
+  ' '.repeat(36)+'Fundació Prova'.padEnd(19)+'G55112890'.padEnd(14)+code.padEnd(13)+'Mòdul C'.padEnd(37)+'S03694 Servei D/251 2600333093 1 Ripoll 0% 445,05 € '+date+' 31/12/2025 1 '+amount+' €',
+ ];
+ const header=' '.repeat(81)+'Nom tipologia de servei'.padEnd(37)+'Codi S';
+ const first=make('1.2.6.2.6','Servei de suport a les persones','21/05/2025','3.276,28');
+ const same=make('','Servei de suport a les persones','23/05/2025','3.247,02');
+ const changed=make('','Una altra tipologia diferent','25/05/2025','3.000,00');
+ const document=[header,...first,...same,...changed].join('\n');
+ const rows=extractConcertAnnexRows(document);
+ assert.equal(rows.length,2);
+ assert.equal(rows[0].serviceCode,'1.2.6.2.6');
+ assert.equal(rows[1].serviceCode,'1.2.6.2.6');
+ assert.equal(rows[1].amountCents,324702);
+ assert.ok(document.replace(/\s+/g,' ').includes(rows[1].quote));
+ assert.equal(extractConcertAnnexRows([header,...first].join('\n')+'\f'+[header,...same].join('\n')).length,1);
+ assert.equal(extractConcertAnnexRows([header,...first,'Annex 2',...same].join('\n')).length,1);
+});
+
+test('a generic annex total is accepted only when the operative maximum explicitly references that annex',()=>{
+ const text='Resolc: indicar l’import econòmic de la provisió amb efectes per a l’any 2025, per un import total màxim de 6.523,30 € exempt d’IVA, tal com s’indica a l’Annex d’aquesta resolució.';
+ assert.deepEqual(declaredGeneralAnnexTotal(text),{amountCents:652330,kind:'maximum'});
+ assert.deepEqual(declaredGeneralAnnexTotal(text.replace('màxim de 6.523,30 €','màxim 6.523,30 euros')),{amountCents:652330,kind:'maximum'});
+ assert.equal(declaredGeneralAnnexTotal('Import total màxim de 6.523,30 € en una convocatòria anterior.'),null);
+ assert.equal(declaredGeneralAnnexTotal(text+' '+text.replace('6.523,30','7.000,00')),null);
+ assert.equal(declaredGeneralAnnexQuantity(text+' Total\n general   2  6.523,30 €',652330),2);
+ assert.equal(declaredGeneralAnnexQuantity(text+' Total\n general   2  6.500,00 €',652330),null);
+ assert.equal(declaredGeneralAnnexQuantity(text,652330),null);
+});
+
+test('column annexes preserve a row without dates or any amount, without using a tariff as funding',()=>{
+ const header='Nom entitat'.padEnd(25)+'NIF entitat'.padEnd(16)+'Codi cartera'.padEnd(15)+'Tipologia servei'.padEnd(33)+'Codi S'.padEnd(9)+'Nom servei'.padEnd(25)+'Municipi'.padEnd(20)+'assignar';
+ const row='Fundació Prova'.padEnd(25)+'G12345678'.padEnd(16)+'1.2.6.2.4.1'.padEnd(15)+'Servei ocupacional'.padEnd(33)+'S10844'.padEnd(9)+'Servei A'.padEnd(25)+'Torà'.padEnd(20)+'2';
+ const text=[header,row].join('\n');
+ const rows=extractColumnAnnexRows(text);
+ assert.equal(rows.length,1);
+ assert.equal(rows[0].quantity,2);
+ assert.equal(rows[0].amountCents,null);
+ assert.equal(rows[0].effectiveStart,undefined);
+ assert.ok(text.replace(/\s+/g,' ').includes(rows[0].quote));
+ assert.equal(extractColumnAnnexRows(row).length,0);
+ assert.equal(extractColumnAnnexWithCoverage(text).complete,false);
+ assert.equal(extractColumnAnnexWithCoverage(text+'\nTotal general 2').complete,true);
+ assert.equal(extractColumnAnnexWithCoverage(text+'\nTotal general 3').complete,false);
+ const invalid=row.replace('1.2.6.2.4.1','           ');
+ assert.equal(extractColumnAnnexWithCoverage([header,row,invalid,'Total general 2'].join('\n')).complete,false);
+});
+
+test('a missing printed code retains its line as unresolved without renumbering known rows',()=>{
+ const header='Nom entitat'.padEnd(25)+'NIF entitat'.padEnd(16)+'Codi cartera'.padEnd(15)+'Tipologia servei'.padEnd(33)+'Codi S'.padEnd(9)+'Nom servei'.padEnd(25)+'Municipi'.padEnd(20)+'assignar';
+ const row=(nif:string,code:string,reses:string,quantity:number)=>'Fundació Prova'.padEnd(25)+nif.padEnd(16)+code.padEnd(15)+'Servei ocupacional'.padEnd(33)+reses.padEnd(9)+'Servei A'.padEnd(25)+'Torà'.padEnd(20)+quantity;
+ const knownA=row('G12345678','1.2.6.2.4.1','S10844',2),knownB=row('G12345678','1.2.6.2.4.2','S03530',1);
+ const missing=row('G12345678','','S00893',2);
+ const baseline=extractColumnAnnexWithCoverage([header,knownA,knownB,'Total general 3'].join('\n'));
+ const text=[header,knownA,missing,knownB,'Total general 5'].join('\n');
+ const result=extractColumnAnnexWithCoverage(text);
+ assert.equal(result.complete,false);assert.equal(result.unparsedRows,1);
+ assert.deepEqual(result.rows.map(item=>[item.row,item.resesCode,item.observedServiceCode,item.quantity]),[
+  [1,'S10844','1.2.6.2.4.1',2],[2,'S03530','1.2.6.2.4.2',1],[3,'S00893',null,2],
+ ]);
+ assert.deepEqual(result.rows.slice(0,2).map(item=>[item.row,item.resesCode]),baseline.rows.map(item=>[item.row,item.resesCode]));
+ assert.ok(text.replace(/\s+/g,' ').includes(result.rows[2].quote));
+ assert.equal(result.rows[2].amountCents,null);
+});
+
+test('a VAT-exempt column annex retains a wrapped code and cost from the same row',()=>{
+ const header='Nom entitat'.padEnd(25)+'NIF entitat'.padEnd(16)+'cartera'.padEnd(15)+'Tipologia servei'.padEnd(30)+'Codi S'.padEnd(9)+'Nom servei'.padEnd(20)+'Municipi'.padEnd(18)+'IVA'.padEnd(7)+'assignar'+"       d'IVA)";
+ const codeStart=header.indexOf('cartera'),quantityStart=header.indexOf('assignar');
+ const wrapped=' '.repeat(codeStart)+'1.2.6.3.4.1'.padEnd(15)+' '.repeat(quantityStart-codeStart-15+7)+'29.432,04 €';
+ const line='Fundació Prova'.padEnd(25)+'G12345678'.padEnd(16)+'.2'.padEnd(15)+'Servei ocupacional'.padEnd(30)+'S03832'.padEnd(9)+'Servei A'.padEnd(20)+'Selva'.padEnd(18)+'0%'.padEnd(7)+'3';
+ const text=['2025 exempt d’IVA',header,wrapped,line,'Total general 3 29.432,04 €'].join('\n');
+ const result=extractColumnAnnexWithCoverage(text);
+ assert.equal(result.complete,true);
+ assert.equal(result.rows[0].observedServiceCode,'1.2.6.3.4.1.2');
+ assert.equal(result.rows[0].amountCents,2943204);
+ assert.ok(text.replace(/\s+/g,' ').includes(result.rows[0].quote));
+});
+
+test('the labelled inclusive period cost after the places is extracted without using the daily tariff',()=>{
+ const prefix='Nom entitat'.padEnd(25)+'NIF entitat'.padEnd(16)+'cartera'.padEnd(15)+'Tipologia servei'.padEnd(30)+'Codi S'.padEnd(9)+'Nom servei'.padEnd(20)+'Municipi'.padEnd(18)+'IVA'.padEnd(7)+'Preu diari'.padEnd(14)+'assignar';
+ const header=prefix+'    (IVA inclòs si escau)';
+ const costHeading=' '.repeat(header.indexOf('assignar')+8)+'Cost 15 de desembre - 31 de desembre de 2025';
+ const line='Fundació Prova'.padEnd(25)+'G12345678'.padEnd(16)+'1.2.6.2.3.2.4'.padEnd(15)+'Servei de llar'.padEnd(30)+'S03668'.padEnd(9)+'Residència'.padEnd(20)+'Tiana'.padEnd(18)+'0%'.padEnd(7)+'96,48 €'.padEnd(14)+'1       1.640,16 €';
+ const text=[costHeading,header,line,'Total general 1'].join('\n');
+ const result=extractColumnAnnexWithCoverage(text);
+ assert.equal(result.rows.length,1);assert.equal(result.complete,true);assert.equal(result.rows[0].amountCents,164016);
+ assert.ok(text.replace(/\s+/g,' ').includes(result.rows[0].quote));
+ assert.equal(extractColumnAnnexWithCoverage(text.replace(costHeading,'Preu diari')).rows[0].amountCents,null);
+ assert.equal(extractColumnAnnexWithCoverage(text.replace('1       1.640,16 €','1')).rows[0].amountCents,null);
+ assert.equal(extractColumnAnnexWithCoverage(text.replace('1       1.640,16 €','1       1.640,16 € 1.500,00 €')).rows[0].amountCents,null);
+});
+
+test('merged beneficiary cells are inherited only within the same printed disposition',()=>{
+ const header=['Centre    Nom                     Codi        Tipologia',
+  'gestor    entitat   NIF entitat   cartera     servei         Codi S   Nom servei   Partida pressupostària   GECAT     Disposició   Posició Municipi IVA mensual assignar 2024 sense IVA     2024 amb IVA'];
+ const first='          Privada G12345678 1.2.3.6           gent gran      S00001 Servei A       D/251000200/315A/0000 N894         2600258588        5 Reus      0% 253,16 €         5     13.923,80 €     13.923,80 €';
+ const next='                                  1.2.7.6     mental         S00002 Servei B       D/251000200/315A/0000 N894         2600258588        5 Reus      0% 253,16 €         5     13.923,80 €     13.923,80 €';
+ const text=[...header,first,next,'Total general 10 27.847,60 €'].join('\n');
+ const result=extractColumnAnnexWithCoverage(text);
+ assert.equal(result.complete,true);
+ assert.deepEqual(result.rows.map(row=>row.nif),['G12345678','G12345678']);
+ assert.deepEqual(result.rows.map(row=>row.municipality),['Reus','Reus']);
+ assert.ok(text.replace(/\s+/g,' ').includes(result.rows[1].quote));
+ const changed=extractColumnAnnexWithCoverage(text.replace('2600258588        5 Reus      0% 253,16 €         5     13.923,80 €     13.923,80 €\nTotal','2600258589        5 Reus      0% 253,16 €         5     13.923,80 €     13.923,80 €\nTotal'));
+ assert.equal(changed.complete,false);
+ assert.equal(changed.unparsedRows,1);
+});
+
 test('program annex keeps the printed entity and service separate from repeated financial columns',()=>{
  const lines=[
-  ' '.repeat(42)+"Obra d’Integració"+' '.repeat(160)+"Centre residencial",
-  ' '.repeat(42)+"Social \"OBINSO\""+' '.repeat(170)+"d’assistència als",
-  ' '.repeat(27)+'G08458051'+' '.repeat(6)+'Social "OBINSO"'+' '.repeat(22)+'2600270759 1 456.244,47 € D/251000200/317E/0032 social 03200522 S01156 Castells Esparreguera drogodependents 6 173.681,64 €',
+  ' '.repeat(42)+"Entitat Exemple A"+' '.repeat(160)+"Centre residencial",
+  ' '.repeat(42)+"Social \"PROVAX\""+' '.repeat(170)+"d’assistència als",
+  ' '.repeat(27)+'A12345678'+' '.repeat(6)+'Social "PROVAX"'+' '.repeat(22)+'3711381860 2 567.355,58 € D/362111311/428E/1143 social 14311633 S12267 Fxxxxxxx Vxxxxxxxxxxx Cxxxxxxxxxxxxxx 7 284.792,75 €',
  ];
  const rows=extractProgram317Rows(lines.join('\n'));
  assert.equal(rows.length,1);
- assert.ok(rows[0].observedProviderName?.includes('OBINSO'));
+ assert.ok(rows[0].observedProviderName?.includes('PROVAX'));
  assert.equal('amountCents' in rows[0],false);
 });
 
@@ -40,7 +149,11 @@ test('complete DSO/4390 official annex retains every monetary line and reconcile
  const rows=extractEconomicAnnexRows(readFileSync('tests/fixtures/official/dso-4390-2023-annex-7.txt','utf8'));
  assert.equal(rows.length,115);
  assert.equal(rows.reduce((sum,row)=>sum+row.amountCents,0),751151852);
- assert.ok(rows.every(row=>row.annex===7&&row.page>=32&&row.page<=47&&row.nif&&row.resesCode));
+ assert.ok(rows.every(row=>row.annex===7&&row.page>=32&&row.page<=47&&row.resesCode));
+ assert.ok(rows.filter(row=>row.nif).every(row=>row.quote.includes(row.nif!)));
+ const unresolved=rows.filter(row=>!row.nif);assert.equal(unresolved.length,1);
+ assert.equal(unresolved[0].resesCode,'S04703');assert.equal(unresolved[0].page,41);
+ assert.equal(unresolved[0].observedServiceCode,null);assert.equal(unresolved[0].observedProviderName,null);
  assert.equal(rows[0].observedProviderName,'Planiger, SA');
 });
 
@@ -54,6 +167,23 @@ test('both official annex layouts cite a selected RESES line for every printed s
   assert.ok(ordinals.every(ordinal=>ordinal>0),`${name}: missing cited service`);
   assert.equal(codes.length,name.startsWith('dsi')?3:2);
  }
+});
+test('a wrapped service code is supported by a contiguous fragment of the correct document',()=>{
+ const code='1.2.6.3.4.1.2';
+ const rows=[{observed_service_code:code,reses_code:'S03832'}];
+ const chunks=[{source_document_id:'other',content:'1.2.6.3.4.1 ... .2 S03832'},
+  {source_document_id:'target',content:'1.2.6.3.4.1 descripció en una línia\n .2 auxiliar S03832'}];
+ assert.deepEqual(annexCandidateOrdinals(rows,[code],chunks,'target'),[2]);
+ assert.deepEqual(annexCandidateOrdinals(rows,[code],[{source_document_id:'target',content:'1.2.6.3.4.1 S03832'}],'target'),[0]);
+ assert.deepEqual(annexCandidateOrdinals(rows,[code],[{source_document_id:'target',content:'1.2.6.3.4.1.2.9 S03832'}],'target'),[0]);
+ const sourced=[{...rows[0],evidence_quote:'1.2.6.3.4.1 .2 servei S03832'}];
+ assert.deepEqual(annexCandidateOrdinals(sourced,[code],[{source_document_id:'target',content:'1.2.6.3.4.1 .2 altre servei S03832'}],'target'),[0]);
+ assert.deepEqual(annexCandidateOrdinals(sourced,[code],[{source_document_id:'target',content:'1.2.6.3.4.1 .2 servei S03832'}],'target'),[1]);
+});
+test('one known population never substitutes for another service with unknown population',()=>{
+ const one={service_name:'Servei per a gent gran'};
+ assert.deepEqual(concertPopulations([one,{service_name:'Servei per a persones amb discapacitat física'}]),['gent gran','persones amb discapacitat física']);
+ assert.equal(concertPopulations([one,{service_name:'Servei sense població al nom'}]),null);
 });
 
 test('complete DSI/1984 official annex retains its 60 monetary lines and total',()=>{
@@ -72,6 +202,12 @@ test('an amendment of a termination and a service cession name the current act',
  assert.deepEqual(concertCaseKeys('Resolució d’esmena de la Resolució relativa al cessament voluntari',[]),['amendment']);
  assert.deepEqual(concertCaseKeys('RESOLUCIÓ per a la cessió del Servei de Pis assistit',[]),['cession']);
 });
+test('an amendment can reference vacant places without asserting their current status',()=>{
+ const title='ESMENA DE LA RESOLUCIÓ DE PLACES DESERTES DE SERVEIS SOCIALS';
+ assert.deepEqual(concertCaseKeys(title,[]),['amendment','vacant_reference']);
+ assert.deepEqual(concertCaseKeys('ESMENA DE LA RESOLUCIÓ DE SERVEIS SOCIALS',[]),['amendment']);
+ assert.deepEqual(concertCaseKeys('RESOLUCIÓ DE PLACES DESERTES',[]),['vacant']);
+});
 test('a definitive IFE award is not labelled as a call',()=>{
  const title='Resolució de la convocatòria IFE/1632/2025_ Provisió de Serveis SIE Hospitalet 2025-2029';
  assert.deepEqual(concertCaseKeys(title,[]),['unspecified','other_funder','multiyear']);
@@ -88,6 +224,15 @@ test('a publication amendment is only a candidate; equal expediente across terri
  assert.deepEqual(links.map(link=>link.earlierRecordId),['original']);
  assert.equal(links[0].method,'expedient_territory');
  assert.match(links[0].evidence,/cal contrastar PDF, RESES i NIF/i);
+});
+test('apostrophes in Terres de l’Ebre do not erase the territorial distinction',()=>{
+ assert.equal(concertTerritory("Servei territorial de les Terres de l'Ebre"),'terres de l ebre');
+ assert.equal(concertTerritory('Servei territorial de les Terres de l’Ebre'),'terres de l ebre');
+ const rows:ConcertPublication[]=[
+  {id:'base',title:"Provisió expedient 25-000123-AP (Terres de l’Ebre)",source_record_id:'base',source_payload:{data_publicacio:'2025-01-01'}},
+  {id:'later',title:'Modificació expedient 25-000123-AP (Tarragona)',source_record_id:'later',source_payload:{data_publicacio:'2025-02-01'}},
+ ];
+ assert.deepEqual(proposeRecordLinks(rows),[]);
 });
 
 test('a cited prior title plus RESES proposes the OBINSO correction without using disposition',()=>{

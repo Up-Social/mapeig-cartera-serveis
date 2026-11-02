@@ -58,4 +58,6 @@ test('annualities replace the displayed total, with exact-cent reconciliation',(
  const result=allocatePlurianual(300000,[{year:2025,amountCents:100000},{year:2026,amountCents:200000}]);
  assert.deepEqual(result.rows,[{period:'2025',amountCents:100000},{period:'2026',amountCents:200000}]);assert.deepEqual(result.issues,[]);
  assert.match(allocatePlurianual(300001,[{year:2025,amountCents:100000},{year:2026,amountCents:200000}]).issues.join(' '),/no coincideix/);
+ assert.match(allocatePlurianual(null,[{year:2025,amountCents:Number.MAX_SAFE_INTEGER},{year:2026,amountCents:1}]).issues.join(' '),/precisió segura/);
+ assert.match(allocatePlurianual(-1,[]).issues.join(' '),/no vàlid/);
 });

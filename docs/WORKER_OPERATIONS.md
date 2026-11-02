@@ -1,8 +1,8 @@
-# Worker de producción en macOS
+# Worker local y operaciones de recuperación
 
-La web desplegada en Vercel guarda las operaciones largas en `worker_tasks`.
-El LaunchAgent `com.upsocial.mapeig-worker` procesa esa cola desde el Mac y se
-inicia automáticamente al abrir la sesión del usuario.
+> Revisió documental 28/10/2026: consulteu [l’estat i els límits actualitzats](ESTADO_ACTUAL_2026_10_28.md). Els resultats i recomptes datats d’aquest document són històrics; el codi i les migracions prevalen en cas de discrepància.
+
+La producción actual utiliza Vercel Workflows; el LaunchAgent de macOS dejó de ser el consumidor ordinario en septiembre de 2026. Los comandos siguientes describen el worker local o una configuración de cola explícita. No iniciarlo contra producción sin autorización. Consulta [CLOUD_BATCHES.md](CLOUD_BATCHES.md) y [STORAGE_VERCEL_2026_10.md](STORAGE_VERCEL_2026_10.md).
 
 ## Estado
 

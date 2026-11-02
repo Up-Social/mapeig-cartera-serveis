@@ -1,6 +1,6 @@
 import 'server-only';
 import {createServerSupabase} from './records-page';
-import {purgeTargets} from './storage-purge';
+import {confirmedStorageExists,purgeTargets} from './storage-purge';
 export async function purgeDeletion(batchId:string){
  const db=createServerSupabase();
  const batch=await db.from('storage_purge_batches').select('id').eq('id',batchId).single();if(batch.error)throw batch.error;
@@ -9,7 +9,7 @@ export async function purgeDeletion(batchId:string){
  const result=await purgeTargets(items,{
   async remove(bucket,path){const r=await db.storage.from(bucket).remove([path]);if(r.error)throw r.error;},
   async exists(bucket,path){
-   const storage=db.storage.from(bucket),r=await storage.exists(path);if(!r.error)return r.data===true;
+   const storage=db.storage.from(bucket),r=await storage.exists(path);if(!r.error)return confirmedStorageExists(r.data);
    // Some Storage versions return 400 for HEAD on an absent object. Never interpret that as absence.
    // Verify using an independently successful, fully paginated directory listing instead.
    const slash=path.lastIndexOf('/'),directory=slash<0?'':path.slice(0,slash),filename=path.slice(slash+1);

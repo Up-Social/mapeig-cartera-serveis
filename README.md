@@ -1,3 +1,5 @@
+> **Entorno vigente (02/11/2026):** Supabase local está fuera de uso. Docker original conservado parado y sin reinicio automático; no arrancar entornos locales. Las pruebas funcionales de Concerts se harán en producción tras preparar y autorizar el despliegue. Véase [contexto del proyecto](docs/PROJECT_CONTEXT.md).
+
 # Mapeig cartera de serveis.
 
 Prototip local per validar el processament controlat i el matching entre provisió pública i serveis de la Cartera de Serveis Socials.
@@ -17,7 +19,7 @@ Configura també `APP_ACCESS_PASSWORD` amb una contrasenya llarga i única. Tote
 
 ## Verificació del projecte
 
-El projecte fixa Node.js 20 a `.nvmrc`. Abans d'integrar un canvi, executa:
+El projecte fixa Node.js 24 a `.nvmrc`. Abans d'integrar un canvi, executa:
 
 ```bash
 npm ci
@@ -29,9 +31,9 @@ npm run build
 
 El mateix conjunt de comprovacions s'executa a GitHub Actions per a cada pull request i cada actualització de `main`.
 
-## Worker del pipeline remot
+## Execució del pipeline
 
-En Vercel, les accions llargues no obren processos fills: creen una tasca persistent a `worker_tasks`. Per processar les tasques contra Supabase remot, mantén un terminal obert en un ordinador amb `.env.local` configurat i executa:
+En producció, les tasques persistents de `worker_tasks` s’executen amb Vercel Workflows i Sandbox. Consulta [execució cloud](docs/CLOUD_BATCHES.md) i [estat del projecte](docs/ESTADO_ACTUAL_2026_10_28.md). El worker següent és una opció local o de cua explícita, no el consumidor ordinari de producció:
 
 ```bash
 npm run worker:run
@@ -47,7 +49,7 @@ La preparació documental s'executa sense OpenAI. L'enriquiment i el matching re
 
 El model configurat per a noves crides és `gpt-6-luna`, amb Responses API, sortida JSON estructurada, `reasoning.effort=none` i tarifa estàndard (`service_tier=default`). Els resultats ja rebuts conserven el model original i no es tornen a facturar en reprendre. La migració SQL de tarifes s'ha d'aplicar abans d'activar el model; consulta [la guia de desplegament](docs/PRODUCCION_Y_DESPLIEGUE.md#model-openai).
 
-Qualsevol execució amb `NODE_ENV=production` utilitza la cua. En altres entorns es pot forçar explícitament amb `WORKER_EXECUTION_MODE=queue`.
+El mode efectiu depèn de `WORKER_EXECUTION_MODE`; `queue` i `vercel_workflow` són executors diferents. No activeu un worker local contra producció sense autorització. `.env.local` pot apuntar a producció: verifiqueu el destí abans de qualsevol escriptura.
 
 ## Flux disponible
 

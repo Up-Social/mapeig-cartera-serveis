@@ -3,6 +3,9 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { createClient } from "@supabase/supabase-js";
 import WebSocket from "ws";
+import {upsertImportedSourceBatch} from "../lib/pipeline/import-source-upsert";
+import {readConcertDiscoveryInventory} from "../lib/concerts/discovery-inventory";
+import {classifyConcertEvent} from "../lib/concerts/event-classification";
 
 const API_URL = "https://tauler.seu-e.cat/api/edictes";
 const DETAIL_BASE_URL = "https://tauler.seu-e.cat/detall";
@@ -78,23 +81,6 @@ function containsExactSearchExpression(edict: Edict, term: string) {
   return normalized(`${edict.titol} ${edict.descripcio}`).includes(normalized(term));
 }
 
-function classifyEvent(edict: Edict): { eventType: EventType; countsAsNewFinancing: boolean } {
-  const text = normalized(`${edict.titol} ${edict.descripcio}`);
-  if (/resolucio anticipada|extincio|baixa|retirada|finalitzacio/.test(text)) {
-    return { eventType: "resolucio_anticipada_o_baixa", countsAsNewFinancing: false };
-  }
-  if (/prorroga/.test(text)) return { eventType: "prorroga", countsAsNewFinancing: false };
-  if (/modificacio|modifica /.test(text)) return { eventType: "modificacio", countsAsNewFinancing: false };
-  if (/esmena|correccio/.test(text)) return { eventType: "esmena", countsAsNewFinancing: false };
-  if (/cessio/.test(text)) return { eventType: "cessio", countsAsNewFinancing: false };
-  if (/autoritzacio de la despesa/.test(text)) {
-    return { eventType: "autoritzacio_despesa", countsAsNewFinancing: false };
-  }
-  if (/provisio de places|provisio de serveis|provisio directa|convocatoria.*provisio|assignacio de places/.test(text)) {
-    return { eventType: "nova_provisio_o_ampliacio", countsAsNewFinancing: true };
-  }
-  return { eventType: "altres", countsAsNewFinancing: false };
-}
 
 async function fetchPage(term: string, page: number): Promise<SearchResponse> {
   const url = new URL(API_URL);
@@ -123,7 +109,7 @@ async function discoverTerm(term: string) {
 }
 
 function toDiscovered(edict: Edict, matchedTerms: string[]): DiscoveredConcert {
-  const classification = classifyEvent(edict);
+  const classification = classifyConcertEvent(edict.titol, edict.descripcio);
   const payload = { ...edict, matched_terms: matchedTerms };
   return {
     ...edict,
@@ -212,12 +198,13 @@ async function importRecords(report: DiscoveryReport, reportPath: string) {
   });
   const ids = report.records.map((record) => record.source_record_id);
   if (new Set(ids).size !== ids.length) throw new Error("L'informe conté identificadors duplicats.");
-  const { data: existing, error: existingError } = await supabase.from("source_records")
-    .select("id,source_record_id")
-    .eq("source_dataset", "concerts");
-  if (existingError) throw existingError;
+  const existing = await readConcertDiscoveryInventory((from,to)=>supabase.from("source_records")
+    .select("id,source_record_id", {count:"exact"})
+    .eq("source_dataset", "concerts")
+    .order("id")
+    .range(from,to));
   const expectedIds = new Set(ids);
-  const stale = (existing ?? []).filter((record) => !expectedIds.has(String(record.source_record_id)));
+  const stale = existing.filter((record) => !expectedIds.has(String(record.source_record_id)));
   if (stale.length > 0) {
     const confirmedDelete = Number.parseInt(option("--confirm-delete") ?? "", 10);
     if (!process.argv.includes("--prune") || confirmedDelete !== stale.length) {
@@ -262,10 +249,9 @@ async function importRecords(report: DiscoveryReport, reportPath: string) {
         source_payload_hash: record.source_payload_hash,
         updated_at: new Date().toISOString(),
       }));
-    const { error } = await supabase.from("source_records").upsert(rows, {
+    await upsertImportedSourceBatch(()=>supabase.from("source_records").upsert(rows, {
       onConflict: "source_dataset,source_record_id",
-    });
-    if (error) throw error;
+    }));
     written = rows.length;
     if (stale.length > 0) {
       const { data: deletedCount, error: deleteError } = await supabase.rpc(

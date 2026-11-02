@@ -1,0 +1,65 @@
+-- Same connection after v1 setup, v1 candidate, v2 document setup and v2 candidate.
+do $$
+declare link_ uuid:=(select id from concert_link_test_ids where name='fresh_link');
+ historic_ uuid:=(select id from concert_link_test_ids where name='historic_link');
+ original_ uuid:=(select id from concert_link_test_ids where name='original');
+ historic_unit_ uuid:=(select id from concert_link_test_ids where name='historic_unit');
+ fresh_ uuid:=(select id from concert_link_test_ids where name='fresh_unit');
+ original_doc_ uuid:=(select id from concert_link_test_ids where name='original_document');
+ fresh_doc_ uuid:=(select id from concert_link_test_ids where name='fresh_unit_document');
+ s jsonb;next_ jsonb;version_ integer;before_ public.concert_unit_links;body_ text:='Document sintètic modificat';
+begin
+ if not exists(select 1 from public.concert_unit_links where id=historic_ and status='confirmed'
+  and confirmed_later_fingerprint is null and confirmed_later_document_id is null and confirmed_later_document_hash is null) then raise exception 'HISTORIC_DOCUMENT_INVENTED';end if;
+ if concert_link_fingerprint_candidate.document_review_state(historic_)->>'state'<>'historical_unverified' then raise exception 'HISTORIC_NOT_PENDING';end if;
+ s:=concert_link_fingerprint_candidate.document_review_snapshot(link_);
+ if s->>'state'<>'ready' or s->>'physicalSourceVerified'<>'false' then raise exception 'SNAPSHOT_NOT_READY';end if;
+ begin
+  perform public.review_concert_link(link_,1,s->>'laterUnitFingerprint',s->>'earlierUnitFingerprint','confirmed','Intent amb versió anterior');
+  raise exception 'LEGACY_CONFIRM_ACCEPTED';
+ exception when others then if sqlerrm not like '%CONCERT_LINK_DOCUMENT_REVIEW_REQUIRED%' then raise;end if;end;
+ update public.source_documents set extracted_text=body_,extracted_text_hash=encode(extensions.digest(convert_to(body_,'UTF8'),'sha256'),'hex'),active_extraction_id=gen_random_uuid() where id=fresh_doc_;
+ if (select source_fingerprint from public.concert_economic_source where id=fresh_) is distinct from s->>'laterUnitFingerprint' then raise exception 'TEST_EXPECTED_SAME_UNIT';end if;
+ begin
+  perform concert_link_fingerprint_candidate.document_review_confirm(link_,1,s->>'laterUnitFingerprint',s->>'earlierUnitFingerprint',fresh_doc_,s->>'laterDocumentHash',original_doc_,s->>'earlierDocumentHash','Revisió documental sintètica');
+  raise exception 'STALE_DOCUMENT_ACCEPTED';
+ exception when others then if sqlerrm not like '%CONCERT_LINK_DOCUMENT_CHANGED%' then raise;end if;end;
+ next_:=concert_link_fingerprint_candidate.document_review_snapshot(link_);
+ if next_->>'state'<>'ready' or next_->>'laterDocumentHash'=s->>'laterDocumentHash' then raise exception 'NEW_DOCUMENT_SNAPSHOT_MISSING';end if;
+ begin
+  perform concert_link_fingerprint_candidate.document_review_confirm(link_,null,next_->>'laterUnitFingerprint',next_->>'earlierUnitFingerprint',fresh_doc_,next_->>'laterDocumentHash',original_doc_,next_->>'earlierDocumentHash','Revisió documental sintètica');
+  raise exception 'NULL_VERSION_ACCEPTED';
+ exception when others then if sqlerrm not like '%CONCERT_LINK_DOCUMENT_INPUT%' then raise;end if;end;
+ version_:=concert_link_fingerprint_candidate.document_review_confirm(link_,1,next_->>'laterUnitFingerprint',next_->>'earlierUnitFingerprint',fresh_doc_,next_->>'laterDocumentHash',original_doc_,next_->>'earlierDocumentHash','Revisió documental sintètica');
+ if version_<>2 then raise exception 'DOCUMENT_CONFIRM_VERSION';end if;
+ select * into strict before_ from public.concert_unit_links where id=link_;
+ if before_.confirmed_later_document_id is distinct from fresh_doc_ or before_.confirmed_earlier_document_id is distinct from original_doc_
+  or before_.confirmed_later_document_hash is distinct from next_->>'laterDocumentHash'
+  or before_.confirmed_earlier_document_hash is distinct from next_->>'earlierDocumentHash' then raise exception 'DOCUMENT_CONFIRM_NOT_BOUND';end if;
+ if concert_link_fingerprint_candidate.document_review_state(link_)->>'state'<>'metadata_current' then raise exception 'CONFIRMED_STATE_NOT_CURRENT';end if;
+ if exists(select 1 from concert_link_fingerprint_candidate.permits) then raise exception 'DOCUMENT_PERMIT_LEFT';end if;
+ begin
+  update public.concert_unit_links set confirmed_earlier_document_hash=repeat('f',64) where id=link_;
+  raise exception 'DOCUMENT_TAMPER_ACCEPTED';
+ exception when others then if sqlerrm not like '%CONCERT_LINK_FINGERPRINT_REVIEW_REQUIRED%' then raise;end if;end;
+ -- Hash helper excludes extracted_text_hash: metadata validation must still
+ -- detect its corruption even though that helper's value is unchanged.
+ update public.source_documents set extracted_text_hash=repeat('f',64) where id=fresh_doc_;
+ if (select public.concert_population_document_hash(d) from public.source_documents d where id=fresh_doc_) is distinct from before_.confirmed_later_document_hash then raise exception 'TEST_EXPECTED_SAME_DOCUMENT_HASH';end if;
+ if concert_link_fingerprint_candidate.document_review_state(link_)->>'state'<>'stale' then raise exception 'BAD_TEXT_HASH_NOT_STALE';end if;
+ update public.source_documents set extracted_text_hash=encode(extensions.digest(convert_to(extracted_text,'UTF8'),'sha256'),'hex') where id=fresh_doc_;
+ if concert_link_fingerprint_candidate.document_review_state(link_)->>'state'<>'metadata_current' then raise exception 'RESTORED_METADATA_NOT_CURRENT';end if;
+ body_:='Document original sintètic canviat';
+ update public.source_documents set extracted_text=body_,extracted_text_hash=encode(extensions.digest(convert_to(body_,'UTF8'),'sha256'),'hex'),active_extraction_id=gen_random_uuid() where id=original_doc_;
+ if (select public.concert_population_document_hash(d) from public.source_documents d where id=original_doc_) is not distinct from before_.confirmed_earlier_document_hash then raise exception 'EARLIER_DOCUMENT_CHANGE_UNDETECTED';end if;
+ if concert_link_fingerprint_candidate.document_review_state(link_)->>'state'<>'stale' then raise exception 'CHANGED_DOCUMENT_NOT_STALE';end if;
+ version_:=public.review_concert_link(link_,2,next_->>'laterUnitFingerprint',next_->>'earlierUnitFingerprint','rejected','Rebuig sintètic del vincle');
+ if version_<>3 or not exists(select 1 from public.concert_unit_links where id=link_ and status='rejected'
+  and confirmed_later_document_hash=before_.confirmed_later_document_hash and confirmed_earlier_document_hash=before_.confirmed_earlier_document_hash) then raise exception 'REJECTION_CHANGED_DOCUMENT_SNAPSHOT';end if;
+ if concert_link_fingerprint_candidate.document_review_state(link_)->>'state'<>'not_confirmed' then raise exception 'REJECTED_STATE_WRONG';end if;
+ perform public.review_concert_link(historic_,1,(select source_fingerprint from public.concert_economic_source where id=historic_unit_),
+  (select source_fingerprint from public.concert_economic_source where id=original_),'rejected','Rebuig històric sintètic');
+ if not exists(select 1 from public.concert_unit_links where id=historic_ and confirmed_later_document_hash is null and confirmed_earlier_document_hash is null) then raise exception 'HISTORIC_REJECTION_INVENTED_DOCUMENT_HASH';end if;
+ if has_function_privilege('service_role','concert_link_fingerprint_candidate.document_review_confirm(uuid,integer,text,text,uuid,text,uuid,text,text)','EXECUTE') then raise exception 'DOCUMENT_CONFIRM_EXPOSED';end if;
+end $$;
+rollback;

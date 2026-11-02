@@ -1,5 +1,7 @@
 # Extracció de fonts externes
 
+> Revisió documental 28/10/2026: consulteu [l’estat i els límits actualitzats](ESTADO_ACTUAL_2026_10_28.md). Els resultats i recomptes datats d’aquest document són històrics; el codi i les migracions prevalen en cas de discrepància.
+
 L'script `scripts/fetch-source-sample.ts` descarrega una mostra controlada de les URL registrades a `source_documents`.
 
 ```bash

@@ -1,3 +1,4 @@
+import {createHash} from 'node:crypto';
 /** Migration baseline: keep the non-reasoning workload and Standard pricing explicit. */
 export const OPENAI_MIGRATION_MODEL = 'gpt-6-luna';
 
@@ -20,4 +21,13 @@ export function openAIInputTokenCeiling(body: Record<string, unknown>): number {
 /** Replayed receipts retain the model that actually produced them. */
 export function responseModel(response: Record<string, unknown>, requested: string): string {
  return typeof response.model === 'string' && response.model.length ? response.model : requested;
+}
+
+/** Hash and send the same serialized, prepared JSON. The prefix makes older
+ * unversioned receipts impossible to mistake for this wire contract. */
+export function prepareProviderWireRequest(body:Record<string,unknown>){
+ const request=prepareOpenAIRequest(body);
+ const serialized=JSON.stringify(request);
+ const fingerprint=`prepared-json-v1:${createHash('sha256').update(serialized).digest('hex')}`;
+ return {request,serialized,fingerprint};
 }

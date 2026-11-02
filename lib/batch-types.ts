@@ -1,6 +1,6 @@
 import type {StoredAnalysis} from './analysis-contract';
 import type { FinancingType } from "./financing-types";
-import type { MatchingCandidate } from "./workbench-types";
+import type { MatchingCandidate, UnverifiedCandidateObservation } from "./workbench-types";
 import type { PhaseProgress } from "./pipeline-progress";
 
 export const SOURCE_DATASETS = ["contractacions", "convenis", "raisc_ccaa", "raisc_local"] as const;
@@ -18,7 +18,9 @@ export type BatchJob = {
   status: string; preparationStatus: EvidencePreparationStatus; preparationMessage: string | null;
   errorMessage: string | null; enrichmentStatus: string; enrichmentError: string | null; processingStatus: string;
   analysis?:StoredAnalysis|null; matchingCandidates: MatchingCandidate[];
+  unverifiedCandidateObservations?:UnverifiedCandidateObservation[];
   hasProvision: boolean;
+  conveniState?:'partial'|'approved'|'review'|null;
 };
 export type BatchSummary = {
   reservedCostUsd: number;
@@ -29,7 +31,7 @@ export type BatchSummary = {
   id: string; batchNumber: string; status: string; stage: string; selectedCount: number; preparedCount: number; readyCount: number;
   processedCount: number; analyzedCount: number; reviewCount: number; reviewedCount: number; approvedCount: number; rejectedCount: number; insufficientCount: number; errorCount: number; exportableCount: number; incidences: string[];
   estimatedInputTokens: number; actualInputTokens: number; actualOutputTokens: number; createdAt: string;
-  canExport: boolean; provisionCount: number;
+  canExport: boolean; provisionCount: number; partialCount?:number;
   isActive: boolean;
   progress: { preparation: PhaseProgress; enrichment: PhaseProgress; matching: PhaseProgress };
   jobs: BatchJob[];

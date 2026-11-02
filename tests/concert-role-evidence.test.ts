@@ -18,6 +18,15 @@ test('independent review selects the complete literal source and preserves the k
  const reviewed=applyConcertRoleReview(roles,chunks,{checks:[known]});assert.deepEqual(reviewed.roles.final_service?.quotes,[chunks[1].content]);assert.deepEqual(reviewed.roles.final_service?.evidence_ordinals,[2]);assert.equal(hasLiteralRoleEvidence(reviewed.roles.final_service,chunks),true);assert.deepEqual(roles.final_service,fact);
  for(const patch of [{value:'servei residencial'}, {kind:'no'}])assert.throws(()=>applyConcertRoleReview(roles,chunks,{checks:[{...known,...patch}]}),/CHANGED_FACT/);
 });
+test('case-only changes in a reviewed fact do not become a contradiction',()=>{
+ const initial={...roles,final_population:{...roles.final_population!,value:'Persones amb discapacitat intel·lectual',quotes:['Cita anterior no localitzable al fragment seleccionat.']}};
+ const evidence=[{content:'Resolc assignar el servei a persones amb discapacitat intel·lectual i en faig constar la població destinatària.'},chunks[1]];
+ const review=[{...known,evidence_ordinal:2},{role:'final_population',state:'known',kind:'population',value:'persones amb discapacitat intel·lectual',evidence_ordinal:1}];
+ const checked=applyConcertRoleReviewWithDiagnostics(initial,evidence,{checks:review});
+ assert.equal(checked.roles.final_population?.state,'known');
+ assert.equal(checked.roles.final_population?.value,'Persones amb discapacitat intel·lectual');
+ assert.deepEqual(checked.issues,[]);
+});
 test('contradictory and already literal facts are never overwritten',()=>{
  for(const f of [{...fact,state:'contradictory' as const},{...fact,quotes:[chunks[0].content]}]){
   const complete={...roles,final_service:f};assert.deepEqual(concertRolesNeedingReview(complete,chunks),[]);assert.throws(()=>applyConcertRoleReview(complete,chunks,{checks:[known]}));

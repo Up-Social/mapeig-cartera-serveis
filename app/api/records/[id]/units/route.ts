@@ -1,4 +1,4 @@
-import {recoverConcertDisplayNames} from '@/lib/concerts/presentation';
+import {recoverConcertDisplayNames,recoverPrintedServiceCandidates,recoverPrintedSupportCandidates} from '@/lib/concerts/presentation';
 import {readPages} from '@/lib/read-pages';
 import {hasUnitSchema} from '@/lib/runtime-schema';
 import {createServerSupabase} from '@/lib/records-page';
@@ -12,12 +12,12 @@ export async function GET(_request:Request,{params}:{params:Promise<{id:string}>
   const [units,observations,reconciliations,corrections,documents]=await Promise.all([
    readPages((from,to)=>db.from('record_units').select('*').eq('source_record_id',id).neq('unit_key','legacy').order('created_at').order('id').range(from,to)),
    readPages((from,to)=>db.from('concert_line_observations').select('unit_id,proposed_value,applied').eq('source_record_id',id).order('created_at',{ascending:false}).order('id').range(from,to)),
-   db.from('concert_annex_reconciliations').select('document_id,annex,row_count,sum_cents,declared_cents,reconciled').eq('source_record_id',id),
-   db.from('current_documented_corrections').select('*').eq('source_record_id',id),
-   db.from('source_documents').select('id,extracted_text,quality_flags').eq('source_record_id',id).eq('status','fetched').eq('extraction_partial',false),
+   readPages((from,to)=>db.from('concert_annex_reconciliations').select('id,document_id,document_sha256,annex,row_count,sum_cents,declared_cents,reconciled,coverage').eq('source_record_id',id).order('id').range(from,to)),
+   readPages((from,to)=>db.from('current_documented_corrections').select('*').eq('source_record_id',id).order('id').range(from,to)),
+   readPages((from,to)=>db.from('source_documents').select('id,extracted_text,quality_flags,storage_sha256,extraction_method,extraction_coverage,mime_type,extraction_partial').eq('source_record_id',id).eq('status','fetched').eq('extraction_partial',false).order('id').range(from,to)),
   ]);
-  if(reconciliations.error)throw reconciliations.error;if(corrections.error)throw corrections.error;if(documents.error)throw documents.error;
-  return Response.json({units:recoverConcertDisplayNames(units,documents.data.filter(d=>!d.quality_flags?.includes('corrupt_text'))).map(unit=>{const history=observations.filter(row=>row.unit_id===unit.id),latest=history[0],applied=history.find(row=>row.applied);return {...unit,effective_service_code:corrections.data.find(c=>c.valid&&c.unit_id===unit.id&&c.field==='service_code')?.value??unit.observed_service_code,effective_provider_name:corrections.data.find(c=>c.valid&&c.unit_id===unit.id&&c.field==='provider_name')?.value??unit.provider_name??unit.recovered_provider_name??unit.observed_provider_name,observed_establishment_code:applied?.proposed_value?.resesCode??null,observation:latest?{...applied?.proposed_value,pendingRevision:!latest.applied}:null};}),reconciliations:reconciliations.data});
+  const withNames=recoverConcertDisplayNames(units,documents.filter(d=>!d.quality_flags?.includes('corrupt_text')));
+  return Response.json({units:recoverPrintedSupportCandidates(recoverPrintedServiceCandidates(withNames,documents),documents).map(unit=>{const history=observations.filter(row=>row.unit_id===unit.id),latest=history[0],applied=history.find(row=>row.applied);const codeCorrection=corrections.find(c=>c.unit_id===unit.id&&c.field==='service_code');return {...unit,service_code_correction:codeCorrection?{value:codeCorrection.value,valid:codeCorrection.valid,reviewer:codeCorrection.reviewer,reason:codeCorrection.reason,page:codeCorrection.page,document_id:codeCorrection.document_id}:null,effective_service_code:codeCorrection?.valid?codeCorrection.value:unit.observed_service_code,effective_provider_name:corrections.find(c=>c.valid&&c.unit_id===unit.id&&c.field==='provider_name')?.value??unit.provider_name??unit.recovered_provider_name??unit.observed_provider_name,observed_establishment_code:applied?.proposed_value?.resesCode??null,observation:latest?{...applied?.proposed_value,pendingRevision:!latest.applied}:null};}),reconciliations});
  }catch{return Response.json({error:'No s’han pogut consultar les unitats i les revisions'},{status:500});}
 
 }
@@ -40,7 +40,14 @@ export async function POST(request:Request,{params}:{params:Promise<{id:string}>
   if(!isUuid(body.unitId)||typeof body.approve!=='boolean')return Response.json({error:'Decisió no vàlida'},{status:400});
   const unit=await db.from('record_units').select('id').eq('id',body.unitId).eq('source_record_id',id).maybeSingle();
   if(unit.error||!unit.data)return Response.json({error:'Unitat no trobada'},{status:404});
-  if(body.approve){try{await archiveUnitSource(db,id,body.unitId);}catch(error){return Response.json({error:`No s’ha pogut arxivar la font de la unitat: ${error instanceof Error?error.message:'error de Storage'}`},{status:503});}}
+  if(body.approve){
+   if(process.env.ENABLE_CONCERT_LINE_AWARDS==='true'&&process.env.CONCERT_LINE_READERS_READY==='true'){
+    const line=await db.rpc('concert_line_has_award',{p_record:id,p_unit:body.unitId});
+    if(line.error)return Response.json({error:'No s’ha pogut comprovar el circuit de revisió de la línia.'},{status:503});
+    if(line.data===true)return Response.json({error:'Aquesta línia té una revisió econòmica individual; utilitza el seu circuit de revisió.'},{status:409});
+   }
+   try{await archiveUnitSource(db,id,body.unitId);}catch(error){return Response.json({error:`No s’ha pogut arxivar la font de la unitat: ${error instanceof Error?error.message:'error de Storage'}`},{status:503});}
+  }
  }
  if(!body.unitId){
   const saved=await db.rpc('save_record_unit',{p_record:id,p_expected_job:body.expectedJobId,p_unit:body.unit??{}});

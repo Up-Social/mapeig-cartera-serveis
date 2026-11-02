@@ -25,6 +25,8 @@ export function validateAnalysis(value:AnalysisOutput,all:OfficialService[],chun
  return {...value,candidates:sorted.filter((c,i)=>sorted.findIndex(x=>x.code===c.code)===i)};
 }
 export type StoredAnalysis={rule_audit?:Record<string,unknown>;model_conclusion?:Partial<AnalysisOutput>|null;created_at?:string;id:string;classification:Classification;reasons:string[];explanation:string;service_description:string;target_population:string;catalog_version_id:string;rules_version:string;reviewed_classification:Classification|null;review_notes:string|null;evidence:Array<{content:string;url?:string}>;reliability_status?:'valid'|'invalidated';reliability_reasons?:string[];invalidated_at?:string|null};
+/** A historical conveni aggregate is a review container, not a judgment of every unit. */
+export const isRecipientReviewContainer=(analysis:Pick<StoredAnalysis,'rule_audit'>|null|undefined)=>analysis?.rule_audit?.rule==='review_by_recipient';
 
 /** Historic/replayed incompatible responses stay pending; never infer approval or discard. */
 export function applyFinancingClassification<T extends AnalysisOutput & {rule_audit?:Record<string,unknown>}>(value:T,financingType:string):T {

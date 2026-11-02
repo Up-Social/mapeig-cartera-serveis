@@ -1,6 +1,6 @@
 import {recordDataStage} from './record-stage-copy';
 import {diagnosticSummary} from './evidence-diagnostics';
-import type { Classification } from "./analysis-contract";
+import {isRecipientReviewContainer,type Classification} from "./analysis-contract";
 import type { BatchJob } from "./batch-types";
 
 export type BatchResultGuidance = {
@@ -19,12 +19,34 @@ const REVIEW_TITLES: Record<Classification, string> = {
   discarded: "Cal confirmar el descart",
   insufficient_evidence: "Cal revisar la falta d’evidència",
 };
+export const batchResultClassification=(job:BatchJob)=>job.status==='needs_review'&&isRecipientReviewContainer(job.analysis)?null:(job.analysis?.reviewed_classification??job.analysis?.classification??null);
 
 export function batchResultGuidance(job: BatchJob): BatchResultGuidance {
   if (job.status === "error") return technicalGuidance(job);
+  if(job.conveniState==='partial'&&job.currentDestination!=='issues')return {
+    kind:'review',label:'Aprovat amb unitats pendents',title:'Cal revisar les unitats pendents del conveni',
+    explanation:'Hi ha atribucions aprovades vigents i altres unitats que encara requereixen revisió.',
+    nextStep:'Obre el conveni i contrasta les unitats pendents amb les seves fonts.',technicalDetail:null,phase:null,
+  };
+
+  if(job.status==='needs_review'&&job.currentDestination!=='issues'&&job.analysis?.reliability_status!=='invalidated'&&isRecipientReviewContainer(job.analysis))return {
+    kind:'review',label:'Revisió humana pendent',title:'Cal revisar les unitats del conveni',
+    explanation:job.analysis?.explanation||'El conveni conté propostes per receptor i període.',
+    nextStep:'Revisa individualment cada unitat i la seva evidència.',technicalDetail:null,phase:null,
+  };
 
   if (job.status === "needs_review" && (job.currentDestination === "issues" || job.analysis?.classification === "insufficient_evidence")) {
     const insufficient = job.analysis?.classification === "insufficient_evidence";
+    const possibleConcertProposal = insufficient && job.financingType === 'concert' &&
+      job.analysis?.reliability_status !== 'invalidated' && !job.analysis?.reviewed_classification &&
+      job.analysis?.rule_audit?.version === 'concert-title-no-award-v1' && job.analysis?.rule_audit?.rule === 'proposal';
+    if (possibleConcertProposal) return {
+      kind: 'issue', label: 'Incidència · possible proposta provisional',
+      title: 'Possible proposta de concert pendent de confirmar',
+      explanation: 'La informació disponible apunta a una proposta provisional, però cal contrastar el document i la resolució definitiva. Aquesta proposta no acredita finançament nou.',
+      nextStep: 'Obre el registre des d’Incidències i comprova els documents abans de revisar el servei i qualsevol import.',
+      technicalDetail: null, phase: null,
+    };
     return {
       kind: "issue",
       label: insufficient ? "Incidència · evidència insuficient" : "Incidència · resultat no fiable",

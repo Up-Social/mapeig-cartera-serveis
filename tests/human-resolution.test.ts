@@ -36,6 +36,14 @@ test('an invalidated correction never supplies a service code or falls back to a
  assert.equal(effectiveUnitCode({...unit,id:'other'},[correction]),null);
  assert.equal(unit.observed_service_code,null);
 });
+test('a documented specific STO correction applies only to its own line and never rewrites the printed parent',()=>{
+ const unit={id:'sto',observed_service_code:'1.2.6.2.4.1'};
+ const correction={unit_id:'sto',field:'service_code',value:'1.2.6.2.4.1.1',valid:true} as DocumentedCorrection;
+ assert.equal(effectiveUnitCode(unit,[correction]),'1.2.6.2.4.1.1');
+ assert.equal(effectiveUnitCode({...unit,id:'other'},[correction]),'1.2.6.2.4.1');
+ assert.equal(effectiveUnitCode(unit,[{...correction,valid:false}]),'1.2.6.2.4.1');
+ assert.equal(unit.observed_service_code,'1.2.6.2.4.1');
+});
 test('manual resolution is unavailable for running, approved and historical attempts',()=>{
  for(const status of ['matching','queued','approved','corrected'])assert.equal(canResolveManually({currentJobId:'job',currentJobStatus:status}),false);
  assert.equal(canResolveManually({currentJobId:'job',currentJobStatus:'needs_review'}),true);

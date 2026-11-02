@@ -22,6 +22,7 @@ export type EvidenceQualityInput = {
   textLength?: number | null;
   extractionMethod?: string | null;
   qualityFlags?: string[] | null;
+  coverageVerified?: boolean;
 };
 
 const GENERIC_PORTAL_PATTERNS = [
@@ -47,7 +48,7 @@ export function evidenceRejectionReasons(
   const reasons: EvidenceRejectionReason[] = [];
 
   if (textDefects(input.content).includes("corrupt_text") || flags.includes("corrupt_text")) reasons.push("corrupt_text");
-  if (flags.includes("incomplete_extraction")) reasons.push("incomplete_extraction");
+  if (flags.includes("incomplete_extraction") || input.coverageVerified === false) reasons.push("incomplete_extraction");
   if (isUnusableWebExtraction(content)) reasons.push("javascript_shell");
   if (isGenericPortalText(content)) reasons.push("generic_portal");
   if (content.length < 120 || textLength < 300) {

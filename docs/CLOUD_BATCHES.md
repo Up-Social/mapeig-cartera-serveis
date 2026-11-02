@@ -1,5 +1,7 @@
 # Ejecución de producción en Vercel
 
+> Revisió documental 28/10/2026: consulteu [l’estat i els límits actualitzats](ESTADO_ACTUAL_2026_10_28.md). Els resultats i recomptes datats d’aquest document són històrics; el codi i les migracions prevalen en cas de discrepància.
+
 Producción usa `WORKER_EXECUTION_MODE=vercel_workflow`; local conserva sus comandos y configuración. `disabled` pausa el lanzamiento y las acciones de procesamiento. Las previsualizaciones nunca ejecutan tareas reales. No cambiar de plan automáticamente.
 
 ## Componentes
@@ -9,6 +11,10 @@ Workflows recibe únicamente el UUID de la tarea. Supabase conserva reservas, ge
 Variables exclusivas de producción: `WORKER_EXECUTION_MODE`, `CLOUD_SANDBOX_SNAPSHOT`, `CRON_SECRET`, además de las claves actuales de Supabase/OpenAI. Sandbox se autentica con la identidad OIDC de Vercel. No exportar esa identidad a la máquina de extracción.
 
 La conciliación de `/api/cron/cloud` está autenticada con CRON_SECRET y se ejecuta diariamente a las 06:17 UTC. Los arranques normales son inmediatos tras encolar; un fallo de arranque puede esperar hasta la conciliación o hasta pulsar Reintentar. No promete un SLA.
+
+## Protección de Sandbox y almacenamiento
+
+Las sesiones de extracción son efímeras (`persistent:false`), sin red y con cierre comprobado. Un inventario no disponible o inseguro, una creación incierta, un cierre no verificado o un snapshot inesperado activan contención. La activación exige inventario sano y una prueba sintética de PDF y OCR; no reanuda tareas históricas. Véase [el incidente y su seguimiento](STORAGE_VERCEL_2026_10.md).
 
 ## Recuperación
 

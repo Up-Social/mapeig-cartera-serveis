@@ -1,3 +1,4 @@
+import {fakeOcrJournal} from './cloud-ocr-journal-fixture';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { APIError, Sandbox } from '@vercel/sandbox';
@@ -21,6 +22,8 @@ function database() {
     }) },
     rpc: async (name: string, args: Record<string, unknown>) => {
       if (name === 'cloud_checkpoint') checkpoints.set(String(args.p_key), args.p_value);
+      if (name === 'cloud_ocr_page_journal_step') return fakeOcrJournal(checkpoints,args);
+      if (name === 'cloud_read_pdf_checkpoint') {const key=String(args.p_key);return {data:checkpoints.has(key)?{found:true,...(args.p_kind==='legacy'?{}:{value:checkpoints.get(key)})}:{found:false},error:null};}
       if (name === 'cloud_resource' && args.p_release) releases.push(args);
       return { data: true, error: null };
     },

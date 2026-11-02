@@ -1,0 +1,38 @@
+-- Standalone synthetic schema. This is NOT the deployed Supabase schema.
+-- The harness additionally installs the real validate_concert_unit_link trigger
+-- body from migration 20261014220000 before loading the candidate fixture.
+create role anon;
+create role authenticated;
+create role service_role;
+create table public.source_records(
+ id uuid primary key,source_dataset text not null,source_record_id text not null,mechanism text not null,
+ title text not null,financing_type text not null
+);
+create table public.record_units(
+ id uuid primary key,source_record_id uuid not null references public.source_records(id) on delete cascade,
+ unit_key text not null,provider_name text,reses_code text,territory text,status text not null,act_type text not null,
+ horizon_state text,unique(source_record_id,unit_key)
+);
+create table public.concert_unit_links(
+ id uuid primary key,later_unit_id uuid not null references public.record_units(id) on delete cascade,
+ earlier_unit_id uuid not null references public.record_units(id) on delete cascade,
+ root_unit_id uuid not null references public.record_units(id) on delete cascade,relation_kind text not null,
+ matching_method text not null,evidence text not null,status text not null default 'candidate',review_note text,
+ reviewed_at timestamptz,version integer not null default 1,
+ check(later_unit_id<>earlier_unit_id),unique(later_unit_id,earlier_unit_id)
+);
+create unique index concert_one_confirmed_predecessor on public.concert_unit_links(later_unit_id) where status='confirmed';
+create view public.concert_economic_source as
+ select u.*,md5(to_jsonb(u)::text) as source_fingerprint from public.record_units u
+ join public.source_records r on r.id=u.source_record_id where r.financing_type='concert' and u.unit_key<>'legacy';
+create table public.concert_review_audit(
+ id bigint generated always as identity primary key,kind text not null,subject_id uuid not null,
+ before_value jsonb,after_value jsonb not null,changed_at timestamptz default now()
+);
+-- Preserve the original RPC's privileges through CREATE OR REPLACE in fixture.
+create function public.review_concert_link(p_link uuid,p_version integer,p_later_fingerprint text,p_earlier_fingerprint text,p_status text,p_note text) returns integer
+ language sql security definer as $$select 0$$;
+revoke all on function public.review_concert_link(uuid,integer,text,text,text,text) from public,anon,authenticated;
+grant execute on function public.review_concert_link(uuid,integer,text,text,text,text) to service_role;
+grant select,insert,update,delete on public.source_records,public.record_units,public.concert_unit_links to service_role;
+grant select on public.concert_economic_source,public.concert_review_audit to service_role;

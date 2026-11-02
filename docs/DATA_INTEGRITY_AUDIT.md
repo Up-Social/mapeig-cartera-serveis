@@ -1,5 +1,7 @@
 # Auditoria d'integritat i coherència de dades
 
+> Revisió documental 28/10/2026: consulteu [l’estat i els límits actualitzats](ESTADO_ACTUAL_2026_10_28.md). Els resultats i recomptes datats d’aquest document són històrics; el codi i les migracions prevalen en cas de discrepància.
+
 > Document històric: fotografia verificada de l'estat de la base de dades el 2 de setembre de 2026. Els recomptes d'aquest informe no descriuen necessàriament l'estat actual després de noves importacions o processaments.
 
 ## Abast i metodologia

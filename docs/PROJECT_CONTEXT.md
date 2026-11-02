@@ -1,5 +1,13 @@
 # Context del projecte
 
+## Entorn de treball vigent — 02/11/2026
+
+Per decisió de Carles, Supabase local queda fora d’ús. El projecte Docker original `mapeig-cartera-serveis` es conserva aturat, amb reinici automàtic desactivat, com a còpia local per a una possible recuperació futura. No està sincronitzat automàticament amb producció ni s’ha verificat aquí la data de la seva còpia. No iniciar-lo, descarregar-hi la base remota ni crear entorns Docker nous sense una nova instrucció expressa. Els contenidors auxiliars `cartera-workflow-test` i `cartera-convenis-pilot` s’han eliminat; els volums es conserven fora d’execució.
+
+La validació funcional de Concerts es farà a la web de producció després de preparar i autoritzar la versió concreta i les migracions. Es permeten comprovacions locals lleugeres de codi sense serveis ni connexió a dades. No publicar ni aplicar indiscriminadament les migracions candidates acumulades. La petició actual és preparar el paquet i avisar abans de publicar. Aquesta instrucció preval sobre les referències històriques a proves amb Supabase local.
+
+> Revisió documental 28/10/2026: consulteu [l’estat i els límits actualitzats](ESTADO_ACTUAL_2026_10_28.md). Els resultats i recomptes datats d’aquest document són històrics; el codi i les migracions prevalen en cas de discrepància.
+
 ## Política de branques (15/10/2026)
 
 La branca de treball per defecte i l'única que s'ha de mantenir és `main`, tant en local com al remot. No es poden crear branques de funcionalitat, correcció, tasca, agent o worktree sense preguntar abans a l'usuari i obtenir-ne autorització explícita per al nom i el motiu. Una petició d'implementar, corregir, provar o desplegar no autoritza a crear una branca nova. Treballar i publicar directament a `main` no elimina les comprovacions, la traçabilitat ni les autoritzacions de publicació aplicables.
@@ -10,7 +18,7 @@ La branca de treball per defecte i l'única que s'ha de mantenir és `main`, tan
 
 **Nom:** Mapeig cartera de serveis.
 
-Prototip web intern per carregar registres de finançament públic, seleccionar-los i processar-los de manera controlada, proposar una correspondència amb la Cartera de serveis socials i revisar el resultat per pantalla. Es pot executar completament en local o desplegar la web amb un worker extern.
+Prototip web intern per carregar registres de finançament públic, seleccionar-los i processar-los de manera controlada, proposar una correspondència amb la Cartera de serveis socials i revisar el resultat per pantalla. Es pot executar en local amb el destí de dades verificat; la producció documentada utilitza Vercel Workflows i Sandbox.
 
 ## Stack i entorns actuals
 

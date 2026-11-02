@@ -5,6 +5,8 @@ import type { FinancingType } from "./financing-types";
 import type { RecordOperation } from "./record-operation";
 import type { SourceRecord } from "./workbench-types";
 import { failureLabels, type FailureKind } from './cloud/errors';
+import {isRecipientReviewContainer} from './analysis-contract';
+import {isConveniMissingFieldMessage} from './convenis/missing-field-messages';
 
 export const ISSUE_CATEGORIES = [
   "rejected",
@@ -73,7 +75,8 @@ export function classifyIssue(record: SourceRecord): IssueRecord | null {
     const category = phase === 'enrichment' ? 'enrichment_error' : phase === 'evidence' ? 'document_error' : 'matching_error';
     // A paused worker can retain a ready/matching job. Do not offer a new call
     // before its received/unknown provider response has been reconciled.
-    return issue(record, category, phase, failureLabels[record.operationProgress.failureKind as FailureKind] ?? failureLabels.internal, null);
+    const safeConveniDetail=record.financingType==='conveni'&&record.currentJobStatus==='error'&&record.operationProgress.failureKind==='validation'&&typeof record.matchingError==='string'&&isConveniMissingFieldMessage(record.matchingError);
+    return issue(record, category, phase, safeConveniDetail?record.matchingError!:failureLabels[record.operationProgress.failureKind as FailureKind] ?? failureLabels.internal, null);
   }
   if (record.analysis?.reliability_status === "invalidated") {
     return issue(
@@ -97,6 +100,7 @@ export function classifyIssue(record: SourceRecord): IssueRecord | null {
   }
   const classification=record.analysis?.reviewed_classification??record.analysis?.classification;
   if(currentReservation(record)&&record.evidenceStatus!=='error'&&record.enrichmentStatus!=='error'&&!record.matchingError)return null;
+  if(record.financingType==='conveni'&&record.currentJobStatus==='needs_review'&&isRecipientReviewContainer(record.analysis)&&record.evidenceStatus==='ready'&&record.enrichmentStatus==='completed'&&!record.matchingError)return null;
   if(record.financingType==='concert'&&classification==='out_of_portfolio')return issue(record,'insufficient_evidence','review','La classificació històrica Fora de cartera no és vàlida per a concerts; cal revisar la resolució.','match');
   if(classification==='discarded'||classification==='out_of_portfolio')return null;
   if(classification==='insufficient_evidence')return issue(record,'insufficient_evidence','review',record.analysis?.review_notes??(record.analysis?diagnosticSummary(record.analysis):'Falta evidència acreditada.'),requiresPdfOcr(record)?'ocr':'process');

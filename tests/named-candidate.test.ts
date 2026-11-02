@@ -1,7 +1,12 @@
 import test from 'node:test';import assert from 'node:assert/strict';
-import {addNamedCandidates,bindExplicitCodeCandidates,findExplicitServiceEvidence} from '../lib/named-candidate';import type {AnalysisOutput} from '../lib/analysis-contract';import type {OfficialService} from '../lib/official-catalog';
+import {addNamedCandidates,bindExplicitCodeCandidates,findExplicitServiceEvidence,prioritizeExplicitServices} from '../lib/named-candidate';import type {AnalysisOutput} from '../lib/analysis-contract';import type {OfficialService} from '../lib/official-catalog';
 const service={service_code:'1.2.7.5',service_name:'Servei prelaboral',benefit_type:'service',legal_reference:'legal',description:'Preparació laboral',target_population:'Persones amb malaltia mental',conditions:'Acreditació',normative_fields:{}} as OfficialService;
 const base:AnalysisOutput={classification:'in_portfolio',reasons:[],explanation:'El document acredita un servei social específic.',service_description:'Modificació de places de serveis prelaborals',target_population:'Persones amb malaltia mental',evidence_ordinals:[1],population_verified:true,social_service_verified:true,candidates:[]};
+test('explicit codes prioritize the catalog but never remove other eligible services',()=>{
+ const other={...service,service_code:'1.2.7.6',service_name:'Servei de tutela'};
+ assert.deepEqual(prioritizeExplicitServices([other,service],[{service}]).map(s=>s.service_code),['1.2.7.5','1.2.7.6']);
+ assert.deepEqual(prioritizeExplicitServices([other,service],[]).map(s=>s.service_code),['1.2.7.6','1.2.7.5']);
+});
 test('a named service is proposed only when description and official evidence agree',()=>{
  const result=addNamedCandidates(base,[service],[{content:'Resolució de places de serveis prelaborals per a persones amb malaltia mental.'}]);
  assert.deepEqual(result.candidates.map(candidate=>candidate.code),['1.2.7.5']);
@@ -29,4 +34,16 @@ test('a literal code without a matching service description is not sufficient',(
  const value={...base,candidates:[{code:service.service_code,score:.8,population_compatible:true,legal_reference:'legal',evidence_ordinals:[1],rationale:'Candidat inicial acreditat per altres fets.',evidence_explanation:'Descripció del servei acreditada.'}]};
  const result=bindExplicitCodeCandidates(value,[service],[{content:'Referència tècnica 1.2.7.5 sense descripció del servei ni destinataris.'}]);
  assert.deepEqual(result,value);
+});
+test('terminal punctuation after a code is allowed, but a longer child code is distinct',()=>{
+ assert.equal(findExplicitServiceEvidence([service],[{content:'1.2.7.5. Servei prelaboral per a persones.'}]).length,1);
+ assert.equal(findExplicitServiceEvidence([service],[{content:'1.2.7.5.1 Servei prelaboral per a persones.'}]).length,0);
+});
+test('a different candidate with its complete name in its own evidence is retained for audit',()=>{
+ const other={...service,service_code:'1.2.7.6',service_name:'Servei de tutela per a persones amb malaltia mental'};
+ const candidate={code:other.service_code,score:.8,population_compatible:true,legal_reference:'legal',evidence_ordinals:[2],rationale:'Proposta per revisar.',evidence_explanation:'Denominació documental.'};
+ const evidence=[{content:'1.2.7.5 Servei prelaboral per a persones.'},{content:'Servei de tutela per a persones amb malaltia mental.'}];
+ const result=bindExplicitCodeCandidates({...base,candidates:[candidate]},[service,other],evidence);
+ assert.deepEqual(result.candidates.map(c=>c.code),['1.2.7.5','1.2.7.6']);
+ assert.deepEqual(result.evidence_ordinals,[1,2]);
 });

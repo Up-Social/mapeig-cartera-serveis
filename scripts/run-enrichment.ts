@@ -1,12 +1,15 @@
 import {assertProcessingEnabled,isProcessingPaused,pauseLocalProcessing,PROCESSING_PAUSE_EXIT_CODE} from '../lib/processing-control';
-import {processConveni} from '../lib/convenis/process';
-import {responseModel} from '../lib/openai-model';
-import {readEvidenceChunks} from '../lib/pipeline/evidence-reader';
+import {assertLocalMatchingType,assertLocalEnrichmentScope,isLocalTypeBlocked} from '../lib/pipeline/local-matching-guard';
+import {beginLocalEnrichment,commitLocalEnrichment,localEnrichmentSnapshot,validateLocalEvidenceOrdinals} from '../lib/pipeline/local-enrichment-commit';
+import {ConveniFailure,processConveni} from '../lib/convenis/process';
+import {prepareProviderWireRequest,responseModel} from '../lib/openai-model';
+import {loadLocalEnrichmentInput} from '../lib/pipeline/local-enrichment-input';
 import {ROLE_INSTRUCTIONS} from '../lib/scope-rules';
-import {journaledProviderRequest} from '../lib/provider-journal';
+import {journaledProviderRequest,assertNoUnsettledLocalCalls} from '../lib/provider-journal';
 import {validateScopeFacts} from '../lib/normative-matching';
 import {bindEnrichmentRoles,enrichmentSchema,sanitize,extractOutputText,type Enrichment} from '../lib/pipeline/enrichment-contract';
 import {isEligibleEvidence} from '../lib/evidence-eligibility';
+import {hasCurrentTextCoverage} from '../lib/pipeline/document-input';
 import {selectEvidenceWindow} from '../lib/cloud/evidence-window';
 import { createClient } from "@supabase/supabase-js";
 import WebSocket from "ws";
@@ -22,49 +25,45 @@ const supabase = createClient(url, key, { auth: { persistSession: false, autoRef
 
 async function main() {
   await assertProcessingEnabled(supabase);
+  const current=await assertLocalEnrichmentScope(supabase,recordId!,process.env.WORKFLOW_JOB_ID || undefined);
+  let snapshot:Record<string,unknown>|null=null;
   try {
-    let jq=supabase.from('pipeline_jobs').select('id,source_record_id').eq('source_record_id',recordId).order('created_at',{ascending:false}).order('id',{ascending:false}).limit(1);
-    if(process.env.WORKFLOW_JOB_ID)jq=jq.eq('id',process.env.WORKFLOW_JOB_ID);
-    const current=await jq.single();if(current.error)throw current.error;
-    if(await processConveni(supabase,current.data,body=>journaledProviderRequest(supabase,current.data.id,'conveni',body)))return;
+    await assertNoUnsettledLocalCalls(supabase,current.id);
+    if(await processConveni(supabase,current,body=>journaledProviderRequest(supabase,current.id,'conveni',body)))return;
     if(!openaiKey||!model)throw Error('Falta la configuració OpenAI');
-    const { data: record, error: recordError } = await supabase.from("source_records").select("id,source_dataset,source_record_id,mechanism,title,provider_name,amount,source_payload,source_documents!inner(id,status,text_length,extraction_method,quality_flags)").eq("id", recordId).eq("source_documents.status", "fetched").single();
-    if (recordError) throw recordError;
-    const documents = new Map(record.source_documents.map((document: { id: string; text_length:number|null; extraction_method:string|null; quality_flags:string[]|null }) => [document.id, document]));
-    const evidence = await readEvidenceChunks(supabase, [...documents.keys()]);
+    const {record,documents:sourceDocuments,evidence}=await loadLocalEnrichmentInput(supabase,recordId!);
+    assertLocalMatchingType(record.financing_type);
+    const documents = new Map(sourceDocuments.filter(document=>document.status==='fetched').map(document=>[document.id,document]));
+    snapshot=localEnrichmentSnapshot(record,sourceDocuments,evidence);
+    await beginLocalEnrichment(supabase,current.id,record.id,snapshot);
     const chunks=selectEvidenceWindow((evidence??[]).filter(chunk=>{
       const document=documents.get(chunk.source_document_id);
-      return isEligibleEvidence({content:chunk.content,textLength:document?.text_length,extractionMethod:document?.extraction_method,qualityFlags:document?.quality_flags});
+      return isEligibleEvidence({content:chunk.content,textLength:document?.text_length,extractionMethod:document?.extraction_method,qualityFlags:document?.quality_flags,coverageVerified:!!document&&hasCurrentTextCoverage(document.extraction_method,document.extraction_coverage,document.mime_type,document.extraction_partial)});
     }));
     if (!chunks.length) {
-      const saved=await supabase.from('record_enrichments').upsert({source_record_id:record.id,extracted_title:null,provider_name:null,provider_nif:null,mechanism:null,award_date:null,amount:null,contracting_body:null,target_population:null,scope_facts:null,summary:'No hi ha evidència oficial llegible i substantiva.',confidence:0,engine:'deterministic-evidence-policy',engine_version:'substantive-evidence-v2'},{onConflict:'source_record_id'}).select('id').single();
-      if(saved.error)throw saved.error;
-      const cleared=await supabase.from('record_enrichment_evidence').delete().eq('enrichment_id',saved.data.id);if(cleared.error)throw cleared.error;
-      const updated=await supabase.from('source_records').update({enrichment_status:'completed',enrichment_error:null}).eq('id',record.id);if(updated.error)throw updated.error;return;
+      if([...documents.values()].some(d=>!hasCurrentTextCoverage(d.extraction_method,d.extraction_coverage,d.mime_type,d.extraction_partial)))throw Error('Cal tornar a verificar la cobertura del text arxivat abans de contrastar les dades.');
+      await commitLocalEnrichment(supabase,current.id,record.id,'complete_no_evidence',{extracted_title:null,provider_name:null,provider_nif:null,mechanism:null,award_date:null,amount:null,contracting_body:null,target_population:null,scope_facts:null,summary:'No hi ha evidència oficial llegible i substantiva.',confidence:0,engine:'deterministic-evidence-policy',engine_version:'substantive-evidence-v2'},[],null,snapshot);return;
     }
-    let jobQuery=supabase.from('pipeline_jobs').select('id').eq('source_record_id',record.id).order('created_at',{ascending:false}).order('id',{ascending:false}).limit(1);
-    if(process.env.WORKFLOW_JOB_ID)jobQuery=jobQuery.eq('id',process.env.WORKFLOW_JOB_ID);
-    const job=await jobQuery.single();if(job.error)throw job.error;
-    const raw=await journaledProviderRequest(supabase,job.data.id,'enrichment',{
+    const providerRequest={
       model,
       instructions: ROLE_INSTRUCTIONS+" Extreu camps estructurats exclusivament dels fragments dels documents oficials. Usa null quan un camp no hi consti, no completis dades per intuïció i cita els ordinals que sustenten l'extracció. Separa scope_facts: financed_object (objecte finançat), funding_recipient (receptor dels diners), final_recipient (destinatari final) i administrative_role (funció de l’acte); cada valor ha de citar els seus fragments, o ser null. No facis cap matching ni proposis serveis de la Cartera. Respon en català.",
       input: `REGISTRE ORIGINAL (només context)\n${JSON.stringify({ dataset: record.source_dataset, id: record.source_record_id, mechanism: record.mechanism, title: record.title, provider: record.provider_name, amount: record.amount, original: sanitize(record.source_payload) })}\n\nFRAGMENTS OFICIALS\n${chunks.map((chunk, index) => `[${index + 1}] ${chunk.content}`).join("\n\n")}`,
       text: { format: { type: "json_schema", name: "official_enrichment", strict: true, schema: enrichmentSchema() } }, max_output_tokens: 2400,
-    });
+    };
+    const wireHash=prepareProviderWireRequest(providerRequest).fingerprint;
+    const raw=await journaledProviderRequest(supabase,current.id,'enrichment',providerRequest);
     const enrichment = bindEnrichmentRoles(JSON.parse(extractOutputText(raw)) as Enrichment,chunks);
     validateScopeFacts(enrichment.scope_facts,chunks.length);
     const awardDate = enrichment.award_date && /^\d{4}-\d{2}-\d{2}$/.test(enrichment.award_date) ? enrichment.award_date : null;
-    const { data: stored, error: storedError } = await supabase.from("record_enrichments").upsert({ source_record_id: record.id, extracted_title: enrichment.title, provider_name: enrichment.provider_name, provider_nif: enrichment.provider_nif, mechanism: enrichment.mechanism, award_date: awardDate, amount: enrichment.amount, contracting_body: enrichment.contracting_body, target_population: enrichment.target_population, scope_facts:enrichment.scope_facts, summary: enrichment.summary, confidence: enrichment.confidence, engine: "openai-responses-enrichment", engine_version: responseModel(raw,model), updated_at: new Date().toISOString() }, { onConflict: "source_record_id" }).select("id").single();
-    if (storedError) throw storedError;
-    await supabase.from("record_enrichment_evidence").delete().eq("enrichment_id", stored.id);
-    const citedEvidence = [...new Set(enrichment.evidence_ordinals)].map((ordinal) => chunks[ordinal - 1]).filter(Boolean);
-    if (citedEvidence.length) { const { error } = await supabase.from("record_enrichment_evidence").insert(citedEvidence.map((chunk) => ({ enrichment_id: stored.id, evidence_chunk_id: chunk.id }))); if (error) throw error; }
-    await supabase.from("source_records").update({ enrichment_status: "completed", enrichment_error: null, processing_status: "preparat", updated_at: new Date().toISOString() }).eq("id", record.id);
+    const citedEvidence = validateLocalEvidenceOrdinals(enrichment.evidence_ordinals,chunks.length).map(ordinal=>chunks[ordinal-1]);
+    await commitLocalEnrichment(supabase,current.id,record.id,'complete',{extracted_title:enrichment.title,provider_name:enrichment.provider_name,provider_nif:enrichment.provider_nif,mechanism:enrichment.mechanism,award_date:awardDate,amount:enrichment.amount,contracting_body:enrichment.contracting_body,target_population:enrichment.target_population,scope_facts:enrichment.scope_facts,summary:enrichment.summary,confidence:enrichment.confidence,engine:'openai-responses-enrichment',engine_version:responseModel(raw,model)},citedEvidence.map(chunk=>chunk.id),null,snapshot,{wireHash,response:raw});
     console.log(`${record.source_record_id}: contrast oficial completat`);
   } catch (error) {
-    if(isProcessingPaused(error))throw error;
+    if(isProcessingPaused(error)||isLocalTypeBlocked(error))throw error;
+    if(error instanceof Error&&error.message.includes('PROVIDER_UNKNOWN'))throw error;
+    if(error instanceof ConveniFailure&&error.code==='STALE_OR_INVALID_CONVENI')throw new Error('LOCAL_TYPE_BLOCKED: La proposta del conveni ja no es pot confirmar. Revisa el lot.');
     const message = formatError(error);
-    await supabase.from("source_records").update({ enrichment_status: "error", enrichment_error: message.slice(0, 1000), processing_status: "error", updated_at: new Date().toISOString() }).eq("id", recordId);
+    await commitLocalEnrichment(supabase,current.id,recordId!,'error',null,[],message,snapshot);
     throw new Error(message);
   }
 }

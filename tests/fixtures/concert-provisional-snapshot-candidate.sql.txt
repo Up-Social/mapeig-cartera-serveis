@@ -1,0 +1,30 @@
+-- Synthetic S1-6 fixture and closed candidate migrations must exist.
+-- Runs in the disposable migrated database and always rolls back its changes.
+begin;
+do $$
+declare r constant uuid:='11111111-1111-4111-8111-111111111111'; d uuid; s jsonb; outcome jsonb; v text; bad_ boolean;
+begin
+ if has_function_privilege('service_role','concert_provisional_complete_candidate.snapshot(uuid,uuid)','EXECUTE') or
+    has_function_privilege('service_role','concert_provisional_complete_candidate.capture_checked(uuid,uuid,uuid,text)','EXECUTE') or
+    has_function_privilege('authenticated','concert_provisional_complete_candidate.capture_checked(uuid,uuid,uuid,text)','EXECUTE') or
+    has_function_privilege('anon','concert_provisional_complete_candidate.snapshot(uuid,uuid)','EXECUTE') then raise exception 'SNAPSHOT_EXPOSED';end if;
+ select document_id into strict d from concert_provisional_complete_candidate.sets where record_id=r limit 1;
+ s:=concert_provisional_complete_candidate.snapshot(r,d);v:=s->>'version';
+ if v !~ '^[0-9a-f]{64}$' or s->'physicalSourceVerified'<>'false'::jsonb or s->'textProvenanceVerified'<>'false'::jsonb or s->'sumable'<>'false'::jsonb or s->'current'->>'state'<>'provisional' then raise exception 'SNAPSHOT_INVALID';end if;
+ outcome:=concert_provisional_complete_candidate.capture_checked(gen_random_uuid(),r,d,v);
+ if outcome->>'status'<>'already_current' or outcome->'sumable'<>'false'::jsonb then raise exception 'SNAPSHOT_REPLAY_INVALID';end if;
+ bad_:=false;
+ begin
+  update public.source_documents set extracted_text=extracted_text||' synthetic' where id=d;
+  perform concert_provisional_complete_candidate.capture_checked(gen_random_uuid(),r,d,v);
+ exception when raise_exception then if sqlerrm='PROVISIONAL_SOURCE_CHANGED' then bad_:=true;else raise;end if;end;
+ if not bad_ then raise exception 'SNAPSHOT_TEXT_STALE_ACCEPTED';end if;
+ bad_:=false;
+ begin
+  update public.source_records set title=title||' synthetic' where id=r;
+  perform concert_provisional_complete_candidate.capture_checked(gen_random_uuid(),r,d,v);
+ exception when raise_exception then if sqlerrm='PROVISIONAL_SOURCE_CHANGED' then bad_:=true;else raise;end if;end;
+ if not bad_ then raise exception 'SNAPSHOT_TITLE_STALE_ACCEPTED';end if;
+ if concert_provisional_complete_candidate.snapshot(r,gen_random_uuid()) is not null then raise exception 'SNAPSHOT_WRONG_DOCUMENT';end if;
+end $$;
+rollback;

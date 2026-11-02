@@ -1,7 +1,7 @@
 import {concertUnitName} from './display-name';
 import {projectConcertBalances,type ConcertFinancialLine} from './financial-ledger';
 export type EconomicUnit={
- document_identity?:string;recovered_provider_name?:string|null;recovered_service_name?:string|null;
+ document_identity?:string;recovered_provider_name?:string|null;recovered_service_name?:string|null;line_award_state?:'current'|'stale';
  id:string;source_record_id:string;unit_key:string;act_type:string;status:string;source_fingerprint:string;
  provider_name:string|null;observed_provider_name:string|null;provider_nif:string|null;reses_code:string|null;
  service_code:string|null;observed_service_code:string|null;territory:string|null;period:string|null;
@@ -20,11 +20,13 @@ export type ConcertEvolutionData={missingLines?:MissingConcertLines[];units:Econ
 export type EvolutionMovement={unitId:string;recordId:string;rootId:string|null;provider:string;operation:string;period:string;amountCents:number|null;amountKind:EconomicReview['amount_kind'];
  status:'reviewed'|'pending'|'excluded';issues:string[];effectiveAt:string|null;beforeCents?:number|null;afterCents?:number|null};
 export type EvolutionBalance={rootId:string;rootIds:string[];providerNif:string|null;provider:string;service:string;territory:string;period:string;funder:string;amountCents:number|null;maximum:boolean;issues:string[]};
-export const ECONOMIC_RULES_VERSION='concert-economics-2024-v3';
+export const ECONOMIC_RULES_VERSION='concert-economics-2024-v4';
 export const ECONOMIC_AMOUNT_LABELS={exact:'Import documental',maximum:'Màxim autoritzat · no és despesa real',unknown:'Import no acreditat'};
 const name=concertUnitName;
 const excluded=(u:EconomicUnit)=>['out_of_scope','pre_2024_origin_unavailable'].includes(u.horizon_state??'');
+const agreementIdentity=(u:EconomicUnit)=>[u.document_identity??u.storage_sha256,u.unit_key.startsWith('official-annex:')?u.unit_key.split(':').slice(2).join(':'):u.evidence_quote,u.page].join('|');
 const iso=(s:string|null):s is string=>!!s&&/^\d{4}-\d{2}-\d{2}$/.test(s)&&!Number.isNaN(Date.parse(s))&&new Date(`${s}T00:00:00Z`).toISOString().slice(0,10)===s;
+export const isConcertCutoff=(value:string):boolean=>iso(value);
 /** Parse euros without binary multiplication or rounding away invalid precision. */
 export function euroCents(value:string|number|null):number|null{
  if(value===null||value==='')return null;
@@ -73,6 +75,7 @@ export function concertEvolution(data:ConcertEvolutionData,cutoff:string){
   if(c.issue)issues.push(c.issue);
   if(!review||review.status!=='approved')issues.push('Interpretació econòmica pendent de revisió');
   if(u.status!=='approved')issues.push('Línia pendent de validació');
+  if(u.line_award_state==='stale')issues.push('La revisió individual de l’adjudicació ha quedat obsoleta');
   if(review&&review.source_fingerprint!==u.source_fingerprint)issues.push('La font ha canviat des de la revisió');
   const publication=publications.get(u.source_record_id);
   if(review&&publication?.job_id!==review.expected_job_id)issues.push('L’anàlisi vigent no coincideix amb la revisada');
@@ -103,12 +106,15 @@ export function concertEvolution(data:ConcertEvolutionData,cutoff:string){
   if(issues.length||!c.root||!review){if(c.root)issues.forEach(issue=>block(c.root!,issue));continue;}
   const root=byId.get(c.root)!;
   // All units sharing the same archived source line share one agreement key.
-  const canonical=[root.document_identity??root.storage_sha256,root.unit_key.startsWith('official-annex:')?root.unit_key.split(':').slice(2).join(':'):root.evidence_quote,root.page].join('|');
+  const canonical=agreementIdentity(root);
   const base:ConcertFinancialLine={id:u.id,agreementKey:canonical,transactionKey:canonical,serviceCode:u.service_code!,period,territory:u.territory!,funder:review.funder!,
    documentHash:u.document_identity??u.storage_sha256!,lineReference:u.unit_key.startsWith('official-annex:')?u.unit_key.split(':').slice(2).join(':'):`${u.page}:${u.evidence_quote}`,
    effectiveAt:review.effective_at!,sequence:accepted.length,operation:review.operation==='correction'?'replacement':review.operation,
    amountCents:review.amount_cents,amountKind:review.amount_kind,status:'approved'};
-  if(review.operation==='replacement'&&data.reviews.some(other=>other.unit_id!==u.id&&other.status==='approved'&&other.operation==='replacement'&&other.effective_at===review.effective_at&&other.period_start===review.period_start&&other.period_end===review.period_end&&chains.get(other.unit_id)?.root===c.root&&!c.path.includes(other.unit_id)&&!chains.get(other.unit_id)?.path.includes(u.id))){issues.push('Totals substitutius simultanis sense ordre acreditat');block(c.root,issues[0]);continue;}
+  if(['replacement','delta'].includes(review.operation)&&data.reviews.some(other=>{
+   const otherUnit=byId.get(other.unit_id);
+   return !!otherUnit&&otherUnit.status!=='rejected'&&!excluded(otherUnit)&&other.unit_id!==u.id&&other.status==='approved'&&['replacement','delta'].includes(other.operation)&&(review.operation==='replacement'||other.operation==='replacement')&&other.effective_at===review.effective_at&&!!other.period_start&&!!other.period_end&&!!review.period_start&&!!review.period_end&&other.period_start<=review.period_end&&other.period_end>=review.period_start&&chains.get(other.unit_id)?.root===c.root&&!c.path.includes(other.unit_id)&&!chains.get(other.unit_id)?.path.includes(u.id);
+  })){issues.push('Efectes econòmics simultanis sense ordre acreditat');block(c.root,issues[0]);continue;}
   if(review.operation==='delta'){
    const periods=[...new Set(accepted.filter(a=>a.agreementKey===canonical&&a.serviceCode===base.serviceCode&&a.territory===base.territory&&a.funder===base.funder&&['award','renewal'].includes(a.operation)&&a.period.split('/')[0]<=review.period_start!&&a.period.split('/')[1]>=review.period_end!).map(a=>a.period))];
    if(periods.length===1)base.period=periods[0];
@@ -120,7 +126,10 @@ export function concertEvolution(data:ConcertEvolutionData,cutoff:string){
     issues.push('La rectificació no identifica un acte econòmic anterior del mateix àmbit');block(c.root,issues[0]);continue;
    }
    // A correction restates the target act, then later deltas are replayed.
-   if(data.reviews.some(other=>other.unit_id!==review.unit_id&&other.status==='approved'&&other.operation==='correction'&&other.corrects_unit_id===review.corrects_unit_id&&other.effective_at&&other.effective_at<=cutoff&&!c.path.includes(other.unit_id)&&!chains.get(other.unit_id)?.path.includes(u.id))){issues.push('Rectificacions concurrents sense ordre acreditat');block(c.root,issues[0]);continue;}
+   if(data.reviews.some(other=>{
+    const otherUnit=byId.get(other.unit_id);
+    return !!otherUnit&&otherUnit.status!=='rejected'&&!excluded(otherUnit)&&other.unit_id!==review.unit_id&&other.status==='approved'&&other.operation==='correction'&&other.corrects_unit_id===review.corrects_unit_id&&other.effective_at&&other.effective_at<=cutoff&&!c.path.includes(other.unit_id)&&!chains.get(other.unit_id)?.path.includes(u.id);
+   })){issues.push('Rectificacions concurrents sense ordre acreditat');block(c.root,issues[0]);continue;}
    target.amountCents=review.amount_cents;target.amountKind=review.amount_kind;
   }else{
    if(['award','renewal'].includes(base.operation)&&accepted.some(a=>a.agreementKey===canonical&&a.serviceCode===base.serviceCode&&a.territory===base.territory&&a.funder===base.funder&&['award','renewal'].includes(a.operation)&&!(a.documentHash===base.documentHash&&a.lineReference===base.lineReference)&&a.period!==period&&a.period.split('/')[0]<=review.period_end!&&a.period.split('/')[1]>=review.period_start!)){issues.push('Períodes de finançament solapats');block(c.root,issues[0]);continue;}
@@ -141,16 +150,19 @@ export function concertEvolution(data:ConcertEvolutionData,cutoff:string){
    const root=chains.get(link.earlier_unit_id)?.root;if(root)block(root,'Modificació candidata pendent de vincular i revisar');
   }
  }
- for(const missing of data.missingLines??[]){for(const u of data.units.filter(u=>u.source_record_id===missing.earlier_record_id)){const root=chains.get(u.id)?.root;if(root)block(root,'Hi ha una publicació relacionada sense línies contrastades');}}
+ for(const missing of data.missingLines??[]){for(const u of data.units.filter(u=>u.source_record_id===missing.earlier_record_id||u.source_record_id===missing.later_record_id)){const root=chains.get(u.id)?.root;if(root)block(root,'Hi ha una publicació relacionada sense línies contrastades o amb línies pendents de vincular');}}
  const individualBalances:EvolutionBalance[]=projectConcertBalances(accepted).map(b=>{
-  const root=data.units.find(u=>u.act_type==='award'&&[u.document_identity??u.storage_sha256,u.unit_key.startsWith('official-annex:')?u.unit_key.split(':').slice(2).join(':'):u.evidence_quote,u.page].join('|')===b.agreementKey)!;
-  const issues=[...new Set([...b.issues,...(affected.get(root.id)??[])])];
-  const cessions=movements.filter(m=>m.rootId===root.id&&m.status==='reviewed'&&byId.get(m.unitId)?.act_type==='cession'&&m.effectiveAt&&m.effectiveAt<=cutoff);
+  const roots=data.units.filter(u=>u.act_type==='award'&&u.status!=='rejected'&&!excluded(u)&&agreementIdentity(u)===b.agreementKey);
+  const root=roots[0];
+  const rootIds=roots.map(u=>u.id);
+  const issues=[...new Set([...b.issues,...rootIds.flatMap(id=>[...(affected.get(id)??[])])])];
+  if(new Set(roots.map(u=>u.provider_nif)).size>1)issues.push('Titularitat incompatible entre línies duplicades del mateix document');
+  const cessions=movements.filter(m=>m.rootId!==null&&rootIds.includes(m.rootId)&&m.status==='reviewed'&&byId.get(m.unitId)?.act_type==='cession'&&m.effectiveAt&&m.effectiveAt<=cutoff);
   const current=cessions.filter(m=>!cessions.some(other=>other.unitId!==m.unitId&&chains.get(other.unitId)?.path.includes(m.unitId)));
   if(current.length>1)issues.push('Cessions concurrents sense successor únic acreditat');
   const holder=current.length===1?byId.get(current[0].unitId)!:root;
   if(!holder.provider_nif)issues.push('NIF de l’entitat vigent no acreditat');
-  return {rootId:root.id,rootIds:[root.id],providerNif:holder.provider_nif,provider:name(holder),service:b.serviceCode,territory:b.territory,period:b.period,funder:b.funder,
+  return {rootId:root.id,rootIds,providerNif:holder.provider_nif,provider:name(holder),service:b.serviceCode,territory:b.territory,period:b.period,funder:b.funder,
    amountCents:issues.length?null:b.amountCents,maximum:b.maximum,issues};
  });
  const grouped=new Map<string,EvolutionBalance>();
@@ -164,7 +176,49 @@ export function concertEvolution(data:ConcertEvolutionData,cutoff:string){
   if(prior.amountCents!==null&&!Number.isSafeInteger(prior.amountCents)){prior.amountCents=null;prior.issues.push('Total fora de la precisió segura');}
  }
  const balances=[...grouped.values()];
- return {version:ECONOMIC_RULES_VERSION,cutoff,horizon:2024,movements,balances,pending:movements.filter(m=>m.status==='pending').length,
+ // A reviewed change is a valid individual movement, but a second unresolved
+ // line in the same document may affect the same consolidated scope. Do not
+ // infer a transfer or pair lines merely from opposite signs or equal amounts.
+ const overlaps=(a:string,b:string)=>{
+  const [aStart,aEnd,...aExtra]=a.split('/'),[bStart,bEnd,...bExtra]=b.split('/');
+  if(aExtra.length||bExtra.length||!iso(aStart)||!iso(aEnd)||!iso(bStart)||!iso(bEnd)||aEnd<aStart||bEnd<bStart)return true;
+  return aStart<=bEnd&&bStart<=aEnd;
+ };
+ const changesByRoot=new Map<string,EvolutionMovement[]>(),pendingByDocument=new Map<string,EvolutionMovement[]>(),pendingWithoutDocument=new Map<string,EvolutionMovement[]>(),pendingByRecord=new Map<string,EvolutionMovement[]>();
+ for(const movement of movements){
+  if(movement.status==='reviewed'&&movement.rootId&&['delta','replacement','correction'].includes(movement.operation)){
+   const changes=changesByRoot.get(movement.rootId)??[];changes.push(movement);changesByRoot.set(movement.rootId,changes);
+  }
+  if(movement.status==='pending'){
+   const recordPending=pendingByRecord.get(movement.recordId)??[];recordPending.push(movement);pendingByRecord.set(movement.recordId,recordPending);
+   const document=byId.get(movement.unitId)?.document_id;
+   if(document){const key=JSON.stringify([movement.recordId,document]),pending=pendingByDocument.get(key)??[];pending.push(movement);pendingByDocument.set(key,pending);}
+   else{const pending=pendingWithoutDocument.get(movement.recordId)??[];pending.push(movement);pendingWithoutDocument.set(movement.recordId,pending);}
+  }
+ }
+ for(const balance of balances){
+  const changes=balance.rootIds.flatMap(root=>changesByRoot.get(root)??[]);
+  const unresolved=changes.some(change=>{
+   const applied=byId.get(change.unitId);if(!applied)return false;
+   // The unresolved sibling can affect a different scope from the reviewed
+   // endpoint. Test its own evidenced scope against every balance of the root.
+   const candidates=applied.document_id?[...(pendingByDocument.get(JSON.stringify([change.recordId,applied.document_id]))??[]),...(pendingWithoutDocument.get(change.recordId)??[])]:pendingByRecord.get(change.recordId)??[];
+   return candidates.some(other=>{
+    if(other.unitId===change.unitId)return false;
+    const candidate=byId.get(other.unitId),review=reviews.get(other.unitId),publication=publications.get(other.recordId);
+    if(!candidate)return false;
+    const reviewedPeriod=candidate.status==='approved'&&candidate.line_award_state!=='stale'&&review?.status==='approved'&&review.source_fingerprint===candidate.source_fingerprint
+     &&review.expected_job_id===publication?.job_id&&['approved','corrected'].includes(publication?.job_status??'');
+    if(reviewedPeriod&&((review.funder?.trim()&&review.funder!==balance.funder)||(candidate.territory&&candidate.territory!==balance.territory)))return false;
+    return !reviewedPeriod||overlaps(other.period,balance.period);
+   });
+  });
+  if(unresolved){
+   balance.amountCents=null;
+   balance.issues.push('Hi ha una altra línia pendent del mateix document o de document no identificat del mateix expedient que pot afectar aquest saldo consolidat; cal revisar-la sense inferir-ne la relació.');
+  }
+ }
+ return {version:ECONOMIC_RULES_VERSION,cutoff,horizon:2024,movements,individualBalances,balances,pending:movements.filter(m=>m.status==='pending').length,
   excluded:movements.filter(m=>m.status==='excluded').length,missingLines:data.missingLines??[]};
 }
 
