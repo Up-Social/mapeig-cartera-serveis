@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
-import {provisionalServiceHeadings,provisionalServiceAmounts} from '../lib/concerts/provisional-headings';
+import {provisionalServiceHeadings,provisionalServiceAmounts,provisionalServiceIdentifiers} from '../lib/concerts/provisional-headings';
 import {currentDocumentTextConsistent} from '../lib/concerts/document-text-integrity';
 import {provisionalDocumentReport} from '../lib/concerts/provisional-report';
 import type {SourceRecord} from '../lib/workbench-types';
@@ -41,6 +41,15 @@ test('source text hash must match current extraction metadata',()=>{
  assert.equal(currentDocumentTextConsistent({...metadata,extracted_text_hash:'b'.repeat(64)}),false);
  assert.equal(currentDocumentTextConsistent({...metadata,active_extraction_id:null}),false);
  assert.equal(currentDocumentTextConsistent({...metadata,storage_sha256:null}),false);
+});
+
+test('proposal identifiers need one matching FUE, acronym and separately cited application and assessment',()=>{
+ const text=source.replace('PROPOSA',`\n- Una sol·licitud (FUE- 2025-01234567) de l’entitat Prova (CIF: G12345678) per proveir el servei (ABC).\n\n## Pàgina 2\n▪ Codi FUE- 2025-01234567 ▪ Nom del Servei: Servei (ABC) ▪ Codi RESES: S12345\n\nPROPOSA`).replace('Servei fictici Alfa en règim','Servei fictici Alfa (ABC) en règim');
+ const rows=provisionalServiceIdentifiers(title,text);
+ assert.equal(rows.length,1);assert.deepEqual({...rows[0],heading:'ignored'},{heading:'ignored',nif:'G12345678',reses:'S12345',applicationPage:1,assessmentPage:2});
+ assert.equal(provisionalServiceIdentifiers(title,text.replace('Codi FUE- 2025-01234567','Codi FUE- 2025-99999999')).length,0);
+ assert.equal(provisionalServiceIdentifiers(title,text.replace('Codi RESES: S12345','Codi RESES: S12345 i Codi RESES: S54321')).length,0);
+ assert.equal(provisionalServiceIdentifiers(title,text.replace('## Pàgina 2\n▪','- Una sol·licitud (FUE- 2025-01234567) (CIF: G12345678) servei (ABC).\n\n## Pàgina 2\n▪')).length,0);
 });
 
 test('proposal amounts come from each labelled total with VAT, never from a component or general model total',()=>{

@@ -49,3 +49,32 @@ export function provisionalServiceAmounts(title:string,text:string):{heading:str
  if(!Number.isSafeInteger(rows.reduce((sum,row)=>sum+row.grossCents,0)))return null;
  return rows;
 }
+
+/** Correlate a proposal heading with a single application and assessment via
+ * their printed FUE number. These are observations, not award decisions. */
+export function provisionalServiceIdentifiers(title:string,text:string){
+ const headings=provisionalServiceHeadings(title,text);
+ if(!headings.length)return [];
+ const proposal=text.search(/^[\t ]*PROPOSA[\t ]*$/im);
+ if(proposal<0)return [];
+ const before=text.slice(0,proposal);
+ const blocks=[...before.matchAll(/\S[\s\S]*?(?=\n[\t ]*\n|$)/g)].map(match=>({raw:match[0],text:match[0].replace(/\s+/g,' '),index:match.index!}));
+ const page=(index:number)=>{const markers=[...text.slice(0,index).matchAll(/^##\s+Pàgina\s+(\d+)\s*$/gim)];return markers.length?Number(markers[markers.length-1][1]):null;};
+ const fue=(block:string)=>[...block.matchAll(/\bFUE\s*-\s*(20\d{2})\s*-\s*(\d{6,12})\b/gi)].map(match=>`${match[1]}-${match[2]}`);
+ const observations=headings.flatMap(row=>{
+  const acronyms=[...row.heading.matchAll(/\(([A-Z]{3,8})\)/g)].map(match=>match[1]);
+  if(acronyms.length!==1)return [];
+  const acronym=acronyms[0],includesService=(s:string)=>new RegExp(`\\b${acronym}\\b`).test(s);
+  const applications=blocks.filter(block=>/\bsol·licitud\b/i.test(block.text)&&includesService(block.text)&&/\bCIF\s*:/i.test(block.text));
+  const assessments=blocks.filter(block=>/\bCodi\s+RESES\s*:/i.test(block.text)&&includesService(block.text));
+  if(applications.length!==1||assessments.length!==1)return [];
+  const application=applications[0],assessment=assessments[0];
+  const appFue=fue(application.text),assessmentFue=fue(assessment.text);
+  const nifs=[...application.text.matchAll(/\bCIF\s*:\s*([A-Z]\d{7}[A-Z0-9])\b/gi)];
+  const reses=[...assessment.text.matchAll(/\bCodi\s+RESES\s*:\s*(S\d{5})\b/gi)];
+  const applicationPage=page(application.index+application.raw.search(/\bCIF\s*:/i)),assessmentPage=page(assessment.index+assessment.raw.search(/\bCodi\s+RESES\s*:/i));
+  if(appFue.length!==1||assessmentFue.length!==1||appFue[0]!==assessmentFue[0]||nifs.length!==1||reses.length!==1||!applicationPage||!assessmentPage)return [];
+  return [{heading:row.heading,nif:nifs[0][1].toUpperCase(),reses:reses[0][1].toUpperCase(),applicationPage,assessmentPage,reference:appFue[0]}];
+ });
+ return observations.filter(row=>observations.filter(other=>other.reference===row.reference).length===1).map(row=>({heading:row.heading,nif:row.nif,reses:row.reses,applicationPage:row.applicationPage,assessmentPage:row.assessmentPage}));
+}
