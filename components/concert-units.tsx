@@ -1,5 +1,6 @@
 "use client";
 import {ConcertGeography,type StoredConcertGeography} from './concert-geography';
+import {ConcertChangeExplanation} from './concert-change-explanation';
 import {concertServiceCodeDisplay} from '@/lib/concerts/service-code-display';
 import {DocumentedCorrectionForm} from './human-resolution';
 import {currentReservation} from '@/lib/human-resolution';
@@ -141,7 +142,7 @@ export function ConcertUnits({record,services,onSaved,onDocumentaryFacts}:{recor
    <p className="font-semibold">La resolució indica un màxim de {money(maximum.amountCents/100)} per al conjunt de l’annex d’aquest document.</p>
    <p className="mt-1">És un límit documental, no una despesa real ni un import assignat automàticament a cada línia.</p>
    <p className="mt-1">«{maximum.quote}»</p>
-   {maximum.condition&&<p className="mt-1">Condició indicada a la resolució: «{maximum.condition}»</p>}
+   {maximum.condition&&<><p className="mt-1">Condició indicada a la resolució: «{maximum.condition}»</p><p className="mt-1 font-semibold">Revisa la data efectiva de l’assignació i si cal ajustar l’import; el màxim no és necessàriament l’import aplicable.</p></>}
   </div>)}
   {missingOlderOrigin&&<p className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950">Hi ha línies amb origen anterior a 2024. Es conserven els imports documentals, però no se sumen a la foto vigent sense un original dins de l’horitzó.</p>}
   {reconciliations.length>0&&<p role="status" className={`rounded-lg border p-3 text-sm ${reconciled?'border-emerald-300 bg-emerald-50 text-emerald-950':'border-amber-300 bg-amber-50 text-amber-950'}`}>
@@ -184,6 +185,7 @@ export function ConcertUnits({record,services,onSaved,onDocumentaryFacts}:{recor
        {act&&<ConcertCaseBadge kind={act}/>}<span className="rounded-full border px-2.5 py-1">{unit.status==='approved'?'Línia aprovada':unit.status==='rejected'?'Línia rebutjada':'Pendent de revisió'}</span>
        <span>{unit.provider_nif?`NIF ${unit.provider_nif}`:`NIF pendent: ${unit.extraction_origin?'no identificat en l’extracció':'no disponible; cal contrastar el document'}`}</span>{unit.centre&&<span>Centre: {unit.centre}</span>}{!unit.geography&&unit.territory&&<span>Territori registrat: {unit.territory}</span>}{unit.period&&<span>Període {unit.period}</span>}{unit.quantity_delta!=null&&<span>Canvi de places: {unit.quantity_delta>0?'+':''}{unit.quantity_delta}</span>}{unit.quantity!=null&&Number.isSafeInteger(unit.quantity)&&unit.quantity>=0&&<span>{unit.extraction_origin==='program-columns-v2'||resolcPlaces?`${unit.quantity} ${unit.quantity===1?'plaça':'places'}`:`Quantitat: ${unit.quantity}`}</span>}
       </div>
+      <ConcertChangeExplanation actType={unit.act_type} origin={unit.extraction_origin} quantityDelta={unit.quantity_delta}/>
       <ConcertGeography geography={unit.geography} municipality={unit.municipality}/>
       <p className="mt-3 text-xs leading-5 text-muted-foreground">Població destinatària: la descripció general de l’expedient no acredita la d’aquesta línia per si sola. Consulta la revisió de població de la línia, si està disponible.</p>
       <div className="mt-3 flex flex-wrap gap-2"><button type="button" aria-expanded={activeLine===unit.id} aria-controls={`line-review-${unit.id}`} className="rounded-md border px-3 py-2 text-sm font-semibold" onClick={()=>setActiveLine(activeLine===unit.id?null:unit.id)}>{activeLine===unit.id?'Tancar revisió':'Revisar línia'}</button><a className="rounded-md border px-3 py-2 text-sm underline" href={`#concert-effect-${unit.id}`}>Revisar import i període</a></div>
