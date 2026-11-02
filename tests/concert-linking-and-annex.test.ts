@@ -180,6 +180,15 @@ test('a wrapped service code is supported by a contiguous fragment of the correc
  assert.deepEqual(annexCandidateOrdinals(sourced,[code],[{source_document_id:'target',content:'1.2.6.3.4.1 .2 altre servei S03832'}],'target'),[0]);
  assert.deepEqual(annexCandidateOrdinals(sourced,[code],[{source_document_id:'target',content:'1.2.6.3.4.1 .2 servei S03832'}],'target'),[1]);
 });
+test('a code printed after RESES is attributed only within its own cited row',()=>{
+ const quote='G12345678 S12345 D/251/318B/0000 1.2.1.15 110,00 euros';
+ const rows=[{observed_service_code:'1.2.1.15',reses_code:'S12345',evidence_quote:quote}];
+ assert.deepEqual(annexCandidateOrdinals(rows,['1.2.1.15'],[{source_document_id:'d',content:quote}],'d'),[1]);
+ assert.deepEqual(annexCandidateOrdinals(rows,['1.2.1.15'],[{source_document_id:'other',content:quote}],'d'),[0]);
+ const wrong='G12345678 S12345 S54321 D/251/318B/0000 1.2.1.15 110,00 euros';
+ assert.deepEqual(annexCandidateOrdinals([{...rows[0],evidence_quote:wrong}],['1.2.1.15'],[{source_document_id:'d',content:wrong}],'d'),[0]);
+ assert.deepEqual(annexCandidateOrdinals([{...rows[0],evidence_quote:null}],['1.2.1.15'],[{source_document_id:'d',content:quote}],'d'),[0]);
+});
 test('one known population never substitutes for another service with unknown population',()=>{
  const one={service_name:'Servei per a gent gran'};
  assert.deepEqual(concertPopulations([one,{service_name:'Servei per a persones amb discapacitat física'}]),['gent gran','persones amb discapacitat física']);

@@ -19,6 +19,7 @@ import {ConcertLineAward} from './concert-line-award';
 import {concertQuantityCoverage} from '@/lib/concerts/quantity-coverage';
 import {provisionalServiceHeadings} from '@/lib/concerts/provisional-headings';
 import {provisionalDocumentReport} from '@/lib/concerts/provisional-report';
+import {diagnosticDraftComparison} from '@/lib/concerts/diagnostic-report';
 import {proposeConcertSupportCode} from '@/lib/concerts/support-code-proposal';
 import {concertDocumentaryFacts,type ConcertDocumentaryFacts} from '@/lib/concerts/documentary-facts';
 
@@ -95,6 +96,7 @@ export function ConcertUnits({record,services,onSaved,onDocumentaryFacts}:{recor
   .sort((left,right)=>(right.textLength??0)-(left.textLength??0))[0]?.extractedText;
  const publications=record.sourceDocuments.filter(document=>document.documentType==='publication'&&document.status==='fetched');
  const provisionalReport=provisionalDocumentReport(record);
+ const diagnosticComparison=diagnosticDraftComparison(record,units);
  const proposalCandidates=publications.length!==1?[]:publications.filter(document=>document.currentTextConsistent===true&&document.extractedText&&document.extractionPartial===false&&typeof document.extractionCoverage==='object'&&document.extractionCoverage!==null&&'complete' in document.extractionCoverage&&document.extractionCoverage.complete===true&&!document.qualityFlags.some(flag=>['corrupt_text','incomplete_extraction'].includes(flag))).flatMap(document=>provisionalServiceHeadings(record.title,document.extractedText!).map(row=>({...row,documentId:document.id,archived:document.archived})));
  const proposalUnknownSource=proposalCandidates.length>0&&units.some(unit=>typeof unit.document_id!=='string'||unit.document_id.length===0);
  const proposalSameSource=proposalCandidates.length>0&&units.some(unit=>unit.document_id===proposalCandidates[0].documentId);
@@ -131,6 +133,7 @@ export function ConcertUnits({record,services,onSaved,onDocumentaryFacts}:{recor
    <div className="rounded-xl border border-sky-200 bg-sky-50/60 p-4"><p className="text-xs font-semibold uppercase tracking-wide text-sky-900">Subtotal documental de les línies</p><p className="mt-1 text-2xl font-bold tabular-nums text-sky-950">{identifiedAmount.totalCents===null?(identifiedAmount.reason==='none'?'No atribuïble':'Pendent de contrast'):money(identifiedAmount.totalCents/100)}</p><p className="text-xs text-sky-900">{identifiedAmount.count} de {units.length} {units.length===1?'línia':'línies'} amb import · no acredita despesa real, finançament nou ni saldo vigent</p>{identifiedAmount.reason&&identifiedAmount.reason!=='none'&&<p className="mt-1 text-xs text-sky-900">Cal un únic annex complet i conciliat, sense propostes, revisions pendents ni valors no verificables. Revisa cada línia.</p>}</div>
   </div>
   <ConcertMatchingCoverageNotice record={record} units={units}/>
+  {diagnosticComparison&&<p className="rounded-lg border border-sky-300 bg-sky-50 p-3 text-sm text-sky-950">Comprovació documental: les {diagnosticComparison.count} línies coincideixen amb els totals impresos de cada servei, amb una suma calculada de {money(diagnosticComparison.totalCents/100)}. Aquesta comprovació no substitueix la conciliació formal ni aprova finançament; cal revisar les dues línies.</p>}
   {proposalSources.length>0&&<section className="rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950" aria-label="Serveis de la proposta pendents de revisió">
    <h3 className="font-semibold">Serveis esmentats en la proposta provisional</h3>
    <p className="mt-1">Lectura dels encapçalaments de l’annex de la publicació. Cal comprovar que corresponen a l’acte actual, contrastar cada servei i cercar la resolució definitiva; aquestes observacions no són línies aprovades ni sumen finançament.</p>

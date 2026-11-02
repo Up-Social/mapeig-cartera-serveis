@@ -30,6 +30,13 @@ export function annexCandidateOrdinals(lines:Array<{observed_service_code:string
      const start=match.index??0,end=start+match[0].length;
      const registry=quote.indexOf(row.reses_code,end);
      if(registry>=0&&registry-end<=500&&content.includes(quote.slice(start,registry+row.reses_code.length).trim()))return true;
+     // Some annexes print RESES before the code. Require an explicitly
+     // source-backed row quote and the nearest preceding identifier; never
+     // bind a code across another service's RESES.
+     if(row.evidence_quote){
+      const before=quote.lastIndexOf(row.reses_code,start);
+      if(before>=0&&start-(before+row.reses_code.length)<=160&&!/\bS\d{5}\b/.test(quote.slice(before+row.reses_code.length,start))&&content.includes(quote.slice(before,end).trim()))return true;
+     }
     }
    }
    return false;

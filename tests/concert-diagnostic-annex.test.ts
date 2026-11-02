@@ -45,3 +45,13 @@ test('documentary totals require one complete current archived award document',a
  assert.equal(diagnosticAwardReport({...record,sourceDocuments:[...record.sourceDocuments,...record.sourceDocuments]}),null);
  assert.equal(diagnosticAwardReport({...record,title:'Acord proposta de provisió'}),null);
 });
+
+test('documentary comparison checks both live draft identities, evidence, amounts and source paths',async()=>{
+ const {diagnosticDraftComparison}=await import('../lib/concerts/diagnostic-report');
+ const sha='a'.repeat(64),id='record',docId='document';
+ const doc={id:docId,revision:`${sha}:revision`,status:'fetched',mimeType:'application/pdf',archived:true,currentTextConsistent:true,extractedText:text,extractionPartial:false,extractionMethod:'pdf-text-markdown-v2',extractionCoverage:{complete:true},qualityFlags:[]};
+ const record={id,financingType:'concert',isHistorical:false,title:'Resolució de provisió de serveis',sourceDocuments:[doc]} as unknown as Parameters<typeof diagnosticDraftComparison>[0];
+ const units=extractDiagnosticAnnex(text).map((row,index)=>({id:`unit${index}`,unit_key:`official-annex:${sha}:0:${row.row}`,document_id:docId,storage_path:`cases/${id}/items/unit${index}/documents/${docId}/${sha}.pdf`,storage_sha256:sha,page:row.page,provider_nif:row.nif,reses_code:row.resesCode,observed_service_code:row.observedServiceCode,amount:row.amountCents!/100,evidence_quote:row.quote,effective_start:row.effectiveStart??null,effective_end:row.effectiveEnd??null}));
+ assert.deepEqual(diagnosticDraftComparison(record,units),{count:2,totalCents:22000});
+ for(const changed of [units.slice(0,1),[units[0],{...units[1],amount:109}],[units[0],{...units[1],storage_path:'wrong'}],[units[0],{...units[1],evidence_quote:'other'}],[units[0],{...units[1],observation:{pendingRevision:true}}]])assert.equal(diagnosticDraftComparison(record,changed),null);
+});

@@ -15,7 +15,7 @@ export async function readAwardAvailability(response:Response):Promise<{enabled:
 }
 export function ConcertAwardAvailability({state,onRetry}:{state:Exclude<Availability,'ready'>;onRetry:()=>void}){
  if(state==='loading')return <p className="mt-3 text-sm" role="status">Comprovant si la revisió econòmica individual està disponible…</p>;
- if(state==='unavailable')return <p className="mt-3 rounded border p-3 text-sm" role="status">La revisió econòmica individual encara no està disponible. No es pot iniciar aquesta revisió.</p>;
+ if(state==='unavailable')return <p className="mt-3 rounded border p-3 text-sm" role="status">La revisió econòmica individual encara no està disponible: cal verificar conjuntament les còpies documentals, les decisions i les exportacions d’aquest circuit. La situació i les dades de la línia es conserven.</p>;
  return <div className="mt-3 rounded border p-3 text-sm" role="alert"><p>No s’ha pogut comprovar si la revisió econòmica individual està disponible. Torna-ho a provar.</p><button type="button" className="mt-2 rounded border px-3 py-2" onClick={onRetry}>Torna a comprovar</button></div>;
 }
 /** One observation per approved line. An old line without an independent
