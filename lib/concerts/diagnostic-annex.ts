@@ -47,3 +47,25 @@ export function extractDiagnosticAnnex(text:string):EconomicAnnexLine[]{
 export function safeDiagnosticTotal(rows:EconomicAnnexLine[]){
  return rows.length&&rows.every(row=>row.amountCents!==null)?safeAnnexSum(rows.map(row=>row.amountCents)):null;
 }
+
+/** The operative maximum is printed without VAT; compare it to the net
+ * service subtotals, keeping the gross aggregate explicitly calculated. */
+export function diagnosticAnnexProof(text:string){
+ const rows=extractDiagnosticAnnex(text);
+ if(!rows.length)return null;
+ const markers=[...text.matchAll(/\bRESOLC\s*:/gi)],annex=text.search(/^[\t ]*ANNEX[\t ]+1[\t ]+Serveis[\t ]+assignats[\t ]*$/im);
+ if(markers.length!==1||annex<0||markers[0].index!>=annex)return null;
+ const operative=text.slice(markers[0].index!+markers[0][0].length,annex).replace(/\s+/g,' ');
+ const maxima=[...operative.matchAll(/\bimport\s+total\s+m[aà]xim\s+de\s+([\d.]+,\d{2})\s*€\s*,?\s+sense\s+IVA\b/gi)];
+ if(maxima.length!==1)return null;
+ const declaredNetCents=parseEuroCents(maxima[0][1]);
+ const subtotals=rows.map(row=>{
+  const totals=[...row.quote.matchAll(/\bImport\s+total\s+([\d.]+,\d{2})\s+euros\s+([\d.]+,\d{2})\s+euros/gi)];
+  return totals.length===1?{netCents:parseEuroCents(totals[0][1]),grossCents:parseEuroCents(totals[0][2])}:null;
+ });
+ if(declaredNetCents===null||subtotals.some((value,i)=>!value||value.netCents===null||value.grossCents!==rows[i].amountCents))return null;
+ const computedNetCents=safeAnnexSum(subtotals.map(value=>value!.netCents));
+ const calculatedGrossCents=safeDiagnosticTotal(rows);
+ if(computedNetCents!==declaredNetCents||calculatedGrossCents===null)return null;
+ return {declaredNetCents,calculatedGrossCents,subtotals:rows.map((row,i)=>({page:row.page,resesCode:row.resesCode,netCents:subtotals[i]!.netCents!,grossCents:subtotals[i]!.grossCents!}))};
+}

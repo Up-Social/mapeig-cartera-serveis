@@ -1,7 +1,7 @@
 import type {SourceRecord} from '../workbench-types';
 import {hasCurrentTextCoverage} from '../pipeline/document-coverage';
 import {hasCurrentConcertAward} from './no-award';
-import {extractDiagnosticAnnex,safeDiagnosticTotal} from './diagnostic-annex';
+import {diagnosticAnnexProof,extractDiagnosticAnnex,safeDiagnosticTotal} from './diagnostic-annex';
 import {storedAmountCents} from './annex-extraction';
 
 /** Documentary reading of a definitive diagnostic annex; not a decision,
@@ -30,5 +30,6 @@ export function diagnosticDraftComparison(record:Pick<SourceRecord,'id'|'financi
   const u:Draft=matching[0];
   if(u.document_id!==report.documentId||u.storage_sha256!==sha||u.storage_path!==`cases/${record.id}/items/${u.id}/documents/${report.documentId}/${sha}.pdf`||u.page!==row.page||u.provider_nif!==row.nif||u.reses_code!==row.resesCode||u.observed_service_code!==row.observedServiceCode||storedAmountCents(u.amount)!==row.amountCents||normalized(u.evidence_quote)!==normalized(row.quote)||u.effective_start!==(row.effectiveStart??null)||u.effective_end!==(row.effectiveEnd??null)||u.observation?.pendingRevision===true)return null;
  }
- return {count:report.rows.length,totalCents:report.totalCents};
+ const proof=doc?.extractedText?diagnosticAnnexProof(doc.extractedText):null;
+ return {count:report.rows.length,totalCents:report.totalCents,declaredNetCents:proof?.calculatedGrossCents===report.totalCents?proof.declaredNetCents:null};
 }

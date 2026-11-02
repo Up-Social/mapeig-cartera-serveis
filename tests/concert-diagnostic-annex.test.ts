@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {extractDiagnosticAnnex} from '../lib/concerts/diagnostic-annex';
+import {diagnosticAnnexProof,extractDiagnosticAnnex} from '../lib/concerts/diagnostic-annex';
 
 const text=`## Pàgina 1
 RESOLC: 1. Assignar els serveis. 2. Assenyalar el període comprès entre l’1 de juliol de 2025 i el 31 de desembre de 2025.
@@ -52,6 +52,16 @@ test('documentary comparison checks both live draft identities, evidence, amount
  const doc={id:docId,revision:`${sha}:revision`,status:'fetched',mimeType:'application/pdf',archived:true,currentTextConsistent:true,extractedText:text,extractionPartial:false,extractionMethod:'pdf-text-markdown-v2',extractionCoverage:{complete:true},qualityFlags:[]};
  const record={id,financingType:'concert',isHistorical:false,title:'Resolució de provisió de serveis',sourceDocuments:[doc]} as unknown as Parameters<typeof diagnosticDraftComparison>[0];
  const units=extractDiagnosticAnnex(text).map((row,index)=>({id:`unit${index}`,unit_key:`official-annex:${sha}:0:${row.row}`,document_id:docId,storage_path:`cases/${id}/items/unit${index}/documents/${docId}/${sha}.pdf`,storage_sha256:sha,page:row.page,provider_nif:row.nif,reses_code:row.resesCode,observed_service_code:row.observedServiceCode,amount:row.amountCents!/100,evidence_quote:row.quote,effective_start:row.effectiveStart??null,effective_end:row.effectiveEnd??null}));
- assert.deepEqual(diagnosticDraftComparison(record,units),{count:2,totalCents:22000});
+ assert.deepEqual(diagnosticDraftComparison(record,units),{count:2,totalCents:22000,declaredNetCents:null});
  for(const changed of [units.slice(0,1),[units[0],{...units[1],amount:109}],[units[0],{...units[1],storage_path:'wrong'}],[units[0],{...units[1],evidence_quote:'other'}],[units[0],{...units[1],observation:{pendingRevision:true}}]])assert.equal(diagnosticDraftComparison(record,changed),null);
+});
+
+test('proof compares the declared net maximum with separate net subtotals and computes gross',()=>{
+ const valid=text.replace('2. Assenyalar el període','2. Assenyalar un import total màxim de 200,00€, sense IVA. Assenyalar el període');
+ const proof=diagnosticAnnexProof(valid);
+ assert.equal(proof?.declaredNetCents,20000);assert.equal(proof?.calculatedGrossCents,22000);
+ assert.deepEqual(proof?.subtotals.map(row=>[row.netCents,row.grossCents]),[[10000,11000],[10000,11000]]);
+ assert.equal(diagnosticAnnexProof(valid.replace('200,00€, sense IVA','201,00€, sense IVA')),null);
+ assert.equal(diagnosticAnnexProof(valid.replace('sense IVA. Assenyalar','amb IVA. Assenyalar')),null);
+ assert.equal(diagnosticAnnexProof(valid.replace('ANNEX 2. ALTRES DADES','SENSE FINAL')),null);
 });
