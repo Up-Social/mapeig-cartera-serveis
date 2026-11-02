@@ -31,7 +31,7 @@ export function assessConcertAct(title:string, documentText?:string|null):Concer
   // annex labels can mention other act types without making this one of them.
   // Preserve line boundaries until the annex is removed. Normalizing whitespace
   // first would let an annex row masquerade as a numbered operative clause.
-  const marker=/\bresolc\s*:/i.exec(documentText??'');
+  const marker=/\bresolc\b\s*:?/i.exec(documentText??'');
   const operative=marker?normalize((documentText??'').slice(marker.index+marker[0].length).slice(0,1100).split(/\n\s*(?:#{1,6}\s*)?annex\b/i)[0]):document;
   const firstAct=operative.split(/\b2\.\s/)[0].split(/\bd.acord amb\b/)[0];
   const text=firstAct?`${t} ${firstAct}`:t;
@@ -67,6 +67,7 @@ export function assessConcertAct(title:string, documentText?:string|null):Concer
   else if(has(text,/denegaci|denegar|places denegades|es denega/)){primaryCase=1;reason='La denegació no genera una nova provisió.';}
   else if(has(text,/cessament|minora(cio|cio)|resolucio anticipada|extincio anticipada/)){primaryCase=2;effect='possible_reduction';reason='La reducció requereix l’acord original, el període i l’import acreditat.';}
   else if(has(text,/proposta de resolucio|acord proposta|acord de proposta|acord del comite de provisio/)){primaryCase=4;effect='provisional';reason='Cal buscar una resolució definitiva abans de considerar cap provisional.';}
+  else if(/^resolucio\s+d['’]autoritzacio de la despesa\b/.test(t)&&(!document||/^primer\s*\.\s*-\s*autoritzar la despesa\b/.test(firstAct))){primaryCase=15;reason='L’autorització comptable sola no crea una adjudicació nova.';}
   else if(has(text,/convocatoria/) && !has(text,/adjudic|prorrog|provisio directa/)){primaryCase=5;reason='La convocatòria és una referència, sense adjudicació.';}
   else if(has(text,/places desertes|places desertes|places vacants/)){primaryCase=9;effect=has(text,/adjudic|atorga|proveir a favor/)?'possible_award':'none';reason='Cal comprovar si el resolc adjudica les places o només les declara desertes.';}
   else if(has(text,/\bprorrog(?:a|ues|ar|uem)\b/)){primaryCase=12;effect='possible_new_period';reason='La pròrroga pot comprometre un període nou; cal llegir DA, annex i acord base.';}

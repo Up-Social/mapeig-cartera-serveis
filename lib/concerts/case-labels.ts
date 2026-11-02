@@ -35,6 +35,7 @@ export function concertCaseKeys(title:string,unitActs:string[],documentText?:str
  else if(/convalid/.test(t))primary='validation';
  else if(/recurs de reposici[oó]|resoluci[oó] del recurs/.test(t))primary='appeal';
  else if(/proposta|acord de proposta/.test(t))primary='proposal';
+ else if(/^resoluci[oó]\s+d['’]autoritzaci[oó] de la despesa\b/.test(t)&&!/pr[oò]rroga/.test(t))primary='spending';
  else if(referencesConcertCallInTitle(title))primary='unspecified';
  else if(/convocat[oò]ria/.test(t)&&!/pr[oò]rroga/.test(t))primary='call';
  else if(/places desertes/.test(t))primary='vacant';

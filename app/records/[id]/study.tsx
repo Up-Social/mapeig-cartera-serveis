@@ -21,7 +21,7 @@ import { sourcePayloadFieldLabel, sourcePayloadValue } from "@/lib/source-payloa
 import { sourceDocumentStatusLabel, sourceDocumentTypeLabel } from "@/lib/ui-labels";
 import { AnalysisResult } from "@/components/analysis-result";
 import {HumanDecisionReason} from "@/components/human-decision-reason";
-import {concertVacantAmendmentProposal} from "@/lib/concerts/discard-proposal";
+import {concertDiscardProposal} from "@/lib/concerts/discard-proposal";
 import {provisionalDocumentReport} from "@/lib/concerts/provisional-report";
 import { UnverifiedCandidateObservations } from "@/components/unverified-candidate-observations";
 import { CaseAtAGlance } from "@/components/case-at-a-glance";
@@ -71,7 +71,7 @@ export function CaseStudy({ initialRecord, services, concertServices, origin, ne
   const [documentaryState,setDocumentaryState]=useState<{recordId:string;jobId:string|null;facts:ConcertDocumentaryFacts|null}|null>(null);
   const onDocumentaryFacts=useCallback((value:{recordId:string;jobId:string|null;facts:ConcertDocumentaryFacts|null})=>setDocumentaryState(value),[]);
   const documentaryFacts=documentaryState?.recordId===record.id&&documentaryState.jobId===(record.currentJobId??null)&&record.sourceDocuments.some(document=>document.id===documentaryState.facts?.documentId&&document.revision===documentaryState.facts.revision)?documentaryState.facts:null;
-  const discardProposal=concertVacantAmendmentProposal(record);
+  const discardProposal=concertDiscardProposal(record);
   const provisionalReport=provisionalDocumentReport(record);
   const displayEnrichment=provisionalReport&&record.externalEnrichment?{...record.externalEnrichment,amount:null,summary:`Proposta provisional amb ${provisionalReport.rows.length} serveis descrits a l’annex. Els imports per servei estan pendents de revisió i no acrediten una resolució definitiva.`}:record.externalEnrichment;
   const displayRecord=displayEnrichment&&record.externalEnrichment?{...record,externalEnrichment:displayEnrichment}:record;

@@ -3,7 +3,9 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import React from 'react';
 import {renderToStaticMarkup} from 'react-dom/server';
-import {concertVacantAmendmentProposal} from '../lib/concerts/discard-proposal';
+import {concertDiscardProposal,concertVacantAmendmentProposal} from '../lib/concerts/discard-proposal';
+import {assessConcertAct} from '../lib/concerts/act-assessment';
+import {concertCaseKeys} from '../lib/concerts/case-labels';
 import {HumanDecisionReason} from '../components/human-decision-reason';
 import type {SourceRecord} from '../lib/workbench-types';
 
@@ -28,4 +30,23 @@ test('the current human decision shows its own reason and clearly identifies a m
  assert.match(html,/Motiu de la decisió humana/);assert.match(html,/La resolució declara desertes/);assert.match(html,/L’acte no adjudica cap concert/);
  assert.match(renderToStaticMarkup(React.createElement(HumanDecisionReason,{record:{...base,reviewReason:null}})),/No consta una justificació escrita/);
  assert.equal(renderToStaticMarkup(React.createElement(HumanDecisionReason,{record:{...base,reviewDecision:null}})),'');
+});
+
+test('a documented call or spending authorization is only a reasoned proposal for human review',()=>{
+ const doc=record.sourceDocuments[0];
+ const callTitle='Resolució DSI/123/2025, de 15 de setembre, de convocatòria per a la provisió de places';
+ const call='## Pàgina 1\nResolc:\n—1 Obrir una convocatòria per a la provisió de serveis.\n—2 El termini per presentar les sol·licituds és de 15 dies.\nAnnex 1\nPlaces convocades';
+ const spendingTitle='Resolució d’autorització de la despesa fins a octubre dels serveis en funcionament';
+ const spending='## Pàgina 7\nRESOLC\nPrimer.- Autoritzar la despesa de places assignades.\nSegon.- Autoritzar la despesa de serveis assignats.\n## Pàgina 8\nAnnex 1: Serveis i places\nDades';
+ for(const [title,source,word] of [[callTitle,call,'convocatòria'],[spendingTitle,spending,'despesa']]){
+  const proposal=concertDiscardProposal({...record,title,sourceDocuments:[{...doc,extractedText:source}]});
+  assert.ok(proposal);assert.match(proposal.reason,new RegExp(word));assert.equal(record.reviewDecision,null);
+  assert.equal(concertDiscardProposal({...record,title,sourceDocuments:[{...doc,extractedText:source.replace('Annex 1','—3 Adjudicar places a una entitat.\nAnnex 1')}]}),null);
+  assert.equal(concertDiscardProposal({...record,title,sourceDocuments:[{...doc,extractedText:source.replace('Annex 1','—3 S’assignen places a una entitat.\nAnnex 1')}]}),null);
+  assert.equal(concertDiscardProposal({...record,title,sourceDocuments:[{...doc,extractedText:source,extractionPartial:true}]}),null);
+  assert.equal(concertDiscardProposal({...record,title,sourceDocuments:[{...doc,extractedText:source.replace('Annex 1','Continuació')}]}),null);
+ }
+ assert.equal(concertDiscardProposal({...record,title:'Resolució de la convocatòria per adjudicar places',sourceDocuments:[{...doc,extractedText:call}]}),null);
+ assert.equal(assessConcertAct(spendingTitle,'Antecedents: una convocatòria anterior.\nRESOLC\nPrimer.- Autoritzar la despesa de places assignades.').primaryCase,15);
+ assert.equal(concertCaseKeys(spendingTitle,[],spending)[0],'spending');
 });
