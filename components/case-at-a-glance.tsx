@@ -2,6 +2,7 @@ import type {SourceRecord} from '@/lib/workbench-types';
 import {assessConcertAct,CONCERT_CASE_LABELS,type ConcertEffect} from '@/lib/concerts/act-assessment';
 import {extractAdministrativeCorrections} from '@/lib/concerts/administrative-correction';
 import {contractAmountSource} from '@/lib/source-comparison';
+import {concertMechanismParts} from '@/lib/concerts/mechanism';
 
 function display(value:string|number|null|undefined){return value==null||(typeof value==='string'&&!value.trim())?'No consta · pendent':String(value);}
 function displayComparison(value:string|number|null|undefined,label:string){
@@ -26,8 +27,9 @@ export function CaseAtAGlance({record}:{record:SourceRecord}){
  const rows=[
   {label:record.financingType==='conveni'?'Signants d’origen (no acredita receptors)':'Entitat',original:record.providerName,official:extracted?.providerName},
   {label:contractRelated?'Import':record.financingType==='concert'?'Import global del document':record.financingType==='conveni'?'Import públic previst del conveni':'Import',original:record.amount,official:extracted?.amount},
-  {label:'Mecanisme',original:record.mechanism,official:extracted?.mechanism},
+  {label:'Mecanisme',original:record.mechanism,official:record.financingType==='concert'?concertMechanismParts(extracted?.mechanism)?.mechanism??extracted?.mechanism:extracted?.mechanism},
  ];
+ const procedure=record.financingType==='concert'?concertMechanismParts(extracted?.mechanism)?.procedure:null;
  return <section id="resum" aria-label="Resum del cas" className="surface scroll-mt-32 p-5 sm:p-6">
   <p className="page-eyebrow">Lectura ràpida</p><h2 className="section-title mt-1">Resum del cas</h2>
   <p className="mt-2 text-sm text-muted-foreground">{record.financingType==='conveni'?'Dades de l’Excel. Revisa els receptors, els imports atribuïbles i les anualitats a les unitats del conveni. No són pagaments.':'Dades de la font i camps extrets del document. Les diferències requereixen comprovació humana.'}</p>
@@ -38,7 +40,7 @@ export function CaseAtAGlance({record}:{record:SourceRecord}){
     const differs=compared&&row.original!=null&&!sameConcertMechanism&&!(row.label==='Import'&&contractAmount!==null)&&display(row.original)!==display(row.official);
     const isAmount=row.label.includes('Import');
     return <div key={row.label} className="rounded-lg border p-3"><dt className="font-semibold">{row.label}</dt><dd className="mt-1">Font: {displayComparison(row.original,isAmount?'Import':row.label)}{isAmount&&contractAmountLabel&&` · ${contractAmountLabel}`}</dd>{compared&&<dd className={`mt-1 ${differs?'font-medium text-amber-800':''}`}>Document: {displayComparison(row.official,isAmount?'Import':row.label)}{isAmount&&contractAmount!==null?' · naturalesa pendent de verificar':differs?' · diferència pendent de revisar':''}</dd>}{isAmount&&contractAmount!==null&&!verifiedAward&&<dd className="mt-1 text-xs text-muted-foreground">Un pressupost, un valor estimat o un import sense procedència acreditada no identifiquen l’import adjudicat. Cal revisar el document.</dd>}{isAmount&&record.financingType==='concert'&&(row.original!=null||row.official!=null)&&<dd className="mt-1 text-xs text-muted-foreground">{reconciledAnnex?'Import extret de la capçalera. Pot ser sense IVA; el total acreditat de les línies consta al repartiment de l’annex.':'Import global extret; consulta les línies per saber què es pot atribuir a cada entitat.'}</dd>}</div>;
-  })}</dl>
+  })}{procedure&&<div className="rounded-lg border p-3"><dt className="font-semibold">Procediment</dt><dd className="mt-1">Document: {procedure}</dd></div>}</dl>
   {reconciledAnnex&&<div className="mt-4 rounded-lg border border-sky-200 bg-sky-50 p-4 text-sm text-slate-900" data-testid="concert-reconciled-summary">
    <h3 className="font-semibold">Provisió amb annex econòmic conciliat</h3>
    <p className="mt-2">Les línies i el seu total coincideixen amb l’annex oficial. Revisa cada entitat, servei i import abans de validar el conjunt.</p>

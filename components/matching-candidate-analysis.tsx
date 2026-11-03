@@ -8,7 +8,7 @@ export function MatchingCandidateAnalysis({ candidate, returnTo, multipleService
   const rationaleParts = parseMatchingRationale(rationale);
   const warnProgramPopulation = populationPerLineNeedsReview || candidate.model === 'program-columns-v2';
 
-  return <article className={`rounded-xl border p-4 ${candidate.rank === 1 ? "border-neutral-900 bg-neutral-50" : "border-neutral-200"}`}>
+  return <article className={`rounded-xl border p-4 ${candidate.rank === 1 && !multipleServices ? "border-neutral-900 bg-neutral-50" : "border-neutral-200"}`}>
     <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
       <div className="min-w-0 flex-1"><p className="text-xs font-semibold text-muted-foreground">{multipleServices?"Servei de la resolució":candidate.rank===1?"Servei principal":"Alternativa"} · {candidate.targetCode}</p><p className="mt-1 text-sm font-semibold leading-5">{candidate.targetName}</p></div>
       <div className="shrink-0 sm:text-right"><p className="text-[13.2px] font-medium text-muted-foreground">Puntuació de la proposta</p><p className="mt-0.5 text-lg font-semibold">{Math.round(candidate.score * 100)}%</p></div>
