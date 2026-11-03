@@ -40,8 +40,14 @@ const sections = [
   {
     name: "Aprovats",
     state: "Provisions vigents",
-    body: "Mostra només decisions positives amb provisió activa. Permet seleccionar i exportar els resultats sense modificar el Master original.",
-    next: "Exportació",
+    body: "Mostra només decisions positives amb provisió activa. L’exportació es fa des d’Exportacions.",
+    next: "Exportacions",
+  },
+  {
+    name: "Exportacions",
+    state: "Lliurament del Mapeig",
+    body: "Genera el llibre Excel «Mapeig de la Cartera» amb les línies de concert (fase actual) segons els filtres de tipologia, província i data de concessió. Mostra un resum i els avisos abans de descarregar; les altres tipologies s’afegiran més endavant.",
+    next: "Fitxer Excel",
   },
 ] as const;
 

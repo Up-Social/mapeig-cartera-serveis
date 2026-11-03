@@ -211,10 +211,8 @@ try:
  result=json.loads(output)
  if result['status']!=200 or result['stale']!=409 or not result['anonBlocked']:raise RuntimeError('handler outcome '+output)
  if sql("select count(*) from public.concert_line_export_receipts")!='1' or sql("select count(*) from public.concert_line_export_items")!='2':raise RuntimeError('receipt count incorrect')
- if sql("select count(*) from public.concert_line_mixed_receipts")!='3' or sql("select count(*) from public.concert_line_mixed_items")!='8':raise RuntimeError('mixed receipt count incorrect')
+ # Only the batch export remains since 03/11/2026 (the approved/master exports were retired by the Mapeig export).
  if sql("select hash from public.concert_line_mixed_receipts where id in(select id from public.excel_exports where pipeline_run_id is not null)")!=result['batchHash']:raise RuntimeError('batch byte hash mismatch')
- if sql("select hash from public.concert_line_mixed_receipts where id not in(select id from public.excel_exports)")!=result['mixedHash']:raise RuntimeError('mixed byte hash mismatch')
- if sql("select hash from public.concert_line_mixed_receipts where id in(select id from public.excel_exports where pipeline_run_id is null)")!=result['masterHash']:raise RuntimeError('master byte hash mismatch')
  if sql("select count(*) from public.service_provisions where source_record_id='"+ids['record_id']+"'")!='0':raise RuntimeError('shared provision created')
  print('PASS private HTTP handler with real PostgREST/PG: XLSX hash, receipt, stale rejection and anon denial')
 

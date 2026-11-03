@@ -21,7 +21,7 @@ La confianza es una estimación del modelo, no una probabilidad calibrada. La co
 
 `persist_analysis` guarda resultado, candidatos y evidencias en una transacción. `review_analysis` guarda revisión, evaluación, estado y creación/retirada de provisión en otra transacción. Las nuevas asignaciones se validan en el servidor y mediante triggers SQL, también al corregir manualmente. Los resultados históricos no se reclasifican: se conserva su código final y su enlace al Master. Los candidatos históricos no elegibles no se ofrecen para nuevas asignaciones.
 
-La vista `current_analysis_results` solo expone el análisis del último trabajo. `/analysis` filtra clasificaciones humanas; `/api/exports/outside` exporta los casos fuera de cartera revisados, con fuentes y versión. Las provisiones oficiales mantienen su referencia versionada; los Excel de provisiones consultan el nombre oficial y conservan la referencia histórica cuando corresponde.
+La vista `current_analysis_results` solo expone el análisis del último trabajo. `/analysis` filtra clasificaciones humanas (su exportación Excel se retiró el 03/11/2026). Las provisiones oficiales mantienen su referencia versionada; los Excel de provisiones consultan el nombre oficial y conservan la referencia histórica cuando corresponde.
 
 ## Preparación e instalación local
 

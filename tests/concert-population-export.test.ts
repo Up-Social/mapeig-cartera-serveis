@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import ExcelJS from 'exceljs';
 import {createProvisionExcel,type ProvisionExcelRow} from '../lib/provision-excel';
-import {appendConcertPopulationMasterNotice,concertPopulationNotInformedCount} from '../lib/concerts/population-export-notice';
+import {concertPopulationNotInformedCount} from '../lib/concerts/population-export-notice';
 
 const base:ProvisionExcelRow={source_id:'synthetic',call_url:null,regulatory_basis_url:null,provider_name:'Entitat sintètica',provider_nif:null,mechanism:'Concert',award_date:'2026-01-01',amount:2300,contracting_body:null,target_population:null,source_reference:'synthetic',service_code:'1',service_name:'Servei sintètic',unit_id:'u1',act_type:'award'};
 async function workbook(rows:ProvisionExcelRow[]){const bytes=await createProvisionExcel(rows);const wb=new ExcelJS.Workbook();await wb.xlsx.load(Uint8Array.from(bytes).buffer);return wb;}
@@ -20,17 +20,6 @@ test('does not infer Concert from mechanism and does not change other types',asy
  const rows=[{...base,source_records:{financing_type:'conveni'}},{...base,source_id:'untyped',source_records:null},{...base,source_id:'subsidy',source_records:[{financing_type:'subvencio'}]}];
  assert.equal(concertPopulationNotInformedCount(rows),0);const wb=await workbook(rows);
  assert.equal(wb.getWorksheet('Detalle_Provisiones')?.rowCount,4);assert.equal(wb.getWorksheet('Estado_Revision'),undefined);
-});
-test('master notes use the explicit source type and keep details, formulas and amounts intact',async()=>{
- const wb=new ExcelJS.Workbook();const detail=wb.addWorksheet('Detalle_Provisiones'),summary=wb.addWorksheet('Tabla (resumen)'),notes=wb.addWorksheet('Estat_Exportacio');
- detail.addRow(['unit','amount','population']);detail.addRow(['u1',2300,null]);detail.addRow(['u2',1200,'Infància']);summary.getCell('A1').value={formula:'SUM(Detalle_Provisiones!B2:B2)'};
- appendConcertPopulationMasterNotice(notes,[{target_population:null,source_records:{financing_type:'concert'}},{target_population:'Infància',source_records:{financing_type:'concert'}},{target_population:null,source_records:{financing_type:'conveni'}}]);
- const bytes=await wb.xlsx.writeBuffer();const read=new ExcelJS.Workbook();await read.xlsx.load(bytes);
- assert.equal(read.getWorksheet('Detalle_Provisiones')?.getCell('B2').value,2300);assert.equal(read.getWorksheet('Detalle_Provisiones')?.getCell('C2').value,null);assert.equal(read.getWorksheet('Detalle_Provisiones')?.getCell('B3').value,1200);assert.equal(read.getWorksheet('Detalle_Provisiones')?.getCell('C3').value,'Infància');
- assert.equal(read.getWorksheet('Tabla (resumen)')?.getCell('A1').formula,'SUM(Detalle_Provisiones!B2:B2)');
- assert.match(String(read.getWorksheet('Estat_Exportacio')?.getCell('A1').value),/Població no informada en 1 registre de concert/);
- assert.match(String(read.getWorksheet('Estat_Exportacio')?.getCell('A1').value),/camp buit no identifica una decisió de revisió/);
- assert.match(String(read.getWorksheet('Estat_Exportacio')?.getCell('A1').value),/pot correspondre al conjunt de l’expedient/);
 });
 test('blank or whitespace count only known Concerts without claiming review status',()=>{
  const rows=[{target_population:null,source_records:{financing_type:'concert'}},{target_population:'   ',source_records:[{financing_type:'concert'}]},{target_population:'Gent gran',source_records:{financing_type:'concert'}},{target_population:null,source_records:[]}];

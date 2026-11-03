@@ -6,8 +6,8 @@ import {isUuid} from '@/lib/uuid';
 import {LineReadUnavailable} from '@/lib/concerts/line-read-guard';
 export const dynamic='force-dynamic';
 export async function GET(request:Request){
- const url=new URL(request.url),id=url.searchParams.get('record')??undefined;
- if(id&&!isUuid(id))return Response.json({error:'Registre no vàlid'},{status:400});
+ const url=new URL(request.url),id=url.searchParams.get('record');
+ if(!id||!isUuid(id))return Response.json({error:'Cal indicar el registre del concert.'},{status:400});
  const cutoff=url.searchParams.get('cutoff')??new Date().toISOString().slice(0,10);
  if(!isConcertCutoff(cutoff))return Response.json({error:'La data de tall no és vàlida. Introdueix una data existent.'},{status:400});
  try{

@@ -16,6 +16,7 @@ En pantalles d'escriptori, la navegació principal es manté visible en una barr
 - **Incidències**: evidència insuficient i errors tècnics del treball vigent, amb diagnòstic i recuperació.
 - **Resultats**: agrupa Aprovats, Descartats i Fora de cartera sense afegir passos al procés.
 - **Referència**: agrupa Catàleg i Entitats com a informació de consulta.
+- **Exportacions**: genera el llibre Excel «Mapeig de la Cartera» amb filtres de tipologia, província i data de concessió, i un resum previ amb avisos.
 - **Ajuda sobre el procés**: resum documental del pipeline, les decisions i les fonts.
 
 ## Resum del procés
@@ -118,11 +119,13 @@ Quan un lot té almenys una provisió aprovada o corregida, al seu costat aparei
 
 Si el lot encara no té cap provisió positiva, l'exportació no s'activa. El nom incorpora el número humà del lot i la data d'exportació.
 
-## Exportar provisions aprovades
+## Exportar el Mapeig de la Cartera
 
-La pantalla **Aprovats** permet seleccionar les provisions visibles i exportar únicament les marcades. Abans de generar el llibre, el servidor torna a comprovar que totes continuïn vigents, que el registre estigui completat i que l'última decisió sigui una aprovació o correcció.
+L'apartat **Exportacions** genera el llibre Excel amb el format v2 del client (fulls `Instruccions`, `Taula (resum)`, `Detall_Registres`, `Llistes_Auxiliars` i `Notes_Exportacio`). El formulari té tres filtres: tipologia (en aquesta fase només Concerts; les altres es mostren com a «Properament»), província (cap marcada vol dir totes) i interval de data de concessió. **Aplicar filtres** calcula al servidor un resum (línies, import total i desglossament per província) i els avisos de línies sense codi, data, import, província o òrgan reconegut; aquestes línies s'exporten igualment amb l'observació corresponent, mai es descarten per falta de dades. **Generar Excel** descarrega el fitxer amb exactament els mateixos filtres.
 
-També existeix una exportació completa sobre una còpia del Master quan el servidor disposa de `MASTER_EXCEL_PATH`. Cap de les tres modalitats modifica el fitxer original.
+A `Detall_Registres` cada línia de concert ocupa una fila amb les 11 columnes del client (A–K) i, a partir de la L, columnes addicionals de validació (estat de la línia, identificadors, tipus d'acte, període, orígens de cada dada, observacions) que el resum no utilitza. La `Taula (resum)` conserva les fórmules del client amb els resultats precalculats; les columnes de percentatge per òrgan i la d'entitats prestadores porten fórmules explícites equivalents als noms definits de la plantilla, i la de places RESES queda en blanc per omplir a mà. El nom del fitxer indica tipologies, territori, període i data de generació. Aquesta exportació no deixa cap recibo a `excel_exports`.
+
+Les exportacions globals anteriors (selecció d'Aprovats, foto de concerts global, Fora de cartera, Reserves i còpia del Master v1) es van retirar el 03/11/2026. Es mantenen les descàrregues per lot, per registre de conveni i per línia de concert des de les seves fitxes.
 
 ## Resolució de problemes
 
@@ -130,4 +133,4 @@ També existeix una exportació completa sobre una còpia del Master quan el ser
 - **Sense font documental**: substitueix la fila o continua amb els registres llestos.
 - **Format no compatible**: cal revisar el diagnòstic; hi ha OCR per a PDF, però no garanteix l’extracció de tots els documents.
 - **El matching no comença**: comprova la clau, el model, l'autorització del catàleg i que el lot tingui registres llestos.
-- **No es pot exportar un lot**: encara queden casos per revisar o falta `MASTER_EXCEL_PATH` a `.env.local`.
+- **No es pot exportar un lot**: encara queden casos per revisar.

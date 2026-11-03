@@ -23,8 +23,3 @@ export function concertPopulationNotice(rows:readonly PopulationExportInput[],la
   : `Población no informada en ${empty} ${empty===1?'registro de concierto':'registros de conciertos'}. Un campo vacío no identifica una decisión de revisión.`);
  return text.join(' ');
 }
-
-/** The Master already has an export-notes sheet; keep its data and formulas intact. */
-export function appendConcertPopulationMasterNotice(sheet:{addRow:(values:string[])=>unknown},rows:readonly PopulationExportInput[]):void {
- const notice=concertPopulationNotice(rows,'ca');if(notice)sheet.addRow([notice]);
-}

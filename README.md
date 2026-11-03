@@ -50,7 +50,7 @@ El mode efectiu depèn de `WORKER_EXECUTION_MODE`; `queue` i `vercel_workflow` s
 - Mostres petites de 4 casos únics, equilibrades per tipologia de finançament.
 - Preparació d'evidència i matching per lots persistents.
 - Revisió humana amb candidats, evidència i fitxa del servei.
-- Provisions normalitzades i exportació a una còpia del Master.
+- Provisions normalitzades i exportació del llibre «Mapeig de la Cartera» (format v2 del client) des de l'apartat Exportacions.
 - Pàgina `Procés` amb la relació entre tipologies, fonts internes i matching.
 
 Consulta [docs/INTERFACE_GUIDE.md](docs/INTERFACE_GUIDE.md) per seguir el procés pas a pas.

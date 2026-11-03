@@ -48,7 +48,6 @@ Fora d’ús des del 02/11/2026 (vegeu [context del projecte](PROJECT_CONTEXT.md
 | `OPENAI_MATCHING_MODEL` | si es processa | sí, si es processa | sí | model explícit |
 | `MATCHING_CATALOG_SOURCE` | si es processa | no necessària | sí | catàleg autoritzat |
 | `ALLOW_MASTER_MATCHING` | si s'autoritza | no necessària | sí | autorització addicional del Master |
-| `MASTER_EXCEL_PATH` | per exportar Master | no recomanada | opcional | ruta local al fitxer original |
 
 No versionis `.env.local`, claus, contrasenyes ni fitxers amb dades. Cap secret pot portar el prefix `NEXT_PUBLIC_`.
 

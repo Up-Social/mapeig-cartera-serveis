@@ -1,9 +1,6 @@
 import {createHmac,createHash} from 'node:crypto';
 import {handleIsolatedExport} from '../../../lib/concerts/line-export-handler';
-import {handleMixedExport} from '../../../lib/concerts/mixed-export-handler';
 import {GET as batchGET} from '../../../app/api/exports/batch/[id]/route';
-import {GET as masterGET} from '../../../app/api/exports/master/route';
-import {POST as approvedPOST} from '../../../app/api/exports/approved/route';
 import ExcelJS from 'exceljs';
 const ids=JSON.parse(process.argv[2]) as string[];const secret='private-synthetic-projection-secret-0000000000000000';
 const enc=(x:unknown)=>Buffer.from(JSON.stringify(x)).toString('base64url');
@@ -37,22 +34,14 @@ async function main(){
   commit:async(id,hash,rows)=>{rows[0].snapshot.amount=999;await rpc('concert_line_export_commit',{p_receipt:id,p_content_hash:hash,p_expected:rows});},
  });
  if(bad.status!==409)throw new Error('STALE_NOT_REJECTED '+bad.status);
- const mixedIds=[...snapshot.map((x:{snapshot:{id:string}})=>x.snapshot.id),process.argv[3]];
+ // The global approved/master exports were retired on 03/11/2026 (Mapeig export replaces them); only the batch route remains here.
  process.env.ENABLE_CONCERT_LINE_AWARDS='true';process.env.CONCERT_LINE_READERS_READY='true';process.env.TEST_SYNTHETIC_JWT=jwt('service_role');
- let mixedHash='';const mixedRequest=()=>new Request('http://fixture.invalid/',{method:'POST',body:JSON.stringify({provisionIds:mixedIds})});
- const mixed=await approvedPOST(mixedRequest());if(mixed.status!==200)throw new Error('MIXED_EXPORT_FAILED '+await mixed.text());const mixedBytes=Buffer.from(await mixed.arrayBuffer());mixedHash=createHash('sha256').update(mixedBytes).digest('hex');if(!mixedHash||!mixed.headers.get('X-Receipt-Id'))throw new Error('MIXED_HASH_MISSING');
  const batch=await batchGET(new Request('http://fixture.invalid/'),{params:Promise.resolve({id:process.argv[4]})});
  if(batch.status!==200)throw new Error('BATCH_ROUTE_FAILED '+await batch.text());
  const batchBytes=Buffer.from(await batch.arrayBuffer());if(!batchBytes.length)throw new Error('BATCH_EMPTY');
  const batchHash=createHash('sha256').update(batchBytes).digest('hex');const workbook=new ExcelJS.Workbook();await workbook.xlsx.load(batchBytes as never);const sheet=workbook.getWorksheet('Detalle_Provisiones');if(!sheet||Number(sheet.getRow(2).getCell(8).value)+Number(sheet.getRow(3).getCell(8).value)!==25000)throw new Error('BATCH_AMOUNT_WRONG');
- const template=new ExcelJS.Workbook();template.addWorksheet('Detalle_Provisiones');template.addWorksheet('Tabla (resumen)').getCell('A4').value='1.1.1';await template.xlsx.writeFile('/tmp/fixture-master.xlsx');process.env.MASTER_EXCEL_PATH='/tmp/fixture-master.xlsx';
- const master=await masterGET();if(master.status!==200)throw new Error('MASTER_ROUTE_FAILED '+await master.text());const masterBytes=Buffer.from(await master.arrayBuffer());const masterHash=createHash('sha256').update(masterBytes).digest('hex');const masterBook=new ExcelJS.Workbook();await masterBook.xlsx.load(masterBytes as never);const masterSheet=masterBook.getWorksheet('Detalle_Provisiones');if(!masterSheet||[2,3,4].reduce((total,row)=>total+Number(masterSheet.getRow(row).getCell(8).value),0)!==50000)throw new Error('MASTER_AMOUNT_WRONG');if(![2,3,4].every(row=>String(masterSheet.getRow(row).getCell(13).value??'').length>0))throw new Error('MASTER_NAME_MISSING');
- const mixedStale=await handleMixedExport(mixedRequest(),{read:async selected=>rpc('concert_line_mixed_snapshot',{p_ids:selected}),commit:async(id,hash,rows)=>{rows[0].snapshot.amount=999;await rpc('concert_line_mixed_commit',{p_receipt:id,p_hash:hash,p_expected:rows});}});
- if(mixedStale.status!==409)throw new Error('MIXED_STALE_FAILED');
  process.env.ENABLE_CONCERT_LINE_AWARDS='false';
- if((await approvedPOST(mixedRequest())).status!==503)throw new Error('DISABLED_APPROVED_NOT_BLOCKED');
  if((await batchGET(new Request('http://fixture.invalid/'),{params:Promise.resolve({id:process.argv[4]})})).status!==503)throw new Error('DISABLED_BATCH_NOT_BLOCKED');
- if((await masterGET()).status!==503)throw new Error('DISABLED_MASTER_NOT_BLOCKED');
- process.stdout.write(JSON.stringify({receipt,digest,mixedHash,batchHash,masterHash,status:result.status,stale:bad.status,anonBlocked,authBlocked}));
+ process.stdout.write(JSON.stringify({receipt,digest,batchHash,status:result.status,stale:bad.status,anonBlocked,authBlocked}));
 }
 main().catch(e=>{console.error(e);process.exitCode=1});

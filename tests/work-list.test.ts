@@ -21,12 +21,10 @@ test("la taula conserva títols complets, enllaços de retorn i seleccions", () 
   const title = "Resolució amb un títol llarg i noms complets. ".repeat(30);
   const href = "/records/example?from=%2Fapproved%3Fpage%3D2";
   const html = renderToStaticMarkup(h(WorkTable, { profile: "approved", children: h("tr", {},
-    h("td", {}, h("input", { type: "checkbox", checked: true, readOnly: true, "aria-label": "Seleccionar exemple" })),
     h("td", {}, h("a", { href }, title)), h("td", {}, "Entitat amb nom complet"),
     h("td", {}, "0,00 €"), h("td", {}, "Aprovat"), h("td", {}, "280"), h("td", {}, "Obrir")) }));
   assert.ok(html.includes(title));
   assert.ok(html.includes(href));
-  assert.match(html, /checked=""/);
   assert.match(html, /data-column="service" data-role="primary"/);
   assert.match(html, /data-label="Import" data-column="amount"/);
   assert.ok(html.includes("0,00 €"));

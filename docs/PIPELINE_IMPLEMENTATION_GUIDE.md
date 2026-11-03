@@ -90,9 +90,9 @@ Les exportacions parteixen de `service_provisions`, mai de les propostes pendent
 
 - **per lot**: `Detalle_Provisiones` amb les provisions vigents quan el lot ja en té almenys una;
 - **selecció d'aprovats**: entre 1 i 5.000 provisions visibles o filtrades;
-- **Master complet**: còpia del fitxer indicat per `MASTER_EXCEL_PATH`, amb totes les provisions vigents.
+- **Mapeig de la Cartera**: llibre amb el format v2 del client generat des de l'apartat Exportacions (`/api/exports/mapeig`) a partir de la plantilla del repositori, amb filtres de tipologia, província i data de concessió. Substitueix la còpia del Master v1 des del 03/11/2026.
 
-Els llibres independents contenen els 12 camps operatius i afegeixen el nom del servei de Cartera; conserven dates, imports i hipervincles. La còpia completa del Master manté les 12 columnes de la seva plantilla. Les exportacions i els seus ítems queden registrats amb hash. El fitxer Master original no es modifica.
+Els llibres independents contenen els 12 camps operatius i afegeixen el nom del servei de Cartera; conserven dates, imports i hipervincles. El Mapeig de la Cartera manté les 11 columnes de la plantilla del client i afegeix columnes de validació a partir de la L. Les exportacions per lot i els seus ítems queden registrats amb hash; el Mapeig no deixa recibo. Cap fitxer original es modifica.
 
 ## Entitats i RESES
 

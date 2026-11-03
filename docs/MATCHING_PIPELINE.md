@@ -51,7 +51,7 @@ Quan un matching hagi estat revisat, el resultat normalitzat es desa a `service_
 
 - cada lot amb almenys una provisió vigent pot descarregar un llibre independent amb `Detalle_Provisiones`;
 - la pantalla **Aprovats** pot exportar entre 1 i 5.000 provisions seleccionades;
-- `/api/exports/master`, quan existeix `MASTER_EXCEL_PATH`, genera una còpia del Master amb totes les provisions vigents i força el recàlcul de les fórmules en obrir el llibre.
+- `/api/exports/mapeig` genera el llibre «Mapeig de la Cartera» (format v2 del client) a partir de la plantilla inclosa al repositori (`data/exports/master-mapeig-cartera-v2.xlsx`), amb els resultats del resum precalculats i el recàlcul forçat en obrir el llibre. La còpia del Master v1 (`/api/exports/master`, `MASTER_EXCEL_PATH`) es va retirar el 03/11/2026.
 
 Cap exportació modifica el Master original.
 

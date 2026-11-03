@@ -89,7 +89,8 @@ test('review two annex rows in the UI and download the actual two-row Excel',asy
  await expect(section.getByTestId('concert-unit')).toHaveCount(2);
  const provisions=await db.from('service_provisions').select('id,amount').eq('source_record_id',recordId).is('superseded_at',null);if(provisions.error)throw provisions.error;
  expect(provisions.data).toHaveLength(2);
- const response=await page.request.post('/api/exports/approved',{data:{provisionIds:provisions.data.map(p=>p.id)}});expect(response.status()).toBe(200);
+ const job=await db.from('pipeline_jobs').select('run_id').eq('source_record_id',recordId).order('created_at',{ascending:false}).limit(1).single();if(job.error)throw job.error;
+ const response=await page.request.get(`/api/exports/batch/${job.data.run_id}`);expect(response.status()).toBe(200);
  const book=new ExcelJS.Workbook();await book.xlsx.load(Uint8Array.from(await response.body()).buffer);const sheet=book.getWorksheet('Detalle_Provisiones')!;
  expect(sheet.rowCount).toBe(3);expect([sheet.getCell('H2').value,sheet.getCell('H3').value].sort()).toEqual([3000,null].sort());
  expect(sheet.getCell('N2').value).not.toBe(sheet.getCell('N3').value);
