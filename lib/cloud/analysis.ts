@@ -24,7 +24,7 @@ import {assertSafeEvidenceRecovery,assertSafeLegacyAuditReceipts,assertSafeReque
 import {concertNoAwardFromEvidence} from '../concerts/no-award';
 import {assertNoProviderReceiptsForConcertReview,concertTitleReview,reviewConcertDiscard} from './concert-discard-review';
 import {reconciledConcertAnalysis} from './concert-analysis';
-import {applyConcertRoleReviewWithDiagnostics,concertRolesNeedingReview,concertRoleReviewSchema,CONCERT_ROLE_REPAIR_INSTRUCTIONS,CONCERT_ROLE_REPAIR_VERSION,recoverOperativeConcertObject} from '../concerts/role-evidence';
+import {applyConcertRoleReviewWithDiagnostics,concertRolesNeedingReview,concertRoleReviewSchema,CONCERT_ROLE_REPAIR_INSTRUCTIONS,CONCERT_ROLE_REPAIR_VERSION,exactConcertFinalServiceAccreditation,recoverOperativeConcertObject} from '../concerts/role-evidence';
 import {hasCurrentTextCoverage} from '../pipeline/document-input';
 import {projectConcertEnrichment} from './concert-enrichment';
 async function versionedProviderRequest(c:Context,jobId:string,phase:string,body:Record<string,unknown>){
@@ -291,6 +291,13 @@ export async function analyzeRecord(c:Context,job:{id:string;source_record_id:st
   const financedObject=enrichment?.scope_facts?.roles?.financed_object;
   if(exactOfficialEvidence&&financedObject?.state==='known'&&financedObject.kind==='service_financing'){
    accreditations.financed_object={kind:'service_financing',evidence_ordinals:exactOrdinals,basis:'official_service_code_and_description'};
+  }
+  // An audited candidate whose official code and description are cited in the
+  // pinned window accredits only that a service exists, so a second-reading
+  // discrepancy on the service no longer blocks the whole Concert.
+  if(r.data.financing_type==='concert'&&result.classification==='in_portfolio'&&!accreditations.final_service){
+   const finalService=exactConcertFinalServiceAccreditation(originalRoles,aligned.roles,result.candidates.map(candidate=>candidate.code),explicitlyCited.map(item=>({code:item.service.service_code,ordinals:item.ordinals})),chunks);
+   if(finalService)accreditations.final_service=finalService;
   }
   const scoped=applyFinancingClassification({...applyScopeRules(result,aligned.roles,chunks,accreditations),...(incompatibleConcertResponse?{classification:'out_of_portfolio' as const}:{})},r.data.financing_type);
   if(requiresConcertScopeDiscardFence(r.data.financing_type,scoped))await assertNoProviderReceiptsForConcertReview(c.db,c.task);

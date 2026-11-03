@@ -148,3 +148,18 @@ test('an explicitly unknown reply never supplies its uncited value as a fact',()
  assert.throws(()=>applyConcertRoleReview(roles,chunks,{checks:[uncertain]}));
  for(const patch of [{evidence_ordinal:1},{value:{}},{kind:'foreign'}])assert.throws(()=>applyConcertRoleReviewWithDiagnostics(roles,chunks,{checks:[{...uncertain,...patch}]}));
 });
+test('an official annex code keeps a second-reading service discrepancy from blocking a Concert (S1-10)',()=>{
+ const source=[{content:'Resolució per a la provisió directa de places, en l’àmbit de les persones amb discapacitat intel·lectual.'},
+  {content:'RESOLC: 1. Assignar les places, en règim de concert social, a les entitats exposades a l’Annex d’aquesta resolució, mitjançant procediment de provisió directa.'},
+  {content:'Annex. 1.2.6.2.4.2 Servei de centre de dia ocupacional d’inserció per a persones amb discapacitat intel·lectual. 2 places.'}];
+ const service={state:'known' as const,kind:'yes',value:'Serveis socials en règim de concert',evidence_ordinals:[],quotes:[]};
+ const previous:Partial<RoleFacts>={final_service:service,financed_object:{state:'known',kind:'other',value:'Assignació de 13 places',evidence_ordinals:[2],quotes:['Cita no localitzable.']},
+  final_population:{state:'known',kind:'population',value:'persones amb discapacitat intel·lectual',evidence_ordinals:[1],quotes:[source[0].content]}};
+ const recovered=recoverOperativeConcertObject(previous,source);
+ assert.equal(recovered.recovered,true);
+ const aligned={...recovered.roles,final_service:{...service,state:'unknown' as const}};
+ const original={classification:'in_portfolio',reasons:[],candidates:[{code:'1.2.6.2.4.2',evidence_ordinals:[3]}],evidence_ordinals:[3],explanation:'Documentat',service_description:'Servei',target_population:'Persones amb discapacitat intel·lectual',population_verified:true,social_service_verified:true} as unknown as AnalysisOutput;
+ assert.equal(applyScopeRules(original,aligned,source).classification,'insufficient_evidence');
+ const finalService=exactConcertFinalServiceAccreditation(recovered.roles,aligned,['1.2.6.2.4.2'],[{code:'1.2.6.2.4.2',ordinals:[3]}],source);
+ assert.equal(applyScopeRules(original,aligned,source,{final_service:finalService!}).classification,'in_portfolio');
+});
