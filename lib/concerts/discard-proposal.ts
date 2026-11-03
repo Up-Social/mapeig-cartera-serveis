@@ -1,5 +1,6 @@
 import type {SourceRecord} from '../workbench-types';
 import {hasCurrentTextCoverage} from '../pipeline/document-coverage';
+import {extractAdministrativeCorrections} from './administrative-correction';
 
 const normalize=(s:string)=>s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('ca').replace(/\s+/g,' ').trim();
 /** Conservative document-backed proposal; never records a decision or changes
@@ -63,7 +64,7 @@ const titleMotives:ReadonlyArray<{kind:'proposal'|'amendment';test:(title:string
 /** Display-only motive for acts the client validates as discards (Sprint 1):
  * a document-backed proposal when the operative clause is unambiguous, else a
  * title-and-rule motive that still asks to contrast the PDF. Never decides. */
-export function concertDiscardMotive(record:Parameters<typeof concertVacantAmendmentProposal>[0]):{documentId:string|null;page:number|null;reason:string}|null{
+export function concertDiscardMotive(record:Parameters<typeof concertVacantAmendmentProposal>[0]&Partial<Pick<SourceRecord,'provisionalResolutionLookup'>>):{documentId:string|null;page:number|null;reason:string;related?:{recordId:string;title:string}|null}|null{
  const documented=concertDiscardProposal(record);
  if(documented)return documented;
  if(record.financingType!=='concert'||record.isHistorical||record.reviewDecision||record.analysis?.classification!=='insufficient_evidence'||record.analysis.reliability_status==='invalidated')return null;
@@ -71,5 +72,14 @@ export function concertDiscardMotive(record:Parameters<typeof concertVacantAmend
  const motive=titleMotives.find(item=>item.test(title,audit));
  if(!motive)return null;
  const documents=record.sourceDocuments.filter(doc=>doc.status==='fetched'&&doc.mimeType?.includes('pdf')&&doc.archived===true);
- return {documentId:documents.length===1?documents[0].id:null,page:documents.length===1?1:null,reason:motive.reason};
+ const base={documentId:documents.length===1?documents[0].id:null,page:documents.length===1?1:null};
+ if(motive.kind==='proposal'){
+  // Only a single candidate from the bounded search is offered, never decided.
+  const candidates=record.provisionalResolutionLookup?.candidates??[];
+  return {...base,reason:motive.reason,related:candidates.length===1?{recordId:candidates[0].recordId,title:candidates[0].title}:null};
+ }
+ const rows=documents.length===1&&documents[0].extractedText&&documents[0].currentTextConsistent===true?extractAdministrativeCorrections(documents[0].extractedText):null;
+ const usable=rows&&rows.rows.length>0&&!rows.unparsedRows&&!rows.incompleteBoundary?rows.rows:[];
+ const detail=usable.length?` El document identifica ${usable.length===1?'1 línia':`${usable.length} línies`} a actualitzar (${usable.map(row=>`RESES ${row.resesCode}`).join(', ')}); les dades són a «Dades administratives proposades per revisar».`:'';
+ return {...base,reason:motive.reason+detail};
 }

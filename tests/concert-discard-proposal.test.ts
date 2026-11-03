@@ -66,3 +66,13 @@ test('proposal agreements and amendments without award show a discard motive, ne
  assert.equal(concertDiscardMotive({...amendment,sourceDocuments:[doc,{...doc,id:'other'}]} as unknown as typeof record)?.documentId,null);
  assert.deepEqual(concertDiscardMotive(record),{...concertDiscardProposal(record)!});
 });
+test('discard motives point to the definitive resolution and to the original lines to update',()=>{
+ const doc={...record.sourceDocuments[0],extractedText:'## Pàgina 2\nRESOLC: 1. Esmenar.\n## Pàgina 3\nExpedient GECAT Disposició Posició\nS01277 Servei BE-2024-N956 2600258791 1\n2. Notificar.'};
+ const amendment={...record,title:'Resolució d’esmena de la Resolució per a la provisió no ordinària de serveis',analysis:{classification:'insufficient_evidence',rule_audit:{concert_model_discard_review:{original_reasons:['no_concert_award']}}},sourceDocuments:[doc]} as unknown as typeof record;
+ assert.match(concertDiscardMotive(amendment)?.reason??'',/1 línia a actualitzar \(RESES S01277\)/);
+ const proposal={...record,title:'ACORD PROPOSTA PER A LA PROVISIÓ DE SERVEIS',analysis:{classification:'insufficient_evidence',rule_audit:{rule:'proposal'}},sourceDocuments:[doc]} as unknown as typeof record;
+ const lookup=(n:number)=>({candidates:Array.from({length:n},(_,i)=>({recordId:`r${i}`,title:`Resolució ${i}`,documentId:'d',page:4})),issue:null});
+ assert.deepEqual(concertDiscardMotive({...proposal,provisionalResolutionLookup:lookup(1)})?.related,{recordId:'r0',title:'Resolució 0'});
+ assert.equal(concertDiscardMotive({...proposal,provisionalResolutionLookup:lookup(2)})?.related,null);
+ assert.equal(concertDiscardMotive(proposal)?.related,null);
+});

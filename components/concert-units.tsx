@@ -175,7 +175,7 @@ export function ConcertUnits({record,services,onSaved,onDocumentaryFacts,onDiagn
   {missingOlderOrigin&&<p className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950">Hi ha línies amb origen anterior a 2024. Es conserven els imports documentals, però no se sumen a la foto vigent sense un original dins de l’horitzó.</p>}
   {reconciliations.length>0&&(!diagnosticCurrent||!!reconciled)&&<p role="status" className={`rounded-lg border p-3 text-sm ${reconciled?'border-emerald-300 bg-emerald-50 text-emerald-950':'border-amber-300 bg-amber-50 text-amber-950'}`}>
    {reconciled?`${reconciled.annex?`Annex ${reconciled.annex}`:'Annex'} conciliat: ${reconciled.row_count} línies i ${money(reconciled.sum_cents/100)}. La suma coincideix amb ${reconciled.coverage?.declared_amount_kind==='maximum'?'l’import màxim declarat':'l’import declarat'} a la resolució; pendent de validació humana i de vincular els actes posteriors.`:
-    'Hi ha línies documentals, però no consta un annex complet conciliat. No es poden aprovar com a conjunt.'}
+    units.every(unit=>unit.amount===null||unit.amount===undefined)?'L’annex no indica imports: no hi ha cap total per conciliar. Revisa cada línia individualment; l’import queda pendent, no és zero.':'Hi ha línies documentals, però no consta un annex complet conciliat. No es poden aprovar com a conjunt.'}
   </p>}
 
   <section id="concert-distribution" className="scroll-mt-32" aria-labelledby="distribution-title" data-testid="concert-distribution">
