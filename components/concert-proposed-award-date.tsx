@@ -6,7 +6,7 @@ import {printedOriginalSignatureDates,proposedConcertAwardDate} from '@/lib/conc
 
 const format=(date:string)=>date.replace(/^(\d{4})-(\d{2})-(\d{2})$/,'$3/$2/$1');
 /** Display only: never writes award_date nor approves the record. */
-export function ConcertProposedAwardDate({recordId,documents}:{recordId:string;documents:SourceDocument[]}){
+export function ConcertProposedAwardDate({recordId,documents,extracted}:{recordId:string;documents:SourceDocument[];extracted:string|null}){
  const [result,setResult]=useState<{recordId:string;observations:SignatureObservation[]}|null>(null);
  useEffect(()=>{
   const controller=new AbortController();
@@ -17,11 +17,12 @@ export function ConcertProposedAwardDate({recordId,documents}:{recordId:string;d
   return ()=>controller.abort();
  },[recordId]);
  const printed=printedOriginalSignatureDates(documents);
- if(printed===null)return <>No identificada · el document conté dates de signatura contradictòries</>;
+ if(printed===null)return <>{extracted?format(extracted):'No identificada'} · el document conté dates de signatura contradictòries; cal contrastar-les</>;
  const current=result?.recordId===recordId?result.observations.filter(item=>documents.some(document=>document.id===item.document_id&&document.archived===true&&document.revision?.startsWith(`${item.document_sha256}:`))):[];
  const summaries=summarizeSignatureObservations(current);
  const digital=summaries.some(summary=>summary.conflict||!summary.observation)?[]:summaries.map(summary=>summary.observation!.local_date);
- const proposal=proposedConcertAwardDate(printed,digital);
+ const proposal=proposedConcertAwardDate(printed,digital,extracted);
  if(!proposal)return <>{result?.recordId===recordId||printed.length?'No identificada':'Comprovant la data de signatura…'}</>;
- return <><span className="font-medium">{format(proposal.date)}</span> · data concessió proposada ({proposal.source==='printed'?'signatura de l’original impresa al document':'signatura digital del document'}), pendent de validació humana{proposal.other&&<span className="block text-xs text-amber-800">La signatura digital indica {format(proposal.other)}; contrasta-les abans de validar.</span>}</>;
+ if(proposal.source==='extracted')return <>{format(proposal.date)}</>;
+ return <><span className="font-medium">{format(proposal.date)}</span> · data concessió proposada ({proposal.source==='printed'?'signatura de l’original impresa al document':'signatura digital del document'}), pendent de validació humana{proposal.other&&<span className="block text-xs text-amber-800">{proposal.other===extracted?'L’extracció automàtica indicava':'La signatura digital indica'} {format(proposal.other)}; contrasta-les abans de validar.</span>}</>;
 }

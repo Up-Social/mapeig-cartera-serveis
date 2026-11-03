@@ -1,17 +1,20 @@
 import {originalSignatureEvidence,unambiguousOriginalSignature} from './original-signature-evidence';
 import type {SourceDocument} from '../workbench-types';
 
-export type ProposedAwardDate={date:string;source:'printed'|'digital';other:string|null};
+export type ProposedAwardDate={date:string;source:'printed'|'extracted'|'digital';other:string|null};
 const ISO=/^\d{4}-\d{2}-\d{2}$/;
 
 /** Carles (03/11/2026): the signature date is shown as the proposed «Data
- * concessió», pending human validation. The date printed for the original wins
- * (the client reads it from the footer, e.g. S1-9); the digital signature is
- * used when nothing is printed. Ambiguity proposes nothing. */
-export function proposedConcertAwardDate(printed:readonly string[],digital:readonly string[]):ProposedAwardDate|null{
+ * concessió», pending human validation, and the date printed for the original
+ * prevails, also over a date the model extracted (the client reads it from the
+ * footer, e.g. S1-9). Without a printed date the extracted one is kept, then the
+ * digital signature. A differing date is reported; ambiguity proposes nothing. */
+export function proposedConcertAwardDate(printed:readonly string[],digital:readonly string[],extracted:string|null=null):ProposedAwardDate|null{
  const p=[...new Set(printed.filter(date=>ISO.test(date)))],d=[...new Set(digital.filter(date=>ISO.test(date)))];
- if(p.length>1||(!p.length&&d.length!==1))return null;
- if(p.length)return {date:p[0],source:'printed',other:d.length===1&&d[0]!==p[0]?d[0]:null};
+ const e=extracted&&ISO.test(extracted)?extracted:null;
+ if(p.length===1)return {date:p[0],source:'printed',other:e&&e!==p[0]?e:d.length===1&&d[0]!==p[0]?d[0]:null};
+ if(e)return {date:e,source:'extracted',other:null};
+ if(p.length>1||d.length!==1)return null;
  return {date:d[0],source:'digital',other:null};
 }
 
