@@ -18,7 +18,7 @@ import {applyFinancingClassification,validateAnalysis,type AnalysisOutput} from 
 import {candidatesOnlySchema} from '../pipeline/matching-schema';
 import {loadOfficialCatalog} from '../official-catalog';
 import {applyScopeRules,requiresConcertScopeDiscardFence,ROLE_INSTRUCTIONS,type RoleAccreditations} from '../scope-rules';
-import {addNamedCandidates,bindExplicitCodeCandidates,findExplicitServiceEvidence,prioritizeExplicitServices} from '../named-candidate';
+import {addNamedCandidates,bindExplicitCodeCandidates,findExplicitServiceEvidence,prioritizeExplicitServices,keepOfficiallyNamedCandidates} from '../named-candidate';
 import {EVIDENCE_POLICY_VERSION,evidenceRejectionReasons,isEligibleEvidence} from '../evidence-eligibility';
 import {assertSafeEvidenceRecovery,assertSafeLegacyAuditReceipts,assertSafeRequestVersion,selectEvidenceWindow,missingDeclaredAnnexIds} from './evidence-window';
 import {concertNoAwardFromEvidence} from '../concerts/no-award';
@@ -234,7 +234,7 @@ export async function analyzeRecord(c:Context,job:{id:string;source_record_id:st
    const parsed=applyFinancingClassification(received,r.data.financing_type);
    const ineligible=insufficientForIneligibleCode(parsed,catalog.all,documentedCodes);
    if(ineligible)modelEvidenceIssue='ineligible_candidate_code';
-   result=bindExplicitCodeCandidates(addNamedCandidates(normalizeMissingScope(normalizeCandidates(ineligible??parsed,catalog.all,chunks.length,documentedCodes)),matchingServices,chunks),matchingServices,chunks);
+   result=bindExplicitCodeCandidates(addNamedCandidates(normalizeMissingScope(normalizeCandidates(r.data.financing_type==='concert'&&!ineligible?keepOfficiallyNamedCandidates(parsed,matchingServices,chunks):ineligible??parsed,catalog.all,chunks.length,documentedCodes)),matchingServices,chunks),matchingServices,chunks);
    const missing=insufficientWithoutCandidate(result);if(missing){result=missing;modelEvidenceIssue='missing_candidate';}
   }catch {throw new CloudFailure('validation');}
   // A Concert discard cannot be finalized from a model or a role rule. Do not

@@ -1,5 +1,5 @@
 import test from 'node:test';import assert from 'node:assert/strict';
-import {addNamedCandidates,bindExplicitCodeCandidates,findExplicitServiceEvidence,prioritizeExplicitServices} from '../lib/named-candidate';import type {AnalysisOutput} from '../lib/analysis-contract';import type {OfficialService} from '../lib/official-catalog';
+import {addNamedCandidates,bindExplicitCodeCandidates,keepOfficiallyNamedCandidates,findExplicitServiceEvidence,prioritizeExplicitServices} from '../lib/named-candidate';import type {AnalysisOutput} from '../lib/analysis-contract';import type {OfficialService} from '../lib/official-catalog';
 const service={service_code:'1.2.7.5',service_name:'Servei prelaboral',benefit_type:'service',legal_reference:'legal',description:'Preparació laboral',target_population:'Persones amb malaltia mental',conditions:'Acreditació',normative_fields:{}} as OfficialService;
 const base:AnalysisOutput={classification:'in_portfolio',reasons:[],explanation:'El document acredita un servei social específic.',service_description:'Modificació de places de serveis prelaborals',target_population:'Persones amb malaltia mental',evidence_ordinals:[1],population_verified:true,social_service_verified:true,candidates:[]};
 test('explicit codes prioritize the catalog but never remove other eligible services',()=>{
@@ -46,4 +46,18 @@ test('a different candidate with its complete name in its own evidence is retain
  const result=bindExplicitCodeCandidates({...base,candidates:[candidate]},[service,other],evidence);
  assert.deepEqual(result.candidates.map(c=>c.code),['1.2.7.5','1.2.7.6']);
  assert.deepEqual(result.evidence_ordinals,[1,2]);
+});
+
+test('a Concert candidate whose official name is cited survives unaccredited individual conditions (S1-8)',async()=>{
+ const {normalizeCandidates}=await import('../lib/cloud/normalize-candidates');
+ const pil={...service,service_code:'1.2.1.7',service_name:"Servei de residència o pisos per a joves vinculats a programes d'inserció laboral"} as OfficialService;
+ const chunks=[{content:'Resolució de provisió.'},{content:"RESOLC: Assignar a l’entitat el SERVEI DE RESIDÈNCIA O PISOS PER A JOVES VINCULATS A PROGRAMES D'INSERCIÓ LABORAL (PIL) en règim de concert social. Assignació de 4 places."}];
+ const candidate={code:'1.2.1.7',score:.97,rationale:'Encaix.',legal_reference:'legal',evidence_ordinals:[2],evidence_explanation:'No consta la tutela de cada jove.',population_compatible:false};
+ const value={...base,candidates:[candidate]} as AnalysisOutput;
+ assert.equal(normalizeCandidates(value,[pil],2).classification,'insufficient_evidence');
+ const kept=keepOfficiallyNamedCandidates(value,[pil],chunks);
+ assert.equal(kept.candidates[0].population_compatible,true);assert.match(kept.candidates[0].evidence_explanation,/condicions individuals/);
+ assert.equal(normalizeCandidates(kept,[pil],2).classification,'in_portfolio');
+ for(const other of [{...candidate,evidence_ordinals:[1]},{...candidate,code:'9.9'}])assert.equal(keepOfficiallyNamedCandidates({...value,candidates:[other]} as AnalysisOutput,[pil],chunks).candidates[0].population_compatible,false);
+ assert.equal(value.candidates[0].population_compatible,false);
 });

@@ -61,3 +61,17 @@ export function addNamedCandidates<T extends AnalysisOutput>(value:T,eligible:Of
  const candidates=[...additions,...value.candidates].filter((candidate,index,all)=>all.findIndex(other=>other.code===candidate.code)===index).slice(0,3);
  return {...value,candidates};
 }
+/** A Concert fragment that literally names the official service identifies its
+ * type and population. Individual access conditions (age, guardianship, degree)
+ * are never accredited per user, so they cannot drop that candidate before the
+ * independent positive audit. */
+export function keepOfficiallyNamedCandidates<T extends AnalysisOutput>(value:T,eligible:OfficialService[],chunks:Array<{content:string}>):T{
+ if(value.classification!=='in_portfolio'||!Array.isArray(value.candidates))return value;
+ const candidates=value.candidates.map(candidate=>{
+  if(candidate.population_compatible)return candidate;
+  const service=eligible.find(item=>item.service_code===candidate.code);
+  if(!service||!Array.isArray(candidate.evidence_ordinals)||!candidate.evidence_ordinals.some(ordinal=>mentioned(service.service_name,chunks[ordinal-1]?.content??'')))return candidate;
+  return {...candidate,population_compatible:true,evidence_explanation:`${candidate.evidence_explanation} El fragment cita el nom oficial del servei; les condicions individuals d’accés no s’acrediten per persona usuària i resten sotmeses a l’auditoria normativa i a la revisió humana.`};
+ });
+ return {...value,candidates};
+}
