@@ -52,3 +52,24 @@ export function concertDiscardProposal(record:Parameters<typeof concertVacantAme
  const reason=call?'El resolc obre una convocatòria perquè les entitats presentin sol·licituds; aquesta obertura no acredita per si sola una adjudicació nova.':'El resolc autoritza una despesa vinculada a places ja assignades; aquesta autorització no acredita per si sola una adjudicació nova.';
  return {documentId:doc.id,page:Number(pages[pages.length-1][1]),reason};
 }
+
+const titleMotives:ReadonlyArray<{kind:'proposal'|'amendment';test:(title:string,audit:Record<string,unknown>)=>boolean;reason:string}>=[
+ {kind:'proposal',test:(title,audit)=>/^acord proposta\b/.test(title)||audit.rule==='proposal',
+  reason:'El document és un acord de proposta del comitè de provisió, no un acte ferm: el registre el genera la resolució definitiva. Si la definitiva ja consta a la base, no cal cap registre nou; si no hi és, es poden registrar els serveis proposats com a provisionals.'},
+ {kind:'amendment',test:(title,audit)=>/^resolucio d['’]esmena de la resolucio\b/.test(title)&&
+  ((audit.concert_model_discard_review as {original_reasons?:unknown}|undefined)?.original_reasons as unknown[]|undefined??[]).includes('no_concert_award'),
+  reason:'La resolució esmena dades d’una resolució anterior i no adjudica serveis nous: no genera cap registre nou. Contrasta quines dades corregeix (per exemple, l’expedient GECAT o el número de disposició) i actualitza-les a les línies de la resolució original.'},
+];
+/** Display-only motive for acts the client validates as discards (Sprint 1):
+ * a document-backed proposal when the operative clause is unambiguous, else a
+ * title-and-rule motive that still asks to contrast the PDF. Never decides. */
+export function concertDiscardMotive(record:Parameters<typeof concertVacantAmendmentProposal>[0]):{documentId:string|null;page:number|null;reason:string}|null{
+ const documented=concertDiscardProposal(record);
+ if(documented)return documented;
+ if(record.financingType!=='concert'||record.isHistorical||record.reviewDecision||record.analysis?.classification!=='insufficient_evidence'||record.analysis.reliability_status==='invalidated')return null;
+ const title=normalize(record.title),audit=record.analysis.rule_audit??{};
+ const motive=titleMotives.find(item=>item.test(title,audit));
+ if(!motive)return null;
+ const documents=record.sourceDocuments.filter(doc=>doc.status==='fetched'&&doc.mimeType?.includes('pdf')&&doc.archived===true);
+ return {documentId:documents.length===1?documents[0].id:null,page:documents.length===1?1:null,reason:motive.reason};
+}

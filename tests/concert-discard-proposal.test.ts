@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import React from 'react';
 import {renderToStaticMarkup} from 'react-dom/server';
-import {concertDiscardProposal,concertVacantAmendmentProposal} from '../lib/concerts/discard-proposal';
+import {concertDiscardMotive,concertDiscardProposal,concertVacantAmendmentProposal} from '../lib/concerts/discard-proposal';
 import {assessConcertAct,isConcertSpendingAuthorizationTitle} from '../lib/concerts/act-assessment';
 import {concertCaseKeys} from '../lib/concerts/case-labels';
 import {HumanDecisionReason} from '../components/human-decision-reason';
@@ -52,4 +52,17 @@ test('a documented call or spending authorization is only a reasoned proposal fo
  assert.equal(isConcertSpendingAuthorizationTitle(spendingTitle),true);
  assert.equal(isConcertSpendingAuthorizationTitle('Resolució de pròrroga i autorització de la despesa'),false);
  assert.equal(isConcertSpendingAuthorizationTitle(callTitle),false);
+});
+
+test('proposal agreements and amendments without award show a discard motive, never a decision (S1-6, S1-19)',()=>{
+ const doc={...record.sourceDocuments[0],extractedText:'Text sense resolc únic.'};
+ const proposal=concertDiscardMotive({...record,title:'ACORD PROPOSTA PER A LA PROVISIÓ DE SERVEIS EN RÈGIM DE CONCERT SOCIAL',analysis:{classification:'insufficient_evidence',rule_audit:{rule:'proposal'}},sourceDocuments:[doc]} as unknown as typeof record);
+ assert.match(proposal?.reason??'',/acord de proposta/);assert.equal(proposal?.documentId,'doc');assert.equal(proposal?.page,1);
+ const amendment={...record,title:'Resolució d’esmena de la Resolució per a la provisió no ordinària de serveis',analysis:{classification:'insufficient_evidence',rule_audit:{rule:'retain_model',concert_model_discard_review:{original_reasons:['no_concert_award']}}},sourceDocuments:[doc]} as unknown as typeof record;
+ assert.match(concertDiscardMotive(amendment)?.reason??'',/esmena dades/);
+ assert.equal(concertDiscardMotive({...amendment,analysis:{classification:'insufficient_evidence',rule_audit:{rule:'retain_model'}}} as unknown as typeof record),null);
+ for(const changed of [{reviewDecision:'approved'},{isHistorical:true},{financingType:'conveni'},{analysis:{...amendment.analysis,classification:'in_portfolio'}}])
+  assert.equal(concertDiscardMotive({...amendment,...changed} as unknown as typeof record),null);
+ assert.equal(concertDiscardMotive({...amendment,sourceDocuments:[doc,{...doc,id:'other'}]} as unknown as typeof record)?.documentId,null);
+ assert.deepEqual(concertDiscardMotive(record),{...concertDiscardProposal(record)!});
 });
