@@ -23,3 +23,10 @@ test('empty and invalid quantities are not counted as known values',()=>{
  assert.equal(concertQuantityCoverage([],null),'Cap línia identificada');
  assert.equal(concertQuantityCoverage([{quantity:-1,extraction_origin:null},{quantity:1.5,extraction_origin:null}],null),'Quantitat pendent de contrast · 2 línies amb quantitat pendent');
 });
+
+test('a modification annex shows its change of places, not a pending quantity',()=>{
+ const change=(quantity_delta:number|null)=>({quantity:null,extraction_origin:'official-change-v1',quantity_delta});
+ assert.equal(concertQuantityCoverage([change(5),change(5),change(5)],null),'Canvi de places identificat: +15');
+ assert.equal(concertQuantityCoverage([change(-2)],3),'Canvi de places identificat: -2 · títol: 3 serveis anunciats');
+ assert.match(concertQuantityCoverage([change(5),change(null)],null),/Quantitat pendent de contrast · 2 línies amb quantitat pendent/);
+});

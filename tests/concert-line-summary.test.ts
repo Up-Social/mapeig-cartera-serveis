@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {concertLineAmountSummary} from '../lib/concerts/line-summary';
+import {concertLineAmountSummary,concertModificationIncrement} from '../lib/concerts/line-summary';
 
 const sha='a'.repeat(64);
 const first={document_id:'document-a',unit_key:`official-annex:${sha}:0:1`,storage_sha256:sha,evidence_quote:'Fila A',act_type:'award',amount:0.1};
@@ -34,4 +34,19 @@ test('pending re-extraction and invalid or unsafe values do not result in a tota
  for(const amount of [1.001,-1,Number.NaN,Number.POSITIVE_INFINITY,2**45]){
   assert.deepEqual(concertLineAmountSummary([first,{...second,amount}],[report],true),{count:2,totalCents:null,reason:'invalid'});
  }
+});
+
+test('modification rows that add up to the declared maximum document the increment (S1-15)',()=>{
+ const row=(n:number,amount:number|string|null='6645.50')=>({document_id:'doc',unit_key:`official-change:${sha}:${n}`,storage_sha256:sha,evidence_quote:`Línia ${n}`,act_type:'modification',amount});
+ const lines=[row(1),row(2),row(3)];
+ const maxima=[{documentId:'doc',amountCents:1993650}];
+ assert.deepEqual(concertModificationIncrement(lines,maxima),{count:3,totalCents:1993650});
+ assert.deepEqual(concertModificationIncrement([row(1,1640.16)],[{documentId:'doc',amountCents:164016}]),{count:1,totalCents:164016});
+ assert.equal(concertModificationIncrement(lines,[{documentId:'doc',amountCents:1993651}]),null);
+ assert.equal(concertModificationIncrement(lines,[]),null);
+ assert.equal(concertModificationIncrement([row(1),row(2),row(3,null)],maxima),null);
+ assert.equal(concertModificationIncrement([row(1),row(2),{...row(3),act_type:'award'}],maxima),null);
+ assert.equal(concertModificationIncrement([row(1),row(2),{...row(3),document_id:'other'}],maxima),null);
+ assert.equal(concertModificationIncrement([row(1),row(2),{...row(3),observation:{pendingRevision:true}}],maxima),null);
+ assert.equal(concertModificationIncrement([row(1),row(1),row(3)],maxima),null);
 });

@@ -26,3 +26,16 @@ export function concertLineAmountSummary(lines:readonly Line[],reports:readonly 
  if(totalCents!==matches[0].sum_cents)return {count:withAmount.length,totalCents:null,reason:'mixed'};
  return {count:withAmount.length,totalCents,reason:null};
 }
+
+/** Sprint 1: when the annex of a modification already gives the change, it is
+ * recorded as such. Rows of one document that add up exactly to the maximum the
+ * same resolution declares document that act's increment; it is not a balance,
+ * real spending or new funding, and still needs human validation. */
+export function concertModificationIncrement(lines:readonly Line[],maxima:ReadonlyArray<{documentId:string;amountCents:number}>):{count:number;totalCents:number}|null {
+ if(!lines.length||lines.some(line=>line.act_type!=='modification'||line.observation?.pendingRevision===true||!line.evidence_quote?.trim()))return null;
+ const document=lines[0].document_id;
+ const maximum=maxima.filter(item=>item.documentId===document);
+ if(!document||maximum.length!==1||lines.some(line=>line.document_id!==document)||new Set(lines.map(line=>line.unit_key)).size!==lines.length)return null;
+ const totalCents=safeAnnexSum(lines.map(line=>line.amount===null||line.amount===undefined?null:storedAmountCents(line.amount)));
+ return totalCents!==null&&totalCents===maximum[0].amountCents?{count:lines.length,totalCents}:null;
+}

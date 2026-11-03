@@ -1,4 +1,4 @@
-type QuantityLine={quantity:number|null;extraction_origin:string|null};
+type QuantityLine={quantity:number|null;extraction_origin:string|null;quantity_delta?:number|null};
 
 /** Display only quantities actually present; a missing value is not one or zero. */
 export function concertQuantityCoverage(lines:ReadonlyArray<QuantityLine>,expectedServices:number|null):string {
@@ -13,6 +13,11 @@ export function concertQuantityCoverage(lines:ReadonlyArray<QuantityLine>,expect
   else if(!overflow)total+=line.quantity;
  }
  const missing=selected.length-known;
+ // A modification annex gives the change of places, not a total: show it as such.
+ if(!programs.length&&!known&&selected.every(line=>Number.isSafeInteger(line.quantity_delta))){
+  const change=selected.reduce((sum,line)=>sum+line.quantity_delta!,0);
+  return `Canvi de places identificat: ${change>0?'+':''}${change}${expectedServices?` · títol: ${expectedServices} serveis anunciats`:''}`;
+ }
  const amount=overflow?'Suma de quantitats identificades no calculable':known?`${programs.length?'Suma de places identificades':'Suma de quantitats identificades'}: ${total}`:programs.length?'Places pendents de contrast':'Quantitat pendent de contrast';
  const pending=missing?` · ${missing} ${missing===1?'línia amb quantitat pendent':'línies amb quantitat pendent'}`:'';
  if(programs.length){
