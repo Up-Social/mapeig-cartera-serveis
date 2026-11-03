@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "supabase-prod-ro": {
+      "command": "sh",
+      "args": ["scripts/mcp-supabase.sh", "ro"]
+    },
+    "supabase-prod-rw": {
+      "command": "sh",
+      "args": ["scripts/mcp-supabase.sh", "rw"]
+    }
+  }
+}

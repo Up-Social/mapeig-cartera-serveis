@@ -1,0 +1,29 @@
+#!/bin/sh
+# Instalado por la skill vercel-setup. Rechaza el commit si el autor o el committer no
+# llevan el email de la cuenta de Vercel del proyecto (.claude/vercel-identity).
+# Con otra identidad, Vercel bloquea el despliegue o lo atribuye a otra cuenta.
+# Se activa con `git config core.hooksPath .githooks`, que ejecuta Carles.
+
+root=$(git rev-parse --show-toplevel) || exit 1
+file="$root/.claude/vercel-identity"
+if [ ! -r "$file" ]; then
+  echo "vercel-setup: falta $file; no se puede comprobar la identidad del commit." >&2
+  exit 1
+fi
+expected=$(sed -n 's/^VERCEL_EMAIL=//p' "$file" | tr -d '[:space:]')
+if [ -z "$expected" ]; then
+  echo "vercel-setup: VERCEL_EMAIL vacío en $file." >&2
+  exit 1
+fi
+
+email_of() { sed -n 's/.*<\(.*\)>.*/\1/p'; }
+author=$(git var GIT_AUTHOR_IDENT | email_of)
+committer=$(git var GIT_COMMITTER_IDENT | email_of)
+
+if [ "$author" != "$expected" ] || [ "$committer" != "$expected" ]; then
+  echo "vercel-setup: este repositorio solo admite commits con <$expected>." >&2
+  echo "  autor: <$author>   committer: <$committer>" >&2
+  echo "  No cambies el email para saltarte esto: avisa a Carles." >&2
+  exit 1
+fi
+exit 0

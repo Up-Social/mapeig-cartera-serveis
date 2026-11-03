@@ -1,0 +1,40 @@
+#!/bin/sh
+# Instalado por la skill vercel-setup. Rechaza el push si algún commit nuevo (los que el
+# remoto aún no tiene) lleva un autor o committer distinto del email de la cuenta de
+# Vercel del proyecto (.claude/vercel-identity). Cubre también los commits hechos con
+# --author, variables GIT_AUTHOR_* o `git -c user.email=...`, que pre-commit no ve.
+# Los commits que ya están en el remoto (p. ej. los de Lovable en main) no se revisan.
+
+remote="$1"
+root=$(git rev-parse --show-toplevel) || exit 1
+file="$root/.claude/vercel-identity"
+if [ ! -r "$file" ]; then
+  echo "vercel-setup: falta $file; no se puede comprobar la identidad del push." >&2
+  exit 1
+fi
+expected=$(sed -n 's/^VERCEL_EMAIL=//p' "$file" | tr -d '[:space:]')
+if [ -z "$expected" ]; then
+  echo "vercel-setup: VERCEL_EMAIL vacío en $file." >&2
+  exit 1
+fi
+
+zero=0000000000000000000000000000000000000000
+bad=""
+while read -r local_ref local_sha remote_ref remote_sha; do
+  [ "$local_sha" = "$zero" ] && continue # borrado de una rama remota
+  for c in $(git rev-list "$local_sha" --not --remotes="$remote"); do
+    ae=$(git log -1 --format=%ae "$c")
+    ce=$(git log -1 --format=%ce "$c")
+    if [ "$ae" != "$expected" ] || [ "$ce" != "$expected" ]; then
+      bad="$bad
+  $(git log -1 --format='%h  autor <%ae>  committer <%ce>  %s' "$c")"
+    fi
+  done
+done
+
+if [ -n "$bad" ]; then
+  echo "vercel-setup: push rechazado. Estos commits no llevan <$expected>:$bad" >&2
+  echo "  Vercel los bloquearía o los atribuiría a otra cuenta. Avisa a Carles." >&2
+  exit 1
+fi
+exit 0

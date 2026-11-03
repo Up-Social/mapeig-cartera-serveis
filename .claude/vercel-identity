@@ -1,0 +1,9 @@
+# Identidad de Vercel de este repositorio. La leen los hooks de .githooks/.
+# Solo la cambia Carles. `.claude/settings.json` deniega que Claude la edite.
+#
+# VERCEL_EMAIL: email de la cuenta de Vercel propietaria del equipo que despliega este
+#   repositorio. Todo commit que se suba tiene que llevarlo como autor y como committer.
+# VERCEL_TEAM: slug del equipo de Vercel. Tiene que coincidir con VERCEL_SCOPE en
+#   scripts/vercel.sh.
+VERCEL_EMAIL=csanz@upsocial.org
+VERCEL_TEAM=upsocial

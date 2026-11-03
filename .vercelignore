@@ -10,3 +10,9 @@ supabase/.temp/
 .env.local
 .env.*.local
 *.tsbuildinfo
+docs/
+coverage/
+test-results/
+playwright-report/
+blob-report/
+.turbo/
