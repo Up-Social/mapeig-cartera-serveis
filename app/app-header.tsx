@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-import { BookOpen, CheckSquare, CircleHelp, Coins, Database, FileCheck2, Layers3, LogOut, Menu, PanelLeftClose, PanelLeftOpen, Settings2, TriangleAlert, Waypoints } from "lucide-react";
+import { BookOpen, CheckSquare, CircleHelp, Coins, Database, FileCheck2, FileSpreadsheet, Layers3, LogOut, Menu, PanelLeftClose, PanelLeftOpen, Settings2, TriangleAlert, Waypoints } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetClose, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
@@ -17,6 +17,7 @@ const links = [
   { href: "/issues", label: "Incidències", icon: TriangleAlert, count: "issues", active: ["/issues"] },
   { href: "/approved", label: "Resultats", icon: FileCheck2, count: "results", active: ["/reserved", "/approved", "/discarded", "/analysis"] },
   { href: "/catalog", label: "Referència", icon: BookOpen, active: ["/catalog", "/entities"] },
+  { href: "/exports", label: "Exportacions", icon: FileSpreadsheet, active: ["/exports"] },
 ] as const;
 
 export function AppHeader({ collapsed, onToggleCollapsed }: { collapsed: boolean; onToggleCollapsed: () => void }) {
