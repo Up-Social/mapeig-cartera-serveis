@@ -6,14 +6,7 @@ Prototip local per validar el processament controlat i el matching entre provisi
 
 ## Arrencada local
 
-```bash
-supabase start
-cp .env.example .env.local
-supabase migration up --local
-npm run dev
-```
-
-Completa `.env.local` amb les claus retornades per `supabase status`. La web queda disponible a `http://localhost:3000` i Supabase Studio a `http://localhost:54323`.
+Fora d’ús des del 02/11/2026: per decisió de Carles no s’inicien Supabase local ni Docker (vegeu [context del projecte](docs/PROJECT_CONTEXT.md)). Les instruccions anteriors (`supabase start`, `supabase migration up --local`) es conserven a l’historial de Git i no s’han d’executar. `.env.local` pot apuntar a producció: verifiqueu-ne el destí abans d’executar `npm run dev` o qualsevol script.
 
 Configura també `APP_ACCESS_PASSWORD` amb una contrasenya llarga i única. Totes les pàgines, APIs i accions de servidor queden bloquejades per una sessió `HttpOnly`; si falta la variable, l'aplicació falla de manera tancada i només mostra la pantalla d'accés.
 

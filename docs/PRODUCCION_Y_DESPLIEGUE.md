@@ -8,10 +8,7 @@ Guia operativa de l'arquitectura actual. El repositori és una aplicació Next.j
 
 ### Desenvolupament local
 
-```text
-Navegador → Next.js local → Supabase local (Docker)
-                         ↘ scripts TypeScript locals
-```
+Fora d’ús des del 02/11/2026: no s’inicien Supabase local ni Docker. Es permeten comprovacions lleugeres de codi sense serveis. `.env.local` pot apuntar a Supabase de producció: una web o un script locals no impliquen dades aïllades. L’esquema anterior (Next.js local → Supabase local amb Docker) es conserva a l’historial de Git.
 
 Per defecte, les accions de procés iniciades des de la web local executen el despatx immediat. El mode `queue` permet provar un worker local; no reprodueix l’executor de Vercel Workflows.
 
@@ -29,24 +26,14 @@ Vercel executa les tasques persistents mitjançant Workflows i Sandbox; Supabase
 
 - Node.js 24, fixat a `.nvmrc` i `package.json`;
 - npm i `package-lock.json`;
-- Docker Desktop i Supabase CLI per al desenvolupament local;
+- Docker Desktop i Supabase CLI: no necessaris mentre Supabase local estigui fora d’ús (02/11/2026);
 - `pdftotext` per extreure PDF;
 - compte i projecte Vercel per a la web desplegada;
 - projecte Supabase remot per a l'entorn desplegat.
 
 ## Arrencada local
 
-```bash
-npm ci
-supabase start
-cp .env.example .env.local
-supabase migration up --local
-npm run dev
-```
-
-Completa `.env.local` amb els valors retornats per `supabase status`. La web queda a `http://localhost:3000` i Studio a `http://localhost:54323`.
-
-No executis `supabase db reset` sense autorització explícita: elimina les dades locals. Per aplicar només les migracions pendents utilitza `supabase migration up --local`.
+Fora d’ús des del 02/11/2026 (vegeu [context del projecte](PROJECT_CONTEXT.md)). Les ordres anteriors (`supabase start`, `supabase migration up --local`, `supabase status`) es conserven a l’historial de Git i no s’han d’executar. No executis mai `supabase db reset` sense autorització explícita: elimina dades.
 
 ## Variables d'entorn
 

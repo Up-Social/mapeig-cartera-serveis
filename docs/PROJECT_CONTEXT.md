@@ -1,5 +1,9 @@
 # Context del projecte
 
+## Traspàs a Claude Code — 03/11/2026
+
+Punt d’entrada: [estat local, límits i continuïtat](local/traspaso-claude-2026-11-03/INICIO.md). Aquest traspàs és documental: no reprèn la implementació ni autoritza producció. La matriu consolidada distingeix evidència històrica i pendents; no s’ha revalidat producció avui.
+
 ## Entorn de treball vigent — 02/11/2026
 
 Per decisió de Carles, Supabase local queda fora d’ús. El projecte Docker original `mapeig-cartera-serveis` es conserva aturat, amb reinici automàtic desactivat, com a còpia local per a una possible recuperació futura. No està sincronitzat automàticament amb producció ni s’ha verificat aquí la data de la seva còpia. No iniciar-lo, descarregar-hi la base remota ni crear entorns Docker nous sense una nova instrucció expressa. Els contenidors auxiliars `cartera-workflow-test` i `cartera-convenis-pilot` s’han eliminat; els volums es conserven fora d’execució.
@@ -8,9 +12,9 @@ La validació funcional de Concerts es fa a la web de producció dins de l’aba
 
 > Revisió documental 28/10/2026: consulteu [l’estat i els límits actualitzats](ESTADO_ACTUAL_2026_10_28.md). Els resultats i recomptes datats d’aquest document són històrics; el codi i les migracions prevalen en cas de discrepància.
 
-## Commits i push (02/11/2026)
+## Commits i push (03/11/2026)
 
-Carles autoritza els commits i els push necessaris per al treball demanat en aquest projecte, sense demanar confirmació separada per a cadascun. Abans de fer-los cal revisar el contingut, els commits pendents i la branca de destinació, preservar els canvis aliens i comunicar el resultat. El push a `main` desplega producció: cal respectar qualsevol instrucció expressa de no publicar i les autoritzacions aplicables a migracions o altres canvis remots independents.
+Els commits locals estan autoritzats per al treball demanat en aquest projecte: cal revisar-ne el contingut, incloure només els fitxers propis i preservar els canvis aliens. Qualsevol push requereix la confirmació explícita de Carles per a aquella entrega, indicant la branca i els commits concrets; el push a `main` desplega producció. Les migracions, els flags i altres canvis remots independents necessiten la seva pròpia autorització. Aquesta regla substitueix la del 02/11/2026, que permetia fer push sense confirmació.
 
 ## Política de branques (15/10/2026)
 
@@ -30,7 +34,7 @@ Prototip web intern per carregar registres de finançament públic, seleccionar-
 - Next.js (App Router)
 - React
 - Tailwind CSS
-- Supabase local sobre Docker per al desenvolupament i les proves
+- Supabase local sobre Docker: fora d’ús des del 02/11/2026 (vegeu «Entorn de treball vigent»); les referències a proves amb Supabase local són històriques
 - Supabase remot per als entorns web desplegats
 - Scripts d'ingesta en TypeScript executats amb Node.js
 
