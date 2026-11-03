@@ -5,5 +5,5 @@
 #   repositorio. Todo commit que se suba tiene que llevarlo como autor y como committer.
 # VERCEL_TEAM: slug del equipo de Vercel. Tiene que coincidir con VERCEL_SCOPE en
 #   scripts/vercel.sh.
-VERCEL_EMAIL=csanz@upsocial.org
+VERCEL_EMAIL=hola@carlessanz.com
 VERCEL_TEAM=upsocial
