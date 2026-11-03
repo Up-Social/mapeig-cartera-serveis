@@ -26,8 +26,9 @@ export function ConcertSignatureDate({recordId,documents}:{recordId:string;docum
    const item=summary.observation;
    return <p key={item.document_id} className="mt-2">
    {/^\d{4}-\d{2}-\d{2}$/.test(item.local_date)?item.local_date.replace(/^(\d{4})-(\d{2})-(\d{2})$/,'$3/$2/$1'):'Data no disponible'} · document arxivat {item.document_id}.
+   {item.signature_coverage==='partial'&&' La signatura només cobreix una part del PDF arxivat; no acredita la integritat del document complet.'}
    {' '}{item.certificate_trust==='trusted'?'Certificat acceptat en la comprovació disponible.':item.certificate_trust==='untrusted'?'No s’ha pogut establir confiança en el certificat.':'Confiança del certificat desconeguda.'}
   </p>;})}
-  <p className="mt-2 text-muted-foreground">Les observacions registren comprovacions d’integritat de tot el PDF; si discrepen, la data queda bloquejada. La data és declarada pel signant i no acredita un segell de temps fiable ni substitueix la data d’adjudicació.</p>
+  <p className="mt-2 text-muted-foreground">Les observacions indiquen l’abast comprovat de la signatura; si discrepen, la data queda bloquejada. La data és declarada pel signant i no acredita un segell de temps fiable ni substitueix la data d’adjudicació.</p>
  </div>;
 }

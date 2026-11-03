@@ -32,3 +32,22 @@ test('malformed or unsupported observations also block the date',()=>{
   assert.equal(result.conflict,true);assert.equal(result.observation,null);
  }
 });
+
+test('explicit partial operator evidence remains a claim and cannot masquerade as full coverage',()=>{
+ const partial={...observation,certificate_trust:'untrusted',verification_method:'pdfsig-partial-document-operator-v1',signature_coverage:'partial'};
+ assert.equal(summarizeSignatureObservations([partial])[0].conflict,false);
+ for(const invalid of [{...partial,signature_coverage:'full'},{...partial,signature_coverage:undefined},{...partial,verification_method:'pdfsig-full-document-v1'}]){
+  assert.equal(summarizeSignatureObservations([invalid])[0].conflict,true);
+ }
+ assert.equal(summarizeSignatureObservations([observation,partial])[0].conflict,true);
+});
+test('partial observation migration keeps full worker semantics and limits partial claims to operators',()=>{
+ const sql=readFileSync('supabase/migrations/20261102194000_concert_partial_signature_observations.sql','utf8');
+ assert.match(sql,/verification_method='pdfsig-full-document-v1' and signature_coverage='full'/);
+ assert.match(sql,/signature_coverage='partial' and verification_origin='operator'/);
+ assert.doesNotMatch(sql,/award_date\s*=/);
+ const ui=readFileSync('components/concert-signature-date.tsx','utf8');
+ assert.match(ui,/només cobreix una part del PDF/);
+ assert.match(ui,/No s’ha pogut establir confiança/);
+ assert.doesNotMatch(ui,/comprovacions d’integritat de tot el PDF/);
+});

@@ -9,7 +9,7 @@ export async function GET(_request:Request,{params}:{params:Promise<{id:string}>
  try {
   const db=createServerSupabase();
   const result=await db.from('current_concert_signature_observations')
-   .select('document_id,document_sha256,claimed_utc,local_date,certificate_trust,verification_method,observed_at',{count:'exact'})
+   .select('document_id,document_sha256,claimed_utc,local_date,certificate_trust,verification_method,signature_coverage,observed_at',{count:'exact'})
    .eq('source_record_id',id).order('document_id');
   if(result.error||result.count===null||result.data?.length!==result.count)return Response.json({error:'No s’ha pogut consultar la informació de signatura.'},{status:503});
   return Response.json({available:true,observations:result.data});

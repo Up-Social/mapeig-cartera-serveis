@@ -1,4 +1,15 @@
-import {hasLiteralRoleEvidence,type RoleFact,type RoleFacts,type RoleName} from '../scope-rules';
+import {hasLiteralRoleEvidence,type RoleAccreditation,type RoleFact,type RoleFacts,type RoleName} from '../scope-rules';
+
+/** Call only after positive candidate audit and explicit code/description detection
+ * against the same current evidence window. This establishes service existence,
+ * never population, the financed object, or an inferred candidate's code. */
+export function exactConcertFinalServiceAccreditation(previous:Partial<RoleFacts>|undefined,aligned:Partial<RoleFacts>|undefined,candidateCodes:readonly string[],explicit:ReadonlyArray<{code:string;ordinals:readonly number[]}>,chunks:ReadonlyArray<{content:string}>):RoleAccreditation|undefined{
+ for(const roles of [previous,aligned])if(roles?.final_service?.state==='contradictory'||roles?.final_service?.kind!=='yes')return undefined;
+ const codes=new Set(candidateCodes);
+ const ordinals=[...new Set(explicit.filter(item=>codes.has(item.code)).flatMap(item=>item.ordinals))];
+ if(!ordinals.length||ordinals.some(ordinal=>!Number.isInteger(ordinal)||ordinal<1||ordinal>chunks.length||!chunks[ordinal-1].content.trim()))return undefined;
+ return {kind:'yes',evidence_ordinals:ordinals,basis:'official_service_code_and_description'};
+}
 
 export const CONCERT_ROLE_REPAIR_VERSION='concert-role-review-v2';
 const DETERMINANTS:ReadonlyArray<RoleName>=['financed_object','final_population','final_service'];
@@ -12,7 +23,7 @@ export function recoverOperativeConcertObject(roles:Partial<RoleFacts>|undefined
  if(fact?.state!=='known'||fact.kind!=='other'||hasLiteralRoleEvidence(fact,chunks))return {roles,recovered:false};
  const matches=chunks.flatMap((chunk,index)=>{
   const text=normalized(chunk.content);
-  const clause=text.match(/\bRESOLC\s*:\s*(?:1[.)]\s*)?(Assignar\s+(?:la|una)\s+pla[cç]a\s*,?\s*en\s+r[eè]gim\s+de\s+concert\s+social\b[^.;]{0,220})/i)?.[1];
+  const clause=text.match(/\bRESOLC\s*:\s*(?:1[.)]\s*)?(Assignar\s+(?:(?:la|una)\s+pla[cç]a|les\s+pla[cç]es)\s*,?\s*en\s+r[eè]gim\s+de\s+concert\s+social\b[^.;]{0,220})/i)?.[1];
   return clause?[{ordinal:index+1,quote:clause.trim()}]:[];
  });
  if(matches.length!==1)return {roles,recovered:false};

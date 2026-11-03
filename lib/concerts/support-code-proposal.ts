@@ -6,6 +6,17 @@ export type ConcertSupportCodeProposal={
  explanation:string;requiresHumanReview:true;
 };
 type CatalogueService={code:string;name:string};
+export type ConcertStoHypothesis={code:string;name:string;parentCode:string;requiresHumanReview:true;basis:'business_rule_missing_support';explanation:string};
+/** A business hypothesis for a documented STO with support genuinely absent.
+ * Any support value or auxiliary indication keeps the hypothesis unavailable. */
+export function proposeConcertStoHypothesis(parentCode:string|null,support:string|null,evidence:string|null,catalogue:readonly CatalogueService[]):ConcertStoHypothesis|null{
+ if(support!==null||!evidence?.trim())return null;
+ const text=evidence.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+ if(!/\bsto\b|terapia ocupacional/.test(text)||/auxiliar|\bstoai\b|\bstoi\b|\bsuport\b|\bapoyo\b/.test(text))return null;
+ const candidate=proposeConcertSupportCode(parentCode,'STOI',catalogue);
+ if(!candidate)return null;
+ return {code:candidate.code,name:candidate.name,parentCode:candidate.parentCode,requiresHumanReview:true,basis:'business_rule_missing_support',explanation:'Hipòtesi per criteri de negoci: quan el document identifica STO sense informar del suport, es proposa el nivell sense auxiliar. El suport no està acreditat a la font; cal revisió humana. Es conserva el codi agrupador documentat.'};
+}
 export function proposeConcertSupportCode(parentCode:string|null,support:string|null,catalogue:readonly CatalogueService[]):ConcertSupportCodeProposal|null{
  if(parentCode!=='1.2.6.2.4.1'&&parentCode!=='1.2.6.3.4.1')return null;
  if(support!=='STOI'&&support!=='STOAI')return null;

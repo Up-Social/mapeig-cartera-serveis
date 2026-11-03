@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {test} from 'node:test';
 import {readFileSync} from 'node:fs';
-import {proposeConcertSupportCode} from '../lib/concerts/support-code-proposal';
+import {proposeConcertSupportCode,proposeConcertStoHypothesis} from '../lib/concerts/support-code-proposal';
 
 const catalog=[
  {code:'1.2.6.2.4.1.1',name:'Servei de teràpia ocupacional (STO) per a persones amb discapacitat intel·lectual'},
@@ -9,6 +9,17 @@ const catalog=[
  {code:'1.2.6.3.4.1.1',name:'Servei de teràpia ocupacional (STO) per a persones amb discapacitat física'},
  {code:'1.2.6.3.4.1.2',name:'Servei de teràpia ocupacional (STO) per a persones amb discapacitat física, amb auxiliar'},
 ];
+test('missing STO support permits only an explicitly identified business hypothesis',()=>{
+ const hypothesis=proposeConcertStoHypothesis('1.2.6.2.4.1',null,'Servei de teràpia ocupacional - discapacitats intel·lectuals. STO Auro Natura',catalog);
+ assert.equal(hypothesis?.code,'1.2.6.2.4.1.1');
+ assert.equal(hypothesis?.requiresHumanReview,true);
+ assert.equal(hypothesis?.basis,'business_rule_missing_support');
+ assert.match(hypothesis!.explanation,/no està acreditat a la font/);
+ for(const support of ['STOI','STOAI','STO','','desconegut'])assert.equal(proposeConcertStoHypothesis('1.2.6.2.4.1',support,'STO',catalog),null);
+ for(const evidence of [null,'','Servei ocupacional d’inserció','STO amb auxiliar','STO sense auxiliar','STOAI','STOI','STO suport pendent','STO apoyo desconocido'])assert.equal(proposeConcertStoHypothesis('1.2.6.2.4.1',null,evidence,catalog),null);
+ assert.equal(proposeConcertStoHypothesis('1.2.6.2.4.2',null,'STO',catalog),null);
+ assert.equal(proposeConcertStoHypothesis('1.2.6.2.4.1',null,'STO',catalog.slice(1)),null);
+});
 
 test('support proposes only the approved specific child for both STO families',()=>{
  for(const [parent,support,expected] of [
