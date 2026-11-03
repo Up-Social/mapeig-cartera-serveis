@@ -25,7 +25,7 @@ export function ConcertEconomics({recordId}:{recordId:string}){
  useEffect(()=>{const target=selectedLink?`concert-link-${selectedLink}`:selected?`concert-effect-${selected}`:null;if(target&&result){const frame=requestAnimationFrame(()=>document.getElementById(target)?.scrollIntoView({block:'start'}));return()=>cancelAnimationFrame(frame);}},[selectedLink,selected,result,mode]);
  async function send(body:Record<string,unknown>,targetRecordId=recordId){
   setBusy(true);setError('');try{
-   const response=await fetch(`/api/records/${targetRecordId}/concert-economics`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),signal:AbortSignal.timeout(60000)});
+   const response=await fetch(`/api/records/${targetRecordId}/concert-economics`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),signal:AbortSignal.timeout(body.action==='discover'?240000:60000)});
    const value=await response.json();if(!response.ok)throw Error(value.error);
    const fresh=await fetch(`${endpoint}${cutoff?`?cutoff=${cutoff}`:''}`,{cache:'no-store'});const next=await fresh.json();if(!fresh.ok)throw Error(next.error);
    setResult(next);setSelected(null);setSelectedLink(null);

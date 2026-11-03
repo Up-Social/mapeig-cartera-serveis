@@ -4,6 +4,8 @@ import {concertEvolution,isConcertCutoff} from '@/lib/concerts/evolution';
 import {loadConcertEvolution} from '@/lib/concerts/evolution-store';
 import {storeConcertLinkProposals} from '@/lib/concerts/link-discovery';
 import {LineReadUnavailable} from '@/lib/concerts/line-read-guard';
+// Link discovery scans every archived Concert document; it can exceed a minute.
+export const maxDuration=300;
 export const dynamic='force-dynamic';
 export async function GET(request:Request,{params}:{params:Promise<{id:string}>}){
  const {id}=await params;if(!isUuid(id))return Response.json({error:'Registre no vàlid'},{status:400});
