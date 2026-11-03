@@ -35,7 +35,7 @@ export type ConcertMapeigData={
  units:ConcertUnitRow[];records:ConcertRecordRow[];reviews:ConcertReviewRow[];geography:ConcertGeographyRow[];supplemental:ReviewedConcertGeography[];
  corrections:ConcertCorrectionRow[];populations:ConcertPopulationRow[];latestJobs:ConcertJobRow[];enrichments:ConcertEnrichmentRow[];provisions:ConcertProvisionRow[];
  documents:ConcertDocumentRow[];signatures:ConcertSignatureRow[];
- gates:{supplementalGeography:boolean;signatureDates:boolean;printedDates:boolean};
+ gates:{supplementalGeography:boolean;signatureDates:boolean;printedDates:boolean;populationEvents:boolean};
 };
 export type ConcertRowOptions={origin:string;catalogCodes:Map<string,string>;includeLegacyWhenSplit?:boolean};
 
@@ -208,6 +208,7 @@ export function concertRowsFromData(data:ConcertMapeigData,options:ConcertRowOpt
  if(!data.gates.supplementalGeography)notes.push('La geografia complementària revisada no està activada en aquest entorn; el territori surt del document i de la correspondència Idescat.');
  if(!data.gates.signatureDates)notes.push('Les dates de signatura digital no estan activades en aquest entorn; la data de concessió surt de la signatura impresa o de l’extracció.');
  if(!data.gates.printedDates)notes.push('Les dates de signatura impreses no s’han llegit en aquesta exportació; la data de concessió és la desada al registre.');
+ if(!data.gates.populationEvents)notes.push('Les observacions de població revisades per línia no es poden llegir en aquest entorn; la població surt de les correccions documentades o del registre, i s’anota com a no acreditada per línia.');
  notes.push('Concerts: la data de concessió és la del registre (resolució); la data d’efectes de cada línia, si la revisió econòmica la fixa, consta a la columna «Data d’efectes».');
  return {rows,notes};
 }

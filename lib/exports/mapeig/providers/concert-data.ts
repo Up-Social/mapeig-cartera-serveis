@@ -27,11 +27,18 @@ export async function loadConcertMapeigData(db:SupabaseClient,options:{awardDate
  });
  const unitIds=units.map(u=>u.id),recordIds=[...records.keys()];
  const reviews:ConcertReviewRow[]=[],geography:ConcertGeographyRow[]=[],supplemental:ReviewedConcertGeography[]=[],populations:ConcertPopulationRow[]=[],provisions:ConcertProvisionRow[]=[];
+ // The population events table is only readable through its review RPCs
+ // (20261030046000 revokes service_role); a direct read is attempted so a
+ // future view can expose it, and its absence is reported, not hidden.
+ let populationEvents=true;
  for(const ids of chunks(unitIds)){
   reviews.push(...await readPages(async(from,to)=>db.from('concert_economic_reviews').select('unit_id,version,status,source_fingerprint,expected_job_id,operation,amount_cents,amount_kind,period_start,period_end,effective_at,funder').in('unit_id',ids).order('unit_id').range(from,to).returns<ConcertReviewRow[]>()));
   geography.push(...await readPages(async(from,to)=>db.from('current_concert_unit_geography').select('unit_id,municipality,county,province').in('unit_id',ids).order('unit_id').range(from,to).returns<ConcertGeographyRow[]>()));
   if(supplementalGeographyEnabled())supplemental.push(...await readPages(async(from,to)=>db.from('current_concert_supplemental_geography_review').select('*').in('unit_id',ids).order('unit_id').range(from,to).returns<ReviewedConcertGeography[]>()));
-  populations.push(...await readPages(async(from,to)=>db.from('concert_population_events').select('unit_id,job_id,sequence,decision,value').in('unit_id',ids).order('id').range(from,to).returns<ConcertPopulationRow[]>()));
+  if(populationEvents){
+   try{populations.push(...await readPages(async(from,to)=>db.from('concert_population_events').select('unit_id,job_id,sequence,decision,value').in('unit_id',ids).order('id').range(from,to).returns<ConcertPopulationRow[]>()));}
+   catch{populationEvents=false;populations.length=0;}
+  }
   provisions.push(...await readPages(async(from,to)=>db.from('service_provisions').select('source_record_id,unit_id,award_date,contracting_body,target_population,call_url').in('unit_id',ids).is('superseded_at',null).order('id').range(from,to).returns<ConcertProvisionRow[]>()));
  }
  const corrections:ConcertCorrectionRow[]=[],latestJobs:ConcertJobRow[]=[],enrichments:ConcertEnrichmentRow[]=[],documents:ConcertDocumentRow[]=[],signatures:ConcertSignatureRow[]=[];
@@ -50,5 +57,5 @@ export async function loadConcertMapeigData(db:SupabaseClient,options:{awardDate
  }
  await requireConsistentLineReads(db);
  return {units,records:[...records.values()],reviews,geography,supplemental,corrections,populations,latestJobs,enrichments,provisions,documents,signatures,
-  gates:{supplementalGeography:supplementalGeographyEnabled(),signatureDates:signatureDatesEnabled(),printedDates}};
+  gates:{supplementalGeography:supplementalGeographyEnabled(),signatureDates:signatureDatesEnabled(),printedDates,populationEvents}};
 }

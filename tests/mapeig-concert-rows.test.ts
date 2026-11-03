@@ -20,7 +20,7 @@ const document=(partial:Partial<ConcertDocumentRow>):ConcertDocumentRow=>{
 const data=(partial:Partial<ConcertMapeigData>):ConcertMapeigData=>({
  units:[unit({})],records:[{id:'r1',source_record_id:'etauler:1:100',title:'Resolució de provisió',record_url:'https://tauler.example/edicte/100'}],reviews:[],geography:[],supplemental:[],
  corrections:[],populations:[],latestJobs:[{id:'j1',source_record_id:'r1',status:'approved'}],enrichments:[{source_record_id:'r1',award_date:'2025-03-01',contracting_body:'La consellera de Drets Socials',target_population:'Infants en risc',scope_facts:null}],
- provisions:[],documents:[document({})],signatures:[],gates:{supplementalGeography:false,signatureDates:false,printedDates:true},...partial,
+ provisions:[],documents:[document({})],signatures:[],gates:{supplementalGeography:false,signatureDates:false,printedDates:true,populationEvents:true},...partial,
 });
 const options={origin:'https://app.example',catalogCodes:new Map([['1.1.6.1','Servei de centre obert'],['1.2.1.3','Servei de centre d’acolliment']])};
 
@@ -67,7 +67,7 @@ test('province precedence: documentary geography, confirmed supplement, Idescat;
 });
 
 test('the award date prefers printed, then extracted, then digital, then the provision; ambiguity proposes nothing',()=>{
- const gates={supplementalGeography:false,signatureDates:true,printedDates:true};
+ const gates={supplementalGeography:false,signatureDates:true,printedDates:true,populationEvents:true};
  const enrichment={source_record_id:'r1',award_date:'2025-03-01',contracting_body:null,target_population:null,scope_facts:null};
  assert.equal(concertRecordAwardDate({documents:[document({})],signatures:[],enrichment,provision:undefined,gates}).date,'2025-03-10');
  assert.equal(concertRecordAwardDate({documents:[document({extracted_text:'## Pàgina 1\nSense signatura'})],signatures:[],enrichment,provision:undefined,gates}).origin,'Data extreta del document');
@@ -98,8 +98,8 @@ test('legacy lines are skipped when the record has annex lines; corrections, pop
  assert.equal(observed.targetPopulation,'Adolescents');assert.equal(observed.extras.populationOrigin,'Població revisada per a la línia');
  assert.equal(rejected.extras.lineState,'Rebutjada');assert.ok(rejected.observations.includes('Línia rebutjada: no s’ha de sumar'));
  assert.equal(rejected.targetPopulation,'Infants en risc','events of another job are ignored');
- const alone=concertRowsFromData(data({units:[legacy],enrichments:[]}),options);
- assert.equal(alone.rows.length,1);assert.equal(alone.rows[0].amount,5000);assert.equal(alone.rows[0].carteraCode,null);
+ const alone=concertRowsFromData(data({units:[legacy],enrichments:[],gates:{supplementalGeography:false,signatureDates:false,printedDates:true,populationEvents:false}}),options);
+ assert.equal(alone.rows.length,1);assert.ok(alone.notes.some(note=>note.includes('població revisades per línia no es poden llegir')));assert.equal(alone.rows[0].amount,5000);assert.equal(alone.rows[0].carteraCode,null);
  assert.ok(alone.rows[0].observations.includes('Codi pendent de revisió'));assert.ok(alone.rows[0].observations.includes('Òrgan no identificat'));
  assert.equal(alone.rows[0].sourceUrl,'https://tauler.example/edicte/100');
 });
