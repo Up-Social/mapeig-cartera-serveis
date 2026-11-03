@@ -54,6 +54,13 @@ export function proposeDocumentRecordLinks(rows:ConcertPublication[],documents:C
         evidence:`PDF arxivat ${d.id} (SHA ${d.storage_sha256}): ${cite[0].replace(/\s+/g,' ').trim()}. Convocatòria identificada també al PDF ${earlierDoc.id} (SHA ${earlierDoc.storage_sha256}). Candidata documental; no acredita imports ni vinculació financera.`});
        continue;
       }
+      // The call itself may not be archived yet. Its official title must then
+      // start with the literal citation (number, date and call wording).
+      if(cite&&!(docs.get(earlier.id)??[]).length&&norm(earlier.title).startsWith(norm(cite[0]))){
+       result.push({laterRecordId:later.id,earlierRecordId:earlier.id,kind:'call',method:'explicit_resolution',
+        evidence:`PDF arxivat ${d.id} (SHA ${d.storage_sha256}): ${cite[0].replace(/\s+/g,' ').trim()}. Coincideix amb el títol oficial de la convocatòria; el PDF de la convocatòria encara no està arxivat. Candidata documental; no acredita imports ni vinculació financera.`});
+       continue;
+      }
      }
     }
     if(!kind)continue;

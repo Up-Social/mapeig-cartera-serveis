@@ -38,6 +38,13 @@ export function euroCents(value:string|number|null):number|null{
 }
 
 /** One projection for the UI and both Excel sheets. Never promotes source drafts. */
+/** Lines of the same unit that only differ in their start date within one
+ * year (for example two tutelages starting days apart) form one consolidated
+ * row; the earliest start is kept. Other periods stay separate. */
+export function consolidatedPeriodKey(period:string){
+ const match=period.match(/^(\d{4})-\d{2}-\d{2}\/(\d{4}-\d{2}-\d{2})$/);
+ return match&&match[2].startsWith(match[1])?`${match[1]}:${match[2]}`:period;
+}
 export function concertEvolution(data:ConcertEvolutionData,cutoff:string){
  if(!iso(cutoff))throw Error('Data de tall no vàlida');
  // Resolve a display/projection copy only; source fingerprints and persisted
@@ -188,9 +195,10 @@ export function concertEvolution(data:ConcertEvolutionData,cutoff:string){
  });
  const grouped=new Map<string,EvolutionBalance>();
  for(const balance of individualBalances){
-  const key=JSON.stringify([balance.providerNif??balance.rootId,balance.service,balance.territory,balance.period,balance.funder]);
+  const key=JSON.stringify([balance.providerNif??balance.rootId,balance.service,balance.territory,consolidatedPeriodKey(balance.period),balance.funder]);
   const prior=grouped.get(key);
   if(!prior){grouped.set(key,{...balance,rootIds:[...balance.rootIds],issues:[...balance.issues]});continue;}
+  if(balance.period<prior.period)prior.period=balance.period;
   prior.rootIds.push(...balance.rootIds);prior.maximum ||= balance.maximum;
   prior.issues=[...new Set([...prior.issues,...balance.issues])];
   prior.amountCents=prior.amountCents===null||balance.amountCents===null?null:prior.amountCents+balance.amountCents;

@@ -80,3 +80,15 @@ test('an explicit call is a procedural candidate for an award, never a financial
  assert.deepEqual(proposeDocumentRecordLinks([{...call,source_payload:{data_publicacio:'2025-12-01'}},award],[callDoc,awardDoc]),[]);
  assert.deepEqual(proposeDocumentRecordLinks([call,{...award,title:'Esmena de la resolució de provisió'}],[callDoc,awardDoc]),[]);
 });
+
+test('an unarchived call is linked only when its official title starts with the literal citation',()=>{
+ const call={...earlier,id:'call',title:'Resolució DSI/2075/2025, de 4 de juny, de convocatòria per a la provisió de places en serveis',source_payload:{data_publicacio:'2025-06-12'}};
+ const award={...later,id:'award',title:'RESOLUCIÓ de provisió de serveis socials PIL',source_payload:{data_publicacio:'2025-08-12'}};
+ const extra=' El document recull les condicions, les persones destinatàries i el procediment aplicable.'.repeat(5);
+ const awardDoc=doc('award','Fets\n1. En data 11 de juny de 2025 es va publicar la Resolució DSI/2075/2025, de 4 de juny, de\nconvocatòria per a la provisió de places.\nFonaments de dret\nNormes.\nRESOLC: 1. Assignar 5 places al servei documentat.'+extra);
+ const links=proposeDocumentRecordLinks([call,award],[awardDoc]);
+ assert.equal(links.length,1);assert.equal(links[0].kind,'call');assert.match(links[0].evidence,/encara no està arxivat/);
+ assert.deepEqual(proposeDocumentRecordLinks([{...call,title:'Resolució DSI/2075/2025, de 5 de juny, de convocatòria'},award],[awardDoc]),[]);
+ const otherCallDoc=doc('call','Resolució DSI/9999/2025, de convocatòria.'+extra);
+ assert.deepEqual(proposeDocumentRecordLinks([call,award],[otherCallDoc,awardDoc]),[]);
+});

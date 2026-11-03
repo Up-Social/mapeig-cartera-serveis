@@ -35,3 +35,14 @@ export function extractConcertChangeGeography(text:string,row:ConcertChangeLine)
  return {...literal,county,province,
   reference:{municipalityCode,municipality:officialMunicipality,county,province,sourceUrl:reference.sourceUrl,sha256:reference.sha256}};
 }
+
+export type MunicipalityReference={municipalityCode:string;municipality:string;county:string;province:string;sourceUrl:string};
+/** County and province of a municipality already recorded on a line, from the
+ * pinned Idescat correspondence. An unknown or ambiguous name stays pending. */
+export function municipalityReference(name:string|null|undefined):MunicipalityReference|null{
+ if(!name?.trim())return null;
+ const places=reference.rows.filter(place=>normalize(place[1])===normalize(name));
+ if(places.length!==1)return null;
+ const [municipalityCode,municipality,county,province]=places[0];
+ return {municipalityCode,municipality,county,province,sourceUrl:reference.sourceUrl};
+}

@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {concertEvolution,isConcertCutoff,euroCents,allocateByWeights,type ConcertEvolutionData,type EconomicUnit,type EconomicReview,type EconomicLink} from '../lib/concerts/evolution';
+import {concertEvolution,consolidatedPeriodKey,isConcertCutoff,euroCents,allocateByWeights,type ConcertEvolutionData,type EconomicUnit,type EconomicReview,type EconomicLink} from '../lib/concerts/evolution';
 import {projectConcertBalances,type ConcertFinancialLine} from '../lib/concerts/financial-ledger';
 import {proposeUnitLinks,type ConcertUnitForLink} from '../lib/concerts/unit-linking';
 const unit=(id:string,act='award'):EconomicUnit=>({id,source_record_id:`record-${id}`,unit_key:`line-${id}`,act_type:act,status:'approved',source_fingerprint:`fp-${id}`,provider_name:'Entitat original',observed_provider_name:null,provider_nif:'G12345678',reses_code:'S01150',service_code:'1.2.3',observed_service_code:'1.2.3',territory:'Barcelona',period:'2024',amount:1000,effective_start:null,effective_end:null,horizon_state:'in_scope',document_id:`doc-${id}`,page:1,storage_path:`cases/${id}`,storage_sha256:`hash-${id}`,evidence_quote:`Passatge oficial de la línia ${id}`});
@@ -285,4 +285,11 @@ test('economic review distinguishes missing territory from a verified service an
  const d=data([{...unit('a'),line_award_state:'current',territory:null}],[{...review('a'),amount_cents:null,amount_kind:'unknown'}]);
  const issues=projection(d).movements[0].issues.join(' ');
  assert.match(issues,/Territori pendent/);assert.doesNotMatch(issues,/Servei pendent/);assert.match(issues,/Import del moviment pendent/);
+});
+
+test('lines that only differ in their start date within one year share a consolidated row',()=>{
+ assert.equal(consolidatedPeriodKey('2025-05-21/2025-12-31'),consolidatedPeriodKey('2025-05-23/2025-12-31'));
+ assert.notEqual(consolidatedPeriodKey('2025-01-01/2025-12-31'),consolidatedPeriodKey('2025-01-01/2025-06-30'));
+ assert.notEqual(consolidatedPeriodKey('2024-07-01/2025-06-30'),consolidatedPeriodKey('2024-09-01/2025-06-30'));
+ assert.equal(consolidatedPeriodKey('Període pendent'),'Període pendent');
 });
