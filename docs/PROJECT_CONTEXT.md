@@ -12,9 +12,9 @@ La validació funcional de Concerts es fa a la web de producció dins de l’aba
 
 > Revisió documental 28/10/2026: consulteu [l’estat i els límits actualitzats](ESTADO_ACTUAL_2026_10_28.md). Els resultats i recomptes datats d’aquest document són històrics; el codi i les migracions prevalen en cas de discrepància.
 
-## Commits i push (03/11/2026)
+## Commits, push i migracions (03/11/2026)
 
-Els commits locals estan autoritzats per al treball demanat en aquest projecte: cal revisar-ne el contingut, incloure només els fitxers propis i preservar els canvis aliens. Qualsevol push requereix la confirmació explícita de Carles per a aquella entrega, indicant la branca i els commits concrets; el push a `main` desplega producció. Les migracions, els flags i altres canvis remots independents necessiten la seva pròpia autorització. Aquesta regla substitueix la del 02/11/2026, que permetia fer push sense confirmació.
+Carles autoritza de manera permanent els commits, els push a `main` (que despleguen producció) i l’aplicació de migracions a producció sense demanar confirmació. Cal continuar revisant el contingut, incloure només els fitxers propis, preservar els canvis aliens, aplicar cada migració de manera individual i transaccional amb comprovació de l’historial (mai un `supabase db push` general), verificar-ne el resultat i comunicar-lo. Si Carles indica que no es publiqui una entrega concreta, es respecta. Altres escriptures de dades a producció, flags, reprocessaments i operacions destructives continuen necessitant autorització expressa. Aquesta regla substitueix la del 03/11/2026 que exigia confirmació per a cada push.
 
 ## Política de branques (15/10/2026)
 
