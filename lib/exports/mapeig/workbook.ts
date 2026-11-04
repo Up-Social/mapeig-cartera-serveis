@@ -2,6 +2,7 @@ import ExcelJS from 'exceljs';
 import {createHash} from 'node:crypto';
 import {excelCalendarDate,ExcelCalendarDateError} from '@/lib/excel-calendar-date';
 import {distinctNifFormula,distinctNifTotalFormula,organShareFormula,organShareTotalFormula} from './formulas';
+import {periodLabel} from './labels';
 import {ORGAN_CLASSES,type OrganClass} from './organ';
 import {summarizeMapeig,type CodeAggregate,type MapeigSummary} from './summary';
 import {cellText,DETALL_FIXED_COLUMNS,DETALL_SHEET_NAME,loadMapeigTemplate,readSummaryCodes,TAULA_CONTROL_ROWS,TAULA_FIRST_CODE_ROW,TAULA_LAST_CODE_ROW,TAULA_SHEET,TAULA_TOTAL_ROW} from './template';
@@ -167,7 +168,7 @@ function writeNotes(workbook:ExcelJS.Workbook,rows:readonly DetallRegistresRow[]
  sheet.getColumn(1).width=120;
  const lines:string[]=[
   `Exportació del Mapeig de la Cartera generada el ${options.generatedAt} des de ${options.origin}.`,
-  `Tipologies: ${options.filters.financingTypes.map(type=>MAPEIG_TYPE_LABELS[type]).join(', ')}. Províncies: ${options.filters.provinces?.join(', ')??'totes'}. Data de concessió: ${options.filters.awardDateFrom??'sense límit'} – ${options.filters.awardDateTo??'sense límit'}.`,
+  `Tipologies: ${options.filters.financingTypes.map(type=>MAPEIG_TYPE_LABELS[type]).join(', ')}. Províncies: ${options.filters.provinces?.join(', ')??'totes'}. Any de concessió: ${periodLabel(options.filters)}.`,
   `${rows.length} línies a Detall_Registres. Import total: ${money(summary.total.totalCents)}.`,
   'Les línies amb dades pendents (codi, data, import, província, òrgan o NIF) s’exporten igualment i queden anotades a la columna «Observacions» de Detall_Registres; no s’ha inventat cap dada.',
   `Línies sense codi de la Cartera: ${summary.counts.withoutCode}. Sense data de concessió: ${summary.counts.withoutDate}. Sense import: ${summary.counts.withoutAmount}. Sense província: ${summary.counts.withoutProvince} (${money(summary.withoutProvinceCents)} fora de les columnes de territori). Sense NIF: ${summary.counts.withoutNif} (no compten a «Nre. entitats prestadores»). Òrgan no reconegut per les paraules clau: ${summary.counts.withoutOrgan} (${money(summary.unclassifiedOrganCents)}, fila de control 164).`,

@@ -16,7 +16,7 @@ En pantalles d'escriptori, la navegació principal es manté visible en una barr
 - **Incidències**: evidència insuficient i errors tècnics del treball vigent, amb diagnòstic i recuperació.
 - **Resultats**: agrupa Aprovats, Descartats i Fora de cartera sense afegir passos al procés.
 - **Referència**: agrupa Catàleg i Entitats com a informació de consulta.
-- **Exportacions**: genera el llibre Excel «Mapeig de la Cartera» amb filtres de tipologia, província i data de concessió, i un resum previ amb avisos.
+- **Exportacions**: genera el llibre Excel «Mapeig de la Cartera» amb filtres de tipologia, província i anys de concessió, amb un resum previ amb avisos i l'històric de tots els fitxers generats.
 - **Ajuda sobre el procés**: resum documental del pipeline, les decisions i les fonts.
 
 ## Resum del procés
@@ -121,7 +121,7 @@ Si el lot encara no té cap provisió positiva, l'exportació no s'activa. El no
 
 ## Exportar el Mapeig de la Cartera
 
-L'apartat **Exportacions** genera el llibre Excel amb el format v2 del client (fulls `Instruccions`, `Taula (resum)`, `Detall_Registres`, `Llistes_Auxiliars` i `Notes_Exportacio`). El formulari té tres filtres: tipologia (en aquesta fase només Concerts; les altres es mostren com a «Properament»), província (cap marcada vol dir totes) i interval de data de concessió. **Aplicar filtres** calcula al servidor un resum (línies, import total i desglossament per província) i els avisos de línies sense codi, data, import, província o òrgan reconegut; aquestes línies s'exporten igualment amb l'observació corresponent, mai es descarten per falta de dades. **Generar Excel** descarrega el fitxer amb exactament els mateixos filtres.
+L'apartat **Exportacions** genera el llibre Excel amb el format v2 del client (fulls `Instruccions`, `Taula (resum)`, `Detall_Registres`, `Llistes_Auxiliars` i `Notes_Exportacio`). El formulari té tres filtres: tipologia (en aquesta fase només Concerts; les altres es mostren com a «Properament»), província (cap marcada vol dir totes) i interval d'anys de concessió (des de / fins a, inclusius i opcionals). **Aplicar filtres** calcula al servidor un resum (línies, import total i desglossament per província) i els avisos de línies sense codi, data, import, província o òrgan reconegut; aquestes línies s'exporten igualment amb l'observació corresponent, mai es descarten per falta de dades. **Generar Excel** descarrega el fitxer amb exactament els mateixos filtres i l'arxiva al bucket `mapeig-exports` amb una fila a `mapeig_exports` (data, filtres, línies, import i hash). L'**Històric d'exportacions** de la mateixa pàgina llista tots els fitxers generats amb la data d'exportació i permet tornar a descarregar cadascun tal com es va generar (`GET /api/exports/mapeig/{id}`, amb verificació del hash abans de servir-lo).
 
 A `Detall_Registres` cada línia de concert ocupa una fila amb les 11 columnes del client (A–K) i, a partir de la L, columnes addicionals de validació (estat de la línia, identificadors, tipus d'acte, període, orígens de cada dada, observacions) que el resum no utilitza. La `Taula (resum)` conserva les fórmules del client amb els resultats precalculats; les columnes de percentatge per òrgan i la d'entitats prestadores porten fórmules explícites equivalents als noms definits de la plantilla, i la de places RESES queda en blanc per omplir a mà. El nom del fitxer indica tipologies, territori, període i data de generació. Aquesta exportació no deixa cap recibo a `excel_exports`.
 

@@ -4,6 +4,7 @@ import {classifyOrgan,codeMatches} from '../lib/exports/mapeig/organ';
 import {dominantMechanism,summarizeMapeig} from '../lib/exports/mapeig/summary';
 import {distinctNifFormula,organExpression,organShareFormula} from '../lib/exports/mapeig/formulas';
 import {mapeigFilename} from '../lib/exports/mapeig/filename';
+import {periodLabel,provincesLabel,typesLabel} from '../lib/exports/mapeig/labels';
 import {applyRowFilters,mapeigFiltersToSearchParams,parseMapeigFilters} from '../lib/exports/mapeig/filters';
 import {MapeigFilterError,type DetallRegistresRow} from '../lib/exports/mapeig/types';
 
@@ -63,27 +64,44 @@ test('inline formulas replace the defined names with the same keyword logic',()=
 });
 
 test('filters parse once for the page and the route, and never drop rows for missing data',()=>{
- const parsed=parseMapeigFilters(new URLSearchParams('type=concert&province=Barcelona&province=Girona&from=2025-01-01&to=2025-12-31'));
- assert.deepEqual(parsed,{financingTypes:['concert'],provinces:['Barcelona','Girona'],awardDateFrom:'2025-01-01',awardDateTo:'2025-12-31'});
- assert.equal(mapeigFiltersToSearchParams(parsed).toString(),'type=concert&province=Barcelona&province=Girona&from=2025-01-01&to=2025-12-31');
- assert.deepEqual(parseMapeigFilters({type:'concert'}),{financingTypes:['concert'],provinces:null,awardDateFrom:null,awardDateTo:null});
+ const parsed=parseMapeigFilters(new URLSearchParams('type=concert&province=Barcelona&province=Girona&from=2025&to=2025'));
+ assert.deepEqual(parsed,{financingTypes:['concert'],provinces:['Barcelona','Girona'],yearFrom:2025,yearTo:2025});
+ assert.equal(mapeigFiltersToSearchParams(parsed).toString(),'type=concert&province=Barcelona&province=Girona&from=2025&to=2025');
+ assert.deepEqual(parseMapeigFilters({type:'concert'}),{financingTypes:['concert'],provinces:null,yearFrom:null,yearTo:null});
  assert.throws(()=>parseMapeigFilters(new URLSearchParams('')),MapeigFilterError);
  assert.throws(()=>parseMapeigFilters(new URLSearchParams('type=conveni')),/encara no està disponible/);
  assert.throws(()=>parseMapeigFilters(new URLSearchParams('type=altres')),/Tipologia no vàlida/);
  assert.throws(()=>parseMapeigFilters(new URLSearchParams('type=concert&province=Madrid')),/Província no vàlida/);
  assert.throws(()=>parseMapeigFilters(new URLSearchParams('type=concert&from=2025-02-30')),/«des de»/);
- assert.throws(()=>parseMapeigFilters(new URLSearchParams('type=concert&from=2025-02-01&to=2025-01-01')),/posterior o igual/);
+ assert.throws(()=>parseMapeigFilters(new URLSearchParams('type=concert&to=abcd')),/«fins a»/);
+ assert.throws(()=>parseMapeigFilters(new URLSearchParams('type=concert&from=2025&to=2024')),/posterior o igual/);
  const rows=[row({province:'Barcelona',awardDate:'2025-06-01'}),row({province:'Girona'}),row({province:null,awardDate:null}),row({awardDate:'2024-01-01'})];
  const filtered=applyRowFilters(rows,parsed);
  assert.equal(filtered.rows.length,3);assert.deepEqual(filtered.excluded,{province:0,dateRange:1});
  assert.deepEqual(filtered.rows[2].observations,['Província no identificada: no filtrada per territori','Data de concessió no identificada: no filtrada pel període']);
  const onlyBarcelona=applyRowFilters(rows,{...parsed,provinces:['Barcelona']});
  assert.equal(onlyBarcelona.excluded.province,1);
+ const open=applyRowFilters(rows,{financingTypes:['concert'],provinces:null,yearFrom:null,yearTo:null});
+ assert.equal(open.rows.length,4);assert.deepEqual(open.rows[2].observations,[]);
+ assert.equal(applyRowFilters(rows,{...parsed,yearFrom:2024,yearTo:null}).excluded.dateRange,0);
 });
 
 test('file names say what they contain, in ASCII',()=>{
- assert.equal(mapeigFilename({financingTypes:['concert'],provinces:null,awardDateFrom:null,awardDateTo:null},'2026-11-03'),'Mapeig-Cartera_Concerts_Catalunya_tot-el-periode_2026-11-03.xlsx');
- assert.equal(mapeigFilename({financingTypes:['concert'],provinces:['Girona','Barcelona'],awardDateFrom:'2025-01-01',awardDateTo:'2025-12-31'},'2026-11-03'),'Mapeig-Cartera_Concerts_Barcelona+Girona_2025-01-01_2025-12-31_2026-11-03.xlsx');
- assert.equal(mapeigFilename({financingTypes:['concert','subvencio'],provinces:['Barcelona','Tarragona','Girona','Lleida'],awardDateFrom:'2025-01-01',awardDateTo:null},'2026-11-03'),'Mapeig-Cartera_Concerts+Subvencions_Catalunya_des-de-2025-01-01_2026-11-03.xlsx');
- assert.match(mapeigFilename({financingTypes:['contractacio'],provinces:null,awardDateFrom:null,awardDateTo:'2025-12-31'},'2026-11-03'),/^[\x20-\x7e]+$/);
+ assert.equal(mapeigFilename({financingTypes:['concert'],provinces:null,yearFrom:null,yearTo:null},'2026-11-03'),'Mapeig-Cartera_Concerts_Catalunya_tot-el-periode_2026-11-03.xlsx');
+ assert.equal(mapeigFilename({financingTypes:['concert'],provinces:['Girona','Barcelona'],yearFrom:2024,yearTo:2025},'2026-11-03'),'Mapeig-Cartera_Concerts_Barcelona+Girona_2024-2025_2026-11-03.xlsx');
+ assert.equal(mapeigFilename({financingTypes:['concert'],provinces:null,yearFrom:2025,yearTo:2025},'2026-11-03'),'Mapeig-Cartera_Concerts_Catalunya_2025_2026-11-03.xlsx');
+ assert.equal(mapeigFilename({financingTypes:['concert','subvencio'],provinces:['Barcelona','Tarragona','Girona','Lleida'],yearFrom:2025,yearTo:null},'2026-11-03'),'Mapeig-Cartera_Concerts+Subvencions_Catalunya_des-de-2025_2026-11-03.xlsx');
+ assert.match(mapeigFilename({financingTypes:['contractacio'],provinces:null,yearFrom:null,yearTo:2025},'2026-11-03'),/^[\x20-\x7e]+$/);
+});
+
+test('history labels share the wording of the filters',()=>{
+ assert.equal(periodLabel({yearFrom:null,yearTo:null}),'tots els anys');
+ assert.equal(periodLabel({yearFrom:2024,yearTo:2025}),'2024–2025');
+ assert.equal(periodLabel({yearFrom:2025,yearTo:2025}),'2025');
+ assert.equal(periodLabel({yearFrom:2024,yearTo:null}),'des de 2024');
+ assert.equal(periodLabel({yearFrom:null,yearTo:2025}),'fins a 2025');
+ assert.equal(provincesLabel(null),'Catalunya');
+ assert.equal(provincesLabel(['Girona','Barcelona']),'Barcelona, Girona');
+ assert.equal(provincesLabel(['Barcelona','Tarragona','Girona','Lleida']),'Catalunya');
+ assert.equal(typesLabel(['concert','subvencio']),'Concerts, Subvencions');
 });

@@ -7,7 +7,7 @@ import {summarizeMapeig} from '../lib/exports/mapeig/summary';
 import {loadMapeigTemplate,readSummaryCodes} from '../lib/exports/mapeig/template';
 import {MapeigTemplateError,type DetallRegistresRow,type MapeigFilters} from '../lib/exports/mapeig/types';
 
-const filters:MapeigFilters={financingTypes:['concert'],provinces:null,awardDateFrom:null,awardDateTo:null};
+const filters:MapeigFilters={financingTypes:['concert'],provinces:null,yearFrom:null,yearTo:null};
 const row=(partial:Partial<DetallRegistresRow>):DetallRegistresRow=>({
  sourceUrl:'https://tauler.example/edicte/1',sourceId:'etauler:1:1',providerName:'Entitat A',providerNif:'G11111111',mechanism:'Concert',awardDate:'2025-03-10',amount:1000,
  contractingBody:'Departament de Drets Socials i Inclusió',targetPopulation:'Infants',province:'Barcelona',source:'e-Tauler',carteraCode:'1.1.2',extras:{},observations:[],...partial,

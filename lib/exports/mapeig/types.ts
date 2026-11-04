@@ -35,8 +35,19 @@ export type ExtraColumn={key:string;header:string;width?:number};
 export type MapeigFilters={
  financingTypes:FinancingType[];
  provinces:MapeigProvince[]|null; // null = all
- awardDateFrom:string|null;       // ISO, inclusive
- awardDateTo:string|null;         // ISO, inclusive
+ yearFrom:number|null;            // award year, inclusive
+ yearTo:number|null;              // award year, inclusive
+};
+/** First year offered by the year selectors; earlier award dates are still
+ * exported when no lower bound is chosen. */
+export const MAPEIG_MIN_YEAR=2015;
+
+/** One generated workbook kept in the history (table mapeig_exports). */
+export type MapeigExportRecord={
+ id:string;createdAt:string;fileName:string;
+ financingTypes:FinancingType[];provinces:MapeigProvince[]|null;yearFrom:number|null;yearTo:number|null;
+ rowCount:number;totalCents:number;byteSize:number;sha256:string;
+ generatedBy:'web'|'operator';note:string|null;
 };
 
 export type ProviderContext={origin:string;catalogCodes:Map<string,string>};
