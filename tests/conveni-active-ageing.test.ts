@@ -27,7 +27,7 @@ test('a public recipient does not by itself establish an interadministrative agr
  assert.match(CONVENI_INSTRUCTIONS,/Si no es coneix la naturalesa del possible receptor o no està acreditat el seu rol com a receptor, no proposis el descart per receptor públic/);
  assert.match(CONVENI_INSTRUCTIONS,/Un receptor privat amb naturalesa i rol acreditats pot classificar-se positivament/);
  const current=prepareProviderWireRequest({model:'synthetic',instructions:CONVENI_INSTRUCTIONS,input:'fixture'}).fingerprint;
- const old=prepareProviderWireRequest({model:'synthetic',instructions:CONVENI_INSTRUCTIONS.replace(/Conserva les assignacions a receptors públics per conciliar el total\.[\s\S]*?Si no es coneix la naturalesa del possible receptor o no està acreditat el seu rol com a receptor, no proposis el descart per receptor públic; si això impedeix classificar i no hi ha cap altre motiu independent acreditat, indica insufficient_evidence\. Un receptor privat amb naturalesa i rol acreditats pot classificar-se positivament quan el servei, la població i la resta de condicions estan acreditats\./,'Conserva les assignacions a receptors públics per conciliar el total però classifica-les discarded amb reason=interadministrative_agreement.'),input:'fixture'}).fingerprint;
+ const old=prepareProviderWireRequest({model:'synthetic',instructions:CONVENI_INSTRUCTIONS.replace(/Conserva les assignacions a receptors públics per conciliar el total\.[\s\S]*?Si no es coneix la naturalesa del possible receptor o no està acreditat el seu rol com a receptor, no proposis el descart per receptor públic: deixa recipient_nature=unknown i classifica igualment el servei segons l’activitat i la població acreditades; la naturalesa del receptor queda pendent de revisió humana i mai és motiu d’insufficient_evidence\. Un receptor privat amb naturalesa i rol acreditats pot classificar-se positivament quan el servei, la població i la resta de condicions estan acreditats\./,'Conserva les assignacions a receptors públics per conciliar el total però classifica-les discarded amb reason=interadministrative_agreement.'),input:'fixture'}).fingerprint;
  assert.notEqual(old,current);
  assert.throws(()=>assertSafeRequestVersion(old,current,'received'),(e:unknown)=>e instanceof CloudFailure&&e.diagnostic?.code==='NEW_ANALYSIS_REQUIRED');
  assert.throws(()=>assertSafeRequestVersion(old,current,'sending'),(e:unknown)=>e instanceof CloudFailure&&e.kind==='provider_unknown');
@@ -40,4 +40,7 @@ test('insufficient evidence is reserved for not knowing what is financed; outsid
  assert.match(CONVENI_INSTRUCTIONS,/són 1\.1\.7 quan el document acredita aquesta complementarietat/);
  assert.match(CONVENI_INSTRUCTIONS,/No proposis 1\.1\.4 sense àpats elaborats/);
  assert.doesNotMatch(CONVENI_INSTRUCTIONS,/insufficient_evidence si falten fets/);
+ assert.match(CONVENI_INSTRUCTIONS,/la naturalesa del receptor queda pendent de revisió humana i mai és motiu d’insufficient_evidence/);
+ assert.match(CONVENI_INSTRUCTIONS,/un període o la naturalesa del receptor no localitzats/);
+ assert.doesNotMatch(CONVENI_INSTRUCTIONS,/si això impedeix classificar/);
 });
