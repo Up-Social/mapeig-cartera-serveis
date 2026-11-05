@@ -63,3 +63,18 @@ test('citation boundaries preserve surrogate pairs and merge a short tail withou
   }
  }
 });
+
+test('a short footer fragment joins its neighbour on the same page instead of blocking the conveni',()=>{
+ const body='Text literal del conveni amb pactes i obligacions de les parts signants.\n'.repeat(9);
+ for(const footer of ['pág. 1','2/25','3','Pàgina 4']){
+  const d={...doc,extracted_text:`## Pàgina 1\n\n${body}${'\n'.repeat(4)}${footer}\n\n## Pàgina 2\n\n${footer}\n\n${body}`};
+  const x=indexConveniCitations([d]);
+  assert.ok(x.spans.every(span=>span.quote.length>=12&&validCitation(span,[d])));
+  assert.ok(x.spans.some(span=>span.page===1&&span.quote.endsWith(footer)),footer);
+  assert.ok(x.spans.some(span=>span.page===2&&span.quote.startsWith(footer)),footer);
+ }
+ // A page with only its number is not citable and is skipped; other short content still blocks.
+ const numbered={...doc,extracted_text:`## Pàgina 1\n\n${body}\n\n## Pàgina 2\n\n2\n`};
+ assert.ok(indexConveniCitations([numbered]).spans.every(span=>span.page===1));
+ assert.throws(()=>indexConveniCitations([{...doc,extracted_text:`## Pàgina 1\n\n${body}\n\n## Pàgina 2\n\n10.000,00 €\n`}]),/CONVENI_PAGE_COVERAGE_UNCERTAIN/);
+});
