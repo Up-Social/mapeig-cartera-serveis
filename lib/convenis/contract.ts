@@ -251,6 +251,11 @@ export function validateConveni(input:ConveniAnalysis,payload:Payload,documents:
      note('CONVENI_DISCARD_REASON_CONFLICT','La manca d’encaix en la cartera no és un motiu de descart: amb servei social i població documentats es proposa «Fora de cartera».','reason');}
     else degrade('CONVENI_DISCARD_REASON_CONFLICT','La manca d’encaix en la cartera no justifica per si sola un descart. Cal revisar la naturalesa social i el motiu documentat.','reason');
    }
+   // An amendment that brings public funding to a non-public recipient is a
+   // record of its own (Sprint 2, casuistry 6), as in the scope rule: it is not
+   // discarded and its service still has to be classified.
+   else if(reason==='excluded_amendment'&&u.recipient_nature!=='public'&&(normalizeConveni(payload).publicCents??1)!==0)
+    degrade('CONVENI_FUNDED_AMENDMENT','Addenda, pròrroga o modificació amb aportació pública a una entitat no pública: és un registre propi i no es descarta. Cal classificar el servei que finança.','reason');
    else if(!reason)degrade('CONVENI_DISCARD_REASON_MISSING','La proposta de descart no indica cap motiu.','reason');
    else if(missingDiscard)degrade(missingDiscard.code,missingDiscard.message,'reason');
   }

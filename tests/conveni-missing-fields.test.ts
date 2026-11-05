@@ -55,7 +55,7 @@ test('unverifiable citations retain priority while missing facts and funding dia
 });
 
 test('an independently documented exclusion is not inferred from missing population',()=>{
- const proposal={...unit,classification:'discarded' as const,service_code:null,population:'',description:'',reason:'excluded_amendment'};
+ const proposal={...unit,recipient_nature:'public' as const,classification:'discarded' as const,service_code:null,population:'',description:'',reason:'excluded_amendment'};
  const result=validate([proposal]);
  assert.equal(result.units[0].reason,'excluded_amendment');assert.equal(result.units[0].classification,'discarded');
  assert.equal(result.units[0].population,'');assert.equal(result.diagnostics,undefined);
@@ -105,7 +105,7 @@ test('an already persisted historical analysis returns before request or revalid
 
 test('model discards are kept as proposals and marked for documentary review',()=>{
  for(const reason of ['No es pot identificar el NIF','excluded_amendment']){
-  const candidate=validate([{...unit,classification:'discarded',service_code:null,reason}]);
+  const candidate=validate([{...unit,recipient_nature:'public',classification:'discarded',service_code:null,reason}]);
   const before=JSON.stringify(candidate);
   const marked=markModelDiscardsForReview(candidate);
   assert.ok(marked.diagnostics?.some(item=>item.code==='CONVENI_MODEL_DISCARD_REVIEW_REQUIRED'));
@@ -144,3 +144,13 @@ test('pipeline persists a free-text discard as a proposal pending review',async(
  assert.ok(persisted?.diagnostics?.some(item=>item.code==='CONVENI_MODEL_DISCARD_REVIEW_REQUIRED'));
 });
 
+
+test('a funded amendment to a non-public recipient is never kept as an amendment discard',()=>{
+ for(const nature of ['private','unknown'] as const){
+  const result=validate([{...unit,recipient_nature:nature,classification:'discarded',service_code:null,reason:'excluded_amendment'}]);
+  assert.equal(result.units[0].classification,'insufficient_evidence');assert.equal(result.units[0].original_classification,'discarded');assert.equal(result.units[0].reason,null);
+  assert.ok(result.diagnostics?.some(d=>d.code==='CONVENI_FUNDED_AMENDMENT'&&d.field==='reason'));
+ }
+ const unfunded=validateConveni(analysis([{...unit,recipient_nature:'private',classification:'discarded',service_code:null,reason:'excluded_amendment'}]),{'Total aportacions previstes Generalitat':0,'Total aportacions previstes ens locals':0},documents,new Set(['1.1']));
+ assert.equal(unfunded.units[0].classification,'discarded');assert.equal(unfunded.units[0].reason,'excluded_amendment');
+});

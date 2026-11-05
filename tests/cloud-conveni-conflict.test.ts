@@ -120,6 +120,7 @@ test('the Conveni prompt asks for a single final JSON message without drafts',as
  const f=conveniFixture(busy);let instructions='';
  await assert.rejects(processConveni(f.db as never,{id:'job',source_record_id:'record'},async body=>{instructions=String(body.instructions);return {output_text:JSON.stringify(f.answer)};}),/T19_DEDUP_BUSY/);
  assert.match(instructions,/únic missatge final en JSON: no escriguis cap missatge previ, esborrany, comentari ni repetició/);
+ assert.match(instructions,/excluded_amendment només quan no aporta finançament públic a cap entitat privada; si n’aporta, és un registre propi/);
 });
 
 test('an incomplete provider response explains that a reprocess runs a new analysis',()=>{

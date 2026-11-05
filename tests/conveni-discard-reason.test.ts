@@ -54,7 +54,7 @@ test('structured missing reasons require review rather than becoming discard dec
  }
  // An independent documented reason is never inferred from the absence of a
  // NIF or amount; this change does not recategorise its proposal.
- const independent=validateConveni({...input,units:[{...unit,reason:'excluded_amendment'}]}, {},[doc],new Set());
+ const independent=validateConveni({...input,units:[{...unit,recipient_nature:'public',reason:'excluded_amendment'}]}, {},[doc],new Set());
  assert.equal(independent.units[0].classification,'discarded');assert.equal(independent.units[0].reason,'excluded_amendment');
  assert.equal(missingDiscardDiagnostic('No s’ha trobat el NIF'),null,'free text cannot be reliably classified by this narrow guard');
  assert.equal(input.units[0].classification,'discarded');assert.equal(input.units[0].reason,null);
