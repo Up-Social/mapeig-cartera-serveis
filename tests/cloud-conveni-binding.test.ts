@@ -6,6 +6,7 @@ import type {Context} from '../lib/cloud/context';
 import {prepareProviderWireRequest} from '../lib/openai-model';
 import {journaledProviderRequest} from '../lib/provider-journal';
 import {retainedConveniProposals} from '../lib/convenis/retained-receipt';
+import type {ConveniAnalysis} from '../lib/convenis/contract';
 
 function fixture(){
  const journal=new Map<string,unknown>();let binding:string|null=null;let responseBound=false;let calls=0;let commits=0;let persistedArgs:Record<string,unknown>|null=null;let fail=false;let rpcFault:string|null=null;let serverError=false;let lastBody:string|null=null;
@@ -14,12 +15,12 @@ function fixture(){
  const service={version_id:'v',service_code:'1',service_name:'Servei',parent_code:null,benefit_type:'service',description:'Descripció',target_population:'Persones',conditions:'Condicions',legal_reference:'Norma',normative_fields:{}};
  const answer={actors:[],instrument_grant:false,coverage_complete:true,unallocated_cents:0,summary:'Proposta sintètica',units:[{recipient:'Fundació Sintètica',recipient_nif:null,recipient_nature:'unknown',joint:false,period:'2025',year:2025,amount_cents:10000,amount_state:'planned',mixed:false,financiers:[],territory:null,classification:'discarded',service_ref:null,social_assessment:{status:'uncertain',explanation:'Pendent',evidence:['Q1']},population:'',description:'',explanation:'NIF pendent',reason:'missing_nif' as string|null,evidence:['Q1']}]};
  const db={rpc:async(name:string,args:Record<string,unknown>)=>{
-  if(name==='cloud_screen_conveni'||name==='cloud_persist_conveni'){
+  if(name==='cloud_screen_conveni_v2'||name==='cloud_persist_conveni'){
    assert.deepEqual([args.p_task,args.p_owner,args.p_generation,args.p_job],['task','owner',1,'job']);
-   if(name==='cloud_screen_conveni')return {data:false,error:null};
+   if(name==='cloud_screen_conveni_v2')return {data:false,error:null};
    assert.equal(responseBound,true,'receipt must be bound before persistence');persistedArgs=args;commits++;return {data:true,error:null};
   }
-  if(name==='screen_conveni'||name==='persist_conveni')throw Error('cloud path used unfenced Conveni RPC');
+  if(name==='screen_conveni_v2'||name==='persist_conveni')throw Error('cloud path used unfenced Conveni RPC');
   if(name==='conveni_source_hash')return {data:'hash',error:null};
   if(name==='cloud_checkpoint')journal.set(String(args.p_key),args.p_value);
   if(name==='conveni_bind_begin'){
@@ -57,8 +58,12 @@ test('adapted analyzeRecord binds a fresh receipt and reuses it without provider
  const f=fixture(),original=globalThis.fetch,env={...process.env};process.env.OPENAI_MATCHING_MODEL='gpt-6-luna';process.env.OPENAI_API_KEY='fixture';delete process.env.WORKFLOW_TEST_PROJECT;delete process.env.PIPELINE_PROVIDER;
  globalThis.fetch=f.fetch as typeof fetch;
  try{
-  for(let i=0;i<2;i++)await assert.rejects(f.run(),(e:unknown)=>e instanceof CloudFailure&&e.kind==='validation'&&e.diagnostic?.code==='CONVENI_DISCARD_MISSING_NIF');
-  assert.equal(f.calls,1);assert.equal(f.commits,0);assert.equal(f.bound,true);
+  // A missing-NIF discard is persisted as a pending proposal; the second run reuses the receipt.
+  for(let i=0;i<2;i++)await f.run();
+  assert.equal(f.calls,1);assert.equal(f.commits,2);assert.equal(f.bound,true);
+  const payload=f.persistedArgs?.p_payload as ConveniAnalysis;
+  assert.equal(payload.units[0].classification,'insufficient_evidence');assert.equal(payload.units[0].original_classification,'discarded');
+  assert.ok(payload.diagnostics?.some(d=>d.code==='CONVENI_DISCARD_MISSING_NIF'));
   f.clearBinding();await assert.rejects(f.run(),(e:unknown)=>e instanceof CloudFailure&&e.kind==='provider_reconciliation');
   assert.equal(f.calls,1);assert.equal(f.bound,false);
  }finally{globalThis.fetch=original;process.env=env;}
@@ -75,8 +80,8 @@ test('faults before and after binding or receipt completion retry without duplic
   const f=fixture();f.setRpcFault(fault);globalThis.fetch=f.fetch as typeof fetch;
   await assert.rejects(f.run(),(e:unknown)=>e instanceof CloudFailure&&e.kind==='internal');
   assert.equal(f.calls,fault.startsWith('begin')?0:1);
-  await assert.rejects(f.run(),(e:unknown)=>e instanceof CloudFailure&&e.kind==='validation'&&e.diagnostic?.code==='CONVENI_DISCARD_MISSING_NIF');
-  assert.equal(f.calls,1);assert.equal(f.bound,true);assert.equal(f.commits,0);
+  await f.run();
+  assert.equal(f.calls,1);assert.equal(f.bound,true);assert.equal(f.commits,1);
  }}finally{globalThis.fetch=original;process.env=env;}
 });
 
@@ -89,7 +94,7 @@ test('a provider 5xx retains the uncertain outcome and bound intent without rese
 test('a changed request cannot replay or resend a bound historical receipt',async()=>{
  const f=fixture(),original=globalThis.fetch,env={...process.env};process.env.OPENAI_MATCHING_MODEL='gpt-6-luna';process.env.OPENAI_API_KEY='fixture';delete process.env.WORKFLOW_TEST_PROJECT;delete process.env.PIPELINE_PROVIDER;globalThis.fetch=f.fetch as typeof fetch;
  try{
-  await assert.rejects(f.run(),(e:unknown)=>e instanceof CloudFailure&&e.kind==='validation');
+  await f.run();
   const receipt=f.journal.get('ai:job:conveni');process.env.OPENAI_MATCHING_MODEL='fixture-new-model';
   await assert.rejects(f.run(),(e:unknown)=>e instanceof CloudFailure&&e.kind==='provider_reconciliation');
   assert.equal(f.calls,1);assert.deepEqual(f.journal.get('ai:job:conveni'),receipt);assert.equal(f.bound,true);
@@ -99,7 +104,7 @@ test('a changed request cannot replay or resend a bound historical receipt',asyn
 test('the actual Conveni wire body is bound in cloud and the same fingerprint is sent to the local journal',async()=>{
  const f=fixture(),original=globalThis.fetch,env={...process.env};process.env.OPENAI_MATCHING_MODEL='gpt-6-luna';process.env.OPENAI_API_KEY='fixture';delete process.env.WORKFLOW_TEST_PROJECT;delete process.env.PIPELINE_PROVIDER;globalThis.fetch=f.fetch as typeof fetch;
  try{
-  await assert.rejects(f.run(),(e:unknown)=>e instanceof CloudFailure&&e.kind==='validation');
+  await f.run();
   assert.ok(f.lastBody);const body=JSON.parse(f.lastBody) as Record<string,unknown>;
   assert.match(String(body.instructions),/interadministrative_agreement només si el caràcter interadministratiu/);
   const current=prepareProviderWireRequest(body).fingerprint;
@@ -118,8 +123,10 @@ test('the actual Conveni wire body is bound in cloud and the same fingerprint is
 test('a mixed public-private response remains in the receipt without silently deciding either unit',async()=>{
  const f=fixture(),original=globalThis.fetch,env={...process.env};process.env.OPENAI_MATCHING_MODEL='gpt-6-luna';process.env.OPENAI_API_KEY='fixture';delete process.env.WORKFLOW_TEST_PROJECT;delete process.env.PIPELINE_PROVIDER;f.setMixed();globalThis.fetch=f.fetch as typeof fetch;
  try{
-  for(let i=0;i<2;i++)await assert.rejects(f.run(),(e:unknown)=>e instanceof CloudFailure&&e.kind==='validation'&&e.diagnostic?.code==='CONVENI_MODEL_DISCARD_REVIEW_REQUIRED');
-  assert.equal(f.calls,1);assert.equal(f.commits,0);assert.equal(f.bound,true);
+  for(let i=0;i<2;i++)await f.run();
+  assert.equal(f.calls,1);assert.equal(f.commits,2);assert.equal(f.bound,true);
+  const payload=f.persistedArgs?.p_payload as ConveniAnalysis;
+  assert.ok(payload.diagnostics?.some(d=>d.code==='CONVENI_MODEL_DISCARD_REVIEW_REQUIRED'));
   const receipt=f.journal.get('ai:job:conveni') as {state:string;response:unknown};
   const visible=retainedConveniProposals({status:receipt.state,response:receipt.response});
   assert.deepEqual(visible?.map(unit=>[unit.recipient,unit.classification]),[['Ajuntament sintètic','Descart proposat'],['Fundació Sintètica','Evidència insuficient proposada']]);

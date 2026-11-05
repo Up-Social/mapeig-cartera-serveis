@@ -5,16 +5,16 @@ import {prepareProviderWireRequest} from '../lib/openai-model';
 import {assertSafeRequestVersion} from '../lib/cloud/evidence-window';
 import {CloudFailure} from '../lib/cloud/errors';
 
-test('the active-ageing criterion asks for documentary and full catalog review, without relying on a name or missing NIF',()=>{
- assert.match(CONVENI_INSTRUCTIONS,/envelliment actiu/);
- assert.match(CONVENI_INSTRUCTIONS,/activitats i destinataris documentats/);
+test('the active-ageing criterion proposes outside the portfolio, without relying on a name or missing NIF',()=>{
+ assert.match(CONVENI_INSTRUCTIONS,/envelliment actiu d’associacions de gent gran o de jubilats tenen naturalesa social però no encaixen en cap fitxa: proposa out_of_portfolio amb status=social/);
+ assert.match(CONVENI_INSTRUCTIONS,/llevat que el document acrediti les funcions d’una fitxa concreta/);
  assert.match(CONVENI_INSTRUCTIONS,/catàleg complet/);
  assert.match(CONVENI_INSTRUCTIONS,/NIF no localitzat no impedeix valorar/);
  assert.match(CONVENI_INSTRUCTIONS,/No dedueixis la naturalesa social del nom/);
 });
 test('request fingerprint changes and old received or uncertain requests cannot be replayed as the new prompt',()=>{
  const current=prepareProviderWireRequest({model:'synthetic',instructions:CONVENI_INSTRUCTIONS,input:'fixture'}).fingerprint;
- const old=prepareProviderWireRequest({model:'synthetic',instructions:CONVENI_INSTRUCTIONS.replace(/ Els programes d’envelliment actiu[\s\S]*?No dedueixis la naturalesa social del nom\./,''),input:'fixture'}).fingerprint;
+ const old=prepareProviderWireRequest({model:'synthetic',instructions:CONVENI_INSTRUCTIONS.replace(/ Les activitats socioculturals, de lleure i d’envelliment actiu[\s\S]*?No dedueixis la naturalesa social del nom\./,''),input:'fixture'}).fingerprint;
  assert.notEqual(old,current);
  assert.throws(()=>assertSafeRequestVersion(old,current,'received'),(e:unknown)=>e instanceof CloudFailure&&e.diagnostic?.code==='NEW_ANALYSIS_REQUIRED');
  assert.throws(()=>assertSafeRequestVersion(old,current,'sending'),(e:unknown)=>e instanceof CloudFailure&&e.kind==='provider_unknown');
@@ -31,4 +31,13 @@ test('a public recipient does not by itself establish an interadministrative agr
  assert.notEqual(old,current);
  assert.throws(()=>assertSafeRequestVersion(old,current,'received'),(e:unknown)=>e instanceof CloudFailure&&e.diagnostic?.code==='NEW_ANALYSIS_REQUIRED');
  assert.throws(()=>assertSafeRequestVersion(old,current,'sending'),(e:unknown)=>e instanceof CloudFailure&&e.kind==='provider_unknown');
+});
+
+test('insufficient evidence is reserved for not knowing what is financed; outside and 1.1.7 are reachable',()=>{
+ assert.match(CONVENI_INSTRUCTIONS,/insufficient_evidence només quan el document no permet saber quines activitats es financen o a qui van dirigides/);
+ assert.match(CONVENI_INSTRUCTIONS,/la manca d’encaix al catàleg mai és motiu de descart/);
+ assert.match(CONVENI_INSTRUCTIONS,/l’explicació comença pel tipus d’activitat/);
+ assert.match(CONVENI_INSTRUCTIONS,/són 1\.1\.7 quan el document acredita aquesta complementarietat/);
+ assert.match(CONVENI_INSTRUCTIONS,/No proposis 1\.1\.4 sense àpats elaborats/);
+ assert.doesNotMatch(CONVENI_INSTRUCTIONS,/insufficient_evidence si falten fets/);
 });

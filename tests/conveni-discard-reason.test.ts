@@ -2,7 +2,6 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import {conveniDiscardReason} from '../lib/convenis/discard-reason';
 import {validateConveni,type ConveniAnalysis,type ConveniUnit} from '../lib/convenis/contract';
-import {ConveniValidationError} from '../lib/convenis/diagnostics';
 import {missingDiscardDiagnostic} from '../lib/convenis/missing-discard';
 import {CloudFailure,failureMessage} from '../lib/cloud/errors';
 import {isConveniMissingFieldMessage} from '../lib/convenis/missing-field-messages';
@@ -45,7 +44,10 @@ test('structured missing reasons require review rather than becoming discard dec
   ['missing_other_field','CONVENI_DISCARD_MISSING_FIELD','camp'],['incomplete','CONVENI_DISCARD_MISSING_FIELD','camp'],
  ] as const){
   const proposal={...input,units:[{...unit,reason:`\u00a0${reason}\u00a0`}]};
-  assert.throws(()=>validateConveni(proposal,{},[doc],new Set()),(error:unknown)=>error instanceof ConveniValidationError&&error.diagnostic.code===code&&error.diagnostic.field==='reason');
+  // The proposal is kept for review, never as a discard decision.
+  const kept=validateConveni(proposal,{},[doc],new Set());
+  assert.equal(kept.units[0].classification,'insufficient_evidence');assert.equal(kept.units[0].original_classification,'discarded');
+  assert.ok(kept.diagnostics?.some(d=>d.code===code&&d.field==='reason'),code);
   const safe=failureMessage(new CloudFailure('validation',5,{operation:'conveni_analysis',code,message:'SENSITIVE PROVIDER CONTENT'}));
   assert.equal(isConveniMissingFieldMessage(safe),true);
   assert.ok(safe.toLocaleLowerCase('ca').includes(field.toLocaleLowerCase('ca')));assert.match(safe,/pendent/);assert.doesNotMatch(safe,/SENSITIVE/);
@@ -66,8 +68,15 @@ test('a synthetic proposal cannot discard solely for not matching the catalog',(
  const unit:ConveniUnit={key:'',recipient:'Ajuntament de prova',recipient_nif:null,recipient_nature:'public',joint:false,period:'2025',year:2025,amount_cents:271400,amount_state:'planned',mixed:false,financiers:['Diputació de prova'],territory:null,classification:'discarded',service_code:null,population:'Infància i adolescència',description:'Programa social sintètic',explanation:'Revisió documental pendent',reason:'service_not_in_catalog',evidence,blockers:[]};
  const input:ConveniAnalysis={actors:[{name:unit.recipient,nif:null,nature:'public',roles:['signatory'],evidence}],units:[unit],instrument_grant:false,coverage_complete:true,unallocated_cents:0,summary:'Proposta pendent'};
  const payload={'Total aportacions previstes Generalitat':0,'Total aportacions previstes ens locals':2714};
- assert.throws(()=>validateConveni(input,payload,[doc],new Set()),(error:unknown)=>error instanceof ConveniValidationError&&error.diagnostic.code==='CONVENI_DISCARD_REASON_CONFLICT'&&error.diagnostic.field==='reason');
- assert.throws(()=>validateConveni({...input,units:[{...unit,reason:'\u00a0SERVICE_NOT_IN_CATALOG\u00a0'}]},payload,[doc],new Set()),(error:unknown)=>error instanceof ConveniValidationError&&error.diagnostic.code==='CONVENI_DISCARD_REASON_CONFLICT');
+ // Without an explicit social assessment the unit stays as a pending proposal.
+ for(const reason of ['service_not_in_catalog','\u00a0SERVICE_NOT_IN_CATALOG\u00a0']){
+  const kept=validateConveni({...input,units:[{...unit,reason}]},payload,[doc],new Set());
+  assert.equal(kept.units[0].classification,'insufficient_evidence');assert.equal(kept.units[0].original_classification,'discarded');assert.equal(kept.units[0].reason,null);
+  assert.ok(kept.diagnostics?.some(d=>d.code==='CONVENI_DISCARD_REASON_CONFLICT'&&d.field==='reason'));
+ }
+ // With a documented social service and population it becomes an outside proposal.
+ const outside=validateConveni({...input,units:[{...unit,social_assessment:{status:'social',explanation:'Programa social documentat.',evidence}}]},payload,[doc],new Set());
+ assert.equal(outside.units[0].classification,'out_of_portfolio');assert.equal(outside.units[0].original_classification,'discarded');
  assert.equal(unit.classification,'discarded');assert.equal(unit.reason,'service_not_in_catalog');
  const excluded=validateConveni({...input,units:[{...unit,reason:'interadministrative_agreement'}]},payload,[doc],new Set());
  assert.equal(excluded.units[0].reason,'interadministrative_agreement');

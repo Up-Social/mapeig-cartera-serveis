@@ -49,6 +49,15 @@ export function failureMessage(failure:CloudFailure):string {
   CONCERT_EXTRACTION_INCOMPLETE:'La nova extracció no cobreix tot el document. Cal revisar les pàgines pendents; no es presenta com a completa.',
   ...conveniMissingFieldMessages,
   CONVENI_MODEL_DISCARD_REVIEW_REQUIRED:'La proposta de descart està pendent de contrast documental. No s’ha descartat ni aprovat automàticament.',
+  CONVENI_RESPONSE_INCOMPLETE:'La resposta de la IA no té l’estructura mínima d’un conveni (unitats, actors, resum i cobertura). No s’ha desat cap resultat; cal tornar a analitzar el conveni.',
+  CONVENI_NO_VERIFIABLE_UNIT:'Cap proposta de la IA té receptor, període i una cita verificable al document. No s’ha desat cap resultat; cal revisar l’extracció del document o tornar a analitzar-lo.',
+  INVALID_CONVENI_PROPOSAL:'La resposta de la IA no compleix el format esperat (estructura o identificadors de cita). No s’ha desat cap resultat; cal tornar a analitzar el conveni.',
+  STALE_OR_INVALID_CONVENI:'L’anàlisi del conveni ha quedat obsoleta o la base de dades l’ha rebutjada en desar-la. Cal tornar a analitzar-lo amb les fonts vigents.',
+  CONVENI_DISCARD_REASON_CONFLICT:'La manca d’encaix en la cartera no justifica per si sola un descart. Cal revisar la naturalesa social i el motiu documentat.',
+  COVERAGE_INCOMPLETE:'Falten documents o pàgines del conveni per llegir completament. Cal recuperar totes les fonts i annexos abans d’analitzar-lo.',
+  DECLARED_DOCUMENT_MISSING:'Falten documents o annexos declarats a l’Excel. Cal tornar a preparar les fonts.',
+  FULL_TEXT_LIMIT:'El conveni supera el límit de lectura completa (180.000 caràcters). Cal revisió documental; no s’ha truncat el text.',
+  PAGE_COVERAGE_UNCERTAIN:'El text extret conté fragments sense pàgina acreditada o pàgines duplicades. Cal revisar l’extracció abans d’analitzar el conveni.',
  };
  const primary=(failure.diagnostic?.code&&messages[failure.diagnostic.code])||failureLabels[failure.kind];
  const details=failure.diagnostic?.details;

@@ -13,17 +13,27 @@ const validate=(a:ConveniAnalysis)=>validateConveni(a,{'Total aportacions previs
 test('outside requires an explicit positive social assessment; text fields alone do not suffice',()=>{
  for(const status of ['non_social','uncertain'] as const){
   const a=bundle([{...unit,classification:'out_of_portfolio',service_code:null,social_assessment:{...unit.social_assessment!,status}}]);
-  assert.throws(()=>validate(a),(e:unknown)=>e instanceof ConveniValidationError&&e.diagnostic.code==='CONVENI_SOCIAL_CLASSIFICATION_CONFLICT');
-  assert.equal(a.units[0].classification,'out_of_portfolio'); // Never silently reclassify.
+  // Never accepted as outside: kept as a pending proposal with its origin.
+  const result=validate(a);
+  assert.equal(result.units[0].classification,'insufficient_evidence');assert.equal(result.units[0].original_classification,'out_of_portfolio');
+  assert.ok(result.diagnostics?.some(d=>d.code==='CONVENI_SOCIAL_CLASSIFICATION_CONFLICT'));
+  assert.equal(a.units[0].classification,'out_of_portfolio');
  }
- assert.throws(()=>validate(bundle([{...unit,social_assessment:undefined}])),(e:unknown)=>e instanceof ConveniValidationError&&e.diagnostic.code==='CONVENI_SOCIAL_ASSESSMENT_MISSING');
+ const missing=validate(bundle([{...unit,social_assessment:undefined}]));
+ assert.equal(missing.units[0].classification,'insufficient_evidence');assert.ok(missing.diagnostics?.some(d=>d.code==='CONVENI_SOCIAL_ASSESSMENT_MISSING'));
  assert.deepEqual(validate(bundle()).units[0].blockers,[]);
 });
-test('service selection binds official code and name and rejects a mixed or missing reference',()=>{
+test('service selection binds official code and name and never keeps a mixed or missing reference as a code',()=>{
  const response=bundle([{...unit,service_ref:serviceReference(services[0])} as ConveniUnit]);
  const resolved=resolveConveniServices(response,services).units[0];
  assert.equal(resolved.service_code,'1.1.1');assert.equal(resolved.service_name,services[0].service_name);
- for(const service_ref of [undefined,'1.1.1',`1.2.1.1 · ${services[0].service_name}`])assert.throws(()=>resolveConveniServices(bundle([{...unit,service_ref} as ConveniUnit]),services),ConveniValidationError);
+ for(const service_ref of [undefined,'1.1.1',`1.2.1.1 · ${services[0].service_name}`]){
+  const unresolved=resolveConveniServices(bundle([{...unit,service_ref} as ConveniUnit]),services);
+  assert.equal(unresolved.units[0].service_code,null);assert.equal(unresolved.units[0].unresolved_service_ref,service_ref??'');
+  const result=validate(unresolved);
+  assert.equal(result.units[0].classification,'insufficient_evidence');assert.ok(result.diagnostics?.some(d=>d.code==='CONVENI_UNKNOWN_SERVICE_REFERENCE'));
+ }
+ assert.equal(resolveConveniServices(bundle([{...unit,classification:'out_of_portfolio',service_ref:null} as ConveniUnit]),services).units[0].unresolved_service_ref,undefined);
  assert.equal(response.units[0].service_name,undefined);
 });
 test('same recipient and period with different concepts is an unresolved collision, not a proven duplicate',()=>{
@@ -105,4 +115,15 @@ test('a recipient actor can independently cite identity, but an unrelated or inv
  for(const change of [{name:'Altra entitat'},{nif:'G87654321'},{roles:['signatory'] as ('signatory')[]},{nature:'public' as const}]){
   const old=a.actors[0];a.actors[0]={...old,...change};assert.ok(check().includes('unverified_identity'));a.actors[0]=old;
  }
+});
+test('several projects of one recipient all outside the portfolio become one reviewable unit with the breakdown',()=>{
+ const outside={...unit,classification:'out_of_portfolio' as const,service_code:null,service_name:null};
+ const result=validate(bundle([{...outside,description:'Activitats socioculturals',amount_cents:60000},{...outside,description:'Sortides d’envelliment actiu',amount_cents:40000}]));
+ assert.equal(result.units.length,1);assert.equal(result.units[0].classification,'out_of_portfolio');assert.equal(result.units[0].concepts,undefined);
+ assert.equal(result.units[0].amount_cents,100000);assert.match(result.units[0].explanation,/Activitats socioculturals \(600 €\); Sortides d’envelliment actiu \(400 €\)/);
+ // An unattributed amount is not added up: the unit stays outside but the amount is pending.
+ const pending=validate(bundle([{...outside,description:'A',amount_cents:60000},{...outside,description:'B',amount_cents:null}]));
+ assert.equal(pending.units[0].classification,'out_of_portfolio');assert.equal(pending.units[0].amount_cents,null);assert.ok(pending.units[0].blockers.includes('missing_amount'));
+ // A mix of outside and in-portfolio concepts still needs individual review.
+ assert.equal(validate(bundle([outside,{...unit,amount_cents:5}])).units[0].classification,'insufficient_evidence');
 });

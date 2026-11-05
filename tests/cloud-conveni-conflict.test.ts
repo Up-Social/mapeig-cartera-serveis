@@ -1,6 +1,7 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {preflightConveni,processConveni,ConveniFailure} from '../lib/convenis/process';
+import type {ConveniAnalysis} from '../lib/convenis/contract';
 import {cloudConveniConflictOptions,cloudConveniOptions} from '../lib/cloud/conveni-conflict';
 import {providerRequest} from '../lib/cloud/provider';
 import {CloudFailure} from '../lib/cloud/errors';
@@ -9,12 +10,13 @@ import type {Context} from '../lib/cloud/context';
 const busy={code:'40001',message:'T19_DEDUP_BUSY'};
 test('cloud preflight treats only the exact rolled-back conflict as transient before provider work',async()=>{
  let calls=0;
- const db={rpc:async()=>{calls++;return {data:null,error:busy};}};
+ const from=()=>{const q={select:()=>q,eq:()=>q,single:async()=>({data:{source_record_id:'record',financing_type:'conveni',title:'Conveni sintètic',source_payload:{}},error:null})};return q;};
+ const db={rpc:async()=>{calls++;return {data:null,error:busy};},from};
  await assert.rejects(preflightConveni(db as never,'job',cloudConveniConflictOptions),e=>e instanceof CloudFailure&&e.kind==='transient'&&e.diagnostic?.operation==='screen_conveni');
  assert.equal(calls,1);
  await assert.rejects(preflightConveni(db as never,'job'),e=>e instanceof Error&&!(e instanceof CloudFailure)&&e.message==='T19_DEDUP_BUSY');
  for(const error of [{code:'40001',message:'stale review'},{code:'P0001',message:'T19_DEDUP_BUSY'}]){
-  await assert.rejects(preflightConveni({rpc:async()=>({data:null,error})} as never,'job',cloudConveniConflictOptions),e=>e instanceof Error&&!(e instanceof CloudFailure));
+  await assert.rejects(preflightConveni({rpc:async()=>({data:null,error}),from} as never,'job',cloudConveniConflictOptions),e=>e instanceof Error&&!(e instanceof CloudFailure));
  }
 });
 
@@ -25,7 +27,7 @@ function conveniFixture(persistError:Record<string,string>){
  const service={version_id:'v',service_code:'1',service_name:'Servei',parent_code:null,benefit_type:'service',description:'Descripció',target_population:'Persones',conditions:'Condicions',legal_reference:'Norma',normative_fields:{}};
  const db={rpc:async(name:string,args:Record<string,unknown>)=>{
   order.push(name);calls.push({name,args});
-  if(name==='screen_conveni'||name==='cloud_screen_conveni')return {data:false,error:null};
+  if(name==='screen_conveni_v2'||name==='cloud_screen_conveni_v2')return {data:false,error:null};
   if(name==='conveni_source_hash')return {data:'hash',error:null};
   if(name==='persist_conveni'||name==='cloud_persist_conveni'){commits++;return commits===1?{data:null,error:persistError}:{data:true,error:null};}
   if(name==='cloud_checkpoint')journal.set(String(args.p_key),args.p_value);
@@ -42,11 +44,11 @@ function conveniFixture(persistError:Record<string,string>){
 test('cloud Conveni sends its lease to both mutation wrappers; local retains original RPCs',async()=>{
  const f=conveniFixture(busy);const c={db:f.db,task:'task',owner:'owner',generation:9} as unknown as Context;
  await assert.rejects(processConveni(f.db as never,{id:'job',source_record_id:'record'},async()=>({output_text:JSON.stringify(f.answer)}),cloudConveniOptions(c)),e=>e instanceof CloudFailure&&e.kind==='transient');
- for(const name of ['cloud_screen_conveni','cloud_persist_conveni']){
+ for(const name of ['cloud_screen_conveni_v2','cloud_persist_conveni']){
   const call=f.calls.find(x=>x.name===name);assert.ok(call);
   assert.deepEqual([call.args.p_task,call.args.p_owner,call.args.p_generation,call.args.p_job],['task','owner',9,'job']);
  }
- assert.equal(f.order.includes('screen_conveni'),false);assert.equal(f.order.includes('persist_conveni'),false);
+ assert.equal(f.order.includes('screen_conveni_v2'),false);assert.equal(f.order.includes('persist_conveni'),false);
 });
 
 test('cloud Conveni persist conflict resumes with received receipt, not another provider request',async()=>{
@@ -58,7 +60,7 @@ test('cloud Conveni persist conflict resumes with received receipt, not another 
   await assert.rejects(run(),e=>e instanceof CloudFailure&&e.kind==='transient'&&e.diagnostic?.operation==='persist_conveni');
   assert.equal((f.journal.get('ai:job:conveni') as {state:string}).state,'received');
   assert.equal(await run(),true);assert.equal(calls,1);assert.equal(f.commits,2);
-  assert.ok(f.order.indexOf('screen_conveni')<f.order.indexOf('persist_conveni'));
+  assert.ok(f.order.indexOf('screen_conveni_v2')<f.order.indexOf('persist_conveni'));
  }finally{global.fetch=original;}
 });
 
@@ -88,12 +90,14 @@ test('local Conveni caller retains its existing validation treatment',async()=>{
  assert.equal(f.commits,1);
 });
 
-test('provider discard for missing catalog fit returns a specific diagnostic without persistence',async()=>{
+test('provider discard for missing catalog fit is persisted as an outside proposal with a specific diagnostic',async()=>{
  const f=conveniFixture(busy);
  const answer={...f.answer,units:[{...f.answer.units[0],classification:'discarded',service_ref:null,reason:'service_not_in_catalog'}]};
- await assert.rejects(processConveni(f.db as never,{id:'job',source_record_id:'record'},async()=>({output_text:JSON.stringify(answer)})),
-  e=>e instanceof ConveniFailure&&e.kind==='validation'&&e.code==='CONVENI_DISCARD_REASON_CONFLICT'&&e.diagnostic?.field==='reason');
- assert.equal(f.commits,0);
+ // The first persist attempt meets the fixture's busy error; what matters is the payload sent.
+ await assert.rejects(processConveni(f.db as never,{id:'job',source_record_id:'record'},async()=>({output_text:JSON.stringify(answer)})),/T19_DEDUP_BUSY/);
+ const payload=f.calls.find(call=>call.name==='persist_conveni')?.args.p_payload as ConveniAnalysis;
+ assert.equal(payload.units[0].classification,'out_of_portfolio');assert.equal(payload.units[0].original_classification,'discarded');assert.equal(payload.units[0].reason,null);
+ assert.ok(payload.diagnostics?.some(d=>d.code==='CONVENI_DISCARD_REASON_CONFLICT'&&d.field==='reason'));
 });
 
 test('the SQL discard conflict keeps its specific diagnostic rather than a generic stale error',async()=>{

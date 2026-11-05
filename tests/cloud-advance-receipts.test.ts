@@ -21,7 +21,7 @@ test('cloud entrypoint pauses an uncertain receipt before Conveni preflight or p
  };
  try{
   assert.deepEqual(await advance('task','workflow'),{done:true,wait:0});
-  assert.equal(calls.some(call=>call.path.endsWith('/rpc/cloud_screen_conveni')),false);
+  assert.equal(calls.some(call=>call.path.endsWith('/rpc/cloud_screen_conveni_v2')),false);
   const finish=calls.find(call=>call.path.endsWith('/rpc/cloud_finish'));
   assert.equal(finish?.body?.p_state,'paused');assert.equal(finish?.body?.p_kind,'provider_unknown');
   const failure=calls.find(call=>call.path.endsWith('/rpc/cloud_checkpoint')&&call.body?.p_key==='last_failure');
@@ -45,14 +45,16 @@ test('cloud entrypoint requeues an exact preflight contention without provider w
   if(url.pathname.endsWith('/rpc/cloud_claim'))return Response.json(1);
   if(url.pathname.endsWith('/worker_tasks'))return Response.json({id:'task',run_id:'run',task_type:'process_run'});
   if(url.pathname.endsWith('/cloud_checkpoints'))return Response.json([]);
+  if(url.pathname.endsWith('/pipeline_jobs')&&url.searchParams.get('select')==='source_record_id')return Response.json({source_record_id:'record'});
+  if(url.pathname.endsWith('/source_records'))return Response.json({financing_type:'conveni',title:'Conveni sintètic',source_payload:{}});
   if(url.pathname.endsWith('/pipeline_jobs'))return Response.json([{id:'job',source_record_id:'record',status:'ready',preparation_status:'ready',analysis_results:[]}]);
-  if(url.pathname.endsWith('/rpc/cloud_screen_conveni'))return Response.json({code:'40001',message:'T19_DEDUP_BUSY'},{status:409});
+  if(url.pathname.endsWith('/rpc/cloud_screen_conveni_v2'))return Response.json({code:'40001',message:'T19_DEDUP_BUSY'},{status:409});
   if(url.pathname.endsWith('/rpc/cloud_checkpoint')||url.pathname.endsWith('/rpc/cloud_finish'))return Response.json(true);
   throw Error(`Unexpected request ${url.pathname}`);
  };
  try{
   assert.deepEqual(await advance('task','workflow'),{done:false,wait:5});
-  assert.equal(calls.filter(call=>call.path.endsWith('/rpc/cloud_screen_conveni')).length,1);
+  assert.equal(calls.filter(call=>call.path.endsWith('/rpc/cloud_screen_conveni_v2')).length,1);
   assert.equal(calls.some(call=>call.path.endsWith('/rpc/cloud_commit')),false);
   const finish=calls.find(call=>call.path.endsWith('/rpc/cloud_finish'));
   assert.equal(finish?.body?.p_state,'pending');
