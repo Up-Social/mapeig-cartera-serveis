@@ -6,6 +6,7 @@ import { FINANCING_TYPES, FINANCING_TYPE_LABELS } from "@/lib/financing-types";
 import { CLASSIFICATION_LABELS, type Classification } from "@/lib/analysis-contract";
 import { isUuid } from "@/lib/uuid";
 import { TableActionLink, WorkPager, WorkTable } from "@/components/work-list";
+import { ConveniScopeBulkConfirm } from "@/components/conveni-scope-bulk-confirm";
 
 export default async function ReviewPage({ searchParams }: PageProps<"/review">) {
   const params = await searchParams;
@@ -39,6 +40,7 @@ export default async function ReviewPage({ searchParams }: PageProps<"/review">)
       <button className="rounded-md bg-primary px-4 py-2 text-sm text-primary-foreground">Aplicar filtres</button>
       {(filters.query || filters.type !== "totes" || filters.state !== "pending") && <Link className="text-sm underline" href={filters.batchId ? `/review?batch=${filters.batchId}` : "/review"}>Netejar filtres</Link>}
     </FilterForm>
+    {filters.state === "pending" && !filters.batchId && (filters.type === "totes" || filters.type === "conveni") && <ConveniScopeBulkConfirm />}
     <WorkTable profile="review" empty={result.rows.length ? undefined : "No hi ha casos amb aquests filtres."}>
       {result.rows.map(row => { const href = caseHref(row.id, row.jobId); return <tr key={row.id}><td data-label="Cas"><Link className="font-semibold underline underline-offset-2" href={href}>{row.title}</Link><p className="mt-1 text-xs text-muted-foreground">{row.sourceId} · {row.provider ?? "Entitat no informada"} · {FINANCING_TYPE_LABELS[row.type as keyof typeof FINANCING_TYPE_LABELS] ?? row.type}</p></td><td data-label="Proposta">{CLASSIFICATION_LABELS[row.classification as Classification] ?? "Sense proposta"}</td><td data-label="Revisió"><span className={`table-status ${row.destination === "review" ? "status-warning" : "status-neutral"}`}>{row.destination === "review" ? "Pendent de revisió" : "Resultat disponible"}</span></td><td data-label="Lot">{row.batchNumber ?? "—"}</td><td data-label="Acció"><TableActionLink href={href} label={`Revisar el cas ${row.title}`}>Revisar</TableActionLink></td></tr>})}
     </WorkTable><WorkPager href={page => `/review?${new URLSearchParams({ ...Object.fromEntries(list), page: String(page) })}`} page={result.page} pageCount={result.pageCount} total={result.total} />
