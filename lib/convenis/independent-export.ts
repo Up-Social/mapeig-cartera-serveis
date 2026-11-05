@@ -1,3 +1,4 @@
+import {conveniInstrumentsGrant} from './marks';
 import {createHash,randomUUID} from 'node:crypto';
 import type {SupabaseClient} from '@supabase/supabase-js';
 import {EXCLUSION_LABELS,normalizeConveni,type ConveniUnit,type Payload} from './contract';
@@ -20,7 +21,7 @@ export async function independentConveniExport(db:SupabaseClient,record:string|n
   for(const snap of records){
    const selected=new Map(snap.units.filter(u=>u.outcome==='select'&&u.reviewed_job===u.job_id).map(u=>[u.unit_id,u]));
    const original=normalizeConveni(snap.source_payload!);totalUnits+=snap.units.length;
-   rows.push(...snap.provisions.map(p=>{const unit=selected.get(p.unit_id??'');if(!unit)throw Error('CONVENI_SNAPSHOT_SCOPE');return {...p,data:unit.data,instrument_grant:unit.payload.instrument_grant,related:original.related,annexes:original.annexes.map(a=>a.url)};}));
+   rows.push(...snap.provisions.map(p=>{const unit=selected.get(p.unit_id??'');if(!unit)throw Error('CONVENI_SNAPSHOT_SCOPE');return {...p,data:unit.data,instrument_grant:conveniInstrumentsGrant(snap.source_payload!,unit.payload.instrument_grant),related:original.related,annexes:original.annexes.map(a=>a.url)};}));
    warnings.push(...snap.analyses.filter(a=>a.exclusion_reason).map(a=>`Conveni ${a.source_record_id}: exclòs (${EXCLUSION_LABELS[a.exclusion_reason!]??a.exclusion_reason}).`),...snap.analyses.filter(a=>a.payload.unallocated_cents>0).map(a=>`Conveni ${a.source_record_id}: romanent sense atribució de ${(a.payload.unallocated_cents/100).toFixed(2)} €. No s’ha exportat.`),...snap.units.filter(u=>!snap.provisions.some(p=>p.unit_id===u.unit_id)).map(u=>`Unitat no exportada ${u.unit_id}: ${u.data.recipient}, ${u.data.period}. ${u.outcome??'Pendent'}${u.data.blockers.length?'; '+u.data.blockers.join(', '):''}.`));
   }
   if(!rows.length)return Response.json({error:'No hi ha unitats de conveni aprovades amb fonts vigents per a aquesta selecció.'},{status:409});

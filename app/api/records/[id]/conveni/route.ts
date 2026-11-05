@@ -1,3 +1,4 @@
+import {conveniGrantMark,resolveRelatedConvenis} from '@/lib/convenis/marks';
 import {ConveniIndependentReadUnavailable,independentConveniReadersEnabled,requireConsistentConveniReads} from '@/lib/convenis/independent-read-guard';
 import {parseGroupPreparation} from '@/lib/convenis/group-preparation';
 import {isGroupPreparationEnabled,performGroupPreparation} from '@/lib/convenis/group-action';
@@ -23,8 +24,9 @@ export async function GET(request:Request,{params}:{params:Promise<{id:string}>}
  const selectedJob=job??latest.data?.id;
  const query=db.from('conveni_analyses').select('*').eq('source_record_id',id).eq('job_id',selectedJob??'00000000-0000-0000-0000-000000000000');
  const normalized=normalizeConveni(r.data.source_payload);
- const [analysis,territories,review]=await Promise.all([query.maybeSingle(),db.from('conveni_territories').select('*').in('aoc_code',normalized.aocCodes.map(aocLookupKey)),db.from('review_decisions').select('id').eq('source_record_id',id).order('created_at',{ascending:false}).order('id',{ascending:false}).limit(1).maybeSingle()]);
- for(const result of [analysis,territories,review])if(result.error)return Response.json({error:result.error.message},{status:500});
+ const [analysis,territories,review,relatedRows]=await Promise.all([query.maybeSingle(),db.from('conveni_territories').select('*').in('aoc_code',normalized.aocCodes.map(aocLookupKey)),db.from('review_decisions').select('id').eq('source_record_id',id).order('created_at',{ascending:false}).order('id',{ascending:false}).limit(1).maybeSingle(),
+  normalized.related.length?db.from('source_records').select('id,source_record_id,title,source_payload').eq('financing_type','conveni').in('source_record_id',normalized.related.slice(0,50)):Promise.resolve({data:[],error:null})]);
+ for(const result of [analysis,territories,review,relatedRows])if(result.error)return Response.json({error:result.error.message},{status:500});
  let pageData;
  try {
   pageData=await readConveniReviewPages(
@@ -54,7 +56,7 @@ export async function GET(request:Request,{params}:{params:Promise<{id:string}>}
   else retainedProposal=retainedConveniProposals(retained.data);
  }
  try{await requireConsistentConveniReads(db);}catch(error){if(error instanceof ConveniIndependentReadUnavailable)return Response.json({error:error.message},{status:503});throw error;}
- return Response.json({legacyReviewAvailable:!independent,visualReviewAvailable:process.env.CONVENI_VISUAL_REVIEW_ENABLED==='true',economicReviewAvailable:process.env.CONVENI_ECONOMIC_REVIEW_ENABLED==='true',economicCoverageAvailable:process.env.CONVENI_ECONOMIC_REVIEW_ENABLED==='true'&&process.env.CONVENI_ECONOMIC_COVERAGE_ENABLED==='true',normalized,analysis:analysis.data,units:shownUnits,concepts,preparations,preparationAvailable:isGroupPreparationEnabled(),history:pageData.reviewRows,conceptHistory:pageData.conceptRows,territories:territories.data,lastReviewId:review.data?.id??null,retainedProposal,retainedCheckFailed});
+ return Response.json({legacyReviewAvailable:!independent,visualReviewAvailable:process.env.CONVENI_VISUAL_REVIEW_ENABLED==='true',economicReviewAvailable:process.env.CONVENI_ECONOMIC_REVIEW_ENABLED==='true',economicCoverageAvailable:process.env.CONVENI_ECONOMIC_REVIEW_ENABLED==='true'&&process.env.CONVENI_ECONOMIC_COVERAGE_ENABLED==='true',normalized,related:resolveRelatedConvenis(r.data.source_payload,relatedRows.data??[]),grant:conveniGrantMark(r.data.source_payload,analysis.data?.payload?.instrument_grant),analysis:analysis.data,units:shownUnits,concepts,preparations,preparationAvailable:isGroupPreparationEnabled(),history:pageData.reviewRows,conceptHistory:pageData.conceptRows,territories:territories.data,lastReviewId:review.data?.id??null,retainedProposal,retainedCheckFailed});
 }
 export async function POST(request:Request,{params}:{params:Promise<{id:string}>}) {
  const {id}=await params;const b=await request.json().catch(()=>null);
