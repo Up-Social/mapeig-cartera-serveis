@@ -54,6 +54,7 @@ export function failureMessage(failure:CloudFailure):string {
   PROVIDER_OUTPUT_INCOMPLETE:'La IA no ha acabat la resposta (ha esgotat el límit de sortida abans de la proposta final). No s’ha desat cap resultat; torna a processar el conveni i es farà una anàlisi nova.',
   INVALID_CONVENI_PROPOSAL:'La resposta de la IA no compleix el format esperat (estructura o identificadors de cita). No s’ha desat cap resultat; cal tornar a analitzar el conveni.',
   STALE_OR_INVALID_CONVENI:'L’anàlisi del conveni ha quedat obsoleta o la base de dades l’ha rebutjada en desar-la. Cal tornar a analitzar-lo amb les fonts vigents.',
+  CONVENI_INSUFFICIENT_WITH_SOCIAL_FACTS:'La IA indicava evidència insuficient, però acredita una activitat social i la població destinatària: es proposa «Fora de cartera», pendent de revisió.',
   CONVENI_FUNDED_AMENDMENT:'Addenda, pròrroga o modificació amb aportació pública a una entitat no pública: és un registre propi i no es descarta. Cal classificar el servei que finança.',
   CONVENI_DISCARD_REASON_CONFLICT:'La manca d’encaix en la cartera no justifica per si sola un descart. Cal revisar la naturalesa social i el motiu documentat.',
   COVERAGE_INCOMPLETE:'Falten documents o pàgines del conveni per llegir completament. Cal recuperar totes les fonts i annexos abans d’analitzar-lo.',

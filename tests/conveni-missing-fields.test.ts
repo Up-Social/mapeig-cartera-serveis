@@ -154,3 +154,14 @@ test('a funded amendment to a non-public recipient is never kept as an amendment
  const unfunded=validateConveni(analysis([{...unit,recipient_nature:'private',classification:'discarded',service_code:null,reason:'excluded_amendment'}]),{'Total aportacions previstes Generalitat':0,'Total aportacions previstes ens locals':0},documents,new Set(['1.1']));
  assert.equal(unfunded.units[0].classification,'discarded');assert.equal(unfunded.units[0].reason,'excluded_amendment');
 });
+
+test('insufficient evidence with a documented social activity and population becomes an outside proposal',()=>{
+ const social={status:'social' as const,explanation:'Activitat social acreditada.',evidence};
+ const outside=validate([{...unit,classification:'insufficient_evidence',service_code:null,social_assessment:social,population:'Infants amb discapacitat',description:'Activitats de lleure d’estiu'}]);
+ assert.equal(outside.units[0].classification,'out_of_portfolio');assert.equal(outside.units[0].original_classification,'insufficient_evidence');
+ assert.ok(outside.diagnostics?.some(d=>d.code==='CONVENI_INSUFFICIENT_WITH_SOCIAL_FACTS'));
+ for(const variant of [{social_assessment:{...social,status:'uncertain' as const}},{population:''},{description:'  '},{social_assessment:undefined}]){
+  const kept=validate([{...unit,classification:'insufficient_evidence',service_code:null,social_assessment:social,population:'Infants',description:'Lleure',...variant}]);
+  assert.equal(kept.units[0].classification,'insufficient_evidence');
+ }
+});

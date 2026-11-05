@@ -259,6 +259,13 @@ export function validateConveni(input:ConveniAnalysis,payload:Payload,documents:
    else if(!reason)degrade('CONVENI_DISCARD_REASON_MISSING','La proposta de descart no indica cap motiu.','reason');
    else if(missingDiscard)degrade(missingDiscard.code,missingDiscard.message,'reason');
   }
+  // Sprint 2 criterion: insufficient evidence only when it is unknown what is
+  // financed or for whom. A proposal that documents a social activity and its
+  // population, with no fitting leaf, is an outside-the-portfolio proposal.
+  if(u.classification==='insufficient_evidence'&&u.original_classification===undefined&&social==='social'&&u.population?.trim()&&u.description?.trim()){
+   u.original_classification='insufficient_evidence';u.classification='out_of_portfolio';u.service_code=null;u.service_name=null;u.reason=null;
+   note('CONVENI_INSUFFICIENT_WITH_SOCIAL_FACTS','La IA indicava evidència insuficient, però acredita una activitat social i la població destinatària: es proposa «Fora de cartera», pendent de revisió.','classification');
+  }
   if(u.unresolved_service_ref!==undefined){
    const message=`La fitxa indicada per la IA${u.unresolved_service_ref?` («${u.unresolved_service_ref}»)`:''} no és al catàleg oficial vigent; no es conserva cap codi.`;
    if(u.classification==='in_portfolio')degrade('CONVENI_UNKNOWN_SERVICE_REFERENCE',`${message} Queda pendent de revisió.`,'service_ref');else note('CONVENI_UNKNOWN_SERVICE_REFERENCE',message,'service_ref');
