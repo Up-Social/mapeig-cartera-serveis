@@ -117,3 +117,15 @@ test('a blocked legacy review also hides concept decisions but retains evidence 
  assert.match(blocked,/Cites originals del concepte/);
  assert.match(blocked,/Suport/);
 });
+
+test('a group of concepts shows each concept proposal instead of insufficient evidence',async()=>{
+ const {conveniProposalLabel}=await import('../lib/convenis/review-presentation');
+ const concept=(classification:ConveniUnit['classification'],service_code:string|null,amount_cents:number|null,mixed=false)=>({classification,service_code,amount_cents,mixed}) as ConveniUnit;
+ const label=conveniProposalLabel({classification:'insufficient_evidence',service_code:null,concepts:[concept('in_portfolio','1.1.7',1400000),concept('out_of_portfolio',null,200000),concept('out_of_portfolio',null,null,true)]});
+ assert.match(label,/^3 conceptes amb proposta pròpia, pendents de revisió individual: /);
+ assert.match(label,/Servei de cartera 1\.1\.7 \(14\.000,00\s€\)/);
+ assert.match(label,/Servei social fora de cartera \(2\.000,00\s€\)/);
+ assert.match(label,/Servei social fora de cartera \(import mixt\)/);
+ assert.doesNotMatch(label,/Evidència insuficient/);
+ assert.equal(conveniProposalLabel({classification:'insufficient_evidence',service_code:null}),'Evidència insuficient');
+});
