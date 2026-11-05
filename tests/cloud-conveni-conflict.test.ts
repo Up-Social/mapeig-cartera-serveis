@@ -4,7 +4,7 @@ import {preflightConveni,processConveni,ConveniFailure} from '../lib/convenis/pr
 import type {ConveniAnalysis} from '../lib/convenis/contract';
 import {cloudConveniConflictOptions,cloudConveniOptions} from '../lib/cloud/conveni-conflict';
 import {providerRequest} from '../lib/cloud/provider';
-import {CloudFailure} from '../lib/cloud/errors';
+import {CloudFailure,failureMessage} from '../lib/cloud/errors';
 import type {Context} from '../lib/cloud/context';
 
 const busy={code:'40001',message:'T19_DEDUP_BUSY'};
@@ -105,4 +105,24 @@ test('the SQL discard conflict keeps its specific diagnostic rather than a gener
  await assert.rejects(processConveni(f.db as never,{id:'job',source_record_id:'record'},async()=>({output_text:JSON.stringify(f.answer)})),
   e=>e instanceof ConveniFailure&&e.kind==='validation'&&e.code==='CONVENI_DISCARD_REASON_CONFLICT'&&e.diagnostic?.field==='reason');
  assert.equal(f.commits,1);
+});
+
+test('a response cut at the output limit is never parsed, even when it starts with a valid draft',async()=>{
+ const f=conveniFixture(busy);
+ // Runaway draft: a complete-looking proposal followed by repeated output until the limit.
+ const draft=JSON.stringify(f.answer);
+ const raw={status:'incomplete',incomplete_details:{reason:'max_output_tokens'},output:[{type:'message',phase:'commentary',status:'incomplete',content:[{type:'output_text',text:`${draft}\n\n${draft}`}]}]};
+ await assert.rejects(processConveni(f.db as never,{id:'job',source_record_id:'record'},async()=>raw),e=>e instanceof ConveniFailure&&e.kind==='validation'&&e.code==='PROVIDER_OUTPUT_INCOMPLETE');
+ assert.equal(f.commits,0);
+});
+
+test('the Conveni prompt asks for a single final JSON message without drafts',async()=>{
+ const f=conveniFixture(busy);let instructions='';
+ await assert.rejects(processConveni(f.db as never,{id:'job',source_record_id:'record'},async body=>{instructions=String(body.instructions);return {output_text:JSON.stringify(f.answer)};}),/T19_DEDUP_BUSY/);
+ assert.match(instructions,/únic missatge final en JSON: no escriguis cap missatge previ, esborrany, comentari ni repetició/);
+});
+
+test('an incomplete provider response explains that a reprocess runs a new analysis',()=>{
+ const message=failureMessage(new CloudFailure('validation',5,{operation:'conveni_analysis',code:'PROVIDER_OUTPUT_INCOMPLETE'}));
+ assert.match(message,/ha esgotat el límit de sortida/);assert.match(message,/anàlisi nova/);
 });
