@@ -19,6 +19,8 @@ begin
  if exists(select 1 from cloud_checkpoints where task_id=t1 and item_key like 'legacy-ocr-pending:%') then raise exception 'Unrelated record blocked';end if;
  update worker_tasks set status='completed',execution_state='completed',created_at=now()+interval '1 second' where id=t1;
  insert into cloud_checkpoints(task_id,item_key,value) values(ta,legacy,jsonb_build_object('text',repeat('a',10000)));
+ -- Only a task that did not complete leaves an unverifiable OCR outcome.
+ update worker_tasks set status='failed',execution_state='interrupted' where id=ta;
  modern:='ocr-v2:'||da1||':'||repeat('b',64)||':1:dpi300:readable-markdown-v4';
  insert into cloud_checkpoints(task_id,item_key,value) values(t1,modern,'{"version":"ocr-page-v2","text":"fixture"}');
  insert into cloud_budget_reservations(task_id,item_key,reserved_usd,actual_usd) values(t1,'ai:'||ja||':matching',0.02,0.01);
@@ -35,4 +37,9 @@ begin
  if not exists(select 1 from cloud_checkpoints where task_id=t3 and item_key=modern) then raise exception 'Modern checkpoint lost on later recovery';end if;
  if not exists(select 1 from cloud_checkpoints where task_id=ta and item_key=legacy and length(value->>'text')=10000) then raise exception 'Historical OCR changed';end if;
  if (select to_jsonb(r) from cloud_resources r where name='sandbox') is distinct from resource_before then raise exception 'Recovery acquired Sandbox';end if;
+ -- Once the legacy task completed, its OCR is settled: no marker, and none copied.
+ update worker_tasks set status='completed',execution_state='completed' where id=ta;
+ update worker_tasks set status='completed',execution_state='completed',created_at=now()+interval '3 seconds' where id=t3;
+ outcome:=begin_record_operation(a,'ocr','vercel_workflow');
+ if exists(select 1 from cloud_checkpoints where task_id=(outcome->>'taskId')::uuid and item_key like 'legacy-ocr-pending:%') then raise exception 'Settled legacy OCR still blocks re-reading';end if;
 end $$;
