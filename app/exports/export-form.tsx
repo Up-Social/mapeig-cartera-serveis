@@ -1,7 +1,7 @@
 'use client';
 import Link from 'next/link';
 import {useRouter} from 'next/navigation';
-import {useState} from 'react';
+import {useState,useTransition,type FormEvent} from 'react';
 import {FilterForm} from '@/components/filter-form';
 import type {FinancingType} from '@/lib/financing-types';
 import type {MapeigPreview} from '@/lib/exports/mapeig';
@@ -20,6 +20,16 @@ export function ExportForm({filters,years,applied,filterError,preview,previewErr
  const [busy,setBusy]=useState(false);
  const [message,setMessage]=useState('');
  const [error,setError]=useState('');
+ // Applying filters re-renders the page on the server, which reads every line
+ // to compute the summary; the transition keeps the form responsive and shows
+ // that the records are being analysed until the new summary arrives.
+ const [analysing,startAnalysing]=useTransition();
+ function applyFilters(event:FormEvent<HTMLFormElement>){
+  event.preventDefault();
+  const params=new URLSearchParams([...new FormData(event.currentTarget).entries()].map(([key,value])=>[key,String(value)]));
+  setMessage('');setError('');
+  startAnalysing(()=>router.push(`/exports?${params.toString()}`));
+ }
  const canDownload=!!preview&&preview.rowCount>0&&!preview.tooManyRows;
  async function download(){
   if(busy||!canDownload)return;
@@ -47,7 +57,7 @@ export function ExportForm({filters,years,applied,filterError,preview,previewErr
   preview.excluded.dateRange?`${count(preview.excluded.dateRange)} línies excloses pel filtre d’anys de concessió.`:null,
  ].filter((text):text is string=>!!text):[];
  return <>
-  <FilterForm className="surface grid gap-4 p-4">
+  <FilterForm className="surface grid gap-4 p-4" onSubmit={applyFilters} aria-busy={analysing}>
    <input type="hidden" name="applied" value="1"/>
    <fieldset className="grid gap-2"><legend className="text-sm font-semibold">Tipologia</legend>
     <div className="flex flex-wrap gap-x-5 gap-y-2">{TYPE_ORDER.map(type=>{const available=MAPEIG_AVAILABLE_TYPES.includes(type);return <label key={type} className={`flex items-center gap-2 text-sm ${available?'':'text-muted-foreground'}`}><input type="checkbox" name="type" value={type} className="size-4" defaultChecked={filters.financingTypes.includes(type)} disabled={!available}/>{MAPEIG_TYPE_LABELS[type]}{!available&&<span className="rounded border px-1.5 py-0.5 text-xs">Properament</span>}</label>;})}</div>
@@ -61,15 +71,20 @@ export function ExportForm({filters,years,applied,filterError,preview,previewErr
     <div className="grid gap-3 md:grid-cols-[220px_220px_auto]">
      <label className="grid gap-1 text-sm">Des de<select className="form-text" name="from" defaultValue={filters.yearFrom??''}><option value="">Sense límit</option>{years.map(year=><option key={year} value={year}>{year}</option>)}</select></label>
      <label className="grid gap-1 text-sm">Fins a<select className="form-text" name="to" defaultValue={filters.yearTo??''}><option value="">Sense límit</option>{years.map(year=><option key={year} value={year}>{year}</option>)}</select></label>
-     <div className="flex items-end gap-3"><button className="rounded-md bg-primary px-4 py-2 text-sm text-primary-foreground">Aplicar filtres</button>{applied&&<Link className="self-center text-sm underline" href="/exports">Netejar filtres</Link>}</div>
+     <div className="flex items-end gap-3"><button className="rounded-md bg-primary px-4 py-2 text-sm text-primary-foreground disabled:opacity-60" disabled={analysing}>{analysing?'Analitzant…':'Aplicar filtres'}</button>{applied&&!analysing&&<Link className="self-center text-sm underline" href="/exports">Netejar filtres</Link>}</div>
     </div>
     <p className="text-xs text-muted-foreground">Els dos límits són inclusius i opcionals. Les línies sense data de concessió no es filtren: s’exporten i s’avisen.</p>
    </fieldset>
   </FilterForm>
-  {filterError&&<p role="alert" className="status-error rounded-md border p-3 text-sm">{filterError}</p>}
-  {previewError&&<p role="alert" className="status-error rounded-md border p-3 text-sm">{previewError}</p>}
-  {!applied&&<p className="text-sm text-muted-foreground">Aplica els filtres per veure quantes línies entrarien al fitxer abans de generar-lo.</p>}
-  {preview&&<section className="surface space-y-3 p-4">
+  {analysing&&<section role="status" aria-live="polite" className="surface space-y-3 p-4">
+   <p className="flex items-center gap-2 text-sm font-medium"><span aria-hidden="true" className="size-4 animate-spin rounded-full border-2 border-primary border-t-transparent"/>Analitzant els registres per calcular el resum de l’exportació…</p>
+   <p className="text-xs text-muted-foreground">Es llegeixen totes les línies que compleixen els filtres (imports, codis, dates i territoris). Pot trigar uns segons; quan acabi apareixerà el resum i el botó «Generar Excel».</p>
+   <div className="h-6 w-2/3 animate-pulse rounded bg-muted"/><div className="h-24 animate-pulse rounded bg-muted"/>
+  </section>}
+  {!analysing&&filterError&&<p role="alert" className="status-error rounded-md border p-3 text-sm">{filterError}</p>}
+  {!analysing&&previewError&&<p role="alert" className="status-error rounded-md border p-3 text-sm">{previewError}</p>}
+  {!applied&&!analysing&&<p className="text-sm text-muted-foreground">Aplica els filtres per veure quantes línies entrarien al fitxer abans de generar-lo.</p>}
+  {preview&&!analysing&&<section className="surface space-y-3 p-4">
    <h2 className="font-semibold">Resum de l’exportació</h2>
    {preview.rowCount===0?<p className="text-sm">No hi ha cap línia que compleixi aquests filtres. Amplia les províncies o el període.</p>:<>
     <p className="text-sm"><span className="font-medium">{count(preview.rowCount)} línies</span> entrarien al fitxer · Import total: <span className="font-medium">{money(preview.totalCents)}</span></p>
