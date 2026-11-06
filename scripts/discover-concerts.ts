@@ -14,7 +14,7 @@ const LOCALE = "ca";
 const PAGE_SIZE = 25;
 const PERIOD_START = "2024-01-01";
 const PERIOD_END = "2026-12-31";
-const SEARCH_TERMS = ["concert social", "gestió delegada social"] as const;
+const SEARCH_TERMS = ["concert social", "gestió delegada"] as const;
 
 type Edict = {
   id_edicte: string;

@@ -1,7 +1,7 @@
 /** Pure validation of a historical e-Tauler scan. It never fetches, imports,
  * deletes or certifies that the upstream public history is exhaustive. */
 export const HISTORICAL_CONCERT_WINDOW={from:'2020-01-01',to:'2023-12-31'} as const;
-export const HISTORICAL_CONCERT_TERMS=['concert social','gestió delegada social'] as const;
+export const HISTORICAL_CONCERT_TERMS=['concert social','gestió delegada'] as const;
 const PAGE_SIZE=25;
 const PAGE_LIMIT=5000;
 
