@@ -2,7 +2,7 @@ import {concertCase,type ConcertCaseKey} from '@/lib/concerts/case-labels';
 import {concertLineHref} from '@/lib/concerts/display-name';
 import {currentDocumentTextConsistent} from '@/lib/concerts/document-text-integrity';
 import {ECONOMIC_AMOUNT_LABELS,euroCents} from '@/lib/concerts/evolution';
-import {municipalityReference} from '@/lib/concerts/geography';
+import {countyReference,lineMunicipalityReference} from '@/lib/concerts/geography';
 import {printedOriginalSignatureDates,proposedConcertAwardDate} from '@/lib/concerts/proposed-award-date';
 import {summarizeSignatureObservations,type SignatureObservation} from '@/lib/concerts/signature-observations';
 import {economicConcertTerritory,type ReviewedConcertGeography} from '@/lib/concerts/supplemental-geography-projection';
@@ -135,13 +135,14 @@ export function concertLineAmount(unit:ConcertUnitRow,review:ConcertReviewRow|un
  return {amount:cents/100,origin,note:pending};
 }
 /** Lines an amendment can repeat: award and renewal lines of other records. */
-function originalLineIndex(units:readonly ConcertUnitRow[]):Map<string,Array<{record:string;cents:number}>>{
- const index=new Map<string,Array<{record:string;cents:number}>>();
+type OriginalLine={record:string;unit:string;cents:number};
+function originalLineIndex(units:readonly ConcertUnitRow[]):Map<string,OriginalLine[]>{
+ const index=new Map<string,OriginalLine[]>();
  for(const unit of units){
   if(unit.unit_key==='legacy'||(unit.act_type!=='award'&&unit.act_type!=='renewal'))continue;
   const key=originalKey(unit),cents=unit.amount===null||unit.amount===''?null:euroCents(unit.amount);
   if(!key||cents===null)continue;
-  const list=index.get(key)??[];list.push({record:unit.source_record_id,cents});index.set(key,list);
+  const list=index.get(key)??[];list.push({record:unit.source_record_id,unit:unit.id,cents});index.set(key,list);
  }
  return index;
 }
@@ -149,15 +150,51 @@ const originalKey=(unit:ConcertUnitRow)=>{
  const nif=trimmed(unit.provider_nif)?.toUpperCase(),reses=trimmed(unit.reses_code)?.toUpperCase(),period=trimmed(unit.period);
  return nif&&reses&&period?`${nif}|${reses}|${period}`:null;
 };
-export function concertLineProvince(unit:ConcertUnitRow,geography:ConcertGeographyRow|undefined,supplemental:ReviewedConcertGeography|undefined,review:ConcertReviewRow|undefined):{province:MapeigProvince|null;municipality:string|null;county:string|null;origin:string|null;note:string|null}{
+export type ConcertLineTerritory={province:MapeigProvince|null;municipality:string|null;county:string|null;origin:string|null;note:string|null;
+ /** Provinces the line's own place allows, when it names a county of more than one province. */
+ allowedProvinces?:readonly string[]};
+export function concertLineProvince(unit:ConcertUnitRow,geography:ConcertGeographyRow|undefined,supplemental:ReviewedConcertGeography|undefined,review:ConcertReviewRow|undefined):ConcertLineTerritory{
  if(geography&&isProvince(geography.province))return {province:geography.province,municipality:geography.municipality,county:geography.county,origin:'Geografia documental de la línia',note:null};
  const economic=economicConcertTerritory(unit.territory,supplemental,review);
  if(economic.issue)return {province:null,municipality:unit.municipality??unit.territory,county:null,origin:null,note:economic.issue};
  const literal=trimmed(economic.territory)??trimmed(unit.municipality);
- const reference=municipalityReference(literal);
+ const reference=lineMunicipalityReference(literal);
  if(reference&&isProvince(reference.province))return {province:reference.province,municipality:reference.municipality,county:reference.county,origin:economic.applied?'Ubicació complementària confirmada (Idescat)':'Municipi de la línia (Idescat)',note:null};
+ // Annexes often give the county (comarca) in the Municipi column.
+ const county=countyReference(literal);
+ if(county&&isProvince(county.province))return {province:county.province,municipality:null,county:county.county,origin:'Comarca de la línia (Idescat)',note:null};
+ if(county)return {province:null,municipality:null,county:county.county,origin:null,allowedProvinces:county.provinces,
+  note:`Comarca de més d’una província (${county.county}); el concert no indica una sola província`};
  if(literal)return {province:null,municipality:literal,county:null,origin:null,note:`Província no resolta: ${literal}`};
  return {province:null,municipality:null,county:null,origin:null,note:'Territori no identificat'};
+}
+
+const PROVINCE_NAMES=MAPEIG_PROVINCES.join('|');
+const STATED_PROVINCE=[
+ new RegExp(`Serveis?\\s+Territorials?\\b[^.;\\n]{0,60}?\\b(?:de|a|en)\\s+(${PROVINCE_NAMES})\\b`,'giu'),
+ new RegExp(`Consorci\\s+de\\s+Serveis\\s+Socials\\s+de\\s+(Barcelona)\\b`,'giu'),
+ new RegExp(`\\((${PROVINCE_NAMES})\\)`,'giu'),
+ new RegExp(`\\b(${PROVINCE_NAMES})\\s+\\(20\\d\\d\\)`,'giu'),
+];
+/** Province a concert record states for itself: its territorial service, the
+ * Barcelona social services consortium, or the province in the title
+ * («… (Girona)», «… Girona (2025)»). Two different provinces state none. */
+export function concertStatedProvince(...texts:Array<string|null|undefined>):MapeigProvince|null{
+ const found=new Set<MapeigProvince>();
+ for(const text of texts)if(text)for(const pattern of STATED_PROVINCE)for(const match of text.matchAll(pattern)){
+  const province=MAPEIG_PROVINCES.find(p=>p.toLocaleLowerCase('ca')===match[1].toLocaleLowerCase('ca'));if(province)found.add(province);
+ }
+ return found.size===1?[...found][0]:null;
+}
+/** The single province of a concert: the one it states, or the one all its
+ * resolved lines share. A conflict between them, or lines in several
+ * provinces, leaves the concert without a single province. */
+export function concertRecordProvince(stated:MapeigProvince|null,lineProvinces:readonly (MapeigProvince|null)[]):MapeigProvince|null{
+ const resolved=new Set(lineProvinces.filter((p):p is MapeigProvince=>!!p));
+ if(resolved.size>1)return null;
+ const fromLines=resolved.size===1?[...resolved][0]:null;
+ if(stated&&fromLines&&stated!==fromLines)return null;
+ return stated??fromLines;
 }
 
 export function concertRowsFromData(data:ConcertMapeigData,options:ConcertRowOptions):ProviderResult{
@@ -180,6 +217,30 @@ export function concertRowsFromData(data:ConcertMapeigData,options:ConcertRowOpt
  let skippedLegacy=0,rectifications=0;
  const originals=originalLineIndex(data.units);
  const sourceIds=new Map(data.records.map(r=>[r.id,r.source_record_id]));
+ const rectifiedOriginal=(unit:ConcertUnitRow):OriginalLine|undefined=>{
+  if(unit.act_type!=='amendment'||unit.unit_key==='legacy')return undefined;
+  const key=originalKey(unit),cents=unit.amount===null||unit.amount===''?null:euroCents(unit.amount);
+  return key&&cents!==null?originals.get(key)?.find(o=>o.record!==unit.source_record_id&&o.cents===cents):undefined;
+ };
+ // Territory in two passes: each line's own place first, then a line without
+ // one takes the province of the line it rectifies or of its concert.
+ const ownTerritory=new Map(data.units.map(unit=>[unit.id,concertLineProvince(unit,geography.get(unit.id),supplemental.get(unit.id),reviews.get(unit.id))]));
+ const recordProvince=new Map<string,MapeigProvince|null>();
+ for(const [recordId,units] of unitsByRecord){
+  const stated=concertStatedProvince(records.get(recordId)?.title,enrichments.get(recordId)?.contracting_body);
+  recordProvince.set(recordId,concertRecordProvince(stated,units.map(u=>ownTerritory.get(u.id)!.province)));
+ }
+ let inheritedProvinces=0;
+ const lineTerritory=(unit:ConcertUnitRow):ConcertLineTerritory=>{
+  const own=ownTerritory.get(unit.id)!;
+  if(own.province)return own;
+  const original=rectifiedOriginal(unit);
+  const fromOriginal=original?ownTerritory.get(original.unit)?.province??recordProvince.get(original.record)??null:null;
+  const inherited=fromOriginal??recordProvince.get(unit.source_record_id)??null;
+  if(!inherited||(own.allowedProvinces&&!own.allowedProvinces.includes(inherited)))return own;
+  inheritedProvinces+=1;
+  return {...own,province:inherited,note:null,origin:fromOriginal?'Província de la línia rectificada':'Província del concert'};
+ };
  for(const unit of data.units){
   const record=records.get(unit.source_record_id);
   const siblings=unitsByRecord.get(unit.source_record_id)??[];
@@ -200,12 +261,8 @@ export function concertRowsFromData(data:ConcertMapeigData,options:ConcertRowOpt
   const awardDate=awardDates.get(unit.source_record_id)!;
   if(awardDate.note)observations.push(awardDate.note);
   // F: amount
-  let rectifiedRecord:string|null=null;
-  if(unit.act_type==='amendment'&&unit.unit_key!=='legacy'){
-   const key=originalKey(unit),cents=unit.amount===null||unit.amount===''?null:euroCents(unit.amount);
-   const original=key&&cents!==null?originals.get(key)?.find(o=>o.record!==unit.source_record_id&&o.cents===cents):undefined;
-   if(original)rectifiedRecord=sourceIds.get(original.record)??original.record;
-  }
+  const original=rectifiedOriginal(unit);
+  const rectifiedRecord=original?sourceIds.get(original.record)??original.record:null;
   const amount=concertLineAmount(unit,review,{provisionAmount:provision?.amount,documentAmount:enrichment?.amount,rectifiedRecord});
   if(rectifiedRecord&&review?.status!=='approved')rectifications+=1;
   if(amount.note)observations.push(amount.note);
@@ -228,7 +285,7 @@ export function concertRowsFromData(data:ConcertMapeigData,options:ConcertRowOpt
    else if(trimmed(provision?.target_population)){targetPopulation=trimmed(provision?.target_population);populationOrigin='Provisió aprovada';observations.push('Població del registre, no acreditada per línia');}
   }
   // I: province
-  const territory=concertLineProvince(unit,geography.get(unit.id),supplemental.get(unit.id),review);
+  const territory=lineTerritory(unit);
   if(territory.note)observations.push(territory.note);
   // K: Cartera code
   let carteraCode:string|null=null,codeOrigin:string|null=null;
@@ -256,6 +313,7 @@ export function concertRowsFromData(data:ConcertMapeigData,options:ConcertRowOpt
  }
  const notes:string[]=[];
  if(rectifications)notes.push(`${rectifications} línies d’esmena repeteixen una línia ja exportada de la resolució original (mateixa entitat, codi RESES, període i import): l’import consta a «Import documentat a la línia» però no se suma.`);
+ if(inheritedProvinces)notes.push(`${inheritedProvinces} línies no indiquen un territori propi llegible i prenen la província del concert (o de la línia que rectifiquen); consta a «Origen del territori».`);
  if(skippedLegacy)notes.push(`${skippedLegacy} línies globals de registres amb desglossament per annex no s’han exportat per no duplicar imports.`);
  if(!data.gates.supplementalGeography)notes.push('La geografia complementària revisada no està activada en aquest entorn; el territori surt del document i de la correspondència Idescat.');
  if(!data.gates.signatureDates)notes.push('Les dates de signatura digital no estan activades en aquest entorn; la data de concessió surt de la signatura impresa o de l’extracció.');

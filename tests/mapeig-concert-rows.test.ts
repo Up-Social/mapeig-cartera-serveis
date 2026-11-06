@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
-import {concertLineAmount,concertLineProvince,concertRecordAwardDate,concertRowsFromData,type ConcertDocumentRow,type ConcertMapeigData,type ConcertReviewRow,type ConcertUnitRow} from '../lib/exports/mapeig/providers/concert-rows';
+import {concertLineAmount,concertLineProvince,concertRecordProvince,concertStatedProvince,concertRecordAwardDate,concertRowsFromData,type ConcertDocumentRow,type ConcertMapeigData,type ConcertReviewRow,type ConcertUnitRow} from '../lib/exports/mapeig/providers/concert-rows';
 
 const unit=(partial:Partial<ConcertUnitRow>):ConcertUnitRow=>({
  id:'u1',source_record_id:'r1',unit_key:'official-annex:abc:1:1',provider_name:'Fundació A',provider_nif:'G11111111',observed_provider_name:null,observed_service_name:'Centre obert',
@@ -127,4 +127,54 @@ test('an amendment that repeats an exported line of another resolution is shown 
  assert.ok(byId.get('u2')!.observations.some(o=>o.includes('etauler:1:100')));
  assert.equal(byId.get('u3')!.amount,999,'a different amount is not a repetition');
  assert.ok(result.notes.some(n=>n.startsWith('1 línies d’esmena')));
+});
+
+test('a line that gives its county or a municipality without its article resolves its province',()=>{
+ const county=concertLineProvince(unit({territory:'Gironès'}),undefined,undefined,undefined);
+ assert.equal(county.province,'Girona');assert.equal(county.county,'Gironès');assert.equal(county.origin,'Comarca de la línia (Idescat)');assert.equal(county.note,null);
+ const article=concertLineProvince(unit({territory:'Vendrell'}),undefined,undefined,undefined);
+ assert.equal(article.province,'Tarragona');assert.equal(article.municipality,'Vendrell, el');
+ const split=concertLineProvince(unit({territory:'Selva'}),undefined,undefined,undefined);
+ assert.equal(split.province,null);assert.deepEqual(split.allowedProvinces,['Barcelona','Girona']);
+ assert.match(split.note??'',/Comarca de més d’una província \(Selva\)/);
+});
+
+test('the province a concert states, or the one its lines share; conflicts state none',()=>{
+ assert.equal(concertStatedProvince('Resolució de pròrroga','Servei Territorial de Girona'),'Girona');
+ assert.equal(concertStatedProvince('Resolució de l’expedient: 25-000153-AP Lleida (2025) per a la provisió',null),'Lleida');
+ assert.equal(concertStatedProvince('Resolució de l’expedient: 26-modificació d’ofici-01 (Girona)',null),'Girona');
+ assert.equal(concertStatedProvince(null,'Consorci de Serveis Socials de Barcelona'),'Barcelona');
+ assert.equal(concertStatedProvince('Resolució (Girona)','Servei Territorial de Lleida'),null);
+ assert.equal(concertStatedProvince('Resolució de provisió','Departament de Drets Socials'),null);
+ assert.equal(concertRecordProvince(null,['Girona',null,'Girona']),'Girona');
+ assert.equal(concertRecordProvince('Girona',[null]),'Girona');
+ assert.equal(concertRecordProvince('Girona',['Tarragona']),null);
+ assert.equal(concertRecordProvince(null,['Girona','Barcelona']),null);
+});
+
+test('a line without a legible place takes the province of its concert or of the line it rectifies',()=>{
+ const records=[{id:'r1',source_record_id:'etauler:1:100',title:'Resolució de pròrroga',record_url:null},{id:'r2',source_record_id:'etauler:1:200',title:'Resolució de rectificació d’errors',record_url:null}];
+ const result=concertRowsFromData(data({records,enrichments:[],units:[
+  unit({id:'a',territory:'Olot',act_type:'renewal',period:'2025',reses_code:'S1',amount:'10'}),
+  unit({id:'b',territory:'gueres',act_type:'renewal',period:'2025',reses_code:'S2',amount:'20'}),
+  unit({id:'c',territory:'Selva',act_type:'renewal',period:'2025',reses_code:'S3',amount:'30'}),
+  unit({id:'d',source_record_id:'r2',territory:'rona',act_type:'amendment',period:'2025',reses_code:'S1',amount:'10'}),
+ ]}),options);
+ const byId=new Map(result.rows.map(row=>[row.extras.unitId,row]));
+ assert.equal(byId.get('b')!.province,'Girona');assert.equal(byId.get('b')!.extras.territoryOrigin,'Província del concert');
+ assert.equal(byId.get('b')!.extras.municipality,'gueres');
+ assert.ok(!byId.get('b')!.observations.some(o=>/Província no resolta/.test(o)));
+ assert.equal(byId.get('c')!.province,'Girona','a county of two provinces takes the concert province when it is one of them');
+ assert.equal(byId.get('d')!.province,'Girona');assert.equal(byId.get('d')!.extras.territoryOrigin,'Província de la línia rectificada');
+ assert.ok(result.notes.some(n=>n.startsWith('3 línies no indiquen un territori propi')));
+});
+
+test('a concert in several provinces, or one that contradicts the line, passes nothing on',()=>{
+ const result=concertRowsFromData(data({enrichments:[],units:[
+  unit({id:'a',territory:'Olot'}),unit({id:'b',territory:'Reus'}),unit({id:'c',territory:'gueres'}),
+ ]}),options);
+ const c=result.rows.find(row=>row.extras.unitId==='c')!;
+ assert.equal(c.province,null);assert.ok(c.observations.includes('Província no resolta: gueres'));
+ const lleida=concertRowsFromData(data({records:[{id:'r1',source_record_id:'etauler:1:100',title:'Expedient Lleida (2025)',record_url:null}],enrichments:[],units:[unit({id:'s',territory:'Selva'})]}),options);
+ assert.equal(lleida.rows[0].province,null,'Selva is in Barcelona and Girona, not Lleida');
 });

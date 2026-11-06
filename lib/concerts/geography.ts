@@ -46,3 +46,46 @@ export function municipalityReference(name:string|null|undefined):MunicipalityRe
  const [municipalityCode,municipality,county,province]=places[0];
  return {municipalityCode,municipality,county,province,sourceUrl:reference.sourceUrl};
 }
+
+const ARTICLE:Record<string,string>={"de l'":"l'",'de la ':'la','de les ':'les','del ':'el','dels ':'els'};
+const ARTICLES=['el','la','els','les',"l'"] as const;
+/** Spellings of a place name to try against Idescat, which writes the article
+ * after the name («Vendrell, el»). Accepts «Ajuntament del Vendrell»,
+ * «El Vendrell» and «Vendrell, el». */
+export function municipalityCandidates(body:string):string[]{
+ const text=body.replace(/[’]/g,"'").replace(/\s+/g,' ').trim();
+ const preposition=text.match(/^Ajuntament (de l'|de la |de les |dels |del |de |d')\s*(.+)$/i);
+ const name=preposition?preposition[2].trim():text;
+ const article=preposition?ARTICLE[preposition[1].toLowerCase()]:undefined;
+ const leading=name.match(/^(El|La|Els|Les|L')\s*(.+)$/i);
+ const candidates=[name];
+ if(article)candidates.push(`${name}, ${article}`);
+ if(leading)candidates.push(`${leading[2]}, ${leading[1].toLowerCase()}`);
+ return candidates;
+}
+/** A municipality written on a line, with or without its article. When the
+ * article is missing («Vendrell»), it is accepted only if exactly one Idescat
+ * municipality matches the name with some article. */
+export function lineMunicipalityReference(name:string|null|undefined):MunicipalityReference|null{
+ if(!name?.trim())return null;
+ for(const candidate of municipalityCandidates(name)){const place=municipalityReference(candidate);if(place)return place;}
+ const bare=name.replace(/[’]/g,"'").replace(/\s+/g,' ').trim();
+ const withArticle=ARTICLES.map(article=>municipalityReference(`${bare}, ${article}`)).filter((place):place is MunicipalityReference=>!!place);
+ return withArticle.length===1?withArticle[0]:null;
+}
+
+const plain=(value:string)=>value.normalize('NFD').replace(/\p{M}/gu,'').replace(/[’]/g,"'").toLocaleLowerCase('ca').replace(/\s+/g,' ').trim();
+const COUNTY_ALIASES:Record<string,string>={"val d'aran":'aran'};
+const counties=new Map<string,{county:string;provinces:Set<string>}>();
+for(const [,,county,province] of reference.rows){const key=plain(county);const entry=counties.get(key)??{county,provinces:new Set<string>()};entry.provinces.add(province);counties.set(key,entry);}
+export type CountyReference={county:string;province:string|null;provinces:string[];sourceUrl:string};
+/** Province of a county (comarca) from the pinned Idescat table. A county whose
+ * municipalities belong to more than one province has no single province. */
+export function countyReference(name:string|null|undefined):CountyReference|null{
+ if(!name?.trim())return null;
+ const key=plain(name).replace(/^comarca (del |de la |de l'|de |d')/,'');
+ const entry=counties.get(COUNTY_ALIASES[key]??key);
+ if(!entry)return null;
+ const provinces=[...entry.provinces].sort();
+ return {county:entry.county,province:provinces.length===1?provinces[0]:null,provinces,sourceUrl:reference.sourceUrl};
+}

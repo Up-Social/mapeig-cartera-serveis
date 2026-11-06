@@ -1,5 +1,4 @@
-import reference from '@/lib/concerts/data/municipalities-idescat.json';
-import {municipalityReference} from '@/lib/concerts/geography';
+import {countyReference,municipalityCandidates,municipalityReference} from '@/lib/concerts/geography';
 import {BLOCKER_LABELS,normalizeConveni,type ConveniUnit} from '@/lib/convenis/contract';
 import {conveniInstrumentsGrant} from '@/lib/convenis/marks';
 import {OBSERVATIONS_KEY} from '../workbook';
@@ -31,23 +30,6 @@ const CLASSIFICATION:Record<string,string>={in_portfolio:'Dins de la Cartera',ou
 const trimmed=(value:unknown)=>typeof value==='string'&&value.trim()&&value.trim()!=='None'?value.trim():null;
 const isProvince=(value:string|null|undefined):value is MapeigProvince=>!!value&&(MAPEIG_PROVINCES as readonly string[]).includes(value);
 const normalize=(value:string)=>value.normalize('NFD').replace(/\p{M}/gu,'').toLocaleLowerCase('ca').replace(/\s+/g,' ').trim();
-const countyProvince=new Map<string,string|null>();
-for(const [,,county,province] of reference.rows){const key=normalize(county);countyProvince.set(key,countyProvince.has(key)&&countyProvince.get(key)!==province?null:province);}
-
-const ARTICLE:Record<string,string>={"de l'":"l'",'de la ':'la','de les ':'les','del ':'el','dels ':'els'};
-/** Idescat writes the article after the name («Vendrell, el»); the agreement
- * writes «Ajuntament del Vendrell» or «El Vendrell». */
-function municipalityCandidates(body:string):string[]{
- const text=body.replace(/[’]/g,"'").replace(/\s+/g,' ').trim();
- const preposition=text.match(/^Ajuntament (de l'|de la |de les |dels |del |de |d')\s*(.+)$/i);
- const name=preposition?preposition[2].trim():text;
- const article=preposition?ARTICLE[preposition[1].toLowerCase()]:undefined;
- const leading=name.match(/^(El|La|Els|Les|L')\s*(.+)$/i);
- const candidates=[name];
- if(article)candidates.push(`${name}, ${article}`);
- if(leading)candidates.push(`${leading[2]}, ${leading[1].toLowerCase()}`);
- return candidates;
-}
 /** Province of the signing local body: a municipality (Ajuntament), a county
  * (Consell Comarcal) or a province (Diputació), from the pinned Idescat table. */
 export function localBodyProvince(name:string|null):{province:MapeigProvince|null;origin:string|null;note:string|null}{
@@ -58,7 +40,7 @@ export function localBodyProvince(name:string|null):{province:MapeigProvince|nul
   const diputacio=body.match(/^Diputació\s+(?:de\s+|d[’'])\s*(.+)$/i)?.[1];
   if(diputacio){const p=MAPEIG_PROVINCES.find(province=>normalize(province)===normalize(diputacio));if(p){provinces.add(p);continue;}}
   const county=body.match(/^Consell\s+Comarcal\s+(?:de\s+l[’']|de\s+la\s+|del\s+|dels\s+|de\s+|d[’'])\s*(.+)$/i)?.[1];
-  if(county){const p=countyProvince.get(normalize(county));if(p){provinces.add(p);continue;}}
+  if(county){const p=countyReference(county)?.province;if(p){provinces.add(p);continue;}}
   const place=municipalityCandidates(body).map(name=>municipalityReference(name)).find(Boolean);
   if(place&&isProvince(place.province)){provinces.add(place.province);continue;}
   return {province:null,origin:null,note:`Província no resolta: ${body}`};
