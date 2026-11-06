@@ -11,7 +11,7 @@ export const MECHANISM_BY_TYPE:Record<FinancingType,MapeigMechanism>={concert:'C
 export const SOURCE_BY_TYPE:Record<FinancingType,MapeigSource>={concert:'e-Tauler',subvencio:'RAISC',conveni:'Registre de Convenis',contractacio:'PSCP'};
 export const MAPEIG_TYPE_LABELS:Record<FinancingType,string>={concert:'Concerts',subvencio:'Subvencions',conveni:'Convenis',contractacio:'Contractacions'};
 /** Typologies the export can produce today. The others stay visible but disabled. */
-export const MAPEIG_AVAILABLE_TYPES:readonly FinancingType[]=['concert'];
+export const MAPEIG_AVAILABLE_TYPES:readonly FinancingType[]=['concert','conveni'];
 export const MAPEIG_EXPORT_MAX_ROWS=20000;
 
 /** One Detall_Registres row: the 11 template columns (A–K) plus extra columns

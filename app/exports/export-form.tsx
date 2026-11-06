@@ -51,7 +51,7 @@ export function ExportForm({filters,years,applied,filterError,preview,previewErr
    <input type="hidden" name="applied" value="1"/>
    <fieldset className="grid gap-2"><legend className="text-sm font-semibold">Tipologia</legend>
     <div className="flex flex-wrap gap-x-5 gap-y-2">{TYPE_ORDER.map(type=>{const available=MAPEIG_AVAILABLE_TYPES.includes(type);return <label key={type} className={`flex items-center gap-2 text-sm ${available?'':'text-muted-foreground'}`}><input type="checkbox" name="type" value={type} className="size-4" defaultChecked={filters.financingTypes.includes(type)} disabled={!available}/>{MAPEIG_TYPE_LABELS[type]}{!available&&<span className="rounded border px-1.5 py-0.5 text-xs">Properament</span>}</label>;})}</div>
-    <p className="text-xs text-muted-foreground">En aquesta fase només s’exporten els Concerts, amb totes les seves línies (pendents, aprovades i rebutjades) i l’estat de revisió a les columnes addicionals. Les altres tipologies s’afegiran més endavant.</p>
+    <p className="text-xs text-muted-foreground">Es poden exportar els Concerts (totes les línies: pendents, aprovades i rebutjades) i els Convenis (propostes pendents de revisió i línies aprovades, dins i fora de la Cartera). L’estat de revisió consta a les columnes addicionals. Subvencions i contractacions s’afegiran més endavant.</p>
    </fieldset>
    <fieldset className="grid gap-2"><legend className="text-sm font-semibold">Província</legend>
     <div className="flex flex-wrap gap-x-5 gap-y-2">{MAPEIG_PROVINCES.map(province=><label key={province} className="flex items-center gap-2 text-sm"><input type="checkbox" name="province" value={province} className="size-4" defaultChecked={!!filters.provinces?.includes(province)}/>{province}</label>)}</div>

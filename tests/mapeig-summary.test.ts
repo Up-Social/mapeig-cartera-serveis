@@ -69,7 +69,8 @@ test('filters parse once for the page and the route, and never drop rows for mis
  assert.equal(mapeigFiltersToSearchParams(parsed).toString(),'type=concert&province=Barcelona&province=Girona&from=2025&to=2025');
  assert.deepEqual(parseMapeigFilters({type:'concert'}),{financingTypes:['concert'],provinces:null,yearFrom:null,yearTo:null});
  assert.throws(()=>parseMapeigFilters(new URLSearchParams('')),MapeigFilterError);
- assert.throws(()=>parseMapeigFilters(new URLSearchParams('type=conveni')),/encara no està disponible/);
+ assert.deepEqual(parseMapeigFilters(new URLSearchParams('type=concert&type=conveni')).financingTypes,['concert','conveni']);
+ assert.throws(()=>parseMapeigFilters(new URLSearchParams('type=subvencio')),/encara no està disponible/);
  assert.throws(()=>parseMapeigFilters(new URLSearchParams('type=altres')),/Tipologia no vàlida/);
  assert.throws(()=>parseMapeigFilters(new URLSearchParams('type=concert&province=Madrid')),/Província no vàlida/);
  assert.throws(()=>parseMapeigFilters(new URLSearchParams('type=concert&from=2025-02-30')),/«des de»/);
