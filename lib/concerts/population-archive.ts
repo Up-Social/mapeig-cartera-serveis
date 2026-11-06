@@ -1,8 +1,10 @@
 import {createHash} from 'node:crypto';
 import type {SupabaseClient} from '@supabase/supabase-js';
 import {SOURCE_BUCKET} from '../source-storage';
+import {MAX_PDF_BYTES} from '../pipeline/document-input';
 
-const MAX_BYTES=16*1024*1024;
+// An archived copy can be verified whenever it could be downloaded.
+const MAX_BYTES=MAX_PDF_BYTES;
 const TIMEOUT_MS=30_000;
 function abortable<T>(operation:PromiseLike<T>,signal:AbortSignal):Promise<T>{
  return new Promise((resolve,reject)=>{

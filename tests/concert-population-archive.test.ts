@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
 import type {SupabaseClient} from '@supabase/supabase-js';
 import {captureVerifiedArchivePair,readVerifiedPopulationArchive,verifyPopulationArchive} from '../lib/concerts/population-archive';
+import {MAX_PDF_BYTES} from '../lib/pipeline/document-input';
 
 function dbFor(stream:ReadableStream<Uint8Array>):SupabaseClient {
  return {storage:{from:()=>({download:()=>({asStream:async()=>({data:stream,error:null})})})}} as unknown as SupabaseClient;
@@ -31,7 +32,7 @@ test('capturing a pair requires both independent copies to match the expected ha
 });
 test('archive check rejects oversized streams and cancels an aborted read',async()=>{
  let cancelled=false;
- const oversized=new ReadableStream<Uint8Array>({start(c){c.enqueue(new Uint8Array(16*1024*1024+1));},cancel(){cancelled=true;}});
+ const oversized=new ReadableStream<Uint8Array>({start(c){c.enqueue(new Uint8Array(MAX_PDF_BYTES+1));},cancel(){cancelled=true;}});
  await assert.rejects(verifyPopulationArchive(dbFor(oversized),'fixture','a'.repeat(64)),/límit/);assert.equal(cancelled,true);
  let stopped=false;const hanging=new ReadableStream<Uint8Array>({cancel(){stopped=true;}});
  const abort=new AbortController();const request=verifyPopulationArchive(dbFor(hanging),'fixture','a'.repeat(64),abort.signal);

@@ -1,6 +1,7 @@
 import {createHash} from 'node:crypto';
 import {parsePdfSignatureDate} from './pdf-signature-date';
 import {isUuid} from '../uuid';
+import {MAX_PDF_BYTES} from '../pipeline/document-input';
 
 export type ArchivedSignatureSource={id:string;source_record_id:string;storage_path:string|null;storage_sha256:string|null;status:string;mime_type:string|null};
 
@@ -15,7 +16,7 @@ export async function verifyArchivedConcertSignature(
   source.storage_path!==`cases/${recordId}/documents/${source.id}/${expectedSha}.pdf`)
   throw Error('ARCHIVE_IDENTITY_MISMATCH');
  const bytes=await read(source.storage_path);
- if(bytes.byteLength<5||bytes.byteLength>16*1024*1024||Buffer.from(bytes.subarray(0,5)).toString()!=='%PDF-'||
+ if(bytes.byteLength<5||bytes.byteLength>MAX_PDF_BYTES||Buffer.from(bytes.subarray(0,5)).toString()!=='%PDF-'||
   createHash('sha256').update(bytes).digest('hex')!==expectedSha)throw Error('ARCHIVE_BYTES_MISMATCH');
  const observation=parsePdfSignatureDate(await pdfsig(bytes));
  if(!observation)throw Error('SIGNATURE_NOT_UNAMBIGUOUS');

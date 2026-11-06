@@ -4,7 +4,7 @@ import {createEphemeralSandbox,SandboxLifecycleError,type EphemeralSandbox,type 
 import {containSandboxIncident} from './sandbox-incident';
 import {checkpoint,readCheckpoint,readBoundedPdfCheckpoint,rpc,lease,acquireResource,progress,type Context} from './context';
 import {CloudFailure,CloudYield} from './errors';
-import {htmlToText,cleanTextWithCoverage,hasCurrentTextCoverage} from '../pipeline/document-input';
+import {htmlToText,cleanTextWithCoverage,hasCurrentTextCoverage,DocumentTooLargeError} from '../pipeline/document-input';
 import {hash} from '../pipeline/chunks';
 import {fetchOfficialDocument} from '../pipeline/official-resolution';
 import {archiveSource,readSource,sha256,ArchivedSourceUnavailableError} from '../source-storage';
@@ -69,7 +69,7 @@ export async function extractDocument(c:Context,job:string,id:string,url:string,
    fetched={bytes:stored.bytes,mimeType:stored.mimeType};sourcePath=stored.path;
    archived=stored;
   }else{
-   try {fetched=await fetchOfficialDocument(url);}catch {throw new CloudFailure('document');}
+   try {fetched=await fetchOfficialDocument(url);}catch(error){throw new CloudFailure('document',5,error instanceof DocumentTooLargeError?{operation:'document_download',code:'DOCUMENT_TOO_LARGE'}:undefined);}
    archived=await archiveSource(c.db,source.data,fetched);
   }
   sourcePath=archived.path;

@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
 import type {SupabaseClient} from '@supabase/supabase-js';
-import {ARCHIVE_DOCUMENT_MAX_BYTES,verifySelectedArchives} from '../lib/convenis/archive-verification';
+import {ARCHIVE_DOCUMENT_MAX_BYTES,ARCHIVE_REQUEST_MAX_BYTES,verifySelectedArchives} from '../lib/convenis/archive-verification';
 import {GROUP_CONFIRMATIONS,groupLiteralCents,parseGroupPreparation,groupPreparationRpcArgs,selectedGroupDocuments} from '../lib/convenis/group-preparation';
 const id=(n:number)=>`00000000-0000-4000-8000-${String(n).padStart(12,'0')}`;
 const docs=[id(10),id(11)];const bytes=Buffer.from('Document sintètic arxivat');const sha=createHash('sha256').update(bytes).digest('hex');
@@ -74,11 +74,13 @@ test('the action writes only after all selected source bytes verify, and surface
 
 test('the request-wide byte budget also stops multiple individually valid documents',async()=>{
  const chunk=new Uint8Array(ARCHIVE_DOCUMENT_MAX_BYTES);const digest=createHash('sha256').update(chunk).digest('hex');
- const moreDocs=Array.from({length:5},(_,i)=>id(20+i));
+ // The document that pushes the total over the request budget is the last read.
+ const stopAt=Math.floor(ARCHIVE_REQUEST_MAX_BYTES/ARCHIVE_DOCUMENT_MAX_BYTES)+1;
+ const moreDocs=Array.from({length:stopAt+2},(_,i)=>id(20+i));
  const receipts=Object.fromEntries(moreDocs.map(doc=>[doc,{path:`cases/${id(1)}/documents/${doc}/${digest}.pdf`,sha256:digest,object_id:id(8),version:id(9)}]));
  const calls={reads:0,paths:[] as string[]};
  await assert.rejects(()=>verifySelectedArchives(fakeStorage(chunk,calls),id(1),moreDocs,receipts),/límit/);
- assert.equal(calls.reads,5);
+ assert.equal(calls.reads,stopAt);
 });
 
 test('an abort actively releases a stalled Storage stream',async()=>{

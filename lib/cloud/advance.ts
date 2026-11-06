@@ -96,7 +96,7 @@ async function advanceClaimed(c:Context,workflow:string):Promise<{done:boolean;w
     await progress(c,'document_extraction',completedDocuments,docs.data.length,`Preparant el document ${Math.min(completedDocuments+1,docs.data.length)} de ${docs.data.length}`,job.id);
     let result:Awaited<ReturnType<typeof extractDocument>>;
     try {result=await extractDocument(c,job.id,doc.id,doc.url,run.data?.parameters?.ocr_recovery===true,forcePages,refreshSources);if(result.partial){if(refreshSources)throw new CloudFailure('document',5,{operation:'document_refresh',code:'CONCERT_EXTRACTION_INCOMPLETE'});await commit(c,job.id,'document_failure',{id:doc.id,coverage:result.coverage,kind:'incomplete_extraction'});throw new CloudFailure('document');}}
-    catch(error){const kind=documentIssueKind(error);if(refreshSources&&error instanceof CloudFailure&&error.diagnostic?.code==='CONCERT_EXTRACTION_INCOMPLETE')throw error;if(refreshSources&&kind)throw new CloudFailure('document',5,{operation:'document_refresh',code:kind==='source_changed'?'CONCERT_SOURCE_CHANGED':kind==='archive_unavailable'?'CONCERT_ARCHIVE_UNAVAILABLE':'CONCERT_SOURCE_REFRESH_FAILED',message:kind==='source_changed'?'La font oficial ha canviat. Es conserva la versió anterior i cal revisar la nova font abans de substituir-la.':'No s’ha completat la nova lectura documental. Es conserva la versió anterior; consulta la incidència.'});if(kind){await commit(c,job.id,'document_failure',{id:doc.id,kind,...(kind==='document'?{}:{coverage:{complete:false,issue:kind}})});await checkpoint(c,`document_failed:${doc.id}`,{kind});processed=true;break;}throw error;}
+    catch(error){const kind=documentIssueKind(error);if(refreshSources&&error instanceof CloudFailure&&error.diagnostic?.code==='CONCERT_EXTRACTION_INCOMPLETE')throw error;if(refreshSources&&kind)throw new CloudFailure('document',5,{operation:'document_refresh',code:kind==='source_changed'?'CONCERT_SOURCE_CHANGED':kind==='archive_unavailable'?'CONCERT_ARCHIVE_UNAVAILABLE':'CONCERT_SOURCE_REFRESH_FAILED',message:kind==='source_changed'?'La font oficial ha canviat. Es conserva la versió anterior i cal revisar la nova font abans de substituir-la.':'No s’ha completat la nova lectura documental. Es conserva la versió anterior; consulta la incidència.'});if(kind){await commit(c,job.id,'document_failure',{id:doc.id,kind,...(kind==='document'?{}:{coverage:{complete:false,issue:kind}})});await checkpoint(c,`document_failed:${doc.id}`,{kind,...(error instanceof CloudFailure&&error.diagnostic?.code==='DOCUMENT_TOO_LARGE'?{code:'DOCUMENT_TOO_LARGE'}:{})});processed=true;break;}throw error;}
     const textHash=hash(result.text);
     const duplicate=await db.from('source_documents').select('id').eq('source_record_id',job.source_record_id).eq('extracted_text_hash',textHash).neq('id',doc.id).limit(1);
     if(duplicate.error)throw Error();
@@ -110,9 +110,12 @@ async function advanceClaimed(c:Context,workflow:string):Promise<{done:boolean;w
     await progress(c,'document_extraction',completedDocuments,docs.data.length,`${completedDocuments} de ${docs.data.length} documents preparats`,job.id);break;
    }
    if(!processed){
-    if(!docs.data.some(usable))throw new CloudFailure('document');
+    // Keep the concrete reason of a document that could not be read, so the
+    // record explains it instead of the generic «Document no processable».
+    const documentFailure=async()=>{for(const d of docs.data){if(usable(d))continue;const failed=await readCheckpoint<{code?:string}>(c,`document_failed:${d.id}`);if(failed?.code==='DOCUMENT_TOO_LARGE')return new CloudFailure('document',5,{operation:'document_download',code:'DOCUMENT_TOO_LARGE'});}return new CloudFailure('document');};
+    if(!docs.data.some(usable))throw await documentFailure();
     const pdfs=docs.data.filter(d=>d.mime_type?.includes('pdf'));
-    if(pdfs.length&&!pdfs.some(usable))throw new CloudFailure('document');
+    if(pdfs.length&&!pdfs.some(usable))throw await documentFailure();
     await commit(c,job.id,'ready',{});if(t.data.task_type==='prepare_run')await checkpoint(c,`${job.id}:complete`,true);
    }
   }else{

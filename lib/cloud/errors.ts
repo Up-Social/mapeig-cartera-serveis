@@ -57,6 +57,7 @@ export function failureMessage(failure:CloudFailure):string {
   CONVENI_INSUFFICIENT_WITH_SOCIAL_FACTS:'La IA indicava evidència insuficient, però acredita una activitat social i la població destinatària: es proposa «Fora de cartera», pendent de revisió.',
   CONVENI_FUNDED_AMENDMENT:'Addenda, pròrroga o modificació amb aportació pública a una entitat no pública: és un registre propi i no es descarta. Cal classificar el servei que finança.',
   CONVENI_DISCARD_REASON_CONFLICT:'La manca d’encaix en la cartera no justifica per si sola un descart. Cal revisar la naturalesa social i el motiu documentat.',
+  DOCUMENT_TOO_LARGE:'El PDF oficial supera la mida màxima admesa (40 MB) i no s’ha pogut descarregar. Cal revisar-lo manualment o obtenir-ne una còpia més lleugera.',
   COVERAGE_INCOMPLETE:'Falten documents o pàgines del conveni per llegir completament. Cal recuperar totes les fonts i annexos abans d’analitzar-lo.',
   DECLARED_DOCUMENT_MISSING:'Falten documents o annexos declarats a l’Excel. Cal tornar a preparar les fonts.',
   FULL_TEXT_LIMIT:'El conveni supera el límit de lectura completa (180.000 caràcters). Cal revisió documental; no s’ha truncat el text.',

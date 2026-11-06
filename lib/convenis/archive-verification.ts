@@ -1,12 +1,15 @@
 import {createHash} from 'node:crypto';
 import type {SupabaseClient} from '@supabase/supabase-js';
 import {isUuid} from '../uuid';
+import {MAX_PDF_BYTES} from '../pipeline/document-input';
 
-// The 16 MiB per-document limit matches the existing PDF source limit. The
-// request-wide 64 MiB and 30 s limits bound this interactive verification; a
-// larger selection remains pending rather than being partially verified.
-export const ARCHIVE_DOCUMENT_MAX_BYTES=16*1024*1024;
-export const ARCHIVE_REQUEST_MAX_BYTES=64*1024*1024;
+// The per-document limit is the official PDF download cap (MAX_PDF_BYTES): an
+// archived copy can be verified whenever it could be downloaded. The
+// request-wide 96 MiB (a source and its copy fit) and 30 s limits bound this
+// interactive verification; a larger selection remains pending rather than
+// being partially verified.
+export const ARCHIVE_DOCUMENT_MAX_BYTES=MAX_PDF_BYTES;
+export const ARCHIVE_REQUEST_MAX_BYTES=96*1024*1024;
 export const ARCHIVE_REQUEST_TIMEOUT_MS=30_000;
 function abortable<T>(operation:PromiseLike<T>,signal:AbortSignal):Promise<T>{
  return new Promise((resolve,reject)=>{

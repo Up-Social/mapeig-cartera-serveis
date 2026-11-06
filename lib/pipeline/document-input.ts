@@ -2,9 +2,14 @@ import {lookup} from "node:dns/promises";
 import {isIP} from "node:net";
 import {request as httpRequest} from 'node:http';
 import {request as httpsRequest} from 'node:https';
-const MAX_BYTES=10*1024*1024,MAX_PDF_BYTES=16*1024*1024,MAX_TEXT=200_000,TIMEOUT_MS=20_000;
+// A scanned official PDF can exceed 16 MiB (a 2025 conveni is 28 MB). Keep a
+// bounded download; the archive bucket and archive verification use the same cap.
+export const MAX_PDF_BYTES=40*1024*1024;
+const MAX_BYTES=10*1024*1024,MAX_TEXT=200_000,TIMEOUT_MS=20_000;
 import {HTML_COVERAGE_POLICY} from './document-coverage';
 export {HTML_COVERAGE_POLICY,hasCurrentTextCoverage} from './document-coverage';
+/** The response exceeds the download cap; distinct so callers can explain it. */
+export class DocumentTooLargeError extends Error {constructor(public limitBytes:number){super('Document massa gran');}}
 export async function fetchWithLimits(initialUrl: string,options?:{allowedHosts:string[]}) {
   let current = new URL(initialUrl);
   for (let redirect = 0; redirect <= 5; redirect += 1) {
@@ -31,8 +36,8 @@ function pinnedRequest(url:URL,address:{address:string;family:number}){
   const request=(url.protocol==='https:'?httpsRequest:httpRequest)(url,{agent:false,family:address.family,lookup:(_host,_options,callback)=>callback(null,address.address,address.family),signal:AbortSignal.timeout(TIMEOUT_MS),headers:{'user-agent':'Mapeig-cartera-serveis-PoC/0.1','accept-encoding':'identity'}},async response=>{
    try{const status=response.statusCode??0;if(status>=300&&status<400){response.resume();resolve({status,headers:response.headers,bytes:Buffer.alloc(0)});return;}
     const maxBytes=response.headers['content-type']?.toLowerCase().startsWith('application/pdf')||url.pathname.toLowerCase().endsWith('.pdf')?MAX_PDF_BYTES:MAX_BYTES;
-    if(Number(response.headers['content-length']??0)>maxBytes){response.destroy();throw Error('Document massa gran');}
-    const chunks:Buffer[]=[];let size=0;for await(const chunk of response){size+=chunk.length;if(size>maxBytes){response.destroy();throw Error('Document massa gran');}chunks.push(Buffer.from(chunk));}resolve({status,headers:response.headers,bytes:Buffer.concat(chunks)});
+    if(Number(response.headers['content-length']??0)>maxBytes){response.destroy();throw new DocumentTooLargeError(maxBytes);}
+    const chunks:Buffer[]=[];let size=0;for await(const chunk of response){size+=chunk.length;if(size>maxBytes){response.destroy();throw new DocumentTooLargeError(maxBytes);}chunks.push(Buffer.from(chunk));}resolve({status,headers:response.headers,bytes:Buffer.concat(chunks)});
    }catch(error){reject(error);}
   });request.on('error',reject);request.end();
  });
