@@ -24,8 +24,8 @@ export type ConcertGeographyRow={unit_id:string;municipality:string|null;county:
 export type ConcertCorrectionRow={source_record_id:string;unit_id:string|null;field:string;value:string;valid:boolean};
 export type ConcertPopulationRow={unit_id:string;job_id:string;sequence:number;decision:'confirmed'|'unknown';value:string|null};
 export type ConcertJobRow={id:string;source_record_id:string;status:string};
-export type ConcertEnrichmentRow={source_record_id:string;award_date:string|null;contracting_body:string|null;target_population:string|null;scope_facts:unknown};
-export type ConcertProvisionRow={source_record_id:string;unit_id:string|null;award_date:string|null;contracting_body:string|null;target_population:string|null;call_url:string|null};
+export type ConcertEnrichmentRow={source_record_id:string;award_date:string|null;contracting_body:string|null;target_population:string|null;scope_facts:unknown;amount?:number|string|null};
+export type ConcertProvisionRow={source_record_id:string;unit_id:string|null;award_date:string|null;contracting_body:string|null;target_population:string|null;call_url:string|null;amount?:number|string|null};
 export type ConcertDocumentRow={
  id:string;source_record_id:string;url:string;document_type:string;source_fields:string[]|null;status:string;mime_type:string|null;storage_path:string|null;storage_sha256:string|null;
  active_extraction_id:string|null;extracted_text:string|null;extracted_text_hash:string|null;extraction_method:string|null;extraction_partial:boolean|null;extraction_coverage:unknown;quality_flags:string[]|null;
@@ -46,7 +46,7 @@ export const CONCERT_EXTRA_COLUMNS:readonly ExtraColumn[]=[
  {key:'reviewState',header:'Estat revisió econòmica',width:18},{key:'amountKind',header:'Tipus d’import',width:24},{key:'municipality',header:'Municipi',width:20},
  {key:'county',header:'Comarca',width:20},{key:'resesCode',header:'Codi RESES',width:12},{key:'centre',header:'Centre',width:28},{key:'quantity',header:'Places',width:9},
  {key:'quantityDelta',header:'Variació de places',width:12},{key:'observedCode',header:'Codi observat',width:16},{key:'serviceName',header:'Nom del servei',width:36},
- {key:'codeOrigin',header:'Origen del codi',width:16},{key:'amountOrigin',header:'Origen de l’import',width:24},{key:'dateOrigin',header:'Origen de la data',width:24},
+ {key:'codeOrigin',header:'Origen del codi',width:16},{key:'documentedAmount',header:'Import documentat a la línia',width:16},{key:'amountOrigin',header:'Origen de l’import',width:24},{key:'dateOrigin',header:'Origen de la data',width:24},
  {key:'otherDate',header:'Data alternativa',width:14},{key:'organOrigin',header:'Origen de l’òrgan',width:22},{key:'populationOrigin',header:'Origen de la població',width:24},
  {key:'territoryOrigin',header:'Origen del territori',width:24},{key:'horizonState',header:'Estat d’horitzó',width:16},{key:'reviewNote',header:'Nota de revisió',width:36},
  {key:'appLink',header:'Enllaç a l’aplicació',width:40},{key:OBSERVATIONS_KEY,header:'Observacions',width:60},
@@ -57,6 +57,7 @@ const OPERATION:Record<string,string>={award:'Adjudicació',renewal:'Pròrroga',
 const ACT_LABEL=(actType:string)=>actType==='legacy'?'Línia global':(concertCase[actType as ConcertCaseKey]?.label??actType);
 const isProvince=(value:string|null|undefined):value is MapeigProvince=>!!value&&(MAPEIG_PROVINCES as readonly string[]).includes(value);
 const trimmed=(value:string|null|undefined)=>value?.trim()||null;
+const documentedEuros=(value:number|string|null)=>{if(value===null||value==='')return null;const cents=euroCents(value);return cents===null?null:cents/100;};
 const scopeAuthority=(facts:unknown):string|null=>{
  if(!facts||typeof facts!=='object')return null;
  const authority=(facts as {documentary_authority?:{authority?:{value?:unknown}|null}}).documentary_authority?.authority;
@@ -91,22 +92,63 @@ export function concertRecordAwardDate(input:{documents:ConcertDocumentRow[];sig
  if(input.provision?.award_date)return {date:input.provision.award_date,origin:'Provisió aprovada',other:null,note:null};
  return {date:null,origin:null,other:null,note:printed.length>1?'Diverses dates de signatura originals; cap es proposa':'Data de concessió no identificada'};
 }
-/** Award lines carry the annex amount; other acts only an approved economic
- * review, signed by its operation (template rule: cessaments en negatiu). */
-export function concertLineAmount(unit:ConcertUnitRow,review:ConcertReviewRow|undefined):{amount:number|null;origin:string|null;note:string|null}{
- if(unit.act_type==='award'||unit.act_type==='legacy'){
-  if(unit.amount===null||unit.amount==='')return {amount:null,origin:null,note:'Import no acreditat'};
-  const cents=euroCents(unit.amount);
-  return cents===null?{amount:null,origin:null,note:'Import no interpretable'}:{amount:cents/100,origin:unit.act_type==='legacy'?'Import global del registre':'Import de l’annex de la resolució',note:null};
+/** What the line amount can be compared with: the approved provision of the
+ * line (or record) and, for a rectification, the line it rectifies. */
+export type ConcertAmountContext={provisionAmount?:number|string|null;documentAmount?:number|string|null;rectifiedRecord?:string|null};
+const DOCUMENTED_ORIGIN:Record<string,string>={renewal:'Import documentat a la línia de pròrroga',modification:'Import documentat a la línia de modificació',amendment:'Import documentat a la línia d’esmena'};
+/** Column F, the only one the summary adds up.
+ * 1. An approved economic review prevails, signed by its operation (template
+ *    rule: cessaments en negatiu).
+ * 2. Otherwise the amount documented on the line, the one the record page shows,
+ *    for every act type; a pending review is stated, not a reason to blank it.
+ * 3. A rectification that repeats a line already exported in its original
+ *    resolution (same entity, RESES code, period and amount) is shown in
+ *    «Import documentat a la línia» but not added up again. */
+export function concertLineAmount(unit:ConcertUnitRow,review:ConcertReviewRow|undefined,context:ConcertAmountContext={}):{amount:number|null;origin:string|null;note:string|null}{
+ if(review?.status==='approved'){
+  if(review.amount_kind==='unknown'||review.amount_cents===null||review.operation==='nonfinancial'||review.operation==='correction')
+   return {amount:null,origin:null,note:review.operation==='nonfinancial'?'Acte sense efecte econòmic':'Import no acreditat per la revisió econòmica'};
+  if(review.operation==='replacement')return {amount:null,origin:null,note:'Total substitutiu: cal la diferència amb l’original'};
+  let cents=review.amount_cents;
+  if(unit.act_type==='termination'&&cents>0)cents=-cents;
+  return {amount:cents/100,origin:`Revisió econòmica aprovada (${OPERATION[review.operation]??review.operation})`,note:null};
  }
- if(!review||review.status!=='approved')return {amount:null,origin:null,note:review?'Revisió econòmica no aprovada':'Revisió econòmica pendent'};
- if(review.amount_kind==='unknown'||review.amount_cents===null||review.operation==='nonfinancial'||review.operation==='correction')
-  return {amount:null,origin:null,note:review.operation==='nonfinancial'?'Acte sense efecte econòmic':'Import no acreditat per la revisió econòmica'};
- if(review.operation==='replacement')return {amount:null,origin:null,note:'Total substitutiu: cal la diferència amb l’original'};
- let cents=review.amount_cents;
+ if(review?.status==='excluded')return {amount:null,origin:null,note:'Línia exclosa de la revisió econòmica'};
+ let documented=unit.amount,origin:string;
+ if(unit.act_type==='award')origin='Import de l’annex de la resolució';
+ else if(unit.act_type==='legacy')origin='Import global del registre';
+ else origin=DOCUMENTED_ORIGIN[unit.act_type]??'Import documentat a la línia';
+ if((documented===null||documented==='')&&unit.act_type==='legacy'&&context.provisionAmount!==null&&context.provisionAmount!==undefined&&context.provisionAmount!==''){
+  documented=context.provisionAmount;origin='Import de la provisió aprovada';
+ }
+ // The record page shows the document's global amount for a record without
+ // annex lines; the global line exports the same figure.
+ if((documented===null||documented==='')&&unit.act_type==='legacy'&&context.documentAmount!==null&&context.documentAmount!==undefined&&context.documentAmount!==''){
+  documented=context.documentAmount;origin='Import global del document (extracció)';
+ }
+ if(documented===null||documented==='')return {amount:null,origin:null,note:'Import no acreditat'};
+ let cents=euroCents(documented);
+ if(cents===null)return {amount:null,origin:null,note:'Import no interpretable'};
+ if(context.rectifiedRecord)return {amount:null,origin:null,note:`Esmena de la línia del registre ${context.rectifiedRecord}: l’import ja consta a l’original i no se suma`};
  if(unit.act_type==='termination'&&cents>0)cents=-cents;
- return {amount:cents/100,origin:`Revisió econòmica aprovada (${OPERATION[review.operation]??review.operation})`,note:null};
+ const pending=unit.act_type==='award'||unit.act_type==='legacy'?null:review?.status==='draft'?'Import documentat; revisió econòmica en curs':'Import documentat; revisió econòmica pendent';
+ return {amount:cents/100,origin,note:pending};
 }
+/** Lines an amendment can repeat: award and renewal lines of other records. */
+function originalLineIndex(units:readonly ConcertUnitRow[]):Map<string,Array<{record:string;cents:number}>>{
+ const index=new Map<string,Array<{record:string;cents:number}>>();
+ for(const unit of units){
+  if(unit.unit_key==='legacy'||(unit.act_type!=='award'&&unit.act_type!=='renewal'))continue;
+  const key=originalKey(unit),cents=unit.amount===null||unit.amount===''?null:euroCents(unit.amount);
+  if(!key||cents===null)continue;
+  const list=index.get(key)??[];list.push({record:unit.source_record_id,cents});index.set(key,list);
+ }
+ return index;
+}
+const originalKey=(unit:ConcertUnitRow)=>{
+ const nif=trimmed(unit.provider_nif)?.toUpperCase(),reses=trimmed(unit.reses_code)?.toUpperCase(),period=trimmed(unit.period);
+ return nif&&reses&&period?`${nif}|${reses}|${period}`:null;
+};
 export function concertLineProvince(unit:ConcertUnitRow,geography:ConcertGeographyRow|undefined,supplemental:ReviewedConcertGeography|undefined,review:ConcertReviewRow|undefined):{province:MapeigProvince|null;municipality:string|null;county:string|null;origin:string|null;note:string|null}{
  if(geography&&isProvince(geography.province))return {province:geography.province,municipality:geography.municipality,county:geography.county,origin:'Geografia documental de la línia',note:null};
  const economic=economicConcertTerritory(unit.territory,supplemental,review);
@@ -135,7 +177,9 @@ export function concertRowsFromData(data:ConcertMapeigData,options:ConcertRowOpt
  const correction=(field:string,unit:ConcertUnitRow)=>corrections.find(c=>c.field===field&&c.unit_id===unit.id)?.value??corrections.find(c=>c.field===field&&c.unit_id===null&&c.source_record_id===unit.source_record_id)?.value??null;
  const awardDates=new Map<string,ReturnType<typeof concertRecordAwardDate>>();
  const rows:DetallRegistresRow[]=[];
- let skippedLegacy=0;
+ let skippedLegacy=0,rectifications=0;
+ const originals=originalLineIndex(data.units);
+ const sourceIds=new Map(data.records.map(r=>[r.id,r.source_record_id]));
  for(const unit of data.units){
   const record=records.get(unit.source_record_id);
   const siblings=unitsByRecord.get(unit.source_record_id)??[];
@@ -156,7 +200,14 @@ export function concertRowsFromData(data:ConcertMapeigData,options:ConcertRowOpt
   const awardDate=awardDates.get(unit.source_record_id)!;
   if(awardDate.note)observations.push(awardDate.note);
   // F: amount
-  const amount=concertLineAmount(unit,review);
+  let rectifiedRecord:string|null=null;
+  if(unit.act_type==='amendment'&&unit.unit_key!=='legacy'){
+   const key=originalKey(unit),cents=unit.amount===null||unit.amount===''?null:euroCents(unit.amount);
+   const original=key&&cents!==null?originals.get(key)?.find(o=>o.record!==unit.source_record_id&&o.cents===cents):undefined;
+   if(original)rectifiedRecord=sourceIds.get(original.record)??original.record;
+  }
+  const amount=concertLineAmount(unit,review,{provisionAmount:provision?.amount,documentAmount:enrichment?.amount,rectifiedRecord});
+  if(rectifiedRecord&&review?.status!=='approved')rectifications+=1;
   if(amount.note)observations.push(amount.note);
   // G: contracting body
   let contractingBody=trimmed(enrichment?.contracting_body),organOrigin:string|null='Òrgan signant del document';
@@ -195,7 +246,7 @@ export function concertRowsFromData(data:ConcertMapeigData,options:ConcertRowOpt
    actType:ACT_LABEL(unit.act_type),period,effectiveAt:review?.effective_at??null,operation:review?OPERATION[review.operation]??review.operation:null,
    reviewState:review?REVIEW_STATE[review.status]??review.status:null,amountKind:review?ECONOMIC_AMOUNT_LABELS[review.amount_kind]:null,
    municipality:territory.municipality,county:territory.county,resesCode:unit.reses_code,centre:unit.centre,quantity:unit.quantity,quantityDelta:unit.quantity_delta,
-   observedCode:unit.observed_service_code,serviceName,codeOrigin,amountOrigin:amount.origin,dateOrigin:awardDate.origin,otherDate:awardDate.other,organOrigin,populationOrigin,
+   observedCode:unit.observed_service_code,serviceName,codeOrigin,amountOrigin:amount.origin,documentedAmount:documentedEuros(unit.amount),dateOrigin:awardDate.origin,otherDate:awardDate.other,organOrigin,populationOrigin,
    territoryOrigin:territory.origin,horizonState:unit.horizon_state,reviewNote:unit.review_note,appLink:`${options.origin}${concertLineHref(unit.source_record_id,unit.id)}`,
   });
   rows.push({
@@ -204,6 +255,7 @@ export function concertRowsFromData(data:ConcertMapeigData,options:ConcertRowOpt
   });
  }
  const notes:string[]=[];
+ if(rectifications)notes.push(`${rectifications} línies d’esmena repeteixen una línia ja exportada de la resolució original (mateixa entitat, codi RESES, període i import): l’import consta a «Import documentat a la línia» però no se suma.`);
  if(skippedLegacy)notes.push(`${skippedLegacy} línies globals de registres amb desglossament per annex no s’han exportat per no duplicar imports.`);
  if(!data.gates.supplementalGeography)notes.push('La geografia complementària revisada no està activada en aquest entorn; el territori surt del document i de la correspondència Idescat.');
  if(!data.gates.signatureDates)notes.push('Les dates de signatura digital no estan activades en aquest entorn; la data de concessió surt de la signatura impresa o de l’extracció.');

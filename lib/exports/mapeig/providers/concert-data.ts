@@ -39,13 +39,13 @@ export async function loadConcertMapeigData(db:SupabaseClient,options:{awardDate
    try{populations.push(...await readPages(async(from,to)=>db.from('concert_population_events').select('unit_id,job_id,sequence,decision,value').in('unit_id',ids).order('id').range(from,to).returns<ConcertPopulationRow[]>()));}
    catch{populationEvents=false;populations.length=0;}
   }
-  provisions.push(...await readPages(async(from,to)=>db.from('service_provisions').select('source_record_id,unit_id,award_date,contracting_body,target_population,call_url').in('unit_id',ids).is('superseded_at',null).order('id').range(from,to).returns<ConcertProvisionRow[]>()));
+  provisions.push(...await readPages(async(from,to)=>db.from('service_provisions').select('source_record_id,unit_id,award_date,contracting_body,target_population,call_url,amount').in('unit_id',ids).is('superseded_at',null).order('id').range(from,to).returns<ConcertProvisionRow[]>()));
  }
  const corrections:ConcertCorrectionRow[]=[],latestJobs:ConcertJobRow[]=[],enrichments:ConcertEnrichmentRow[]=[],documents:ConcertDocumentRow[]=[],signatures:ConcertSignatureRow[]=[];
  for(const ids of chunks(recordIds)){
   corrections.push(...await readPages(async(from,to)=>db.from('current_documented_corrections').select('source_record_id,unit_id,field,value,valid').in('source_record_id',ids).in('field',['service_code','provider_name','provider_nif','final_population']).order('id').range(from,to).returns<ConcertCorrectionRow[]>()));
-  enrichments.push(...await readPages(async(from,to)=>db.from('record_enrichments').select('source_record_id,award_date,contracting_body,target_population,scope_facts').in('source_record_id',ids).order('id').range(from,to).returns<ConcertEnrichmentRow[]>()));
-  provisions.push(...await readPages(async(from,to)=>db.from('service_provisions').select('source_record_id,unit_id,award_date,contracting_body,target_population,call_url').in('source_record_id',ids).is('unit_id',null).order('id').range(from,to).returns<ConcertProvisionRow[]>()));
+  enrichments.push(...await readPages(async(from,to)=>db.from('record_enrichments').select('source_record_id,award_date,contracting_body,target_population,scope_facts,amount').in('source_record_id',ids).order('id').range(from,to).returns<ConcertEnrichmentRow[]>()));
+  provisions.push(...await readPages(async(from,to)=>db.from('service_provisions').select('source_record_id,unit_id,award_date,contracting_body,target_population,call_url,amount').in('source_record_id',ids).is('unit_id',null).order('id').range(from,to).returns<ConcertProvisionRow[]>()));
   const latest=new Map<string,ConcertJobRow>();
   const jobs=await readPages(async(from,to)=>db.from('pipeline_jobs').select('id,source_record_id,status').in('source_record_id',ids).eq('verification_only',false).order('created_at',{ascending:false}).order('id',{ascending:false}).range(from,to).returns<ConcertJobRow[]>());
   for(const job of jobs)if(!latest.has(job.source_record_id))latest.set(job.source_record_id,job);

@@ -40,11 +40,21 @@ test('an award line maps every template column from the line and its record',()=
  assert.equal(row.extras.appLink,'https://app.example/records/r1#concert-line-u1');
 });
 
-test('the amount follows the act: annex for awards, approved economic review otherwise',()=>{
+test('the amount: an approved economic review prevails, otherwise the amount documented on the line',()=>{
  assert.deepEqual(concertLineAmount(unit({}),undefined),{amount:1000.5,origin:'Import de l’annex de la resolució',note:null});
  assert.equal(concertLineAmount(unit({amount:null}),undefined).note,'Import no acreditat');
- assert.equal(concertLineAmount(unit({act_type:'renewal'}),undefined).note,'Revisió econòmica pendent');
- assert.equal(concertLineAmount(unit({act_type:'renewal'}),review({status:'draft'})).note,'Revisió econòmica no aprovada');
+ assert.deepEqual(concertLineAmount(unit({act_type:'renewal'}),undefined),{amount:1000.5,origin:'Import documentat a la línia de pròrroga',note:'Import documentat; revisió econòmica pendent'});
+ assert.deepEqual(concertLineAmount(unit({act_type:'renewal'}),review({status:'draft'})),{amount:1000.5,origin:'Import documentat a la línia de pròrroga',note:'Import documentat; revisió econòmica en curs'});
+ assert.equal(concertLineAmount(unit({act_type:'modification'}),undefined).amount,1000.5);
+ assert.equal(concertLineAmount(unit({act_type:'termination',amount:'70'}),undefined).amount,-70,'documented cessaments go negative');
+ assert.equal(concertLineAmount(unit({act_type:'renewal'}),review({status:'excluded'})).amount,null);
+ assert.equal(concertLineAmount(unit({}),review({operation:'award',amount_cents:20000})).amount,200,'an approved review prevails over the annex');
+ assert.deepEqual(concertLineAmount(unit({act_type:'legacy',unit_key:'legacy',amount:null}),undefined,{provisionAmount:'2500.00'}),{amount:2500,origin:'Import de la provisió aprovada',note:null});
+ assert.deepEqual(concertLineAmount(unit({act_type:'legacy',unit_key:'legacy',amount:null}),undefined,{documentAmount:'11835.62'}),{amount:11835.62,origin:'Import global del document (extracció)',note:null});
+ assert.equal(concertLineAmount(unit({act_type:'legacy',unit_key:'legacy',amount:null}),undefined,{provisionAmount:'10',documentAmount:'20'}).amount,10,'the approved provision prevails');
+ const rectification=concertLineAmount(unit({act_type:'amendment'}),undefined,{rectifiedRecord:'etauler:1:9'});
+ assert.equal(rectification.amount,null);assert.match(rectification.note!,/etauler:1:9.*no se suma/);
+ assert.equal(concertLineAmount(unit({act_type:'amendment'}),undefined).amount,1000.5,'an amendment without original adds up');
  assert.equal(concertLineAmount(unit({act_type:'modification'}),review({operation:'delta',amount_cents:-5000})).amount,-50);
  assert.equal(concertLineAmount(unit({act_type:'termination'}),review({operation:'delta',amount_cents:7000})).amount,-70,'cessaments go negative');
  assert.equal(concertLineAmount(unit({act_type:'renewal'}),review({operation:'renewal',amount_cents:12000})).amount,120);
@@ -102,4 +112,19 @@ test('legacy lines are skipped when the record has annex lines; corrections, pop
  assert.equal(alone.rows.length,1);assert.ok(alone.notes.some(note=>note.includes('població revisades per línia no es poden llegir')));assert.equal(alone.rows[0].amount,5000);assert.equal(alone.rows[0].carteraCode,null);
  assert.ok(alone.rows[0].observations.includes('Codi pendent de revisió'));assert.ok(alone.rows[0].observations.includes('Òrgan no identificat'));
  assert.equal(alone.rows[0].sourceUrl,'https://tauler.example/edicte/100');
+});
+
+test('an amendment that repeats an exported line of another resolution is shown but not added up',()=>{
+ const award=unit({id:'u1',source_record_id:'r1',period:'2024-10-01/2024-12-31',act_type:'renewal'});
+ const amendment=unit({id:'u2',source_record_id:'r2',period:'2024-10-01/2024-12-31',act_type:'amendment'});
+ const other=unit({id:'u3',source_record_id:'r2',unit_key:'official-annex:abc:1:2',period:'2024-10-01/2024-12-31',act_type:'amendment',amount:'999.00'});
+ const result=concertRowsFromData(data({units:[award,amendment,other],records:[
+  {id:'r1',source_record_id:'etauler:1:100',title:'Resolució de pròrroga',record_url:null},
+  {id:'r2',source_record_id:'etauler:1:200',title:'Resolució de rectificació',record_url:null}]}),options);
+ const byId=new Map(result.rows.map(row=>[row.extras.unitId,row]));
+ assert.equal(byId.get('u1')!.amount,1000.5);
+ assert.equal(byId.get('u2')!.amount,null);assert.equal(byId.get('u2')!.extras.documentedAmount,1000.5);
+ assert.ok(byId.get('u2')!.observations.some(o=>o.includes('etauler:1:100')));
+ assert.equal(byId.get('u3')!.amount,999,'a different amount is not a repetition');
+ assert.ok(result.notes.some(n=>n.startsWith('1 línies d’esmena')));
 });
