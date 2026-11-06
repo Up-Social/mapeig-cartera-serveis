@@ -76,7 +76,13 @@ export function clearDetallExamples(detall:ExcelJS.Worksheet):CellStyle[]{
  for(let number=2;number<=detall.rowCount;number++){const row=detall.getRow(number);row.values=[];row.height=undefined as unknown as number;}
  return styles;
 }
-export function writeDetallRows(detall:ExcelJS.Worksheet,rows:readonly DetallRegistresRow[],extraColumns:readonly ExtraColumn[],styles:CellStyle[]):number{
+/** First added column, right after the template's: why column F is blank. F
+ * stays empty (a number or nothing) so the summary formulas are unchanged. */
+export const AMOUNT_BLANK_REASON_KEY='amountBlankReason';
+export const AMOUNT_BLANK_REASON_COLUMN:ExtraColumn={key:AMOUNT_BLANK_REASON_KEY,header:'Motiu de l’import en blanc',width:44};
+export const amountBlankReason=(row:DetallRegistresRow)=>row.amount===null?(row.amountBlankReason?.trim()||'Import no identificat al document'):null;
+export function writeDetallRows(detall:ExcelJS.Worksheet,rows:readonly DetallRegistresRow[],providerColumns:readonly ExtraColumn[],styles:CellStyle[]):number{
+ const extraColumns=[AMOUNT_BLANK_REASON_COLUMN,...providerColumns.filter(column=>column.key!==AMOUNT_BLANK_REASON_KEY)];
  const headerStyle=structuredClone(detall.getCell(1,DETALL_FIXED_COLUMNS).style);
  headerStyle.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF595959'}};
  const extraStyle=structuredClone(styles[1]);extraStyle.font={...extraStyle.font,color:{argb:'FF404040'}};extraStyle.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFF2F2F2'}};
@@ -92,12 +98,14 @@ export function writeDetallRows(detall:ExcelJS.Worksheet,rows:readonly DetallReg
   const values:ExcelJS.CellValue[]=[
    row.sourceUrl?{text:row.sourceId,hyperlink:row.sourceUrl}:row.sourceId,
    row.providerName,row.providerNif,row.mechanism,date,row.amount,row.contractingBody,row.targetPopulation,row.province,row.source,row.carteraCode,
-   ...extraColumns.map(column=>column.key===OBSERVATIONS_KEY?(row.observations.join(' · ')||null):row.extras[column.key]??null),
+   ...extraColumns.map(column=>column.key===OBSERVATIONS_KEY?(row.observations.join(' · ')||null):column.key===AMOUNT_BLANK_REASON_KEY?amountBlankReason(row):row.extras[column.key]??null),
   ];
   const added=detall.getRow(index+2);
   added.values=values;
   for(let column=1;column<=values.length;column++)added.getCell(column).style=structuredClone(column<=DETALL_FIXED_COLUMNS?styles[column-1]:extraStyle);
   added.getCell(COLUMN.E).numFmt='yyyy-mm-dd';
+  const reason=amountBlankReason(row);
+  if(reason)added.getCell(COLUMN.F).note=`Import en blanc: ${reason}`;
  });
  const lastColumn=detall.getColumn(DETALL_FIXED_COLUMNS+extraColumns.length).letter;
  detall.autoFilter=`A1:${lastColumn}1`;

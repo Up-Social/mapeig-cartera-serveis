@@ -42,7 +42,7 @@ test('an award line maps every template column from the line and its record',()=
 
 test('the amount: an approved economic review prevails, otherwise the amount documented on the line',()=>{
  assert.deepEqual(concertLineAmount(unit({}),undefined),{amount:1000.5,origin:'Import de l’annex de la resolució',note:null});
- assert.equal(concertLineAmount(unit({amount:null}),undefined).note,'Import no acreditat');
+ assert.equal(concertLineAmount(unit({amount:null}),undefined).note,'El document no indica l’import d’aquesta línia');
  assert.deepEqual(concertLineAmount(unit({act_type:'renewal'}),undefined),{amount:1000.5,origin:'Import documentat a la línia de pròrroga',note:'Import documentat; revisió econòmica pendent'});
  assert.deepEqual(concertLineAmount(unit({act_type:'renewal'}),review({status:'draft'})),{amount:1000.5,origin:'Import documentat a la línia de pròrroga',note:'Import documentat; revisió econòmica en curs'});
  assert.equal(concertLineAmount(unit({act_type:'modification'}),undefined).amount,1000.5);
@@ -60,7 +60,7 @@ test('the amount: an approved economic review prevails, otherwise the amount doc
  assert.equal(concertLineAmount(unit({act_type:'renewal'}),review({operation:'renewal',amount_cents:12000})).amount,120);
  assert.equal(concertLineAmount(unit({act_type:'modification'}),review({operation:'replacement',amount_cents:9000})).amount,null);
  assert.equal(concertLineAmount(unit({act_type:'renewal'}),review({operation:'renewal',amount_cents:12000,amount_kind:'unknown'})).amount,null);
- assert.equal(concertLineAmount(unit({act_type:'amendment'}),review({operation:'nonfinancial',amount_cents:null})).note,'Acte sense efecte econòmic');
+ assert.equal(concertLineAmount(unit({act_type:'amendment'}),review({operation:'nonfinancial',amount_cents:null})).note,'Acte sense efecte econòmic segons la revisió econòmica');
 });
 
 test('province precedence: documentary geography, confirmed supplement, Idescat; conflicts stay pending',()=>{

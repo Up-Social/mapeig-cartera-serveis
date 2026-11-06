@@ -22,6 +22,7 @@ export type DetallRegistresRow={
  mechanism:MapeigMechanism;                         // D
  awardDate:string|null;                             // E (ISO yyyy-mm-dd)
  amount:number|null;                                // F euros, signed; null = blank
+ amountBlankReason?:string|null;                    // why F is blank (column L and a note on F)
  contractingBody:string|null;                       // G
  targetPopulation:string|null;                      // H
  province:MapeigProvince|null;                      // I

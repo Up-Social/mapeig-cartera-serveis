@@ -74,8 +74,8 @@ export function conveniUnitAmount(unit:ConveniUnit,provision:ConveniProvisionRow
  const documented=typeof unit.amount_cents==='number'?unit.amount_cents/100:null;
  if(provision&&provision.amount!==null&&provision.amount!==''&&Number.isFinite(Number(provision.amount)))
   return {amount:Number(provision.amount),documented,origin:'Provisió aprovada',note:null};
- if(documented===null)return {amount:null,documented,origin:null,note:'Import pendent: el document no l’atribueix a aquesta línia'};
- if(unit.joint)return {amount:null,documented,origin:null,note:'Import conjunt sense repartiment entre receptors: no se suma'};
+ if(documented===null)return {amount:null,documented,origin:null,note:'El conveni no atribueix cap import a aquesta línia (import global o sense desglossament)'};
+ if(unit.joint)return {amount:null,documented,origin:null,note:'Import conjunt per a diversos receptors sense repartiment: no se suma per no comptar-lo més d’un cop (vegeu «Import documentat a la línia»)'};
  return {amount:documented,documented,origin:'Proposta de l’anàlisi del conveni',note:unit.mixed?'Import mixt: cobreix diverses activitats sense repartiment':null};
 }
 
@@ -116,7 +116,7 @@ export function conveniRowsFromData(data:ConveniMapeigData,options:ConveniRowOpt
   const sourceId=trimmed(payload['Número conveni definitiu'])??record?.source_record_id??'';
   const serviceName=code&&code!==CONVENI_OUT_OF_PORTFOLIO_CODE?options.catalogCodes.get(code)??trimmed(unit.service_name):null;
   rows.push({
-   sourceUrl:trimmed(payload['Document conveni']),sourceId,providerName:recipient,providerNif:nif,mechanism:'Conveni',awardDate,amount:amount.amount,
+   sourceUrl:trimmed(payload['Document conveni']),sourceId,providerName:recipient,providerNif:nif,mechanism:'Conveni',awardDate,amount:amount.amount,amountBlankReason:amount.amount===null?amount.note:null,
    contractingBody,targetPopulation:trimmed(meta.provision?.target_population)??trimmed(unit.population),province:territory.province,source:'Registre de Convenis',carteraCode:code,
    extras:{
     lineState:meta.state,recordId:record?.source_record_id??null,recordTitle:record?.title??trimmed(payload['Títol conveni']),unitId:meta.unitId,

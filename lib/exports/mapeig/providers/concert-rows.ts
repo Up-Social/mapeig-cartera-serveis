@@ -107,13 +107,13 @@ const DOCUMENTED_ORIGIN:Record<string,string>={renewal:'Import documentat a la l
 export function concertLineAmount(unit:ConcertUnitRow,review:ConcertReviewRow|undefined,context:ConcertAmountContext={}):{amount:number|null;origin:string|null;note:string|null}{
  if(review?.status==='approved'){
   if(review.amount_kind==='unknown'||review.amount_cents===null||review.operation==='nonfinancial'||review.operation==='correction')
-   return {amount:null,origin:null,note:review.operation==='nonfinancial'?'Acte sense efecte econòmic':'Import no acreditat per la revisió econòmica'};
-  if(review.operation==='replacement')return {amount:null,origin:null,note:'Total substitutiu: cal la diferència amb l’original'};
+   return {amount:null,origin:null,note:review.operation==='nonfinancial'?'Acte sense efecte econòmic segons la revisió econòmica':'La revisió econòmica no acredita cap import'};
+  if(review.operation==='replacement')return {amount:null,origin:null,note:'La revisió econòmica fixa un total substitutiu: cal la diferència amb l’import original'};
   let cents=review.amount_cents;
   if(unit.act_type==='termination'&&cents>0)cents=-cents;
   return {amount:cents/100,origin:`Revisió econòmica aprovada (${OPERATION[review.operation]??review.operation})`,note:null};
  }
- if(review?.status==='excluded')return {amount:null,origin:null,note:'Línia exclosa de la revisió econòmica'};
+ if(review?.status==='excluded')return {amount:null,origin:null,note:'La revisió econòmica ha exclòs aquesta línia'};
  let documented=unit.amount,origin:string;
  if(unit.act_type==='award')origin='Import de l’annex de la resolució';
  else if(unit.act_type==='legacy')origin='Import global del registre';
@@ -126,10 +126,10 @@ export function concertLineAmount(unit:ConcertUnitRow,review:ConcertReviewRow|un
  if((documented===null||documented==='')&&unit.act_type==='legacy'&&context.documentAmount!==null&&context.documentAmount!==undefined&&context.documentAmount!==''){
   documented=context.documentAmount;origin='Import global del document (extracció)';
  }
- if(documented===null||documented==='')return {amount:null,origin:null,note:'Import no acreditat'};
+ if(documented===null||documented==='')return {amount:null,origin:null,note:'El document no indica l’import d’aquesta línia'};
  let cents=euroCents(documented);
- if(cents===null)return {amount:null,origin:null,note:'Import no interpretable'};
- if(context.rectifiedRecord)return {amount:null,origin:null,note:`Esmena de la línia del registre ${context.rectifiedRecord}: l’import ja consta a l’original i no se suma`};
+ if(cents===null)return {amount:null,origin:null,note:'L’import del document no té un format numèric vàlid'};
+ if(context.rectifiedRecord)return {amount:null,origin:null,note:`Esmena d’una línia de la resolució ${context.rectifiedRecord}: el mateix import ja hi consta i no se suma dues vegades (vegeu «Import documentat a la línia»)`};
  if(unit.act_type==='termination'&&cents>0)cents=-cents;
  const pending=unit.act_type==='award'||unit.act_type==='legacy'?null:review?.status==='draft'?'Import documentat; revisió econòmica en curs':'Import documentat; revisió econòmica pendent';
  return {amount:cents/100,origin,note:pending};
@@ -250,7 +250,7 @@ export function concertRowsFromData(data:ConcertMapeigData,options:ConcertRowOpt
    territoryOrigin:territory.origin,horizonState:unit.horizon_state,reviewNote:unit.review_note,appLink:`${options.origin}${concertLineHref(unit.source_record_id,unit.id)}`,
   });
   rows.push({
-   sourceUrl,sourceId:record?.source_record_id??unit.source_record_id,providerName,providerNif,mechanism:'Concert',awardDate:awardDate.date,amount:amount.amount,
+   sourceUrl,sourceId:record?.source_record_id??unit.source_record_id,providerName,providerNif,mechanism:'Concert',awardDate:awardDate.date,amount:amount.amount,amountBlankReason:amount.amount===null?amount.note:null,
    contractingBody,targetPopulation,province:territory.province,source:'e-Tauler',carteraCode,extras,observations,
   });
  }
